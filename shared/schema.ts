@@ -30,6 +30,9 @@ export const profiles = pgTable("profiles", {
   workFunction: text("work_function"),
   structureType: text("structure_type"),
   
+  // OpenAI API Key (user's own)
+  openaiApiKey: text("openai_api_key"),
+  
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
@@ -84,7 +87,7 @@ export const aiGenerations = pgTable("ai_generations", {
 });
 
 // === SCHEMAS ===
-export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, userId: true, updatedAt: true });
+export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, userId: true, updatedAt: true, openaiApiKey: true });
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, userId: true, createdAt: true, updatedAt: true });
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true });
 

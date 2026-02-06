@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { insertProjectSchema, insertProfileSchema, insertDocumentSchema, projects, profiles, documents, aiGenerations } from './schema';
+export type { GenerateRequest, CreateProjectRequest, UpdateProjectRequest, CreateProfileRequest } from './schema';
 
 export const errorSchemas = {
   validation: z.object({

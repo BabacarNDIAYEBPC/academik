@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   FolderPlus, 
-  Settings, 
+  Settings2, 
   LogOut, 
   User, 
   Menu,
@@ -50,7 +50,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         
         <nav className="space-y-2">
           <NavLink href="/" icon={LayoutDashboard} label="Dashboard" />
-          <NavLink href="/projects/new" icon={FolderPlus} label="New Project" />
+          <NavLink href="/projects/new" icon={FolderPlus} label="Nouveau Projet" />
+          <NavLink href="/settings" icon={Settings2} label="Paramètres" />
         </nav>
       </div>
 
