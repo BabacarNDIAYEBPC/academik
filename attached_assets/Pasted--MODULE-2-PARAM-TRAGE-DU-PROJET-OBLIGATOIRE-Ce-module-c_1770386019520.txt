@@ -1,0 +1,162 @@
+📘 MODULE 2 — PARAMÉTRAGE DU PROJET (OBLIGATOIRE)
+
+⚠️ Ce module constitue le socle de contexte utilisé par l’IA.
+Il est rempli une seule fois par projet et conditionne toutes les propositions.
+
+2.1 Contexte académique ou professionnel
+Domaine principal (liste obligatoire)
+
+Liste déroulante :
+
+Soins infirmiers / Santé
+
+Travail social
+
+Management / Gestion
+
+Ressources humaines
+
+Économie / Finance
+
+Marketing / Communication
+
+Droit / Administration publique
+
+Éducation / Pédagogie
+
+Psychologie
+
+Informatique / Numérique
+
+Data / Intelligence artificielle
+
+Logistique / Supply chain
+
+Qualité / QHSE
+
+Comptabilité / Audit / Contrôle de gestion
+
+Banque / Assurance
+
+Immobilier / Urbanisme
+
+Sciences politiques / Relations internationales
+
+Environnement / Développement durable
+
+Industrie / Génie industriel
+
+Autre (champ texte libre obligatoire)
+
+👉 Liste évolutive.
+
+Formation / diplôme (liste guidée + champ libre)
+
+Liste déroulante (niveau / type) :
+
+BTS / DUT
+
+Licence / Licence professionnelle
+
+Bachelor
+
+Master 1
+
+Master 2
+
+MBA
+
+Diplôme d’État (santé / social)
+
+Doctorat
+
+VAE
+
+Autre
+
+Champ texte obligatoire :
+
+Intitulé exact de la formation ou du diplôme
+
+Exemples :
+
+IFSI – Diplôme d’État Infirmier
+
+Master 2 Ressources Humaines
+
+Licence professionnelle Management des organisations
+
+2.2 Profil de l’utilisateur
+
+Choix unique :
+
+Étudiant sans stage
+
+Étudiant en stage
+
+Étudiant en alternance
+
+Professionnel
+
+Professionnel de santé
+
+Candidat VAE
+
+Champs conditionnels
+
+Domaine du poste
+
+Fonction occupée (approximative acceptée)
+
+Type de structure :
+
+Hôpital / clinique
+
+Entreprise privée
+
+Association
+
+Administration publique
+
+Autre
+
+2.3 Orientation du travail
+
+Finalité principale :
+
+Académique
+
+Professionnelle
+
+Mixte
+
+Type d’approche attendue :
+
+Théorique
+
+Appliquée
+
+Analyse de pratiques
+
+Étude de cas
+
+Je ne sais pas
+
+2.4 Documents de référence
+Documents optionnels
+
+Guide méthodologique
+
+Consignes du tuteur
+
+Autres documents utiles
+
+Spécifique VAE (obligatoire)
+
+Référentiel de compétences
+
+CV
+
+Documents libres (illimités : attestations, fiches de poste, rapports…)
+
+👉 Tous les documents sont analysés par l’IA.
