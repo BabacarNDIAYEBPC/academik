@@ -140,6 +140,11 @@ export const api = {
       path: '/api/sections/:id/activate/:versionId',
       responses: { 200: z.object({ success: z.boolean() }), 401: errorSchemas.unauthorized },
     },
+    exportContents: {
+      method: 'GET' as const,
+      path: '/api/projects/:projectId/sections/export',
+      responses: { 200: z.array(z.object({ key: z.string(), label: z.string(), content: z.string() })), 401: errorSchemas.unauthorized },
+    },
   },
 };
 

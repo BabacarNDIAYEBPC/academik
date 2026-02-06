@@ -227,6 +227,25 @@ export class DatabaseStorage implements IStorage {
       .where(eq(projectSections.id, sectionId));
   }
 
+  async getSectionsWithContent(projectId: number): Promise<{ key: string; label: string; content: string }[]> {
+    const sections = await this.getSections(projectId);
+    const sorted = sections.sort((a, b) => {
+      const aIdx = SECTION_ORDER.indexOf(a.key);
+      const bIdx = SECTION_ORDER.indexOf(b.key);
+      return aIdx - bIdx;
+    });
+    const result: { key: string; label: string; content: string }[] = [];
+    for (const section of sorted) {
+      if (!section.activeVersionId) continue;
+      const version = await this.getActiveVersion(section.id);
+      if (version) {
+        const { SECTION_LABELS } = await import("@shared/schema");
+        result.push({ key: section.key, label: SECTION_LABELS[section.key] || section.key, content: version.content });
+      }
+    }
+    return result;
+  }
+
   // === CONTEXTUAL MEMORY ===
   async getValidatedSectionsContext(projectId: number): Promise<string> {
     const sections = await this.getSections(projectId);

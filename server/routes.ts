@@ -581,6 +581,13 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  app.get(api.sections.exportContents.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const projectId = Number(req.params.projectId);
+    const contents = await storage.getSectionsWithContent(projectId);
+    res.json(contents);
+  });
+
   // === USER API KEY ===
   app.post("/api/settings/openai-key", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });

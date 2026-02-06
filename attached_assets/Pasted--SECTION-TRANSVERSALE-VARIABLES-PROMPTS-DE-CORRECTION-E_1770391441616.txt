@@ -1,0 +1,291 @@
+📘 SECTION TRANSVERSALE — VARIABLES, PROMPTS DE CORRECTION & EXPORTS GRANULAIRES
+
+(Obligatoire pour toutes les sections fondatrices : Sujet, Plan, Cadre, Revue, Méthodologie)
+
+1. Principe général : variables visibles et modifiables
+
+Dans chaque section clé (fondement, plan, cadre conceptuel/théorique, revue de littérature, méthodologie), le système doit :
+
+afficher explicitement les variables utilisées par l’IA,
+
+même si ces variables proviennent d’une section précédente,
+
+permettre à l’utilisateur de les modifier localement, sans casser la mémoire globale.
+
+👉 L’IA utilise :
+
+par défaut : les données héritées des sections précédentes,
+
+mais peut être réorientée ponctuellement via ces variables.
+
+2. Section « Variables & Prompt de correction » (OBLIGATOIRE)
+
+Chaque module doit contenir un encart clairement identifié :
+
+🔹 Variables utilisées pour cette section
+
+(champs éditables)
+
+Exemples (selon la section) :
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Domaine
+
+Type de travail
+
+Niveau d’étude
+
+Orientation (théorique / appliquée / mixte)
+
+👉 Ces champs sont pré-remplis automatiquement, mais éditables.
+
+🔹 Prompt de correction / d’ajustement (champ libre)
+
+Champ texte :
+
+« Indiquez ici ce que vous souhaitez corriger, préciser ou ajouter »
+
+Exemples d’usage :
+
+« Reformuler la problématique de façon plus opérationnelle »
+
+« Simplifier pour un niveau licence »
+
+« Accentuer l’aspect terrain »
+
+« Orienter vers la gestion des risques »
+
+« Aligner davantage avec le cadre réglementaire »
+
+👉 Ce champ est pris en compte prioritairement par l’IA lors d’une régénération.
+
+3. Filtres & options d’affinage (cases à cocher)
+
+Dans chaque section, proposer 3 à 5 options maximum (jamais plus de 10) sous forme de cases à cocher ou sélecteurs simples.
+
+Exemples génériques
+
+☐ Plus théorique
+
+☐ Plus opérationnel
+
+☐ Plus synthétique
+
+☐ Plus détaillé
+
+☐ Orientation professionnelle
+
+👉 Ces options modifient le comportement du prompt IA.
+
+4. Exports granulaires (OBLIGATOIRES)
+
+Dans chaque section, permettre :
+
+🔹 Export global de la section
+
+Word (.docx)
+
+PDF (.pdf)
+
+🔹 Export par élément
+
+Exemples :
+
+uniquement le sujet
+
+uniquement la problématique
+
+uniquement les hypothèses
+
+sujet + problématique
+
+tout le bloc
+
+👉 Chaque champ généré est exportable individuellement ou en lot.
+
+📘 AJOUTS PAR MODULE (4 À 7)
+📘 MODULE 4 — PLAN DU TRAVAIL (AJOUTS)
+Variables affichées
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Type de travail
+
+Niveau d’étude
+
+Filtres (exemples)
+
+☐ Plan très académique
+
+☐ Plan simplifié
+
+☐ Accent terrain
+
+☐ Accent théorique
+
+Exports
+
+Plan complet
+
+Partie sélectionnée
+
+Structure seule (titres uniquement)
+
+📘 MODULE 5 — CADRE CONCEPTUEL & THÉORIQUE (AJOUTS)
+Variables affichées
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Domaine
+
+Filtres
+
+☐ Concepts classiques
+
+☐ Concepts récents
+
+☐ Approche critique
+
+☐ Approche descriptive
+
+Exports
+
+Concepts seuls
+
+Cadre conceptuel
+
+Cadre théorique
+
+Les deux combinés
+
+📘 MODULE 6 — REVUE DE LITTÉRATURE (FORMULAIRE AVANCÉ)
+🔹 Variables affichées
+
+Sujet
+
+Problématique
+
+Hypothèses (si existantes)
+
+Domaine
+
+Axes du plan (issus du module Plan)
+
+🔹 Formulaire de recherche (lié aux plateformes)
+Plateformes (multi-sélection)
+
+☐ Google Scholar
+
+☐ PubMed
+
+☐ HAL
+
+☐ Cairn
+
+☐ ScienceDirect
+
+Paramètres de recherche
+
+Nombre d’articles souhaités : [ 5 | 10 | 15 | 20 ]
+
+Période : année début / fin
+
+Langue : FR / EN
+
+Niveau :
+
+☐ articles très académiques
+
+☐ articles mixtes
+
+☐ sources professionnelles
+
+Types de sources
+
+☐ Articles scientifiques
+
+☐ Ouvrages
+
+☐ Rapports institutionnels
+
+☐ Recommandations (HAS, OMS…)
+
+☐ Référentiels (VAE)
+
+🔹 Traitement IA spécifique
+
+Génération d’équations de recherche par plateforme
+
+Recherche simulée ciblée
+
+Classement :
+
+par axe du plan
+
+par concept
+
+par type de source
+
+🔹 Bibliographie dynamique
+
+Possibilité de :
+
+filtrer par type de source
+
+filtrer par axe du plan
+
+Sélection manuelle des références retenues
+
+Bibliographie scindée automatiquement selon le plan
+
+Exports
+
+Bibliographie complète
+
+Bibliographie par axe
+
+Synthèse thématique seule
+
+Tableau des sources
+
+📘 MODULE 7 — MÉTHODOLOGIE DE RECHERCHE (AJOUTS)
+Variables affichées
+
+Problématique
+
+Hypothèses
+
+Type de travail
+
+Contexte (terrain / professionnel / VAE)
+
+Filtres
+
+☐ Méthode simple
+
+☐ Méthode approfondie
+
+☐ Faisable sans terrain lourd
+
+☐ Adaptée contraintes de temps
+
+Exports
+
+Méthodologie complète
+
+Justification seule
+
+Structure du chapitre

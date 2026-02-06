@@ -24,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { SECTION_LABELS, SECTION_KEYS } from "@shared/schema";
 import type { ProjectSection, SectionVersion } from "@shared/schema";
+import SectionControls, { type SectionVariables, type LiteratureConfig } from "@/components/SectionControls";
 
 const DOMAIN_LABELS: Record<string, string> = {
   soins_infirmiers: "Soins infirmiers / Santé",
@@ -271,8 +272,7 @@ function AssistantTab({ project }: { project: any }) {
               <Skeleton className="h-48 w-full" />
             ) : (
               <ModuleSections
-                projectId={project.id}
-                projectType={project.type}
+                project={project}
                 sectionKeys={tab.sectionKeys}
                 sections={sections || []}
               />
@@ -284,32 +284,67 @@ function AssistantTab({ project }: { project: any }) {
   );
 }
 
+const DEFAULT_LIT_CONFIG: LiteratureConfig = {
+  platforms: ["google_scholar"],
+  articleCount: 10,
+  periodStart: "2015",
+  periodEnd: new Date().getFullYear().toString(),
+  language: "fr",
+  level: "academic",
+  sourceTypes: ["scientific_articles"],
+};
+
 function ModuleSections({
-  projectId,
-  projectType,
+  project,
   sectionKeys,
   sections,
 }: {
-  projectId: number;
-  projectType: string;
+  project: any;
   sectionKeys: string[];
   sections: ProjectSection[];
 }) {
-  const [extraContexts, setExtraContexts] = useState<Record<string, string>>({});
+  const [correctionPrompts, setCorrectionPrompts] = useState<Record<string, string>>({});
+  const [variableOverrides, setVariableOverrides] = useState<Record<string, SectionVariables>>({});
+  const [filterStates, setFilterStates] = useState<Record<string, Record<string, boolean>>>({});
+  const [litConfigs, setLitConfigs] = useState<Record<string, LiteratureConfig>>({});
+
+  const defaultVars = useMemo(() => {
+    const vars: SectionVariables = {
+      domain: DOMAIN_LABELS[project.mainDomain] || project.mainDomainOther || project.mainDomain || "",
+      projectType: TYPE_LABELS[project.type] || project.type || "",
+      degreeLevel: project.degreeLevel || "",
+      orientation: APPROACH_LABELS[project.approach] || project.approach || "",
+      context: [project.workDomain, project.workFunction, project.workStructure].filter(Boolean).join(", "),
+    };
+    return vars;
+  }, [project]);
 
   return (
     <div className="space-y-6">
-      {sectionKeys.map(key => (
-        <SingleSectionWrapper
-          key={key}
-          sectionKey={key}
-          projectId={projectId}
-          projectType={projectType}
-          section={sections.find(s => s.key === key)}
-          extraContext={extraContexts[key] || ""}
-          onExtraContextChange={(val) => setExtraContexts(prev => ({ ...prev, [key]: val }))}
-        />
-      ))}
+      {sectionKeys.map(key => {
+        const section = sections.find(s => s.key === key);
+        const mergedVars = { ...defaultVars, ...variableOverrides[key] };
+
+        return (
+          <SingleSectionWrapper
+            key={key}
+            sectionKey={key}
+            projectId={project.id}
+            projectType={project.type}
+            section={section}
+            sections={sections}
+            sectionKeys={sectionKeys}
+            variables={mergedVars}
+            onVariablesChange={(vars) => setVariableOverrides(prev => ({ ...prev, [key]: vars }))}
+            filters={filterStates[key] || {}}
+            onFiltersChange={(f) => setFilterStates(prev => ({ ...prev, [key]: f }))}
+            correctionPrompt={correctionPrompts[key] || ""}
+            onCorrectionPromptChange={(v) => setCorrectionPrompts(prev => ({ ...prev, [key]: v }))}
+            literatureConfig={key === "literature_review" ? (litConfigs[key] || DEFAULT_LIT_CONFIG) : undefined}
+            onLiteratureConfigChange={key === "literature_review" ? (c) => setLitConfigs(prev => ({ ...prev, [key]: c })) : undefined}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -319,21 +354,90 @@ function SingleSectionWrapper({
   projectId,
   projectType,
   section,
-  extraContext,
-  onExtraContextChange,
+  sections,
+  sectionKeys,
+  variables,
+  onVariablesChange,
+  filters,
+  onFiltersChange,
+  correctionPrompt,
+  onCorrectionPromptChange,
+  literatureConfig,
+  onLiteratureConfigChange,
 }: {
   sectionKey: string;
   projectId: number;
   projectType: string;
   section?: ProjectSection;
-  extraContext: string;
-  onExtraContextChange: (v: string) => void;
+  sections: ProjectSection[];
+  sectionKeys: string[];
+  variables: SectionVariables;
+  onVariablesChange: (vars: SectionVariables) => void;
+  filters: Record<string, boolean>;
+  onFiltersChange: (f: Record<string, boolean>) => void;
+  correctionPrompt: string;
+  onCorrectionPromptChange: (v: string) => void;
+  literatureConfig?: LiteratureConfig;
+  onLiteratureConfigChange?: (c: LiteratureConfig) => void;
 }) {
   const { data: versions } = useSectionVersions(section?.id);
   const activeVersion = useMemo(() => {
     if (!versions || !section?.activeVersionId) return undefined;
     return versions.find(v => v.isActive);
   }, [versions, section?.activeVersionId]);
+
+  const buildExtraContext = () => {
+    let ctx = "";
+    const varOverrides = Object.entries(variables).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`);
+    if (varOverrides.length > 0) {
+      ctx += "Variables du projet:\n" + varOverrides.join("\n") + "\n\n";
+    }
+    const activeFilters = Object.entries(filters).filter(([, v]) => v).map(([k]) => k);
+    if (activeFilters.length > 0) {
+      const filterLabels: Record<string, string> = {
+        academic: "Plan très académique",
+        simplified: "Plan simplifié",
+        fieldFocus: "Accent terrain",
+        theoryFocus: "Accent théorique",
+        classic: "Concepts classiques",
+        recent: "Concepts récents",
+        critical: "Approche critique",
+        descriptive: "Approche descriptive",
+        simple: "Méthode simple",
+        deep: "Méthode approfondie",
+        noHeavyField: "Faisable sans terrain lourd",
+        timeConstrained: "Adaptée aux contraintes de temps",
+        moreTheoretical: "Plus théorique",
+        moreOperational: "Plus opérationnel",
+        moreSynthetic: "Plus synthétique",
+        moreDetailed: "Plus détaillé",
+        professional: "Orientation professionnelle",
+      };
+      ctx += "Options sélectionnées: " + activeFilters.map(f => filterLabels[f] || f).join(", ") + "\n";
+    }
+    if (literatureConfig) {
+      const platformLabels: Record<string, string> = { google_scholar: "Google Scholar", pubmed: "PubMed", hal: "HAL", cairn: "Cairn", sciencedirect: "ScienceDirect" };
+      const sourceLabels: Record<string, string> = { scientific_articles: "Articles scientifiques", books: "Ouvrages", institutional_reports: "Rapports institutionnels", recommendations: "Recommandations (HAS, OMS...)", referentials: "Référentiels (VAE)" };
+      const levelLabels: Record<string, string> = { academic: "Très académique", mixed: "Mixte", professional: "Professionnel" };
+      ctx += "\nParamètres de recherche bibliographique:\n";
+      ctx += `- Plateformes: ${literatureConfig.platforms.map(p => platformLabels[p] || p).join(", ")}\n`;
+      ctx += `- Nombre d'articles: ${literatureConfig.articleCount}\n`;
+      ctx += `- Période: ${literatureConfig.periodStart} - ${literatureConfig.periodEnd}\n`;
+      ctx += `- Langue: ${literatureConfig.language === "fr" ? "Français" : literatureConfig.language === "en" ? "Anglais" : "Les deux"}\n`;
+      ctx += `- Niveau: ${levelLabels[literatureConfig.level] || literatureConfig.level}\n`;
+      ctx += `- Types de sources: ${literatureConfig.sourceTypes.map(t => sourceLabels[t] || t).join(", ")}\n`;
+    }
+    if (correctionPrompt.trim()) {
+      ctx += "\n=== INSTRUCTIONS DE L'UTILISATEUR (PRIORITAIRE) ===\n" + correctionPrompt.trim() + "\n";
+    }
+    return ctx;
+  };
+
+  const buildConfig = () => {
+    const config: Record<string, any> = { variables, filters };
+    if (literatureConfig) config.literatureConfig = literatureConfig;
+    return config;
+  };
 
   return (
     <SectionEditor
@@ -342,17 +446,23 @@ function SingleSectionWrapper({
       section={section}
       activeVersion={activeVersion}
       projectType={projectType}
-      getExtraContext={() => extraContext}
+      getExtraContext={buildExtraContext}
+      config={buildConfig()}
       extraInputs={
-        <div className="mb-2">
-          <Textarea
-            placeholder={`Instructions supplémentaires pour ${SECTION_LABELS[sectionKey]}...`}
-            className="resize-none h-20 text-sm"
-            value={extraContext}
-            onChange={(e) => onExtraContextChange(e.target.value)}
-            data-testid={`textarea-extra-${sectionKey}`}
-          />
-        </div>
+        <SectionControls
+          sectionKey={sectionKey}
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          onVariablesChange={onVariablesChange}
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          correctionPrompt={correctionPrompt}
+          onCorrectionPromptChange={onCorrectionPromptChange}
+          literatureConfig={literatureConfig}
+          onLiteratureConfigChange={onLiteratureConfigChange}
+          activeVersion={activeVersion}
+        />
       }
     />
   );
