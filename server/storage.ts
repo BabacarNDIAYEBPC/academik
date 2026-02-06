@@ -1,10 +1,11 @@
 import { db } from "./db";
 import {
   users, profiles, projects, documents, aiGenerations,
-  projectSections, sectionVersions, sectionStatusHistory,
+  projectSections, sectionVersions, sectionStatusHistory, userPurchases,
   type User, type Profile, type Project, type Document, type AiGeneration,
   type InsertProfile, type InsertProject, type InsertDocument,
   type ProjectSection, type SectionVersion, type StatusHistory,
+  type UserPurchase, type InsertPurchase,
   SECTION_ORDER,
 } from "@shared/schema";
 import { eq, desc, and, asc } from "drizzle-orm";
@@ -45,6 +46,10 @@ export interface IStorage {
   addStatusHistory(sectionId: number, status: string, note?: string): Promise<StatusHistory>;
 
   getValidatedSectionsContext(projectId: number): Promise<string>;
+
+  getUserPurchases(userId: string): Promise<UserPurchase[]>;
+  createPurchase(purchase: InsertPurchase): Promise<UserPurchase>;
+  getUserEntitlements(userId: string): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -300,6 +305,22 @@ export class DatabaseStorage implements IStorage {
       }
     }
     return context;
+  }
+
+  async getUserPurchases(userId: string): Promise<UserPurchase[]> {
+    return await db.select().from(userPurchases)
+      .where(and(eq(userPurchases.userId, userId), eq(userPurchases.status, "active")))
+      .orderBy(desc(userPurchases.createdAt));
+  }
+
+  async createPurchase(purchase: InsertPurchase): Promise<UserPurchase> {
+    const [newPurchase] = await db.insert(userPurchases).values(purchase).returning();
+    return newPurchase;
+  }
+
+  async getUserEntitlements(userId: string): Promise<string[]> {
+    const purchases = await this.getUserPurchases(userId);
+    return purchases.map(p => p.itemKey);
   }
 }
 

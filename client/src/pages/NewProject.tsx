@@ -71,6 +71,7 @@ const PROJECT_TYPES = [
   { value: "tfe", label: "TFE (Travail de Fin d'Études)" },
   { value: "vae", label: "VAE (Validation des Acquis)" },
   { value: "rapport_stage", label: "Rapport de Stage" },
+  { value: "these", label: "Thèse (Doctorat)" },
 ];
 
 const step1Schema = z.object({

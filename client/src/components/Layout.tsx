@@ -1,14 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useI18n, LanguageSelector } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   FolderPlus, 
   Settings2, 
   LogOut, 
-  User, 
   Menu,
-  BookOpen
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -17,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   const NavLink = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
@@ -49,10 +49,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
         
         <nav className="space-y-2">
-          <NavLink href="/" icon={LayoutDashboard} label="Dashboard" />
-          <NavLink href="/projects/new" icon={FolderPlus} label="Nouveau Projet" />
-          <NavLink href="/settings" icon={Settings2} label="Paramètres" />
+          <NavLink href="/" icon={LayoutDashboard} label={t("nav.dashboard")} />
+          <NavLink href="/projects/new" icon={FolderPlus} label={t("nav.newProject")} />
+          <NavLink href="/settings" icon={Settings2} label={t("nav.settings")} />
         </nav>
+
+        <div className="mt-6 px-2">
+          <LanguageSelector variant="minimal" />
+        </div>
       </div>
 
       <div className="mt-auto p-6 border-t border-border/50">
@@ -70,11 +74,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </div>
         <Button 
           variant="outline" 
-          className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/5"
+          className="w-full justify-start gap-2 text-muted-foreground"
           onClick={() => logout()}
+          data-testid="button-signout"
         >
           <LogOut className="w-4 h-4" />
-          Sign Out
+          {t("nav.signOut")}
         </Button>
       </div>
     </div>
@@ -82,12 +87,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-muted/30 flex">
-      {/* Desktop Sidebar */}
       <aside className="hidden lg:block w-64 bg-background border-r border-border fixed h-full z-10">
         <SidebarContent />
       </aside>
 
-      {/* Mobile Sidebar */}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="lg:hidden fixed top-4 left-4 z-50">
@@ -99,7 +102,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         </SheetContent>
       </Sheet>
 
-      {/* Main Content */}
       <main className="flex-1 lg:ml-64 p-4 md:p-8 pt-16 lg:pt-8 min-h-screen">
         <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
           {children}

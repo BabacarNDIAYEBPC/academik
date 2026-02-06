@@ -102,14 +102,14 @@ function buildSectionPrompt(sectionKey: string, projectType: string, mode: strin
 function getSectionTask(sectionKey: string, projectType: string): string {
   switch (sectionKey) {
     case "subject":
-      if (projectType === "memoire") {
+      if (projectType === "memoire" || projectType === "these") {
         return `=== TÂCHE: SUJET UNIQUEMENT ===
 IMPORTANT: Génère UNIQUEMENT le sujet académique. Ne génère PAS la problématique ni les hypothèses.
 
 Génère un sujet académique:
 - Précis, original et réalisable
 - Ancré dans le domaine et la formation de l'étudiant
-- Formulé comme un titre de mémoire académique
+- Formulé comme un titre de ${projectType === "these" ? "thèse de doctorat" : "mémoire académique"}
 
 Structure ta réponse avec un titre Markdown clair.`;
       } else if (projectType === "rapport_stage") {
@@ -1308,6 +1308,177 @@ RÈGLES DE FORMATAGE:
     const userId = getUserId(req);
     const profile = await storage.getProfile(userId);
     res.json({ hasKey: !!(profile as any)?.openaiApiKey });
+  });
+
+  // === ENTITLEMENTS ===
+  app.get("/api/entitlements", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const entitlements = await storage.getUserEntitlements(userId);
+    res.json({ entitlements });
+  });
+
+  app.get("/api/purchases", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const purchases = await storage.getUserPurchases(userId);
+    res.json(purchases);
+  });
+
+  // === STRIPE CHECKOUT ===
+  const PRICING: Record<string, { price: number; label: string }> = {
+    base: { price: 1900, label: "Accès plateforme" },
+    foundation: { price: 2900, label: "Fondement méthodologique" },
+    plan: { price: 1900, label: "Plan du travail" },
+    conceptual: { price: 1900, label: "Cadre conceptuel" },
+    literature: { price: 3900, label: "Revue de littérature" },
+    methodology: { price: 2900, label: "Méthodologie de recherche" },
+    unlimitedRegen: { price: 900, label: "Régénération illimitée" },
+    articleAnalysis: { price: 1500, label: "Analyse d'articles" },
+    multilingualEq: { price: 900, label: "Équations multilingues" },
+    advancedHistory: { price: 900, label: "Historique avancé" },
+    multiExport: { price: 900, label: "Export multi-normes" },
+  };
+
+  const PACK_PRICES: Record<string, { price: number; items: string[] }> = {
+    essential: { price: 5900, items: ["base", "foundation", "plan"] },
+    research: { price: 9900, items: ["base", "foundation", "plan", "literature", "methodology"] },
+    complete: { price: 12900, items: ["base", "foundation", "plan", "conceptual", "literature", "methodology", "unlimitedRegen", "advancedHistory", "multiExport"] },
+  };
+
+  app.post("/api/checkout", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { items, pack } = req.body as { items?: string[]; pack?: string };
+
+      let lineItems: { key: string; price: number; label: string }[] = [];
+
+      if (pack && PACK_PRICES[pack]) {
+        const packDef = PACK_PRICES[pack];
+        lineItems = packDef.items.map(key => ({
+          key,
+          price: PRICING[key]?.price || 0,
+          label: PRICING[key]?.label || key,
+        }));
+      } else if (items?.length) {
+        const alwaysInclude = items.some(i => Object.keys(PRICING).includes(i) && i !== "base");
+        if (alwaysInclude && !items.includes("base")) {
+          items.unshift("base");
+        }
+        lineItems = items.filter(key => PRICING[key]).map(key => ({
+          key,
+          price: PRICING[key].price,
+          label: PRICING[key].label,
+        }));
+      }
+
+      if (!lineItems.length) {
+        return res.status(400).json({ message: "Aucun article sélectionné" });
+      }
+
+      const existing = await storage.getUserEntitlements(userId);
+      lineItems = lineItems.filter(item => !existing.includes(item.key));
+
+      if (!lineItems.length) {
+        return res.status(400).json({ message: "Vous possédez déjà tous ces éléments" });
+      }
+
+      const totalCents = pack ? (PACK_PRICES[pack]?.price || 0) : lineItems.reduce((s, i) => s + i.price, 0);
+
+      if (!process.env.STRIPE_SECRET_KEY) {
+        for (const item of lineItems) {
+          await storage.createPurchase({
+            userId,
+            itemType: pack ? "pack" : (["foundation", "plan", "conceptual", "literature", "methodology"].includes(item.key) ? "section" : item.key === "base" ? "base" : "option"),
+            itemKey: item.key,
+            price: item.price,
+            currency: "eur",
+            status: "active",
+          });
+        }
+        return res.json({ success: true, mode: "demo", message: "Fonctionnalités activées (mode démo)" });
+      }
+
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: lineItems.map(item => ({
+          price_data: {
+            currency: "eur",
+            product_data: { name: item.label },
+            unit_amount: item.price,
+          },
+          quantity: 1,
+        })),
+        mode: "payment",
+        success_url: `${req.headers.origin || ""}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.origin || ""}/?payment=cancelled`,
+        metadata: {
+          userId,
+          items: JSON.stringify(lineItems.map(i => i.key)),
+          pack: pack || "",
+        },
+      });
+
+      res.json({ url: session.url, sessionId: session.id });
+    } catch (err: any) {
+      console.error("Checkout error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la création du paiement" });
+    }
+  });
+
+  app.post("/api/checkout/confirm", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { sessionId } = req.body;
+      if (!sessionId) return res.status(400).json({ message: "Session ID manquant" });
+
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.json({ success: true, message: "Mode démo" });
+      }
+
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status !== "paid") {
+        return res.status(400).json({ message: "Paiement non confirmé" });
+      }
+
+      const items = JSON.parse(session.metadata?.items || "[]") as string[];
+      const pack = session.metadata?.pack || "";
+
+      for (const key of items) {
+        const existing = await storage.getUserEntitlements(userId);
+        if (!existing.includes(key)) {
+          await storage.createPurchase({
+            userId,
+            itemType: pack ? "pack" : (["foundation", "plan", "conceptual", "literature", "methodology"].includes(key) ? "section" : key === "base" ? "base" : "option"),
+            itemKey: key,
+            price: PRICING[key]?.price || 0,
+            currency: "eur",
+            stripeSessionId: sessionId,
+            stripePaymentIntentId: session.payment_intent as string,
+            status: "active",
+          });
+        }
+      }
+
+      res.json({ success: true, entitlements: await storage.getUserEntitlements(userId) });
+    } catch (err: any) {
+      console.error("Confirm error:", err);
+      res.status(500).json({ message: err.message || "Erreur de confirmation" });
+    }
   });
 
   return httpServer;

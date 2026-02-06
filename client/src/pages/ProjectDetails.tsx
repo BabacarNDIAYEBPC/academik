@@ -3,6 +3,8 @@ import { useRoute } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
 import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined } from "@/hooks/use-sections";
+import { useEntitlements, useCheckout, SECTION_TO_ENTITLEMENT, hasEntitlement } from "@/hooks/use-entitlements";
+import { useI18n } from "@/lib/i18n";
 import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
 import { useState, useMemo } from "react";
@@ -15,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  FileText, Sparkles, Trash2, Plus, File, Loader2,
+  FileText, Sparkles, Trash2, Plus, File, Loader2, Lock,
   BookOpen, ClipboardList, Award, Briefcase,
   Map, Lightbulb, BookMarked, FlaskConical, Check
 } from "lucide-react";
@@ -52,11 +54,12 @@ const DOMAIN_LABELS: Record<string, string> = {
 
 const FINALITY_LABELS: Record<string, string> = { academique: "Académique", professionnelle: "Professionnelle", mixte: "Mixte" };
 const APPROACH_LABELS: Record<string, string> = { theorique: "Théorique", appliquee: "Appliquée", analyse_pratiques: "Analyse de pratiques", etude_cas: "Étude de cas", ne_sais_pas: "Non défini" };
-const TYPE_LABELS: Record<string, string> = { memoire: "Mémoire", tfe: "TFE", vae: "VAE", rapport_stage: "Rapport de Stage" };
+const TYPE_LABELS: Record<string, string> = { memoire: "Mémoire", tfe: "TFE", vae: "VAE", rapport_stage: "Rapport de Stage", these: "Thèse" };
 
 function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
+    case "these":
       return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "theoretical_framework", "literature_review", "methodology"];
     case "tfe":
       return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "theoretical_framework", "literature_review", "methodology"];
@@ -537,6 +540,48 @@ function SingleSectionWrapper({
     if (literatureConfig) config.literatureConfig = literatureConfig;
     return config;
   };
+
+  const { data: entData } = useEntitlements();
+  const checkout = useCheckout();
+  const entitlementKey = SECTION_TO_ENTITLEMENT[sectionKey];
+  const isLocked = entitlementKey && !hasEntitlement(entData?.entitlements, entitlementKey);
+
+  const ENTITLEMENT_LABELS: Record<string, string> = {
+    foundation: "Fondement méthodologique",
+    plan: "Plan du travail",
+    conceptual: "Cadre conceptuel & théorique",
+    literature: "Revue de littérature",
+    methodology: "Méthodologie de recherche",
+  };
+
+  if (isLocked) {
+    return (
+      <Card className="relative overflow-visible">
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+              <Lock className="w-8 h-8 text-muted-foreground" />
+            </div>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">{SECTION_LABELS[sectionKey] || sectionKey}</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Cette section fait partie du module «{ENTITLEMENT_LABELS[entitlementKey] || entitlementKey}».
+              Activez-le pour accéder à la génération IA et à l'édition.
+            </p>
+          </div>
+          <Button
+            onClick={() => checkout.mutate({ items: [entitlementKey] })}
+            disabled={checkout.isPending}
+            data-testid={`button-unlock-${sectionKey}`}
+          >
+            {checkout.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
+            Activer ce module
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (sectionKey === "literature_review" && literatureConfig && onLiteratureConfigChange) {
     return (

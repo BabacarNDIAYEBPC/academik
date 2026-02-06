@@ -103,6 +103,20 @@ export const sectionStatusHistory = pgTable("section_status_history", {
   note: text("note"),
 });
 
+// === USER PURCHASES / ENTITLEMENTS ===
+export const userPurchases = pgTable("user_purchases", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  itemType: text("item_type").notNull(), // 'base', 'section', 'option', 'pack'
+  itemKey: text("item_key").notNull(), // 'foundation', 'plan', 'conceptual', 'literature', 'methodology', 'unlimitedRegen', etc.
+  price: integer("price").notNull(), // price in cents
+  currency: text("currency").notNull().default("eur"),
+  stripeSessionId: text("stripe_session_id"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  status: text("status").notNull().default("active"), // 'pending', 'active', 'refunded'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SECTION STATUSES ===
 export const SECTION_STATUSES = {
   DRAFT: 'draft',
@@ -168,6 +182,7 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({ id: tru
 export const insertSectionSchema = createInsertSchema(projectSections).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertVersionSchema = createInsertSchema(sectionVersions).omit({ id: true, createdAt: true });
 export const insertStatusHistorySchema = createInsertSchema(sectionStatusHistory).omit({ id: true, changedAt: true });
+export const insertPurchaseSchema = createInsertSchema(userPurchases).omit({ id: true, createdAt: true });
 
 // === TYPES ===
 export type Profile = typeof profiles.$inferSelect;
@@ -182,6 +197,8 @@ export type InsertSection = z.infer<typeof insertSectionSchema>;
 export type SectionVersion = typeof sectionVersions.$inferSelect;
 export type InsertVersion = z.infer<typeof insertVersionSchema>;
 export type StatusHistory = typeof sectionStatusHistory.$inferSelect;
+export type UserPurchase = typeof userPurchases.$inferSelect;
+export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;
 
 export type CreateProjectRequest = InsertProject;
 export type UpdateProjectRequest = Partial<InsertProject>;

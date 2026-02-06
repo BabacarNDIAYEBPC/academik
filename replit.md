@@ -118,7 +118,28 @@ shared/
 - 2026-02-06: Added persistent search history: each search auto-archived with timestamp, platforms, filters, results, selections, analyses
 - 2026-02-06: Added "Historique des recherches" button with restore (full state), duplicate (parameters only), delete actions
 - 2026-02-06: Search history stored in section config alongside literatureState, persists across sessions
+- 2026-02-06: Added Thèse (Doctorat) as 5th project type alongside Mémoire, TFE, VAE, Rapport de Stage
+- 2026-02-06: Thèse follows same section flow as Mémoire (Case A) with doctoral-specific prompts
+- 2026-02-06: Added bilingual i18n system (FR/EN) with React Context, localStorage persistence, LanguageSelector component
+- 2026-02-06: Landing page features showcase: 5 modules with expandable details for all project types
+- 2026-02-06: Modular pricing section: per-section pricing, optional add-ons, suggested packs (Essential/Research/Complete)
+- 2026-02-06: Added userPurchases table for entitlements tracking (itemType, itemKey, price, Stripe IDs, status)
+- 2026-02-06: Stripe checkout integration with demo mode fallback when STRIPE_SECRET_KEY not configured
+- 2026-02-06: API routes: GET /api/entitlements, GET /api/purchases, POST /api/checkout, POST /api/checkout/confirm
+- 2026-02-06: Conditional access: locked sections show Lock icon with "Activate module" button when unpurchased
+- 2026-02-06: Payment confirmation flow on Landing page with URL parameter detection (payment=success/cancelled)
+- 2026-02-06: Frontend hooks: useEntitlements, useCheckout, useConfirmPayment in use-entitlements.ts
+- 2026-02-06: SECTION_TO_ENTITLEMENT mapping connects section keys to purchase entitlement keys
+
+## Pricing Architecture
+- Base access: €19 (auto-added when purchasing any section)
+- Sections: Foundation €29, Plan €19, Conceptual €19, Literature €39, Methodology €29
+- Options: Unlimited regen €9, Article analysis €15, Multilingual equations €9, Advanced history €9, Multi-export €9
+- Packs: Essential €59, Research €99, Complete €129
+- Server-side price validation prevents client tampering
+- Demo mode: auto-activates purchases when STRIPE_SECRET_KEY not set
 
 ## User Preferences
 - Language: French (UI and AI responses)
 - The app targets French-speaking academic users
+- Bilingual support (FR/EN) for landing page and in-app navigation
