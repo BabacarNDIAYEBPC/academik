@@ -15,7 +15,9 @@ import DataAnalysisModule from "@/components/DataAnalysisModule";
 import AssistedWritingModule from "@/components/AssistedWritingModule";
 import BibliographyModule from "@/components/BibliographyModule";
 import ExportsModule from "@/components/ExportsModule";
-import { useState, useMemo } from "react";
+import MemoirImportField from "@/components/MemoirImportField";
+import { useSaveSectionConfig } from "@/hooks/use-sections";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -486,6 +488,37 @@ function SingleSectionWrapper({
   literatureConfig?: LiteratureConfig;
   onLiteratureConfigChange?: (c: LiteratureConfig) => void;
 }) {
+  const [importedMemoir, setImportedMemoir] = useState("");
+  const [memoirLoaded, setMemoirLoaded] = useState(false);
+  const saveConfigMutation = useSaveSectionConfig();
+
+  useEffect(() => {
+    if (!section?.config || memoirLoaded) return;
+    const cfg = section.config as any;
+    if (cfg?.importedMemoir) setImportedMemoir(cfg.importedMemoir);
+    setMemoirLoaded(true);
+  }, [section?.config, memoirLoaded]);
+
+  const memoirRef = useRef(importedMemoir);
+  useEffect(() => { memoirRef.current = importedMemoir; }, [importedMemoir]);
+
+  const saveMemoir = useCallback(() => {
+    if (!section) return;
+    saveConfigMutation.mutate({
+      sectionId: section.id,
+      config: { importedMemoir: memoirRef.current },
+      projectId,
+    });
+  }, [section, projectId]);
+
+  const memoirTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!memoirLoaded) return;
+    if (memoirTimer.current) clearTimeout(memoirTimer.current);
+    memoirTimer.current = setTimeout(saveMemoir, 3000);
+    return () => { if (memoirTimer.current) clearTimeout(memoirTimer.current); };
+  }, [importedMemoir, memoirLoaded]);
+
   const { data: versions } = useSectionVersions(section?.id);
   const activeVersion = useMemo(() => {
     if (!versions || !section?.activeVersionId) return undefined;
@@ -564,6 +597,9 @@ function SingleSectionWrapper({
     if (correctionPrompt.trim()) {
       ctx += "\n=== INSTRUCTIONS DE L'UTILISATEUR (PRIORITAIRE) ===\n" + correctionPrompt.trim() + "\n";
     }
+    if (importedMemoir.trim()) {
+      ctx += "\n=== CONTENU DU MÉMOIRE IMPORTÉ (ÉTAT D'AVANCEMENT) ===\n" + importedMemoir.trim() + "\n";
+    }
     return ctx;
   };
 
@@ -615,145 +651,177 @@ function SingleSectionWrapper({
     );
   }
 
+  const memoirField = (
+    <MemoirImportField value={importedMemoir} onChange={setImportedMemoir} />
+  );
+
   if (sectionKey === "literature_review" && literatureConfig && onLiteratureConfigChange) {
     return (
-      <LiteratureReviewModule
-        projectId={projectId}
-        projectType={projectType}
-        config={literatureConfig}
-        onConfigChange={onLiteratureConfigChange}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <LiteratureReviewModule
+          projectId={projectId}
+          projectType={projectType}
+          config={literatureConfig}
+          onConfigChange={onLiteratureConfigChange}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "conceptual_framework") {
     return (
-      <ConceptualFrameworkModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <ConceptualFrameworkModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "methodology") {
     return (
-      <MethodologyModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <MethodologyModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "data_collection") {
     return (
-      <DataCollectionModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <DataCollectionModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "interview_simulation") {
     return (
-      <InterviewSimulationModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <InterviewSimulationModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "data_analysis") {
     return (
-      <DataAnalysisModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <DataAnalysisModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "assisted_writing") {
     return (
-      <AssistedWritingModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <AssistedWritingModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "bibliography") {
     return (
-      <BibliographyModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
+      <div className="space-y-4">
+        {memoirField}
+        <BibliographyModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
     );
   }
 
   if (sectionKey === "exports") {
     return (
-      <ExportsModule
-        projectId={projectId}
-        projectType={projectType}
-        variables={variables}
-        extraContext={buildExtraContext()}
-        section={section}
-      />
-    );
-  }
-
-  const sectionEditor = (
-    <SectionEditor
-      projectId={projectId}
-      sectionKey={sectionKey}
-      section={section}
-      activeVersion={activeVersion}
-      projectType={projectType}
-      getExtraContext={buildExtraContext}
-      config={buildConfig()}
-      extraInputs={
-        <SectionControls
-          sectionKey={sectionKey}
+      <div className="space-y-4">
+        {memoirField}
+        <ExportsModule
           projectId={projectId}
           projectType={projectType}
           variables={variables}
-          onVariablesChange={onVariablesChange}
-          filters={filters}
-          onFiltersChange={onFiltersChange}
-          correctionPrompt={correctionPrompt}
-          onCorrectionPromptChange={onCorrectionPromptChange}
-          literatureConfig={literatureConfig}
-          onLiteratureConfigChange={onLiteratureConfigChange}
-          activeVersion={activeVersion}
+          extraContext={buildExtraContext()}
+          section={section}
         />
-      }
-    />
-  );
+      </div>
+    );
+  }
 
-  return sectionEditor;
+  return (
+    <div className="space-y-4">
+      {memoirField}
+      <SectionEditor
+        projectId={projectId}
+        sectionKey={sectionKey}
+        section={section}
+        activeVersion={activeVersion}
+        projectType={projectType}
+        getExtraContext={buildExtraContext}
+        config={buildConfig()}
+        extraInputs={
+          <SectionControls
+            sectionKey={sectionKey}
+            projectId={projectId}
+            projectType={projectType}
+            variables={variables}
+            onVariablesChange={onVariablesChange}
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            correctionPrompt={correctionPrompt}
+            onCorrectionPromptChange={onCorrectionPromptChange}
+            literatureConfig={literatureConfig}
+            onLiteratureConfigChange={onLiteratureConfigChange}
+            activeVersion={activeVersion}
+          />
+        }
+      />
+    </div>
+  );
 }
 
 function DocumentsTab({ project }: { project: any }) {
