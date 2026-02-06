@@ -1,0 +1,244 @@
+📘 PRÉCISIONS FONCTIONNELLES — VARIABLES, REVUE DE LITTÉRATURE, CADRE CONCEPTUEL & CADRE THÉORIQUE
+1. Variables utilisées (fondements, plan, cadres, revue, méthodologie)
+
+Dans chaque section utilisant l’IA, les variables fondamentales doivent être visibles, explicites et éditables.
+
+Les variables affichées doivent inclure obligatoirement :
+
+Sujet choisi
+
+Problématique choisie
+
+Hypothèses choisies
+
+Domaine
+
+Formation / discipline
+
+Type de travail
+
+👉 Le sujet sélectionné doit apparaître dans son propre champ,
+👉 la problématique dans son propre champ,
+👉 les hypothèses dans leurs champs respectifs.
+
+Ces champs sont :
+
+pré-remplis automatiquement à partir des sections précédentes,
+
+modifiables par l’utilisateur à tout moment.
+
+2. Revue de littérature — Principe fondamental (CHANGEMENT MAJEUR)
+❌ Suppression totale du texte rédigé
+
+La section Revue de littérature ne doit PAS contenir de texte rédigé par défaut.
+
+👉
+❌ pas de texte explicatif
+❌ pas de paragraphe
+❌ pas de rédaction automatique
+
+La revue de littérature fonctionne uniquement comme un moteur de résultats et d’analyse d’articles, à la manière de Google Scholar.
+
+3. Revue de littérature — Affichage des résultats (OBLIGATOIRE)
+
+Les résultats doivent être affichés sous forme de liste, par lots.
+
+Affichage par lots
+
+10 résultats
+
+20 résultats
+
+30 résultats
+
+50 résultats
+
+Bouton Suivant / Précédent
+
+Présentation obligatoire de chaque article / ouvrage
+
+Chaque résultat doit contenir :
+
+Nom de l’auteur
+
+Prénom de l’auteur
+
+Titre de l’article / ouvrage
+
+Année de publication
+
+Maison d’édition / revue
+
+Plateforme source
+
+Lien cliquable vers l’article
+
+👉 Aucun texte de revue n’est affiché ici.
+
+4. Boutons d’analyse par article (OBLIGATOIRES)
+
+Pour chaque article, proposer :
+
+Bouton Analyser cet article
+
+Case à cocher Sélectionner
+
+Fonctions disponibles :
+
+Analyser un seul article
+
+Analyser plusieurs articles sélectionnés
+
+Analyser tous les articles affichés
+
+👉 L’analyse se fait article par article, jamais automatiquement.
+
+5. Confrontation des ouvrages
+
+Fonction dédiée :
+
+Sélection de 2 ou plusieurs articles
+
+Bouton Confronter les ouvrages
+
+Résultat attendu :
+
+convergences
+
+divergences
+
+approches théoriques
+
+apports respectifs
+
+6. Bibliographie & normes
+
+À partir des articles sélectionnés, possibilité de générer une bibliographie :
+
+Normes disponibles :
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+Exports :
+
+Word (.docx)
+
+PDF (.pdf)
+
+👉 Bibliographie sans rédaction de revue, uniquement références formatées.
+
+7. Cadre conceptuel — Structure imposée
+
+Le cadre conceptuel doit contenir exactement trois sous-parties.
+
+Structure obligatoire :
+
+I. Cadre conceptuel
+
+Présentation générale des concepts
+1.1 Concept 1
+1.2 Concept 2
+1.3 Concept 3
+
+👉 Pas plus, pas moins.
+
+8. Revue de littérature — Structure du PLAN (sans rédaction)
+
+La revue de littérature doit proposer un plan structuré, sans texte rédigé automatiquement.
+
+Introduction de la revue (sans numérotation 1.1, 1.2…)
+
+Introduction de la revue de littérature
+
+Contextualisation du sujet
+
+Problématisation
+
+Justification du choix du sujet
+
+Objectifs de la revue
+
+Corps de la revue — Structure obligatoire
+
+II. Revue de littérature
+
+Axe 1
+1.1 Sous-axe 1
+1.1.1 Point 1
+1.1.2 Point 2
+1.1.3 Point 3
+
+1.2 Sous-axe 2
+1.2.1 Point 1
+1.2.2 Point 2
+1.2.3 Point 3
+
+1.3 Sous-axe 3
+1.3.1 Point 1
+1.3.2 Point 2
+1.3.3 Point 3
+
+👉 Aucun texte n’est rédigé automatiquement dans ces parties.
+👉 Ce plan sert de grille de classement des articles.
+
+9. Cartes de mapping & schémas (INSISTANCE)
+
+À partir des articles sélectionnés, la plateforme doit permettre :
+
+génération de cartes de mapping
+
+schémas de liens entre concepts
+
+visualisation des convergences / divergences
+
+schémas exploitables pour :
+
+justification du sujet
+
+problématisation
+
+structuration du cadre conceptuel
+
+👉 Les cartes doivent être :
+
+visibles à l’écran
+
+exportables (image / PDF)
+
+10. Méthodologie — rappel de cohérence
+
+La méthodologie s’appuie sur :
+
+le sujet choisi,
+
+la problématique,
+
+les hypothèses,
+
+les articles réellement sélectionnés et analysés.
+
+👉 Elle ne doit pas être générée indépendamment de la revue de littérature.
+
+✅ SYNTHÈSE CLAIRE
+
+Variables visibles : sujet / problématique / hypothèses séparées
+
+Revue de littérature = liste de résultats, pas de texte
+
+Analyse article par article
+
+Confrontation possible
+
+Bibliographie multi-normes
+
+Plan structuré sans rédaction automatique
+
+Cartes de mapping indispensables
+
+Méthodologie cohérente avec les articles retenus

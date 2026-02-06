@@ -151,30 +151,46 @@ const VARIABLE_LABELS: Record<string, string> = {
 
 const FUNDAMENTAL_KEYS = ["domain", "projectType", "degreeLevel", "orientation", "finality"];
 
+const MANDATORY_VARIABLE_KEYS = ["subject", "problematic", "hypotheses", "domain", "filiere", "projectType"];
+
 function getVariableKeysForSection(sectionKey: string): string[] {
+  const base = [...MANDATORY_VARIABLE_KEYS];
+  const addIfMissing = (keys: string[]) => {
+    keys.forEach(k => { if (!base.includes(k)) base.push(k); });
+  };
   switch (sectionKey) {
     case "subject":
-      return ["domain", "projectType", "degreeLevel", "filiere", "orientation", "finality"];
+      addIfMissing(["degreeLevel", "orientation", "finality"]);
+      break;
     case "problematic":
-      return ["subject", "domain", "projectType", "degreeLevel", "orientation"];
+      addIfMissing(["degreeLevel", "orientation"]);
+      break;
     case "hypotheses":
-      return ["subject", "problematic", "projectType", "degreeLevel", "orientation"];
+      addIfMissing(["degreeLevel", "orientation"]);
+      break;
     case "situation_appel":
-      return ["domain", "projectType", "degreeLevel", "filiere"];
+      addIfMissing(["degreeLevel"]);
+      break;
     case "vae_competencies":
-      return ["domain", "projectType", "degreeLevel", "filiere"];
+      addIfMissing(["degreeLevel"]);
+      break;
     case "plan":
-      return ["subject", "problematic", "hypotheses", "projectType", "degreeLevel", "orientation", "finality"];
+      addIfMissing(["degreeLevel", "orientation", "finality"]);
+      break;
     case "conceptual_framework":
     case "theoretical_framework":
-      return ["subject", "problematic", "hypotheses", "domain", "orientation"];
+      addIfMissing(["orientation"]);
+      break;
     case "literature_review":
-      return ["subject", "problematic", "hypotheses", "domain", "orientation"];
+      addIfMissing(["orientation"]);
+      break;
     case "methodology":
-      return ["problematic", "hypotheses", "projectType", "orientation", "context"];
+      addIfMissing(["orientation", "context"]);
+      break;
     default:
-      return ["subject", "domain", "projectType"];
+      break;
   }
+  return base;
 }
 
 export function getFiltersForSection(sectionKey: string): { key: string; label: string }[] {
@@ -279,7 +295,7 @@ export default function SectionControls({
   onLiteratureConfigChange,
   activeVersion,
 }: SectionControlsProps) {
-  const [showVariables, setShowVariables] = useState(false);
+  const [showVariables, setShowVariables] = useState(true);
   const [showFilters, setShowFilters] = useState(sectionKey === "literature_review");
   const [pendingChange, setPendingChange] = useState<{ key: string; value: string } | null>(null);
   const { toast } = useToast();

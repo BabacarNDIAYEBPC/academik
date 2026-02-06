@@ -156,6 +156,49 @@ export const api = {
       path: '/api/sections/:id/status-history',
       responses: { 200: z.array(z.custom<typeof sectionStatusHistory.$inferSelect>()), 401: errorSchemas.unauthorized },
     },
+    validatedContents: {
+      method: 'GET' as const,
+      path: '/api/projects/:projectId/sections/validated-contents',
+      responses: { 200: z.record(z.string(), z.string()), 401: errorSchemas.unauthorized },
+    },
+    analyzeArticles: {
+      method: 'POST' as const,
+      path: '/api/sections/literature/analyze',
+      input: z.object({
+        projectId: z.number(),
+        articles: z.array(z.object({
+          title: z.string(),
+          authors: z.string(),
+          year: z.string(),
+          source: z.string().optional(),
+          platform: z.string().optional(),
+          url: z.string().optional(),
+        })),
+        analysisType: z.enum(['single', 'multiple', 'confrontation', 'mapping']),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ content: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    generateArticles: {
+      method: 'POST' as const,
+      path: '/api/sections/literature/search',
+      input: z.object({
+        projectId: z.number(),
+        config: z.record(z.any()),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ articles: z.array(z.any()) }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    generateBibliography: {
+      method: 'POST' as const,
+      path: '/api/sections/literature/bibliography',
+      input: z.object({
+        projectId: z.number(),
+        articles: z.array(z.any()),
+        norm: z.enum(['apa7', 'vancouver', 'mla', 'chicago']),
+      }),
+      responses: { 200: z.object({ content: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
   },
 };
 

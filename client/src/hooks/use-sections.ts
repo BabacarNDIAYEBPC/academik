@@ -122,3 +122,42 @@ export function useActivateVersion() {
     },
   });
 }
+
+export function useValidatedContents(projectId: number) {
+  return useQuery<Record<string, string>>({
+    queryKey: [api.sections.validatedContents.path, projectId],
+    queryFn: async () => {
+      const res = await fetch(buildUrl(api.sections.validatedContents.path, { projectId }));
+      if (!res.ok) throw new Error("Failed to load validated contents");
+      return res.json();
+    },
+    enabled: !!projectId,
+  });
+}
+
+export function useSearchArticles() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; config: Record<string, any>; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateArticles.method, api.sections.generateArticles.path, data);
+      return res.json() as Promise<{ articles: any[] }>;
+    },
+  });
+}
+
+export function useAnalyzeArticles() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; articles: any[]; analysisType: 'single' | 'multiple' | 'confrontation' | 'mapping'; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.analyzeArticles.method, api.sections.analyzeArticles.path, data);
+      return res.json() as Promise<{ content: string }>;
+    },
+  });
+}
+
+export function useGenerateBibliography() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; articles: any[]; norm: 'apa7' | 'vancouver' | 'mla' | 'chicago' }) => {
+      const res = await apiRequest(api.sections.generateBibliography.method, api.sections.generateBibliography.path, data);
+      return res.json() as Promise<{ content: string }>;
+    },
+  });
+}

@@ -2,8 +2,9 @@ import Layout from "@/components/Layout";
 import { useRoute } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
-import { useSections, useSectionVersions } from "@/hooks/use-sections";
+import { useSections, useSectionVersions, useValidatedContents } from "@/hooks/use-sections";
 import SectionEditor from "@/components/SectionEditor";
+import LiteratureReviewModule from "@/components/LiteratureReviewModule";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -307,6 +308,7 @@ function ModuleSections({
   const [variableOverrides, setVariableOverrides] = useState<Record<string, SectionVariables>>({});
   const [filterStates, setFilterStates] = useState<Record<string, Record<string, boolean>>>({});
   const [litConfigs, setLitConfigs] = useState<Record<string, LiteratureConfig>>({});
+  const { data: validatedContents } = useValidatedContents(project.id);
 
   const defaultVars = useMemo(() => {
     const vars: SectionVariables = {
@@ -319,8 +321,22 @@ function ModuleSections({
       finality: project.finality || "",
       context: [project.workDomain, project.workFunction, project.workStructure].filter(Boolean).join(", "),
     };
+    if (validatedContents) {
+      if (validatedContents.subject && !vars.subject) {
+        const subjectContent = validatedContents.subject;
+        vars.subject = subjectContent.length > 500 ? subjectContent.substring(0, 500) + "..." : subjectContent;
+      }
+      if (validatedContents.problematic && !vars.problematic) {
+        const probContent = validatedContents.problematic;
+        vars.problematic = probContent.length > 500 ? probContent.substring(0, 500) + "..." : probContent;
+      }
+      if (validatedContents.hypotheses && !vars.hypotheses) {
+        const hypContent = validatedContents.hypotheses;
+        vars.hypotheses = hypContent.length > 500 ? hypContent.substring(0, 500) + "..." : hypContent;
+      }
+    }
     return vars;
-  }, [project]);
+  }, [project, validatedContents]);
 
   return (
     <div className="space-y-6">
@@ -469,6 +485,20 @@ function SingleSectionWrapper({
     if (literatureConfig) config.literatureConfig = literatureConfig;
     return config;
   };
+
+  if (sectionKey === "literature_review" && literatureConfig && onLiteratureConfigChange) {
+    return (
+      <LiteratureReviewModule
+        projectId={projectId}
+        projectType={projectType}
+        config={literatureConfig}
+        onConfigChange={onLiteratureConfigChange}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
 
   return (
     <SectionEditor

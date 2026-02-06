@@ -265,6 +265,19 @@ export class DatabaseStorage implements IStorage {
     return entry;
   }
 
+  async getValidatedSectionContents(projectId: number): Promise<Record<string, string>> {
+    const sections = await this.getSections(projectId);
+    const result: Record<string, string> = {};
+    for (const section of sections) {
+      if (!section.activeVersionId) continue;
+      const version = await this.getActiveVersion(section.id);
+      if (version) {
+        result[section.key] = version.content;
+      }
+    }
+    return result;
+  }
+
   // === CONTEXTUAL MEMORY ===
   async getValidatedSectionsContext(projectId: number): Promise<string> {
     const sections = await this.getSections(projectId);

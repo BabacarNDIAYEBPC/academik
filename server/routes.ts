@@ -168,13 +168,29 @@ Analyse les documents et produis:
 
     case "conceptual_framework":
       return `=== TÂCHE: CADRE CONCEPTUEL ===
-En lien direct avec la problématique et les hypothèses:
-1. **Identification de 2 à 4 concepts clés** en lien avec le sujet
-2. Pour chaque concept:
+En lien direct avec la problématique et les hypothèses, structure le cadre conceptuel en EXACTEMENT 3 sous-parties:
+
+I. Cadre conceptuel
+
+Présentation générale des concepts (paragraphe introductif sans numérotation)
+
+1.1 Concept 1
    - Définition synthétique et académique
    - Lien avec la problématique
    - Auteurs de référence
-3. **Articulation des concepts** : comment ils interagissent dans cette recherche
+
+1.2 Concept 2
+   - Définition synthétique et académique
+   - Lien avec la problématique
+   - Auteurs de référence
+
+1.3 Concept 3
+   - Définition synthétique et académique
+   - Lien avec la problématique
+   - Auteurs de référence
+
+IMPORTANT: Le cadre conceptuel doit contenir EXACTEMENT 3 concepts, pas plus, pas moins.
+Chaque concept doit être directement en lien avec le sujet et la problématique.
 Structure avec des titres Markdown.`;
 
     case "theoretical_framework":
@@ -201,17 +217,23 @@ Adapte les sources au domaine (académiques, professionnelles, institutionnelles
 
     case "methodology":
       return `=== TÂCHE: MÉTHODOLOGIE DE RECHERCHE ===
-Définis une méthodologie cohérente et justifiée:
+En t'appuyant sur la problématique, les hypothèses, le cadre conceptuel/théorique et la revue de littérature validés, définis une méthodologie cohérente et justifiée:
+
 1. **Type de recherche** : qualitative, quantitative, mixte ou analyse documentaire
+   - Justifie ton choix en lien avec les résultats de la revue de littérature
 2. **Justification** :
    - Lien avec la problématique
    - Lien avec chaque hypothèse
+   - Cohérence avec les approches méthodologiques identifiées dans la revue de littérature
    - Avantages de cette approche
    - Limites et contraintes terrain
 3. **Population et échantillon** : qui, combien, critères de sélection
 4. **Outils de collecte** : entretiens, questionnaires, observation, analyse documentaire
+   - Réfère-toi aux outils utilisés dans les articles analysés si pertinent
 5. **Méthode d'analyse** : comment les données seront traitées
-6. **Considérations éthiques** : si applicable`;
+6. **Considérations éthiques** : si applicable
+
+Si des articles ou ouvrages de la revue de littérature sont disponibles dans le contexte, cite-les pour justifier tes choix méthodologiques.`;
 
     default:
       return `=== TÂCHE: GÉNÉRATION DE CONTENU ===\nGénère le contenu approprié pour la section "${sectionKey}".`;
@@ -609,6 +631,228 @@ export async function registerRoutes(
     const sectionId = Number(req.params.id);
     const history = await storage.getStatusHistory(sectionId);
     res.json(history);
+  });
+
+  // === VALIDATED SECTION CONTENTS ===
+  app.get(api.sections.validatedContents.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const projectId = Number(req.params.projectId);
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) return res.status(404).json({ message: "Project not found" });
+    const contents = await storage.getValidatedSectionContents(projectId);
+    res.json(contents);
+  });
+
+  // === LITERATURE REVIEW: ARTICLE SEARCH ===
+  app.post(api.sections.generateArticles.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, config, extraContext } = api.sections.generateArticles.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const platformLabels: Record<string, string> = { google_scholar: "Google Scholar", pubmed: "PubMed", hal: "HAL", cairn: "Cairn", sciencedirect: "ScienceDirect" };
+      const sourceLabels: Record<string, string> = { scientific_articles: "Articles scientifiques", books: "Ouvrages", institutional_reports: "Rapports institutionnels", recommendations: "Recommandations", referentials: "Référentiels" };
+      const levelLabels: Record<string, string> = { academic: "Très académique", mixed: "Mixte", professional: "Professionnel" };
+
+      let searchParams = "";
+      if (config.platforms) searchParams += `Plateformes: ${(config.platforms as string[]).map(p => platformLabels[p] || p).join(", ")}\n`;
+      if (config.articleCount) searchParams += `Nombre d'articles à proposer: ${config.articleCount}\n`;
+      if (config.periodStart) searchParams += `Période: ${config.periodStart} - ${config.periodEnd || "aujourd'hui"}\n`;
+      if (config.language) searchParams += `Langue: ${config.language === "fr" ? "Français" : config.language === "en" ? "Anglais" : "Les deux"}\n`;
+      if (config.level) searchParams += `Niveau: ${levelLabels[config.level as string] || config.level}\n`;
+      if (config.sourceTypes) searchParams += `Types: ${(config.sourceTypes as string[]).map(t => sourceLabels[t] || t).join(", ")}\n`;
+
+      const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
+      const userPrompt = `${projectContext}\n${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}${extraContext ? `\n=== CONTEXTE UTILISATEUR ===\n${extraContext}\n` : ""}
+=== PARAMÈTRES DE RECHERCHE ===
+${searchParams}
+
+=== TÂCHE: RECHERCHE BIBLIOGRAPHIQUE ===
+Tu es un moteur de recherche académique. Propose une liste de ${config.articleCount || 10} articles/ouvrages pertinents pour ce sujet de recherche.
+
+IMPORTANT: Réponds UNIQUEMENT en JSON valide, sans texte avant ou après. Le format exact est:
+[
+  {
+    "lastName": "Nom de famille de l'auteur principal",
+    "firstName": "Prénom de l'auteur principal",
+    "title": "Titre complet de l'article ou ouvrage",
+    "year": "Année de publication",
+    "publisher": "Maison d'édition ou nom de la revue",
+    "platform": "Plateforme source (Google Scholar, PubMed, etc.)",
+    "url": "URL vers l'article si disponible, sinon chaîne vide",
+    "type": "article|ouvrage|rapport|thèse|chapitre"
+  }
+]
+
+Les articles doivent être:
+- Pertinents pour le sujet, la problématique et les hypothèses du projet
+- Issus des plateformes et types de sources demandés
+- Dans la période et la langue spécifiées
+- De niveau académique approprié
+- Réalistes et plausibles (auteurs existants dans le domaine, revues connues)`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 4000,
+        temperature: 0.7,
+      });
+
+      const raw = response.choices[0].message.content || "[]";
+      let articles;
+      try {
+        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        articles = JSON.parse(cleaned);
+      } catch {
+        articles = [];
+      }
+      res.json({ articles });
+    } catch (err: any) {
+      console.error("Article Search Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la recherche d'articles" });
+    }
+  });
+
+  // === LITERATURE REVIEW: ARTICLE ANALYSIS ===
+  app.post(api.sections.analyzeArticles.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, articles, analysisType, extraContext } = api.sections.analyzeArticles.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const articleList = articles.map((a, i) => `${i + 1}. ${a.authors} — "${a.title}" (${a.year})${a.source ? `, ${a.source}` : ""}${a.platform ? ` [${a.platform}]` : ""}`).join("\n");
+
+      let task = "";
+      if (analysisType === "single" || analysisType === "multiple") {
+        task = `=== TÂCHE: ANALYSE D'ARTICLE(S) ===
+Analyse les articles suivants en lien avec le projet de recherche:
+
+${articleList}
+
+Pour chaque article, fournis:
+1. **Résumé** : synthèse des idées principales
+2. **Méthodologie utilisée** : approche et outils de recherche
+3. **Résultats principaux** : conclusions majeures
+4. **Pertinence** : lien avec le sujet, la problématique et les hypothèses du projet
+5. **Apports** : contribution à la recherche dans ce domaine
+6. **Limites** : points faibles ou lacunes identifiées`;
+      } else if (analysisType === "confrontation") {
+        task = `=== TÂCHE: CONFRONTATION DES OUVRAGES ===
+Confronte les articles/ouvrages suivants:
+
+${articleList}
+
+Produis une analyse comparative structurée:
+1. **Convergences** : points d'accord entre les auteurs, résultats similaires
+2. **Divergences** : désaccords, résultats contradictoires, approches opposées
+3. **Approches théoriques** : cadres théoriques utilisés par chaque auteur
+4. **Apports respectifs** : contribution unique de chaque ouvrage
+5. **Synthèse** : positionnement global par rapport à la problématique du projet`;
+      } else if (analysisType === "mapping") {
+        task = `=== TÂCHE: CARTE DE MAPPING CONCEPTUEL ===
+À partir des articles suivants:
+
+${articleList}
+
+Génère une carte de mapping conceptuel en format texte structuré:
+1. **Concepts principaux** : identifie les concepts clés abordés par ces articles
+2. **Liens entre concepts** : comment les concepts sont reliés entre eux
+3. **Convergences** : quels articles convergent sur quels concepts
+4. **Divergences** : quels articles divergent sur quels points
+5. **Schéma de liens** : représentation textuelle des connexions
+
+Utilise des symboles pour la visualisation:
+- ←→ pour les liens bidirectionnels
+- → pour les influences directes
+- ≈ pour les convergences
+- ≠ pour les divergences
+- ⊂ pour l'inclusion conceptuelle
+
+Structure le mapping pour qu'il soit utilisable pour:
+- Justification du sujet
+- Problématisation
+- Structuration du cadre conceptuel`;
+      }
+
+      const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
+      const userPrompt = `${projectContext}\n${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}${extraContext ? `\n${extraContext}\n` : ""}\n${task}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 4000,
+        temperature: 0.7,
+      });
+
+      const content = response.choices[0].message.content || "";
+      res.json({ content });
+    } catch (err: any) {
+      console.error("Article Analysis Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'analyse" });
+    }
+  });
+
+  // === LITERATURE REVIEW: BIBLIOGRAPHY GENERATION ===
+  app.post(api.sections.generateBibliography.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, articles, norm } = api.sections.generateBibliography.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const normLabels: Record<string, string> = { apa7: "APA 7e édition", vancouver: "Vancouver", mla: "MLA", chicago: "Chicago" };
+
+      const articleList = articles.map((a: any) =>
+        `- ${a.lastName || ""}, ${a.firstName || ""}. "${a.title || ""}". ${a.publisher || a.source || ""}. ${a.year || ""}. ${a.url || ""}`
+      ).join("\n");
+
+      const systemPrompt = `Tu es un expert en normes bibliographiques académiques. Formate les références suivantes selon la norme ${normLabels[norm] || norm}.`;
+      const userPrompt = `Formate les références suivantes selon la norme ${normLabels[norm] || norm}:
+
+${articleList}
+
+IMPORTANT: Produis uniquement la liste bibliographique formatée, sans explications. Chaque référence doit être correctement formatée selon la norme demandée. Trie par ordre alphabétique du nom de famille.`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 3000,
+        temperature: 0.3,
+      });
+
+      const content = response.choices[0].message.content || "";
+      res.json({ content });
+    } catch (err: any) {
+      console.error("Bibliography Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération de la bibliographie" });
+    }
   });
 
   // === USER API KEY ===

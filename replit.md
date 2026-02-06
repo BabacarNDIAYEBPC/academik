@@ -14,7 +14,7 @@ AI-powered academic writing assistant that helps students and professionals stru
 - **Module 3 - Foundations**: Type-specific generation (Subject, Problematic, Hypotheses, Situation d'appel, VAE Competencies)
 - **Module 4 - Work Plan**: Type-specific outline generation
 - **Module 5 - Conceptual & Theoretical Framework**: Concept identification, theoretical positioning
-- **Module 6 - Literature Review**: Structured review with search equations
+- **Module 6 - Literature Review**: Search engine-style article discovery, per-article/multi-article analysis, confrontation, mapping, bibliography generation (APA7/Vancouver/MLA/Chicago)
 - **Module 7 - Methodology**: Research design, tools, population, analysis methods
 - **Contextual Memory**: Validated sections auto-inject into subsequent AI generations in canonical order
 - **Version History**: Each section tracks all versions (AI-generated + manual edits) with restore capability
@@ -88,6 +88,13 @@ shared/
 - 2026-02-06: Implemented controlled regeneration (similar temp 0.5, different temp 0.9)
 - 2026-02-06: Added module sub-tabs in ProjectDetails (Foundations, Plan, Frameworks, Literature, Methodology)
 - 2026-02-06: Fixed critical auth bug: user ID extraction using claims.sub instead of .id
+- 2026-02-06: Built LiteratureReviewModule component with search engine-style article discovery interface
+- 2026-02-06: Added backend endpoints: generateArticles (JSON article search), analyzeArticles (single/multiple/confrontation/mapping), generateBibliography (APA7/Vancouver/MLA/Chicago)
+- 2026-02-06: Added validatedContents endpoint for pre-filling mandatory variables from validated sections
+- 2026-02-06: Literature review module integrated with section lifecycle (save to section, validate/unvalidate)
+- 2026-02-06: Conceptual framework prompt updated to enforce exactly 3 concepts (I. Cadre conceptuel with 1.1, 1.2, 1.3)
+- 2026-02-06: Methodology prompt updated to reference literature review findings
+- 2026-02-06: Variables pre-fill from validated sections (subject, problematic, hypotheses) via useValidatedContents hook
 
 ## User Preferences
 - Language: French (UI and AI responses)
