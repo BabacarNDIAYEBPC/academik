@@ -69,6 +69,12 @@ shared/
 - Always guard with `if (!userId)` before DB writes
 
 ## Recent Changes
+- 2026-02-06: Added SectionControls component with editable variables panel, module-specific filters, correction prompt, and export
+- 2026-02-06: Added per-section and batch export (Word .docx and PDF) via docx, file-saver, html2pdf.js
+- 2026-02-06: Batch export uses API endpoint GET /api/projects/:id/sections/export for cross-section content
+- 2026-02-06: Literature review has advanced form with platforms, article count, period, language, source level, source types
+- 2026-02-06: Variables + filters + correction prompt serialized into extraContext for AI generation
+- 2026-02-06: Fixed ordered list HTML export (tracks ul/ol type for correct closing tags)
 - 2026-02-06: Implemented Modules 4-7 (Plan, Frameworks, Lit Review, Methodology) with section-based architecture
 - 2026-02-06: Added project_sections and section_versions tables for versioned content management
 - 2026-02-06: Built contextual memory system - validated sections chain into subsequent generations
