@@ -13,6 +13,7 @@ import NewProject from "@/pages/NewProject";
 import ProjectDetails from "@/pages/ProjectDetails";
 import Settings from "@/pages/Settings";
 import Billing from "@/pages/Billing";
+import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -42,6 +43,7 @@ function Router() {
       <Route path="/projects/:id" component={() => <ProtectedRoute component={ProjectDetails} />} />
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
+      <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1933,6 +1933,254 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
     }
   });
 
+  // === ADMIN CHECK ===
+  function isSuperAdmin(req: any): boolean {
+    const userId = getUserId(req);
+    const adminIds = (process.env.SUPER_ADMIN_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
+    return adminIds.includes(userId);
+  }
+
+  function requireAdmin(req: any, res: any): boolean {
+    if (!req.isAuthenticated()) { res.status(401).json({ message: "Unauthorized" }); return false; }
+    if (!isSuperAdmin(req)) { res.status(403).json({ message: "Forbidden" }); return false; }
+    return true;
+  }
+
+  // Admin status check
+  app.get("/api/admin/check", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ isAdmin: false });
+    res.json({ isAdmin: isSuperAdmin(req) });
+  });
+
+  // === ADMIN: USER MANAGEMENT ===
+
+  app.get("/api/admin/users", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const search = req.query.search as string | undefined;
+      const users = await storage.listAllUsers(search);
+      res.json(users);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/admin/users/:userId", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const user = await storage.getUserById(req.params.userId);
+      if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+      res.json(user);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/users/:userId/credits", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { words = 0, actions = 0 } = req.body;
+      const quota = await storage.addCreditsToUser(req.params.userId, words, actions);
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        actorEmail: req.user?.claims?.email,
+        action: "add_credits",
+        targetType: "user",
+        targetId: req.params.userId,
+        details: { words, actions },
+      });
+      res.json(quota);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.patch("/api/admin/users/:userId/quota", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const updates = req.body;
+      const quota = await storage.updateUserQuotaAdmin(req.params.userId, updates);
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        actorEmail: req.user?.claims?.email,
+        action: "update_quota",
+        targetType: "user",
+        targetId: req.params.userId,
+        details: updates,
+      });
+      res.json(quota);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // === ADMIN: PLANS ===
+
+  app.get("/api/admin/plans", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const allPlans = await storage.getPlans();
+      res.json(allPlans);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/plans", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const plan = await storage.createPlan(req.body);
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "create_plan",
+        targetType: "plan",
+        targetId: String(plan.id),
+        details: req.body,
+      });
+      res.json(plan);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.patch("/api/admin/plans/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const plan = await storage.updatePlan(Number(req.params.id), req.body);
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "update_plan",
+        targetType: "plan",
+        targetId: req.params.id,
+        details: req.body,
+      });
+      res.json(plan);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.delete("/api/admin/plans/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      await storage.deletePlan(Number(req.params.id));
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "delete_plan",
+        targetType: "plan",
+        targetId: req.params.id,
+      });
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // === ADMIN: AI SETTINGS ===
+
+  app.get("/api/admin/settings", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const allSettings = await storage.getAllAdminSettings();
+      const settingsMap: Record<string, any> = {};
+      for (const s of allSettings) {
+        settingsMap[s.key] = s.value;
+      }
+      settingsMap.hasGlobalOpenAIKey = !!(process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
+      settingsMap.hasStripeKey = !!(process.env.STRIPE_SECRET_KEY);
+      res.json(settingsMap);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/settings", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { key, value } = req.body;
+      if (!key) return res.status(400).json({ message: "Clé requise" });
+      const setting = await storage.setAdminSetting(key, value);
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "update_setting",
+        targetType: "setting",
+        targetId: key,
+        details: { value },
+      });
+      res.json(setting);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // === ADMIN: LOGS ===
+
+  app.get("/api/admin/audit-logs", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const limit = Number(req.query.limit) || 100;
+      const offset = Number(req.query.offset) || 0;
+      const logs = await storage.getAuditLogs(limit, offset);
+      res.json(logs);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/admin/ai-logs", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const limit = Number(req.query.limit) || 100;
+      const offset = Number(req.query.offset) || 0;
+      const logs = await storage.getAiLogs(limit, offset);
+      res.json(logs);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/admin/ai-logs/stats", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const stats = await storage.getAiLogStats();
+      res.json(stats);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // === ADMIN: PAYMENTS ===
+
+  app.get("/api/admin/payments", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const limit = Number(req.query.limit) || 100;
+      const purchases = await storage.getAllPurchases(limit);
+      const surplus = await storage.getAllSurplus(limit);
+      res.json({ purchases, surplus });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // === ADMIN: CSV EXPORT ===
+
+  app.get("/api/admin/users/export/csv", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const allUsers = await storage.listAllUsers();
+      const header = "ID,Prénom,Nom,Email,Statut,Projets,Mots utilisés,Mots limite,Actions utilisées,Actions limite,Date création\n";
+      const rows = allUsers.map(u => {
+        return `${u.id},${u.firstName || ""},${u.lastName || ""},${u.email || ""},${u.status},${u.projectCount},${u.quota?.wordsUsed || 0},${u.quota?.wordsLimit || 0},${u.quota?.actionsUsed || 0},${u.quota?.actionsLimit || 0},${u.createdAt || ""}`;
+      }).join("\n");
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader("Content-Disposition", "attachment; filename=users_export.csv");
+      res.send(header + rows);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   app.post("/api/quota/surplus/confirm", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);

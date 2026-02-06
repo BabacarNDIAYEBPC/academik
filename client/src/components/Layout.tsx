@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n, LanguageSelector } from "@/lib/i18n";
+import { useAdminCheck } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
@@ -9,6 +10,7 @@ import {
   LogOut, 
   Menu,
   CreditCard,
+  ShieldCheck,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -20,6 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const { data: adminCheck } = useAdminCheck();
 
   const NavLink = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
     const isActive = location === href;
@@ -55,6 +58,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <NavLink href="/projects/new" icon={FolderPlus} label={t("nav.newProject")} />
           <NavLink href="/billing" icon={CreditCard} label="Facturation" />
           <NavLink href="/settings" icon={Settings2} label={t("nav.settings")} />
+          {adminCheck?.isAdmin && (
+            <NavLink href="/admin" icon={ShieldCheck} label="Super Admin" />
+          )}
         </nav>
 
         <div className="mt-6 px-2">

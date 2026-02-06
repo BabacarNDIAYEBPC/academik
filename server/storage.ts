@@ -2,16 +2,17 @@ import { db } from "./db";
 import {
   users, profiles, projects, documents, aiGenerations,
   projectSections, sectionVersions, sectionStatusHistory, userPurchases,
-  userQuotas, quotaSurplus,
+  userQuotas, quotaSurplus, plans, adminSettings, auditLogs, aiLogs,
   type User, type Profile, type Project, type Document, type AiGeneration,
   type InsertProfile, type InsertProject, type InsertDocument,
   type ProjectSection, type SectionVersion, type StatusHistory,
   type UserPurchase, type InsertPurchase,
   type UserQuota, type QuotaSurplus, type InsertSurplus,
+  type Plan, type InsertPlan, type AuditLog, type AiLog, type AdminSetting,
   SECTION_ORDER,
 } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { eq, desc, and, asc } from "drizzle-orm";
+import { eq, desc, and, asc, ilike, or, count } from "drizzle-orm";
 
 export interface IStorage {
   getProfile(userId: string): Promise<Profile | undefined>;
@@ -60,6 +61,32 @@ export interface IStorage {
   addQuotaSurplus(userId: string, surplusType: string, amount: number, price: number): Promise<void>;
   getActiveProjectCount(userId: string): Promise<number>;
   getDocumentCount(projectId: number): Promise<number>;
+
+  // Admin methods
+  listAllUsers(search?: string): Promise<any[]>;
+  getUserById(userId: string): Promise<any>;
+  updateUserQuotaAdmin(userId: string, updates: Partial<{ wordsLimit: number; actionsLimit: number; activeProjectsLimit: number; documentsLimit: number }>): Promise<UserQuota>;
+  addCreditsToUser(userId: string, words: number, actions: number): Promise<UserQuota>;
+
+  getPlans(): Promise<Plan[]>;
+  getPlan(id: number): Promise<Plan | undefined>;
+  createPlan(plan: InsertPlan): Promise<Plan>;
+  updatePlan(id: number, updates: Partial<InsertPlan>): Promise<Plan>;
+  deletePlan(id: number): Promise<void>;
+
+  getAdminSetting(key: string): Promise<any>;
+  setAdminSetting(key: string, value: any): Promise<AdminSetting>;
+  getAllAdminSettings(): Promise<AdminSetting[]>;
+
+  createAuditLog(log: { actorId?: string; actorEmail?: string; action: string; targetType?: string; targetId?: string; details?: any }): Promise<AuditLog>;
+  getAuditLogs(limit?: number, offset?: number): Promise<AuditLog[]>;
+
+  createAiLog(log: { userId?: string; endpoint: string; model?: string; tokensIn?: number; tokensOut?: number; durationMs?: number; status?: string; error?: string }): Promise<AiLog>;
+  getAiLogs(limit?: number, offset?: number): Promise<AiLog[]>;
+  getAiLogStats(): Promise<{ totalRequests: number; totalErrors: number; avgDuration: number }>;
+
+  getAllPurchases(limit?: number): Promise<any[]>;
+  getAllSurplus(limit?: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -420,6 +447,193 @@ export class DatabaseStorage implements IStorage {
   async getDocumentCount(projectId: number): Promise<number> {
     const result = await db.select().from(documents).where(eq(documents.projectId, projectId));
     return result.length;
+  }
+
+  // === ADMIN METHODS ===
+
+  async listAllUsers(search?: string): Promise<any[]> {
+    let userRows;
+    if (search) {
+      userRows = await db.select().from(users).where(
+        or(
+          ilike(users.email, `%${search}%`),
+          ilike(users.firstName, `%${search}%`),
+          ilike(users.lastName, `%${search}%`)
+        )
+      ).orderBy(desc(users.createdAt));
+    } else {
+      userRows = await db.select().from(users).orderBy(desc(users.createdAt));
+    }
+    const enriched = [];
+    for (const u of userRows) {
+      const profile = await this.getProfile(u.id);
+      const quota = await this.getQuota(u.id);
+      const projectCount = await this.getActiveProjectCount(u.id);
+      const purchases = await this.getUserPurchases(u.id);
+      enriched.push({
+        ...u,
+        profile,
+        quota,
+        projectCount,
+        purchaseCount: purchases.length,
+        status: purchases.length > 0 ? "paid" : "trial",
+      });
+    }
+    return enriched;
+  }
+
+  async getUserById(userId: string): Promise<any> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    if (!user) return null;
+    const profile = await this.getProfile(userId);
+    const quota = await this.getQuota(userId);
+    const projectCount = await this.getActiveProjectCount(userId);
+    const purchases = await this.getUserPurchases(userId);
+    const surplusList = await db.select().from(quotaSurplus)
+      .where(eq(quotaSurplus.userId, userId))
+      .orderBy(desc(quotaSurplus.createdAt));
+    return { ...user, profile, quota, projectCount, purchases, surplus: surplusList };
+  }
+
+  async updateUserQuotaAdmin(userId: string, updates: Partial<{ wordsLimit: number; actionsLimit: number; activeProjectsLimit: number; documentsLimit: number }>): Promise<UserQuota> {
+    await this.getQuota(userId);
+    const [updated] = await db.update(userQuotas)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userQuotas.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async addCreditsToUser(userId: string, words: number, actions: number): Promise<UserQuota> {
+    const quota = await this.getQuota(userId);
+    const [updated] = await db.update(userQuotas)
+      .set({
+        wordsLimit: quota.wordsLimit + words,
+        actionsLimit: quota.actionsLimit + actions,
+        updatedAt: new Date(),
+      })
+      .where(eq(userQuotas.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  // === PLANS ===
+
+  async getPlans(): Promise<Plan[]> {
+    return await db.select().from(plans).orderBy(asc(plans.id));
+  }
+
+  async getPlan(id: number): Promise<Plan | undefined> {
+    const [plan] = await db.select().from(plans).where(eq(plans.id, id));
+    return plan;
+  }
+
+  async createPlan(plan: InsertPlan): Promise<Plan> {
+    const [created] = await db.insert(plans).values(plan).returning();
+    return created;
+  }
+
+  async updatePlan(id: number, updates: Partial<InsertPlan>): Promise<Plan> {
+    const [updated] = await db.update(plans)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(plans.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePlan(id: number): Promise<void> {
+    await db.delete(plans).where(eq(plans.id, id));
+  }
+
+  // === ADMIN SETTINGS ===
+
+  async getAdminSetting(key: string): Promise<any> {
+    const [setting] = await db.select().from(adminSettings).where(eq(adminSettings.key, key));
+    return setting?.value ?? null;
+  }
+
+  async setAdminSetting(key: string, value: any): Promise<AdminSetting> {
+    const [existing] = await db.select().from(adminSettings).where(eq(adminSettings.key, key));
+    if (existing) {
+      const [updated] = await db.update(adminSettings)
+        .set({ value, updatedAt: new Date() })
+        .where(eq(adminSettings.key, key))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(adminSettings).values({ key, value }).returning();
+    return created;
+  }
+
+  async getAllAdminSettings(): Promise<AdminSetting[]> {
+    return await db.select().from(adminSettings);
+  }
+
+  // === AUDIT LOGS ===
+
+  async createAuditLog(log: { actorId?: string; actorEmail?: string; action: string; targetType?: string; targetId?: string; details?: any }): Promise<AuditLog> {
+    const [created] = await db.insert(auditLogs).values(log).returning();
+    return created;
+  }
+
+  async getAuditLogs(limit = 100, offset = 0): Promise<AuditLog[]> {
+    return await db.select().from(auditLogs)
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  // === AI LOGS ===
+
+  async createAiLog(log: { userId?: string; endpoint: string; model?: string; tokensIn?: number; tokensOut?: number; durationMs?: number; status?: string; error?: string }): Promise<AiLog> {
+    const [created] = await db.insert(aiLogs).values(log).returning();
+    return created;
+  }
+
+  async getAiLogs(limit = 100, offset = 0): Promise<AiLog[]> {
+    return await db.select().from(aiLogs)
+      .orderBy(desc(aiLogs.createdAt))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  async getAiLogStats(): Promise<{ totalRequests: number; totalErrors: number; avgDuration: number }> {
+    const [stats] = await db.select({
+      totalRequests: count(),
+      totalErrors: count(sql`CASE WHEN ${aiLogs.status} = 'error' THEN 1 END`),
+      avgDuration: sql<number>`COALESCE(AVG(${aiLogs.durationMs}), 0)`,
+    }).from(aiLogs);
+    return {
+      totalRequests: Number(stats.totalRequests),
+      totalErrors: Number(stats.totalErrors),
+      avgDuration: Math.round(Number(stats.avgDuration)),
+    };
+  }
+
+  // === ALL PURCHASES (Admin) ===
+
+  async getAllPurchases(limit = 100): Promise<any[]> {
+    const rows = await db.select().from(userPurchases)
+      .orderBy(desc(userPurchases.createdAt))
+      .limit(limit);
+    const enriched = [];
+    for (const p of rows) {
+      const [user] = await db.select().from(users).where(eq(users.id, p.userId));
+      enriched.push({ ...p, userEmail: user?.email, userName: user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Inconnu" });
+    }
+    return enriched;
+  }
+
+  async getAllSurplus(limit = 100): Promise<any[]> {
+    const rows = await db.select().from(quotaSurplus)
+      .orderBy(desc(quotaSurplus.createdAt))
+      .limit(limit);
+    const enriched = [];
+    for (const s of rows) {
+      const [user] = await db.select().from(users).where(eq(users.id, s.userId));
+      enriched.push({ ...s, userEmail: user?.email, userName: user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Inconnu" });
+    }
+    return enriched;
   }
 }
 

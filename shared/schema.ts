@@ -144,6 +144,58 @@ export const quotaSurplus = pgTable("quota_surplus", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === ADMIN: PLANS ===
+export const plans = pgTable("plans", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  name: text("name").notNull(),
+  price: integer("price").notNull().default(0),
+  duration: text("duration").notNull().default("monthly"),
+  projectsLimit: integer("projects_limit").notNull().default(3),
+  wordsLimit: integer("words_limit").notNull().default(20000),
+  actionsLimit: integer("actions_limit").notNull().default(200),
+  documentsLimit: integer("documents_limit").notNull().default(20),
+  modulesEnabled: text("modules_enabled").array().notNull().default(sql`ARRAY[]::text[]`),
+  marketingLabel: text("marketing_label"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// === ADMIN: SETTINGS ===
+export const adminSettings = pgTable("admin_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: jsonb("value"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// === ADMIN: AUDIT LOGS ===
+export const auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  actorId: varchar("actor_id"),
+  actorEmail: text("actor_email"),
+  action: text("action").notNull(),
+  targetType: text("target_type"),
+  targetId: text("target_id"),
+  details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// === ADMIN: AI LOGS ===
+export const aiLogs = pgTable("ai_logs", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id"),
+  endpoint: text("endpoint").notNull(),
+  model: text("model"),
+  tokensIn: integer("tokens_in"),
+  tokensOut: integer("tokens_out"),
+  durationMs: integer("duration_ms"),
+  status: text("status").notNull().default("success"),
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SECTION STATUSES ===
 export const SECTION_STATUSES = {
   DRAFT: 'draft',
@@ -212,6 +264,9 @@ export const insertStatusHistorySchema = createInsertSchema(sectionStatusHistory
 export const insertPurchaseSchema = createInsertSchema(userPurchases).omit({ id: true, createdAt: true });
 export const insertQuotaSchema = createInsertSchema(userQuotas).omit({ id: true, updatedAt: true });
 export const insertSurplusSchema = createInsertSchema(quotaSurplus).omit({ id: true, createdAt: true });
+export const insertPlanSchema = createInsertSchema(plans).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({ id: true, createdAt: true });
+export const insertAiLogSchema = createInsertSchema(aiLogs).omit({ id: true, createdAt: true });
 
 // === TYPES ===
 export type Profile = typeof profiles.$inferSelect;
@@ -232,6 +287,13 @@ export type UserQuota = typeof userQuotas.$inferSelect;
 export type InsertQuota = z.infer<typeof insertQuotaSchema>;
 export type QuotaSurplus = typeof quotaSurplus.$inferSelect;
 export type InsertSurplus = z.infer<typeof insertSurplusSchema>;
+export type Plan = typeof plans.$inferSelect;
+export type InsertPlan = z.infer<typeof insertPlanSchema>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AiLog = typeof aiLogs.$inferSelect;
+export type InsertAiLog = z.infer<typeof insertAiLogSchema>;
+export type AdminSetting = typeof adminSettings.$inferSelect;
 
 export type CreateProjectRequest = InsertProject;
 export type UpdateProjectRequest = Partial<InsertProject>;
