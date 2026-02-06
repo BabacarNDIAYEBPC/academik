@@ -2,8 +2,7 @@ import Layout from "@/components/Layout";
 import { useRoute } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
-import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined, useGenerateDiagram } from "@/hooks/use-sections";
-import MermaidDiagram from "@/components/MermaidDiagram";
+import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined } from "@/hooks/use-sections";
 import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
 import { useState, useMemo } from "react";
@@ -581,83 +580,7 @@ function SingleSectionWrapper({
     />
   );
 
-  if (sectionKey === "conceptual_framework") {
-    return (
-      <ConceptualFrameworkWrapper projectId={projectId}>
-        {sectionEditor}
-      </ConceptualFrameworkWrapper>
-    );
-  }
-
   return sectionEditor;
-}
-
-function ConceptualFrameworkWrapper({ projectId, children }: { projectId: number; children: React.ReactNode }) {
-  const diagramMutation = useGenerateDiagram();
-  const { toast } = useToast();
-  const [diagrams, setDiagrams] = useState<{ code: string; title: string; type: string }[]>([]);
-
-  const handleGenerateDiagram = (diagramType: "concept_relations" | "concept_problematic") => {
-    diagramMutation.mutate(
-      { projectId, diagramType },
-      {
-        onSuccess: (data) => {
-          setDiagrams(prev => [...prev, { code: data.mermaidCode, title: data.title, type: diagramType }]);
-          toast({ title: "Diagramme généré", description: data.title });
-        },
-        onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "Erreur lors de la génération du diagramme", variant: "destructive" });
-        },
-      }
-    );
-  };
-
-  return (
-    <div className="space-y-4">
-      {children}
-
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-sm text-muted-foreground mb-3">Générer des schémas et graphiques pour visualiser les relations entre les concepts, la problématique et les hypothèses.</p>
-          <div className="flex gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              onClick={() => handleGenerateDiagram("concept_relations")}
-              disabled={diagramMutation.isPending}
-              data-testid="button-diagram-concept-relations"
-            >
-              {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lightbulb className="w-4 h-4 mr-2" />}
-              Schéma des relations entre concepts
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleGenerateDiagram("concept_problematic")}
-              disabled={diagramMutation.isPending}
-              data-testid="button-diagram-concept-problematic"
-            >
-              {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Map className="w-4 h-4 mr-2" />}
-              Articulation Concepts - Problématique - Hypothèses
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {diagrams.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Schémas générés</h3>
-          {diagrams.map((d, i) => (
-            <MermaidDiagram
-              key={`${d.type}-${i}`}
-              code={d.code}
-              title={d.title}
-              onRegenerate={() => handleGenerateDiagram(d.type as any)}
-              isRegenerating={diagramMutation.isPending}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 function DocumentsTab({ project }: { project: any }) {
