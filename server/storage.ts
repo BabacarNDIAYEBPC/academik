@@ -332,6 +332,95 @@ export class DatabaseStorage implements IStorage {
     const purchases = await this.getUserPurchases(userId);
     return purchases.map(p => p.itemKey);
   }
+
+  async getQuota(userId: string): Promise<UserQuota> {
+    const [existing] = await db.select().from(userQuotas).where(eq(userQuotas.userId, userId));
+    if (existing) return existing;
+    const now = new Date();
+    const periodEnd = new Date(now);
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+    const [created] = await db.insert(userQuotas).values({
+      userId,
+      wordsUsed: 0,
+      wordsLimit: 20000,
+      actionsUsed: 0,
+      actionsLimit: 200,
+      activeProjectsLimit: 3,
+      documentsLimit: 20,
+      periodStart: now,
+      periodEnd,
+    }).returning();
+    return created;
+  }
+
+  async incrementQuotaUsage(userId: string, words: number, actions: number): Promise<UserQuota> {
+    const quota = await this.getQuota(userId);
+    const [updated] = await db.update(userQuotas)
+      .set({
+        wordsUsed: quota.wordsUsed + words,
+        actionsUsed: quota.actionsUsed + actions,
+        updatedAt: new Date(),
+      })
+      .where(eq(userQuotas.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async resetQuotaIfNeeded(userId: string): Promise<UserQuota> {
+    const quota = await this.getQuota(userId);
+    const now = new Date();
+    if (quota.periodEnd && now >= quota.periodEnd) {
+      const periodEnd = new Date(now);
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+      const [updated] = await db.update(userQuotas)
+        .set({
+          wordsUsed: 0,
+          actionsUsed: 0,
+          periodStart: now,
+          periodEnd,
+          updatedAt: now,
+        })
+        .where(eq(userQuotas.userId, userId))
+        .returning();
+      return updated;
+    }
+    return quota;
+  }
+
+  async addQuotaSurplus(userId: string, surplusType: string, amount: number, price: number): Promise<void> {
+    await db.insert(quotaSurplus).values({
+      userId,
+      surplusType,
+      amount,
+      price,
+      status: "active",
+    });
+    const quota = await this.getQuota(userId);
+    if (surplusType === "words") {
+      await db.update(userQuotas)
+        .set({ wordsLimit: quota.wordsLimit + amount, updatedAt: new Date() })
+        .where(eq(userQuotas.userId, userId));
+    } else if (surplusType === "actions") {
+      await db.update(userQuotas)
+        .set({ actionsLimit: quota.actionsLimit + amount, updatedAt: new Date() })
+        .where(eq(userQuotas.userId, userId));
+    } else if (surplusType === "projects") {
+      await db.update(userQuotas)
+        .set({ activeProjectsLimit: quota.activeProjectsLimit + amount, updatedAt: new Date() })
+        .where(eq(userQuotas.userId, userId));
+    }
+  }
+
+  async getActiveProjectCount(userId: string): Promise<number> {
+    const result = await db.select().from(projects)
+      .where(and(eq(projects.userId, userId), eq(projects.status, "active")));
+    return result.length;
+  }
+
+  async getDocumentCount(projectId: number): Promise<number> {
+    const result = await db.select().from(documents).where(eq(documents.projectId, projectId));
+    return result.length;
+  }
 }
 
 export const storage = new DatabaseStorage();

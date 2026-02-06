@@ -1,0 +1,243 @@
+📘 EXTENSIONS FONCTIONNELLES — CADRE CONCEPTUEL
+
+(Spécification obligatoire – cohérence totale avec Fondement, Plan, Méthodologie)
+
+1. Bouton « Générer les concepts » — TOUJOURS DISPONIBLE
+Règle obligatoire
+
+Dans la section Cadre conceptuel, le bouton :
+
+👉 « Générer les concepts » doit toujours être visible et actif,
+même si aucun article n’a été sélectionné.
+
+Cas 1 — Articles sélectionnés
+
+Si l’utilisateur a sélectionné un ou plusieurs articles :
+
+l’IA :
+
+analyse uniquement les articles sélectionnés
+
+génère :
+
+les concepts
+
+les définitions
+
+les liens concepts ↔ problématique ↔ hypothèses
+
+aucune recherche supplémentaire n’est lancée
+
+Cas 2 — Aucun article sélectionné
+
+Si aucun article n’est sélectionné, afficher en bas de la section le message suivant :
+
+« Vous pouvez également décider de laisser la plateforme vous proposer automatiquement des articles pertinents en lien avec votre sujet. »
+
+Avec un bouton :
+
+« Laisser la plateforme proposer les articles »
+
+Si l’utilisateur clique sur ce bouton :
+
+l’IA :
+
+propose une liste d’articles pertinents
+
+basée sur :
+
+le sujet
+
+la problématique
+
+le domaine
+
+l’utilisateur peut :
+
+accepter tout
+
+sélectionner certains articles
+
+en exclure
+
+👉 Ensuite, le bouton « Générer les concepts » s’applique sur les articles retenus.
+
+2. Variables & options — Cadre conceptuel (ALIGNEMENT TOTAL)
+Variables affichées (repliées par défaut)
+
+Le cadre conceptuel doit afficher les mêmes variables que les sections Fondement et Plan :
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Domaine
+
+Formation / discipline
+
+👉 Toutes ces variables sont :
+
+pré-remplies automatiquement
+
+modifiables manuellement
+
+issues du paramétrage global
+
+⚠️ Si l’utilisateur modifie une variable :
+
+l’IA doit détecter l’impact
+
+proposer une réadaptation cohérente (concepts, plan, méthodo)
+
+Options IA disponibles (repliées par défaut)
+
+Générer les concepts
+
+Régénérer (version similaire / version différente)
+
+Affiner via consignes spécifiques
+
+Proposer d’autres articles
+
+Générer schémas / graphiques conceptuels
+
+3. Génération de l’équation de recherche — Cadre conceptuel
+Fonctionnalité obligatoire
+
+Dans le cadre conceptuel, permettre :
+
+la génération d’équations de recherche
+
+exactement comme dans la Revue de littérature
+
+Formats proposés :
+
+Google Scholar
+
+PubMed
+
+Cairn
+
+HAL
+
+ScienceDirect
+
+👉 Les équations sont :
+
+basées sur les concepts
+
+exportables (Word)
+
+réutilisables dans la Revue de littérature
+
+4. Analyse et exploitation des articles — Cadre conceptuel
+
+Dans le cadre conceptuel, permettre les mêmes actions que dans la Revue de littérature sur les articles affichés :
+
+Actions disponibles
+
+Résumer un article
+
+Résumer plusieurs articles
+
+Confronter deux articles
+
+Confronter plusieurs articles
+
+👉 Les résultats sont affichés :
+
+dans une page dédiée
+
+ou un popup dédié
+
+jamais silencieusement
+
+5. Export des articles & bibliographie — Cadre conceptuel
+Exports autorisés
+
+À partir des articles sélectionnés :
+
+Export bibliographie aux normes :
+
+APA 7 (par défaut)
+
+Vancouver
+
+MLA
+
+Chicago
+
+Formats :
+
+Word (.docx)
+
+⚠️ Pas de PDF ici (aligné avec la Revue de littérature)
+
+6. Schémas & visuels conceptuels
+
+À partir :
+
+des concepts générés
+
+et/ou des articles sélectionnés
+
+Permettre via un bouton dédié :
+
+génération de schémas conceptuels
+
+visualisation des liens entre concepts
+
+cartes de mapping
+
+👉 Les visuels doivent :
+
+s’afficher dans un popup
+
+être exportables (image / Word)
+
+7. Harmonisation globale — Variables & options (RÈGLE TRANSVERSALE)
+Sections concernées
+
+Fondement
+
+Plan
+
+Cadre conceptuel
+
+Revue de littérature
+
+Méthodologie
+
+Règle
+
+Dans ces 5 sections, on doit retrouver :
+
+le même bloc Variables
+
+le même bloc Options IA
+
+même logique de repli par défaut
+
+même comportement de modification / régénération
+
+👉 L’utilisateur ne doit jamais être désorienté d’une section à l’autre.
+
+✅ SYNTHÈSE
+
+Concepts générables avec ou sans articles
+
+Proposition automatique d’articles si aucun n’est sélectionné
+
+Variables cohérentes avec Fondement / Plan / Méthodo
+
+Équations de recherche disponibles dans le cadre conceptuel
+
+Analyse, confrontation, résumé des articles possibles
+
+Exports bibliographiques multi-normes
+
+Schémas conceptuels générables
+
+UX homogène sur 5 sections clés

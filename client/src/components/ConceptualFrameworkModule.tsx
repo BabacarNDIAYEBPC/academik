@@ -17,6 +17,8 @@ import {
   useValidateSection,
   useUnvalidateSection,
   useSaveSectionConfig,
+  useAnalyzeArticles,
+  useGenerateEquations,
 } from "@/hooks/use-sections";
 import { SECTION_LABELS } from "@shared/schema";
 import type { ProjectSection } from "@shared/schema";
@@ -24,12 +26,13 @@ import ReactMarkdown from "react-markdown";
 import {
   Search, Loader2, ExternalLink, BookOpen, ChevronLeft, ChevronRight,
   CheckSquare, Save, Check, X, Lightbulb, Plus, Filter, SlidersHorizontal,
-  FileDown, ChevronDown,
+  FileDown, ChevronDown, FileText,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { exportToWord } from "@/lib/export-utils";
+import VariablesPanel from "@/components/VariablesPanel";
 
 interface SourceArticle {
   lastName: string;
@@ -67,7 +70,7 @@ const CITATION_NORMS = [
   { key: "chicago", label: "Chicago" },
 ];
 
-type ActiveAction = null | "search" | "concepts" | "suggest" | "bibliography";
+type ActiveAction = null | "search" | "concepts" | "suggest" | "bibliography" | "equations" | "analysis" | "autosuggest";
 
 interface ConceptualFrameworkModuleProps {
   projectId: number;
@@ -113,6 +116,12 @@ export default function ConceptualFrameworkModule({
   const [showConceptsDialog, setShowConceptsDialog] = useState(false);
   const [showBibDialog, setShowBibDialog] = useState(false);
   const [showSearchForm, setShowSearchForm] = useState(true);
+  const [showAutoSuggest, setShowAutoSuggest] = useState(false);
+  const [equationsContent, setEquationsContent] = useState("");
+  const [showEquationsDialog, setShowEquationsDialog] = useState(false);
+  const [analysisContent, setAnalysisContent] = useState("");
+  const [analysisType, setAnalysisType] = useState<string>("single");
+  const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
 
   const [searchPlatforms, setSearchPlatforms] = useState<string[]>(["google_scholar"]);
   const [searchPeriodStart, setSearchPeriodStart] = useState("2015");
@@ -129,6 +138,8 @@ export default function ConceptualFrameworkModule({
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
   const saveConfigMutation = useSaveSectionConfig();
+  const analyzeArticlesMutation = useAnalyzeArticles();
+  const equationsMutation = useGenerateEquations();
 
   const isAnyActionRunning = activeAction !== null;
 
@@ -257,8 +268,12 @@ export default function ConceptualFrameworkModule({
   };
 
   const handleGenerateConcepts = () => {
-    if (selectedSources.length === 0) {
-      toast({ title: "Sélection requise", description: "Sélectionnez au moins une source.", variant: "destructive" });
+    if (selectedSources.length === 0 && sources.length > 0) {
+      toast({ title: "Sélection requise", description: "Sélectionnez au moins une source, ou utilisez la suggestion automatique.", variant: "destructive" });
+      return;
+    }
+    if (selectedSources.length === 0 && sources.length === 0) {
+      handleAutoSuggestAndGenerate();
       return;
     }
     setActiveAction("concepts");
@@ -298,6 +313,109 @@ export default function ConceptualFrameworkModule({
           setSources(prev => [...prev, ...newSources]);
           setActiveAction(null);
           toast({ title: "Sources complémentaires", description: `${newSources.length} nouvelle(s) source(s) suggérée(s).` });
+        },
+        onError: (err) => {
+          setActiveAction(null);
+          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const handleAutoSuggestAndGenerate = () => {
+    setActiveAction("autosuggest");
+    suggestMutation.mutate(
+      {
+        projectId,
+        existingSources: [],
+        extraContext: `${extraContext || ""}\nPropose des articles pertinents pour construire le cadre conceptuel.`,
+      },
+      {
+        onSuccess: (data) => {
+          const newSources = data.articles || [];
+          setSources(newSources);
+          const keys = new Set(newSources.map(getSourceKey));
+          setSelectedKeys(keys);
+          toast({ title: "Articles suggérés", description: `${newSources.length} source(s) proposée(s). Génération des concepts en cours...` });
+          conceptsMutation.mutate(
+            {
+              projectId,
+              sources: newSources,
+              citationNorm: citationNorm as any,
+              extraContext: `${extraContext || ""}\n${instructions ? `Consignes: ${instructions}` : ""}`,
+            },
+            {
+              onSuccess: (conceptData) => {
+                setConceptsContent(conceptData.content);
+                setBibliographyContent(conceptData.bibliography);
+                setActiveAction(null);
+                toast({ title: "Concepts générés", description: "Articles proposés et cadre conceptuel généré automatiquement." });
+              },
+              onError: (err) => {
+                setActiveAction(null);
+                toast({ title: "Erreur", description: err.message, variant: "destructive" });
+              },
+            }
+          );
+        },
+        onError: (err) => {
+          setActiveAction(null);
+          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const handleGenerateEquations = () => {
+    setActiveAction("equations");
+    equationsMutation.mutate(
+      {
+        projectId,
+        language: "both" as any,
+        extraContext: `${extraContext || ""}\nGénère les équations de recherche à partir des concepts du cadre conceptuel.${instructions ? `\nConsignes: ${instructions}` : ""}`,
+      },
+      {
+        onSuccess: (data) => {
+          setEquationsContent(data.content);
+          setShowEquationsDialog(true);
+          setActiveAction(null);
+          toast({ title: "Équations générées", description: "Les équations de recherche ont été générées." });
+        },
+        onError: (err) => {
+          setActiveAction(null);
+          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const handleAnalyzeArticles = () => {
+    if (selectedSources.length === 0) {
+      toast({ title: "Sélection requise", description: "Sélectionnez au moins un article.", variant: "destructive" });
+      return;
+    }
+    const type = selectedSources.length === 1 ? "single" : analysisType;
+    setActiveAction("analysis");
+    analyzeArticlesMutation.mutate(
+      {
+        projectId,
+        articles: selectedSources.map(a => ({
+          title: a.title,
+          authors: `${a.lastName} ${a.firstName}`.trim(),
+          year: a.year,
+          source: a.publisher,
+          platform: a.platform,
+          url: a.url,
+        })),
+        analysisType: type as any,
+        extraContext: `${extraContext || ""}\n${instructions ? `Consignes: ${instructions}` : ""}`,
+      },
+      {
+        onSuccess: (data) => {
+          setAnalysisContent(data.content);
+          setShowAnalysisDialog(true);
+          setActiveAction(null);
+          toast({ title: "Analyse terminée", description: "L'analyse des articles est disponible." });
         },
         onError: (err) => {
           setActiveAction(null);
@@ -410,6 +528,8 @@ export default function ConceptualFrameworkModule({
           </p>
         </CardHeader>
       </Card>
+
+      <VariablesPanel variables={variables} readOnly />
 
       <Card>
         <CardHeader className="pb-2">
@@ -670,21 +790,22 @@ export default function ConceptualFrameworkModule({
         </Card>
       )}
 
-      {sources.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base">Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={handleGenerateConcepts}
-                disabled={isAnyActionRunning || selectedSources.length === 0}
-                data-testid="button-generate-concepts"
-              >
-                {activeAction === "concepts" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lightbulb className="w-4 h-4 mr-2" />}
-                Générer les concepts ({selectedKeys.size} source{selectedKeys.size > 1 ? "s" : ""})
-              </Button>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Actions</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={handleGenerateConcepts}
+              disabled={isAnyActionRunning}
+              data-testid="button-generate-concepts"
+            >
+              {activeAction === "concepts" || activeAction === "autosuggest" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lightbulb className="w-4 h-4 mr-2" />}
+              Générer les concepts
+              {selectedKeys.size > 0 && ` (${selectedKeys.size} source${selectedKeys.size > 1 ? "s" : ""})`}
+            </Button>
+            {sources.length > 0 && (
               <Button
                 variant="outline"
                 onClick={handleSuggestSources}
@@ -694,10 +815,62 @@ export default function ConceptualFrameworkModule({
                 {activeAction === "suggest" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                 Proposer d'autres sources
               </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={handleGenerateEquations}
+              disabled={isAnyActionRunning}
+              data-testid="button-generate-equations"
+            >
+              {activeAction === "equations" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
+              Équations de recherche
+            </Button>
+            {selectedSources.length > 0 && (
+              <>
+                {selectedSources.length > 1 && (
+                  <Select value={analysisType} onValueChange={setAnalysisType}>
+                    <SelectTrigger className="w-[180px]" data-testid="select-analysis-type">
+                      <SelectValue placeholder="Type d'analyse" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="multiple">Résumé multiple</SelectItem>
+                      <SelectItem value="confrontation">Confrontation</SelectItem>
+                      <SelectItem value="mapping">Mapping</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button
+                  variant="outline"
+                  onClick={handleAnalyzeArticles}
+                  disabled={isAnyActionRunning}
+                  data-testid="button-analyze-articles"
+                >
+                  {activeAction === "analysis" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
+                  {selectedSources.length === 1 ? "Résumer l'article" : "Analyser les articles"}
+                </Button>
+              </>
+            )}
+          </div>
+
+          {sources.length === 0 && (
+            <div className="p-4 rounded-lg border border-dashed border-border/60 bg-muted/30 text-sm text-muted-foreground space-y-3">
+              <p>
+                Vous pouvez également décider de laisser la plateforme vous proposer automatiquement 
+                des articles pertinents en lien avec votre sujet.
+              </p>
+              <Button
+                variant="secondary"
+                onClick={handleAutoSuggestAndGenerate}
+                disabled={isAnyActionRunning}
+                data-testid="button-auto-suggest"
+              >
+                {activeAction === "autosuggest" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lightbulb className="w-4 h-4 mr-2" />}
+                Laisser la plateforme proposer les articles
+              </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          )}
+        </CardContent>
+      </Card>
 
       {conceptsContent && (
         <Card>
@@ -758,6 +931,41 @@ export default function ConceptualFrameworkModule({
           </CardContent>
         </Card>
       )}
+      <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-equations">
+          <DialogHeader>
+            <DialogTitle>Équations de recherche</DialogTitle>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown>{equationsContent}</ReactMarkdown>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" size="sm" onClick={() => {
+              exportToWord("Équations de recherche", [{ label: "Équations de recherche", content: equationsContent }], "equations-recherche");
+            }} data-testid="button-export-equations">
+              <FileDown className="w-4 h-4 mr-1" /> Word
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-analysis">
+          <DialogHeader>
+            <DialogTitle>Analyse des articles</DialogTitle>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none">
+            <ReactMarkdown>{analysisContent}</ReactMarkdown>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" size="sm" onClick={() => {
+              exportToWord("Analyse articles", [{ label: "Analyse", content: analysisContent }], "analyse-articles");
+            }} data-testid="button-export-analysis">
+              <FileDown className="w-4 h-4 mr-1" /> Word
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

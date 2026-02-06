@@ -1,0 +1,128 @@
+1) “20 000 mots” : oui, mais pas seul
+
+20 000 mots “générés” est une bonne base marketing, mais techniquement il faut le traduire en quota IA mesurable (car l’IA coûte en tokens, pas en mots).
+
+20 000 mots ≈ 25 000 à 30 000 tokens de sortie (ordre de grandeur, selon langue/longueur moyenne des mots).
+
+Le vrai coût dépend aussi des tokens d’entrée : documents importés, contexte, historique, etc.
+
+👉 Donc : tu peux afficher “20 000 mots / mois” côté utilisateur, mais en interne tu dois compter en tokens (ou en “crédits IA”) pour éviter les surprises.
+
+2) Le meilleur modèle pour toi : 3 quotas simples + packs de surplus
+
+Comme tu as une offre unique, je te recommande de gérer :
+
+A) Quota “Mots générés / mois” (affiché à l’utilisateur)
+
+Inclus : 20 000 mots / mois
+
+Décompte : uniquement sur les sorties IA (réponses générées)
+
+Reset mensuel
+
+B) Quota “Actions IA / mois” (anti-abus)
+
+Parce qu’un mapping ou une confrontation coûte cher même si peu de mots.
+
+Inclus : ex. 200 actions / mois
+
+Une action = clic “analyser / confronter / mapping / générer plan / générer concepts / résumé”
+
+Reset mensuel
+
+C) Limites “Dossiers / Projets”
+
+Inclus : ex. 3 dossiers actifs
+
+Dossiers archivés illimités (ou très large)
+
+Surplus : dossier actif supplémentaire = option payante
+
+👉 Ça te donne un contrôle coût (A + B) et un contrôle usage produit (C).
+
+3) À la carte : comment le brancher proprement
+
+Dans ton formulaire “à la carte”, chaque option doit avoir :
+
+un prix
+
+un impact quota (ou pas)
+
+Exemples :
+
+Option “Revue de littérature + analyse” : active les boutons + consomme actions IA
+
+Option “Mapping illimité” : tu peux plutôt mettre “mapping x / mois” pour éviter l’explosion
+
+Option “Export Word illimité” : OK (coût faible)
+
+4) Packs de surplus (obligatoires)
+
+Dans “Paiement / Upgrade”, ajoute 3 boutons simples :
+
+Pack Mots : +10 000 mots
+
+Pack Actions IA : +100 actions
+
+Pack Dossiers : +1 dossier actif (mensuel)
+
+👉 Avantage : tu gardes ton offre unique, mais tu monétises les gros utilisateurs sans créer 5 abonnements.
+
+5) Comment compter concrètement (simple à implémenter)
+Compteurs mensuels par utilisateur
+
+words_used_month
+
+actions_used_month
+
+active_projects_count
+
+Règles de blocage
+
+Si words_used_month >= 20 000 → bloquer génération texte, proposer “acheter pack mots”
+
+Si actions_used_month >= quota → bloquer boutons IA, proposer pack actions
+
+Si active_projects_count >= quota → bloquer création dossier, proposer pack dossiers
+
+6) Pour toi (Super Admin)
+
+Dans Super Admin tu dois pouvoir :
+
+définir les quotas de l’offre unique :
+
+mots/mois
+
+actions/mois
+
+dossiers actifs
+
+modifier quota pour un user (support)
+
+voir conso :
+
+mots consommés
+
+actions consommées
+
+dossiers actifs
+
+ajouter manuellement packs/bonus
+
+7) Est-ce que “20 000 mots” est “bien” ?
+
+Oui, pour un MVP c’est cohérent si tu limites aussi :
+
+actions IA / mois (sinon mapping+confrontation peut exploser)
+
+taille des docs importés (sinon énorme contexte)
+
+👉 Suggestion de base (offre unique) :
+
+20 000 mots / mois
+
+200 actions IA / mois
+
+3 dossiers actifs
+
+packs de surplus

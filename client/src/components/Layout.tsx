@@ -8,10 +8,12 @@ import {
   Settings2, 
   LogOut, 
   Menu,
+  CreditCard,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import QuotaBar from "@/components/QuotaBar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -51,18 +53,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <nav className="space-y-2">
           <NavLink href="/" icon={LayoutDashboard} label={t("nav.dashboard")} />
           <NavLink href="/projects/new" icon={FolderPlus} label={t("nav.newProject")} />
+          <NavLink href="/billing" icon={CreditCard} label="Facturation" />
           <NavLink href="/settings" icon={Settings2} label={t("nav.settings")} />
         </nav>
 
         <div className="mt-6 px-2">
           <LanguageSelector variant="minimal" />
         </div>
+
+        <div className="mt-6">
+          <QuotaBar />
+        </div>
       </div>
 
       <div className="mt-auto p-6 border-t border-border/50">
         <div className="flex items-center gap-3 mb-4 px-2">
           <Avatar className="w-8 h-8 border border-border">
-            <AvatarImage src={user?.profileImageUrl} />
+            <AvatarImage src={user?.profileImageUrl || undefined} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {user?.firstName?.[0] || "U"}
             </AvatarFallback>

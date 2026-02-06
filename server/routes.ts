@@ -8,6 +8,26 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import OpenAI from "openai";
 
+function countWords(text: string): number {
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length;
+}
+
+async function checkAndConsumeQuota(userId: string): Promise<{ allowed: boolean; reason?: string; quota?: any }> {
+  const quota = await storage.resetQuotaIfNeeded(userId);
+  if (quota.actionsUsed >= quota.actionsLimit) {
+    return { allowed: false, reason: "actions", quota };
+  }
+  if (quota.wordsUsed >= quota.wordsLimit) {
+    return { allowed: false, reason: "words", quota };
+  }
+  return { allowed: true, quota };
+}
+
+async function recordQuotaUsage(userId: string, generatedText: string): Promise<void> {
+  const words = countWords(generatedText);
+  await storage.incrementQuotaUsage(userId, words, 1);
+}
+
 function getOpenAIClient(userApiKey?: string) {
   if (userApiKey) {
     return new OpenAI({ apiKey: userApiKey });
@@ -666,6 +686,16 @@ export async function registerRoutes(
   app.post(api.ai.generate.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
     try {
       const { projectId, type, context } = api.ai.generate.input.parse(req.body);
       const project = await storage.getProject(projectId);
@@ -684,6 +714,7 @@ export async function registerRoutes(
         temperature: 0.7,
       });
       const content = response.choices[0].message.content || "";
+      await recordQuotaUsage(userId!, content);
       const generation = await storage.createAiGeneration(projectId, type, { content });
       res.json(generation);
     } catch (err: any) {
@@ -746,6 +777,17 @@ export async function registerRoutes(
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
+
     try {
       const { projectId, sectionKey, mode, extraContext, config } = api.sections.generate.input.parse(req.body);
       const project = await storage.getProject(projectId);
@@ -783,6 +825,7 @@ export async function registerRoutes(
       });
 
       const content = response.choices[0].message.content || "";
+      await recordQuotaUsage(userId!, content);
       const contextSnapshot = projectContext.substring(0, 500) + (validatedContext ? "\n..." + validatedContext.substring(0, 500) : "");
       const version = await storage.createVersion(section.id, content, "ai", mode, contextSnapshot);
 
@@ -804,6 +847,17 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
 
     try {
       const { projectId, combo, mode, extraContext } = api.sections.generateCombined.input.parse(req.body);
@@ -885,6 +939,7 @@ Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodo
       });
 
       const fullContent = response.choices[0].message.content || "";
+      await recordQuotaUsage(userId!, fullContent);
 
       const extractSection = (text: string, startTag: string, endTag: string): string => {
         const startIdx = text.indexOf(startTag);
@@ -1005,6 +1060,17 @@ Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodo
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
+
     try {
       const { projectId, config, extraContext } = api.sections.generateArticles.input.parse(req.body);
       const project = await storage.getProject(projectId);
@@ -1065,6 +1131,7 @@ Les articles doivent être:
       });
 
       const raw = response.choices[0].message.content || "[]";
+      await recordQuotaUsage(userId!, raw);
       let articles;
       try {
         let cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -1088,6 +1155,17 @@ Les articles doivent être:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
 
     try {
       const { projectId, articles, analysisType, extraContext } = api.sections.analyzeArticles.input.parse(req.body);
@@ -1165,6 +1243,7 @@ Structure le mapping pour qu'il soit utilisable pour:
       });
 
       const content = response.choices[0].message.content || "";
+      await recordQuotaUsage(userId!, content);
       res.json({ content });
     } catch (err: any) {
       console.error("Article Analysis Error:", err);
@@ -1177,6 +1256,17 @@ Structure le mapping pour qu'il soit utilisable pour:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
 
     try {
       const { projectId, articles, norm } = api.sections.generateBibliography.input.parse(req.body);
@@ -1206,6 +1296,7 @@ IMPORTANT: Produis uniquement la liste bibliographique formatée, sans explicati
       });
 
       const content = response.choices[0].message.content || "";
+      await recordQuotaUsage(userId!, content);
       res.json({ content });
     } catch (err: any) {
       console.error("Bibliography Error:", err);
@@ -1218,6 +1309,17 @@ IMPORTANT: Produis uniquement la liste bibliographique formatée, sans explicati
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
 
     try {
       const { projectId, language, extraContext } = api.sections.generateEquations.input.parse(req.body);
@@ -1276,6 +1378,7 @@ RÈGLES DE FORMATAGE:
       });
 
       const content = (response.choices[0].message.content || "").trim();
+      await recordQuotaUsage(userId!, content);
       res.json({ content });
     } catch (err: any) {
       console.error("Equations Generation Error:", err);
@@ -1288,6 +1391,17 @@ RÈGLES DE FORMATAGE:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
 
     try {
       const { projectId, sources, citationNorm, extraContext } = api.sections.generateConcepts.input.parse(req.body);
@@ -1340,6 +1454,7 @@ ${extraContext ? `\n\nInstructions supplémentaires: ${extraContext}` : ""}`;
         temperature: 0.5,
       });
       const content = response.choices[0].message.content || "";
+      await recordQuotaUsage(userId!, content);
 
       const bibPrompt = `Formate les références suivantes selon la norme ${normLabel}:
 
@@ -1357,6 +1472,7 @@ Produis uniquement la liste bibliographique formatée, triée par ordre alphabé
         temperature: 0.3,
       });
       const bibliography = bibResponse.choices[0].message.content || "";
+      await recordQuotaUsage(userId!, bibliography);
 
       res.json({ content, bibliography });
     } catch (err: any) {
@@ -1370,6 +1486,17 @@ Produis uniquement la liste bibliographique formatée, triée par ordre alphabé
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
 
     try {
       const { projectId, existingSources, extraContext } = api.sections.suggestSources.input.parse(req.body);
@@ -1418,6 +1545,7 @@ ${extraContext ? `\nInstructions: ${extraContext}` : ""}`;
       });
 
       const raw = (response.choices[0].message.content || "").trim();
+      await recordQuotaUsage(userId!, raw);
       let articles: any[] = [];
       try {
         const jsonMatch = raw.match(/\[[\s\S]*\]/);
@@ -1436,6 +1564,17 @@ ${extraContext ? `\nInstructions: ${extraContext}` : ""}`;
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId!);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({ 
+        message: quotaCheck.reason === "words" 
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota 
+      });
+    }
 
     try {
       const { projectId, tableType, extraContext } = api.sections.generateMethodologyTables.input.parse(req.body);
@@ -1505,6 +1644,7 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
       });
 
       const raw = (response.choices[0].message.content || "").trim();
+      await recordQuotaUsage(userId!, raw);
       let result = { rows: [] as any[], comment: "" };
       try {
         const jsonMatch = raw.match(/\{[\s\S]*\}/);
@@ -1731,6 +1871,100 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
     } catch (err: any) {
       console.error("Confirm error:", err);
       res.status(500).json({ message: err.message || "Erreur de confirmation" });
+    }
+  });
+
+  // === QUOTA MANAGEMENT ===
+  const SURPLUS_PRICING: Record<string, { price: number; amount: number; label: string; type: string }> = {
+    words_5k: { price: 1900, amount: 5000, label: "+5 000 mots", type: "words" },
+    words_10k: { price: 2900, amount: 10000, label: "+10 000 mots", type: "words" },
+    actions_50: { price: 900, amount: 50, label: "+50 actions IA", type: "actions" },
+    project_1: { price: 900, amount: 1, label: "+1 projet actif", type: "projects" },
+  };
+
+  app.get("/api/quota", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const quota = await storage.resetQuotaIfNeeded(userId);
+    const activeProjects = await storage.getActiveProjectCount(userId);
+    res.json({ ...quota, activeProjects, surplusOptions: SURPLUS_PRICING });
+  });
+
+  app.post("/api/quota/surplus", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { surplusKey } = req.body as { surplusKey: string };
+      const surplus = SURPLUS_PRICING[surplusKey];
+      if (!surplus) return res.status(400).json({ message: "Pack surplus invalide" });
+
+      if (!process.env.STRIPE_SECRET_KEY) {
+        await storage.addQuotaSurplus(userId, surplus.type, surplus.amount, surplus.price);
+        const updatedQuota = await storage.getQuota(userId);
+        return res.json({ success: true, mode: "demo", quota: updatedQuota, message: "Surplus activé (mode démo)" });
+      }
+
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [{
+          price_data: {
+            currency: "eur",
+            product_data: { name: surplus.label },
+            unit_amount: surplus.price,
+          },
+          quantity: 1,
+        }],
+        mode: "payment",
+        success_url: `${req.headers.origin || ""}/?surplus=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.origin || ""}/?surplus=cancelled`,
+        metadata: { userId, surplusKey, surplusType: surplus.type, surplusAmount: String(surplus.amount) },
+      });
+
+      res.json({ url: session.url, sessionId: session.id });
+    } catch (err: any) {
+      console.error("Surplus checkout error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'achat du surplus" });
+    }
+  });
+
+  app.post("/api/quota/surplus/confirm", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { sessionId } = req.body;
+      if (!sessionId) return res.status(400).json({ message: "Session ID manquant" });
+
+      if (!process.env.STRIPE_SECRET_KEY) {
+        return res.json({ success: true, message: "Mode démo" });
+      }
+
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status !== "paid") {
+        return res.status(400).json({ message: "Paiement non confirmé" });
+      }
+
+      const surplusType = session.metadata?.surplusType || "";
+      const surplusAmount = Number(session.metadata?.surplusAmount || "0");
+      const surplusKey = session.metadata?.surplusKey || "";
+      const price = SURPLUS_PRICING[surplusKey]?.price || 0;
+
+      await storage.addQuotaSurplus(userId, surplusType, surplusAmount, price);
+      const updatedQuota = await storage.getQuota(userId);
+      res.json({ success: true, quota: updatedQuota });
+    } catch (err: any) {
+      console.error("Surplus confirm error:", err);
+      res.status(500).json({ message: err.message || "Erreur de confirmation surplus" });
     }
   });
 
