@@ -16,7 +16,7 @@ import {
 import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, Library, Save, Check, X, FileDown,
-  AlertTriangle, CheckCircle, Info, RefreshCw, Copy,
+  AlertTriangle, CheckCircle, Info, RefreshCw, Copy, Upload, Trash2,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 
@@ -47,6 +47,8 @@ interface SavedState {
   sources: BibSource[];
   alerts: CoherenceAlert[];
   coherenceSuggestions: string[];
+  contextInstructions: string;
+  importedBibliography: string;
 }
 
 const NORM_LABELS: Record<string, string> = {
@@ -84,6 +86,8 @@ export default function BibliographyModule({
   const [sources, setSources] = useState<BibSource[]>([]);
   const [alerts, setAlerts] = useState<CoherenceAlert[]>([]);
   const [coherenceSuggestions, setCoherenceSuggestions] = useState<string[]>([]);
+  const [contextInstructions, setContextInstructions] = useState("");
+  const [importedBibliography, setImportedBibliography] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
@@ -92,6 +96,8 @@ export default function BibliographyModule({
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
+
+  const combinedContext = [extraContext, contextInstructions, importedBibliography ? `\n=== BIBLIOGRAPHIE IMPORT\u00c9E ===\n${importedBibliography}` : ""].filter(Boolean).join("\n");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -103,6 +109,8 @@ export default function BibliographyModule({
       if (saved.sources) setSources(saved.sources);
       if (saved.alerts) setAlerts(saved.alerts);
       if (saved.coherenceSuggestions) setCoherenceSuggestions(saved.coherenceSuggestions);
+      if (saved.contextInstructions) setContextInstructions(saved.contextInstructions);
+      if (saved.importedBibliography) setImportedBibliography(saved.importedBibliography);
       setStateLoaded(true);
     } else if (!section?.config) {
       setStateLoaded(true);
@@ -111,20 +119,20 @@ export default function BibliographyModule({
 
   const saveState = useCallback(() => {
     if (!section?.id || !stateLoaded) return;
-    const state: SavedState = { bibliography, norm, sources, alerts, coherenceSuggestions };
+    const state: SavedState = { bibliography, norm, sources, alerts, coherenceSuggestions, contextInstructions, importedBibliography };
     saveConfigMutation.mutate({ sectionId: section.id, config: state as any, projectId });
-  }, [section?.id, bibliography, norm, sources, alerts, coherenceSuggestions, stateLoaded, projectId]);
+  }, [section?.id, bibliography, norm, sources, alerts, coherenceSuggestions, contextInstructions, importedBibliography, stateLoaded, projectId]);
 
   useEffect(() => {
     if (!stateLoaded) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(saveState, 3000);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [bibliography, norm, sources, alerts, coherenceSuggestions, stateLoaded]);
+  }, [bibliography, norm, sources, alerts, coherenceSuggestions, contextInstructions, importedBibliography, stateLoaded]);
 
   const handleGenerate = () => {
     generateMutation.mutate(
-      { projectId, norm: norm as any, extraContext },
+      { projectId, norm: norm as any, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setBibliography(data.content);
@@ -146,7 +154,7 @@ export default function BibliographyModule({
       return;
     }
     checkMutation.mutate(
-      { projectId, bibliography, extraContext },
+      { projectId, bibliography, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setAlerts(data.alerts || []);
@@ -219,9 +227,82 @@ export default function BibliographyModule({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-1.5">
+            <Label htmlFor="context-instructions-bibliography" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+            <Textarea
+              id="context-instructions-bibliography"
+              value={contextInstructions}
+              onChange={e => setContextInstructions(e.target.value)}
+              placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+              className="min-h-[80px] text-sm"
+              data-testid="textarea-context-instructions-bibliography"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <Label className="text-base font-semibold">Importer une bibliographie existante</Label>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = ".txt,.csv,.bib";
+                    input.onchange = async (ev) => {
+                      const file = (ev.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      try {
+                        const text = await file.text();
+                        setImportedBibliography(prev => {
+                          const combined = [prev, `--- ${file.name} ---\n${text}`].filter(Boolean).join("\n\n");
+                          return combined;
+                        });
+                        toast({ title: "Import r\u00e9ussi", description: `"${file.name}" import\u00e9 comme r\u00e9f\u00e9rence bibliographique.` });
+                      } catch {
+                        toast({ title: "Erreur d'import", description: "Impossible de lire le fichier.", variant: "destructive" });
+                      }
+                    };
+                    input.click();
+                  }}
+                  data-testid="button-import-bibliography"
+                >
+                  <Upload className="w-4 h-4 mr-1" />Importer un fichier
+                </Button>
+                {importedBibliography && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setImportedBibliography("");
+                      toast({ title: "Import supprim\u00e9" });
+                    }}
+                    data-testid="button-clear-imported-bib"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />Effacer
+                  </Button>
+                )}
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Importez un m\u00e9moire ou une bibliographie existante pour que l'IA en extraie les r\u00e9f\u00e9rences et les convertisse dans la norme choisie.
+            </p>
+            {importedBibliography && (
+              <Textarea
+                value={importedBibliography}
+                onChange={e => setImportedBibliography(e.target.value)}
+                className="min-h-[100px] text-sm font-mono"
+                placeholder="Contenu import\u00e9..."
+                data-testid="textarea-imported-bibliography"
+              />
+            )}
+          </div>
+
           <div className="bg-muted/50 rounded-md p-4 text-sm text-muted-foreground">
-            Générez automatiquement votre bibliographie à partir des sources citées dans vos sections validées
-            (revue de littérature, cadre conceptuel, etc.). Vous pouvez changer de norme bibliographique à tout moment.
+            G\u00e9n\u00e9rez automatiquement votre bibliographie \u00e0 partir des sources cit\u00e9es dans vos sections valid\u00e9es
+            (revue de litt\u00e9rature, cadre conceptuel, etc.). Vous pouvez changer de norme bibliographique \u00e0 tout moment.
+            {importedBibliography && " Les r\u00e9f\u00e9rences import\u00e9es seront \u00e9galement prises en compte."}
           </div>
 
           <div className="flex items-end gap-4 flex-wrap">

@@ -33,6 +33,7 @@ interface SavedState {
   mode: string;
   sectionTarget: string;
   suggestions: string[];
+  contextInstructions: string;
 }
 
 const MODE_LABELS: Record<string, { label: string; description: string }> = {
@@ -65,6 +66,7 @@ export default function AssistedWritingModule({
   const [mode, setMode] = useState("reformulate");
   const [sectionTarget, setSectionTarget] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [contextInstructions, setContextInstructions] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
@@ -72,6 +74,8 @@ export default function AssistedWritingModule({
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
+
+  const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -83,6 +87,7 @@ export default function AssistedWritingModule({
       if (saved.mode) setMode(saved.mode);
       if (saved.sectionTarget) setSectionTarget(saved.sectionTarget);
       if (saved.suggestions) setSuggestions(saved.suggestions);
+      if (saved.contextInstructions) setContextInstructions(saved.contextInstructions);
       setStateLoaded(true);
     } else if (!section?.config) {
       setStateLoaded(true);
@@ -91,16 +96,16 @@ export default function AssistedWritingModule({
 
   const saveState = useCallback(() => {
     if (!section?.id || !stateLoaded) return;
-    const state: SavedState = { inputText, outputText, mode, sectionTarget, suggestions };
+    const state: SavedState = { inputText, outputText, mode, sectionTarget, suggestions, contextInstructions };
     saveConfigMutation.mutate({ sectionId: section.id, config: state as any, projectId });
-  }, [section?.id, inputText, outputText, mode, sectionTarget, suggestions, stateLoaded, projectId]);
+  }, [section?.id, inputText, outputText, mode, sectionTarget, suggestions, contextInstructions, stateLoaded, projectId]);
 
   useEffect(() => {
     if (!stateLoaded) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(saveState, 3000);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [inputText, outputText, mode, sectionTarget, suggestions, stateLoaded]);
+  }, [inputText, outputText, mode, sectionTarget, suggestions, contextInstructions, stateLoaded]);
 
   const handleAssist = () => {
     if (!inputText.trim()) {
@@ -108,7 +113,7 @@ export default function AssistedWritingModule({
       return;
     }
     assistMutation.mutate(
-      { projectId, text: inputText, mode, sectionTarget: sectionTarget || undefined, extraContext },
+      { projectId, text: inputText, mode, sectionTarget: sectionTarget || undefined, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setOutputText(data.content);
@@ -189,6 +194,18 @@ export default function AssistedWritingModule({
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-1.5">
+            <Label htmlFor="context-instructions-writing" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+            <Textarea
+              id="context-instructions-writing"
+              value={contextInstructions}
+              onChange={e => setContextInstructions(e.target.value)}
+              placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+              className="min-h-[80px] text-sm"
+              data-testid="textarea-context-instructions-writing"
+            />
+          </div>
+
           <div className="bg-muted/50 rounded-md p-4 text-sm text-muted-foreground">
             Cet outil vous aide à améliorer votre propre texte. Il ne rédige jamais de contenu à votre place.
             Collez votre texte, choisissez un mode d'amélioration et laissez l'IA vous suggérer des améliorations.

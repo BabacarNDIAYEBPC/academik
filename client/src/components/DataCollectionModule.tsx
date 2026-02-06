@@ -35,6 +35,7 @@ interface SavedState {
   guideContent: string;
   questionnaireConfig: QuestionnaireConfig;
   guideConfig: GuideConfig;
+  contextInstructions: string;
 }
 
 interface QuestionnaireConfig {
@@ -103,6 +104,7 @@ export default function DataCollectionModule({
   const [guideContent, setGuideContent] = useState("");
   const [qConfig, setQConfig] = useState<QuestionnaireConfig>(DEFAULT_Q_CONFIG);
   const [gConfig, setGConfig] = useState<GuideConfig>(DEFAULT_G_CONFIG);
+  const [contextInstructions, setContextInstructions] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
@@ -112,10 +114,12 @@ export default function DataCollectionModule({
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
 
-  const stateRef = useRef({ questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig });
+  const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
+
+  const stateRef = useRef({ questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig, contextInstructions });
   useEffect(() => {
-    stateRef.current = { questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig };
-  }, [questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig]);
+    stateRef.current = { questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig, contextInstructions };
+  }, [questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig, contextInstructions]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -126,6 +130,7 @@ export default function DataCollectionModule({
       guideContent: s.guideContent,
       questionnaireConfig: s.qConfig,
       guideConfig: s.gConfig,
+      contextInstructions: s.contextInstructions,
     };
     saveConfigMutation.mutate({
       sectionId: section.id,
@@ -144,6 +149,7 @@ export default function DataCollectionModule({
       if (s.guideContent) setGuideContent(s.guideContent);
       if (s.questionnaireConfig) setQConfig({ ...DEFAULT_Q_CONFIG, ...s.questionnaireConfig });
       if (s.guideConfig) setGConfig({ ...DEFAULT_G_CONFIG, ...s.guideConfig });
+      if (s.contextInstructions) setContextInstructions(s.contextInstructions);
     }
     setStateLoaded(true);
   }, [section, stateLoaded]);
@@ -152,11 +158,11 @@ export default function DataCollectionModule({
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
     return () => clearTimeout(timer);
-  }, [questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig, stateLoaded, doSave]);
+  }, [questionnaireContent, traceabilityContent, guideContent, qConfig, gConfig, contextInstructions, stateLoaded, doSave]);
 
   const handleGenerateQuestionnaire = () => {
     questionnaireMutation.mutate(
-      { projectId, config: qConfig, extraContext },
+      { projectId, config: qConfig, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setQuestionnaireContent(data.content);
@@ -172,7 +178,7 @@ export default function DataCollectionModule({
 
   const handleGenerateGuide = () => {
     guideMutation.mutate(
-      { projectId, config: gConfig, extraContext },
+      { projectId, config: gConfig, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setGuideContent(data.content);
@@ -258,6 +264,18 @@ export default function DataCollectionModule({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="space-y-1.5">
+          <Label htmlFor="context-instructions-collection" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+          <Textarea
+            id="context-instructions-collection"
+            value={contextInstructions}
+            onChange={e => setContextInstructions(e.target.value)}
+            placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+            className="min-h-[80px] text-sm"
+            data-testid="textarea-context-instructions-collection"
+          />
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-muted/50 h-auto flex-wrap gap-1 p-1">
             <TabsTrigger value="questionnaire" className="gap-1" data-testid="tab-questionnaire">

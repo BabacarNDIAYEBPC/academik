@@ -54,6 +54,7 @@ interface SavedState {
   batchQuestions: BatchQuestion[];
   batchProfile: string;
   batchTone: string;
+  contextInstructions: string;
 }
 
 const IMPROVEMENT_TYPES = [
@@ -79,6 +80,7 @@ export default function InterviewSimulationModule({
   const [batchProfile, setBatchProfile] = useState("");
   const [batchTone, setBatchTone] = useState("professionnel");
   const [simMode, setSimMode] = useState("single");
+  const [contextInstructions, setContextInstructions] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
@@ -89,10 +91,12 @@ export default function InterviewSimulationModule({
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
 
-  const stateRef = useRef({ entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone });
+  const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
+
+  const stateRef = useRef({ entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone, contextInstructions });
   useEffect(() => {
-    stateRef.current = { entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone };
-  }, [entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone]);
+    stateRef.current = { entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone, contextInstructions };
+  }, [entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone, contextInstructions]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -105,6 +109,7 @@ export default function InterviewSimulationModule({
       batchQuestions: s.batchQuestions,
       batchProfile: s.batchProfile,
       batchTone: s.batchTone,
+      contextInstructions: s.contextInstructions,
     };
     saveConfigMutation.mutate({
       sectionId: section.id,
@@ -125,6 +130,7 @@ export default function InterviewSimulationModule({
       if (s.batchQuestions) setBatchQuestions(s.batchQuestions);
       if (s.batchProfile) setBatchProfile(s.batchProfile);
       if (s.batchTone) setBatchTone(s.batchTone);
+      if (s.contextInstructions) setContextInstructions(s.contextInstructions);
     }
     setStateLoaded(true);
   }, [section, stateLoaded]);
@@ -133,7 +139,7 @@ export default function InterviewSimulationModule({
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
     return () => clearTimeout(timer);
-  }, [entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone, stateLoaded, doSave]);
+  }, [entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone, contextInstructions, stateLoaded, doSave]);
 
   const handleSimulate = () => {
     if (!currentQuestion.trim() || !currentProfile.trim()) {
@@ -141,7 +147,7 @@ export default function InterviewSimulationModule({
       return;
     }
     simulateMutation.mutate(
-      { projectId, question: currentQuestion, intervieweeProfile: currentProfile, tone: currentTone, extraContext },
+      { projectId, question: currentQuestion, intervieweeProfile: currentProfile, tone: currentTone, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           const entry: SimulationEntry = {
@@ -190,7 +196,7 @@ export default function InterviewSimulationModule({
         questions: validQuestions.map(q => ({ question: q.question, prerequisites: q.prerequisites || undefined })),
         intervieweeProfile: batchProfile,
         tone: batchTone,
-        extraContext,
+        extraContext: combinedContext || undefined,
       },
       {
         onSuccess: (data) => {
@@ -216,7 +222,7 @@ export default function InterviewSimulationModule({
     const entry = entries.find(e => e.id === entryId);
     if (!entry) return;
     improveMutation.mutate(
-      { projectId, question: entry.question, improvementType, extraContext },
+      { projectId, question: entry.question, improvementType, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setEntries(prev => prev.map(e =>
@@ -297,6 +303,18 @@ export default function InterviewSimulationModule({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="space-y-1.5">
+          <Label htmlFor="context-instructions-simulation" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+          <Textarea
+            id="context-instructions-simulation"
+            value={contextInstructions}
+            onChange={e => setContextInstructions(e.target.value)}
+            placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+            className="min-h-[80px] text-sm"
+            data-testid="textarea-context-instructions-simulation"
+          />
+        </div>
+
         <Tabs value={simMode} onValueChange={setSimMode}>
           <TabsList className="mb-4">
             <TabsTrigger value="single" data-testid="tab-sim-single">
