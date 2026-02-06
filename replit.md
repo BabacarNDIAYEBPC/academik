@@ -25,6 +25,20 @@ The application follows a client-server architecture.
     -   **Quota System**: Manages user quotas for words, AI actions, projects, and documents with options for purchasing surplus.
     -   **Payment System**: Integrated with Stripe for managing purchases of sections, add-ons, and packs.
 
+    -   **Super Admin Console**: Full administration dashboard for managing users, plans, AI settings, payments, and audit logs.
+
+## Super Admin Console
+- Route: /admin (protected by SUPER_ADMIN_IDS env var, comma-separated user IDs)
+- User Management: List all users with search, view quotas/projects, add credits, modify quotas, export CSV
+- Plan Management: CRUD for subscription plans (key, name, price, limits, modules, marketing labels)
+- Payment Management: View all purchases and surplus transactions with user details
+- AI Settings: Model selection (GPT-4o etc.), max tokens, allow user keys toggle, system prompt override
+- Logs & Audit: Audit journal (all admin actions logged), AI request logs with stats (total, errors, avg response time)
+- DB tables: plans, admin_settings, audit_logs, ai_logs
+- API prefix: /api/admin/* (all protected by isSuperAdmin middleware)
+- Frontend: Admin.tsx with tabbed layout (Dashboard, Users, Plans, Payments, AI, Logs)
+- Components: client/src/components/admin/ (AdminDashboard, AdminUsers, AdminPlans, AdminPayments, AdminAISettings, AdminLogs)
+
 ## External Dependencies
 -   **OpenAI**: Used for AI content generation.
 -   **PostgreSQL**: Primary database for all application data.

@@ -1,5 +1,7 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
+
+const adminQueryFn = getQueryFn<any>({ on401: "throw" });
 
 export function useAdminCheck() {
   return useQuery<{ isAdmin: boolean }>({
@@ -9,13 +11,16 @@ export function useAdminCheck() {
 }
 
 export function useAdminUsers(search?: string) {
-  const queryKey = search ? ["/api/admin/users", `?search=${encodeURIComponent(search)}`] : ["/api/admin/users"];
   return useQuery<any[]>({
     queryKey: ["/api/admin/users", search || ""],
-    queryFn: async () => {
-      const url = search ? `/api/admin/users?search=${encodeURIComponent(search)}` : "/api/admin/users";
+    queryFn: async ({ queryKey }) => {
+      const s = queryKey[1] as string;
+      const url = s ? `/api/admin/users?search=${encodeURIComponent(s)}` : "/api/admin/users";
       const res = await fetch(url, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load users");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status}: ${text}`);
+      }
       return res.json();
     },
   });
@@ -112,10 +117,13 @@ export function useUpdateAdminSetting() {
 
 export function useAuditLogs(limit = 100) {
   return useQuery<any[]>({
-    queryKey: ["/api/admin/audit-logs", `?limit=${limit}`],
+    queryKey: ["/api/admin/audit-logs", limit],
     queryFn: async () => {
       const res = await fetch(`/api/admin/audit-logs?limit=${limit}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status}: ${text}`);
+      }
       return res.json();
     },
   });
@@ -123,10 +131,13 @@ export function useAuditLogs(limit = 100) {
 
 export function useAiLogs(limit = 100) {
   return useQuery<any[]>({
-    queryKey: ["/api/admin/ai-logs", `?limit=${limit}`],
+    queryKey: ["/api/admin/ai-logs", limit],
     queryFn: async () => {
       const res = await fetch(`/api/admin/ai-logs?limit=${limit}`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed");
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status}: ${text}`);
+      }
       return res.json();
     },
   });
