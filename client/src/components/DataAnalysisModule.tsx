@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,8 +21,15 @@ import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, BarChart3, Save, Check, X, FileDown,
   Plus, Trash2, BookOpen, FlaskConical, Upload,
+  FileText,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import {
+  BarChart, PieChart, Bar, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
+
+const CHART_COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6", "#ef4444", "#14b8a6"];
 
 interface DataAnalysisModuleProps {
   projectId: number;
@@ -50,6 +57,36 @@ interface SavedState {
   validationResult: string;
   analysisMode: string;
   quantitativeType: string;
+  contextInstructions: string;
+  confrontImportedData: string;
+}
+
+function parseCsvData(csvText: string): { headers: string[]; rows: Record<string, string>[] } {
+  const lines = csvText.trim().split("\n").filter(l => l.trim());
+  if (lines.length < 2) return { headers: [], rows: [] };
+  const headers = lines[0].split(";").map(h => h.trim());
+  const rows = lines.slice(1).map(line => {
+    const values = line.split(";").map(v => v.trim());
+    const row: Record<string, string> = {};
+    headers.forEach((h, i) => {
+      row[h] = values[i] || "";
+    });
+    return row;
+  });
+  return { headers, rows };
+}
+
+function parseNumericValue(val: string): number {
+  const cleaned = val.replace(/[%\s]/g, "").replace(",", ".");
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
+function getValueColor(value: number, min: number, max: number): string {
+  if (max === min) return "hsl(220, 60%, 95%)";
+  const ratio = (value - min) / (max - min);
+  const lightness = 95 - ratio * 40;
+  return `hsl(220, 60%, ${lightness}%)`;
 }
 
 export default function DataAnalysisModule({
@@ -68,6 +105,9 @@ export default function DataAnalysisModule({
   const [quantitativeResult, setQuantitativeResult] = useState("");
   const [confrontResult, setConfrontResult] = useState("");
   const [validationResult, setValidationResult] = useState("");
+  const [contextInstructions, setContextInstructions] = useState("");
+  const [confrontImportedData, setConfrontImportedData] = useState("");
+  const [chartType, setChartType] = useState("bar");
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
@@ -79,10 +119,12 @@ export default function DataAnalysisModule({
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
 
-  const stateRef = useRef({ verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType });
+  const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
+
+  const stateRef = useRef({ verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData });
   useEffect(() => {
-    stateRef.current = { verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType };
-  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType]);
+    stateRef.current = { verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData };
+  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -96,6 +138,8 @@ export default function DataAnalysisModule({
       validationResult: s.validationResult,
       analysisMode: s.analysisMode,
       quantitativeType: s.quantitativeType,
+      contextInstructions: s.contextInstructions,
+      confrontImportedData: s.confrontImportedData,
     };
     saveConfigMutation.mutate({
       sectionId: section.id,
@@ -117,6 +161,8 @@ export default function DataAnalysisModule({
       if (s.validationResult) setValidationResult(s.validationResult);
       if (s.analysisMode) setAnalysisMode(s.analysisMode);
       if (s.quantitativeType) setQuantitativeType(s.quantitativeType);
+      if (s.contextInstructions) setContextInstructions(s.contextInstructions);
+      if (s.confrontImportedData) setConfrontImportedData(s.confrontImportedData);
     }
     setStateLoaded(true);
   }, [section, stateLoaded]);
@@ -125,7 +171,52 @@ export default function DataAnalysisModule({
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
     return () => clearTimeout(timer);
-  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, stateLoaded, doSave]);
+  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, stateLoaded, doSave]);
+
+  const parsedData = useMemo(() => {
+    if (!quantitativeData.trim()) return null;
+    const { headers, rows } = parseCsvData(quantitativeData);
+    if (headers.length < 2 || rows.length === 0) return null;
+    return { headers, rows };
+  }, [quantitativeData]);
+
+  const numericStats = useMemo(() => {
+    if (!parsedData) return { min: 0, max: 100 };
+    let min = Infinity;
+    let max = -Infinity;
+    const { headers, rows } = parsedData;
+    for (const row of rows) {
+      for (let i = 1; i < headers.length; i++) {
+        const val = parseNumericValue(row[headers[i]] || "0");
+        if (val < min) min = val;
+        if (val > max) max = val;
+      }
+    }
+    if (!isFinite(min)) min = 0;
+    if (!isFinite(max)) max = 100;
+    return { min, max };
+  }, [parsedData]);
+
+  const chartData = useMemo(() => {
+    if (!parsedData) return [];
+    const { headers, rows } = parsedData;
+    return rows.map(row => {
+      const entry: Record<string, any> = { name: row[headers[0]] || "" };
+      for (let i = 1; i < headers.length; i++) {
+        entry[headers[i]] = parseNumericValue(row[headers[i]] || "0");
+      }
+      return entry;
+    });
+  }, [parsedData]);
+
+  const pieData = useMemo(() => {
+    if (!parsedData || parsedData.headers.length < 2) return [];
+    const { headers, rows } = parsedData;
+    return rows.map(row => ({
+      name: row[headers[0]] || "",
+      value: parseNumericValue(row[headers[1]] || "0"),
+    }));
+  }, [parsedData]);
 
   const addVerbatim = () => {
     setVerbatims(prev => [...prev, {
@@ -148,15 +239,15 @@ export default function DataAnalysisModule({
 
   const handleQualitativeAnalysis = () => {
     if (verbatims.length === 0 || verbatims.every(v => !v.content.trim())) {
-      toast({ title: "Données requises", description: "Ajoutez au moins un verbatim d'entretien.", variant: "destructive" });
+      toast({ title: "Donn\u00e9es requises", description: "Ajoutez au moins un verbatim d'entretien.", variant: "destructive" });
       return;
     }
     qualitativeMutation.mutate(
-      { projectId, verbatims: verbatims.filter(v => v.content.trim()), analysisMode, extraContext },
+      { projectId, verbatims: verbatims.filter(v => v.content.trim()), analysisMode, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setQualitativeResult(data.content);
-          toast({ title: "Analyse terminée", description: "L'analyse qualitative a été générée." });
+          toast({ title: "Analyse termin\u00e9e", description: "L'analyse qualitative a \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9e." });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de l'analyse", variant: "destructive" });
@@ -167,15 +258,15 @@ export default function DataAnalysisModule({
 
   const handleQuantitativeAnalysis = () => {
     if (!quantitativeData.trim()) {
-      toast({ title: "Données requises", description: "Collez vos données quantitatives.", variant: "destructive" });
+      toast({ title: "Donn\u00e9es requises", description: "Collez vos donn\u00e9es quantitatives.", variant: "destructive" });
       return;
     }
     quantitativeMutation.mutate(
-      { projectId, data: quantitativeData, analysisType: quantitativeType as any, extraContext },
+      { projectId, data: quantitativeData, analysisType: quantitativeType as any, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setQuantitativeResult(data.content);
-          toast({ title: "Analyse terminée", description: "L'analyse quantitative a été générée." });
+          toast({ title: "Analyse termin\u00e9e", description: "L'analyse quantitative a \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9e." });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de l'analyse", variant: "destructive" });
@@ -185,17 +276,17 @@ export default function DataAnalysisModule({
   };
 
   const handleConfront = () => {
-    const allResults = [qualitativeResult, quantitativeResult].filter(Boolean).join("\n\n---\n\n");
+    const allResults = [qualitativeResult, quantitativeResult, confrontImportedData].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
-      toast({ title: "Résultats requis", description: "Générez d'abord une analyse qualitative ou quantitative.", variant: "destructive" });
+      toast({ title: "R\u00e9sultats requis", description: "G\u00e9n\u00e9rez d'abord une analyse qualitative ou quantitative.", variant: "destructive" });
       return;
     }
     confrontMutation.mutate(
-      { projectId, results: allResults, extraContext },
+      { projectId, results: allResults, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setConfrontResult(data.content);
-          toast({ title: "Confrontation terminée" });
+          toast({ title: "Confrontation termin\u00e9e" });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de la confrontation", variant: "destructive" });
@@ -207,15 +298,15 @@ export default function DataAnalysisModule({
   const handleValidateHypotheses = () => {
     const allResults = [qualitativeResult, quantitativeResult, confrontResult].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
-      toast({ title: "Résultats requis", description: "Réalisez d'abord les analyses.", variant: "destructive" });
+      toast({ title: "R\u00e9sultats requis", description: "R\u00e9alisez d'abord les analyses.", variant: "destructive" });
       return;
     }
     validateHypMutation.mutate(
-      { projectId, results: allResults, extraContext },
+      { projectId, results: allResults, extraContext: combinedContext || undefined },
       {
         onSuccess: (data) => {
           setValidationResult(data.content);
-          toast({ title: "Validation terminée" });
+          toast({ title: "Validation termin\u00e9e" });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de la validation", variant: "destructive" });
@@ -229,7 +320,7 @@ export default function DataAnalysisModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
+        onSuccess: () => toast({ title: "Section valid\u00e9e" }),
         onError: () => toast({ title: "Erreur", variant: "destructive" }),
       }
     );
@@ -240,23 +331,67 @@ export default function DataAnalysisModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
+        onSuccess: () => toast({ title: "Validation retir\u00e9e" }),
         onError: () => toast({ title: "Erreur", variant: "destructive" }),
       }
     );
+  };
+
+  const handleConfrontFileImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".txt,.csv,.xlsx,.xls";
+    input.multiple = true;
+    input.onchange = async (e) => {
+      const files = (e.target as HTMLInputElement).files;
+      if (!files || files.length === 0) return;
+      const importedParts: string[] = [];
+      for (const file of Array.from(files)) {
+        try {
+          if (file.name.endsWith(".txt")) {
+            const text = await file.text();
+            importedParts.push(`--- ${file.name} ---\n${text}`);
+          } else if (file.name.endsWith(".csv")) {
+            const text = await file.text();
+            importedParts.push(`--- ${file.name} ---\n${text}`);
+          } else {
+            const XLSX = await import("xlsx");
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: "array" });
+            const allSheets: string[] = [];
+            for (const sheetName of workbook.SheetNames) {
+              const sheet = workbook.Sheets[sheetName];
+              const csvData = XLSX.utils.sheet_to_csv(sheet, { FS: ";" });
+              allSheets.push(`[${sheetName}]\n${csvData}`);
+            }
+            importedParts.push(`--- ${file.name} ---\n${allSheets.join("\n\n")}`);
+          }
+        } catch (err: any) {
+          toast({ title: "Erreur d'import", description: `${file.name}: ${err.message || "Impossible de lire le fichier."}`, variant: "destructive" });
+        }
+      }
+      if (importedParts.length > 0) {
+        setConfrontImportedData(prev => {
+          const combined = [prev, ...importedParts].filter(Boolean).join("\n\n");
+          return combined;
+        });
+        toast({ title: "Import r\u00e9ussi", description: `${importedParts.length} fichier(s) import\u00e9(s) pour la confrontation.` });
+      }
+    };
+    input.click();
   };
 
   const handleExport = () => {
     const sections = [];
     if (qualitativeResult) sections.push({ label: "Analyse qualitative", content: qualitativeResult });
     if (quantitativeResult) sections.push({ label: "Analyse quantitative", content: quantitativeResult });
-    if (confrontResult) sections.push({ label: "Confrontation des résultats", content: confrontResult });
-    if (validationResult) sections.push({ label: "Validation des hypothèses", content: validationResult });
+    if (confrontResult) sections.push({ label: "Confrontation des r\u00e9sultats", content: confrontResult });
+    if (validationResult) sections.push({ label: "Validation des hypoth\u00e8ses", content: validationResult });
     if (sections.length === 0) {
-      toast({ title: "Rien à exporter", variant: "destructive" });
+      toast({ title: "Rien \u00e0 exporter", variant: "destructive" });
       return;
     }
-    exportToWord("Analyse des données", sections, "analyse_donnees.docx");
+    exportToWord("Analyse des donn\u00e9es", sections, "analyse_donnees.docx");
   };
 
   const isValidated = section?.status === "validated";
@@ -266,8 +401,8 @@ export default function DataAnalysisModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Analyse des données</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
+          <CardTitle className="text-lg">Analyse des donn\u00e9es</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Valid\u00e9</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-analysis">
@@ -289,6 +424,18 @@ export default function DataAnalysisModule({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="space-y-1.5">
+          <Label htmlFor="context-instructions" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+          <Textarea
+            id="context-instructions"
+            value={contextInstructions}
+            onChange={e => setContextInstructions(e.target.value)}
+            placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+            className="min-h-[80px] text-sm"
+            data-testid="textarea-context-instructions"
+          />
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-muted/50 h-auto flex-wrap gap-1 p-1">
             <TabsTrigger value="qualitative" className="gap-1" data-testid="tab-qualitative">
@@ -301,7 +448,7 @@ export default function DataAnalysisModule({
               <FlaskConical className="w-4 h-4" />Confrontation
             </TabsTrigger>
             <TabsTrigger value="validation" className="gap-1" data-testid="tab-validation">
-              <Check className="w-4 h-4" />Hypothèses
+              <Check className="w-4 h-4" />Hypoth\u00e8ses
             </TabsTrigger>
           </TabsList>
 
@@ -314,7 +461,7 @@ export default function DataAnalysisModule({
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Collez le contenu retranscrit de chaque entretien pour l'analyse thématique.
+                Collez le contenu retranscrit de chaque entretien pour l'analyse th\u00e9matique.
               </p>
 
               {verbatims.map((v, index) => (
@@ -373,7 +520,7 @@ export default function DataAnalysisModule({
                       <Textarea
                         value={v.content}
                         onChange={e => updateVerbatim(v.id, "content", e.target.value)}
-                        placeholder="Collez ici la retranscription intégrale de l'entretien..."
+                        placeholder="Collez ici la retranscription int\u00e9grale de l'entretien..."
                         className="min-h-[120px] text-sm"
                         data-testid={`textarea-verbatim-content-${v.id}`}
                       />
@@ -389,9 +536,9 @@ export default function DataAnalysisModule({
                 <Select value={analysisMode} onValueChange={setAnalysisMode}>
                   <SelectTrigger className="w-[250px]" data-testid="select-analysis-mode"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="per_interview">Par entretien (puis synthèse)</SelectItem>
+                    <SelectItem value="per_interview">Par entretien (puis synth\u00e8se)</SelectItem>
                     <SelectItem value="global">Transversale globale</SelectItem>
-                    <SelectItem value="per_hypothesis">Par hypothèse</SelectItem>
+                    <SelectItem value="per_hypothesis">Par hypoth\u00e8se</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -408,7 +555,7 @@ export default function DataAnalysisModule({
 
             {qualitativeResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Résultat de l'analyse qualitative</Label>
+                <Label className="text-base font-semibold">R\u00e9sultat de l'analyse qualitative</Label>
                 <Textarea
                   value={qualitativeResult}
                   onChange={e => setQualitativeResult(e.target.value)}
@@ -421,9 +568,9 @@ export default function DataAnalysisModule({
 
           <TabsContent value="quantitative" className="space-y-4 mt-4">
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Données quantitatives</Label>
+              <Label className="text-base font-semibold">Donn\u00e9es quantitatives</Label>
               <p className="text-xs text-muted-foreground">
-                Collez vos données (format CSV ou tableau), ou importez un fichier Excel (.xlsx) pour l'analyse.
+                Collez vos donn\u00e9es (format CSV ou tableau), ou importez un fichier Excel (.xlsx) pour l'analyse.
               </p>
               <div className="flex gap-2 flex-wrap">
                 <Button
@@ -440,7 +587,7 @@ export default function DataAnalysisModule({
                         if (file.name.endsWith(".csv")) {
                           const text = await file.text();
                           setQuantitativeData(text);
-                          toast({ title: "CSV importé", description: `${file.name} a été chargé.` });
+                          toast({ title: "CSV import\u00e9", description: `${file.name} a \u00e9t\u00e9 charg\u00e9.` });
                         } else {
                           const XLSX = await import("xlsx");
                           const buffer = await file.arrayBuffer();
@@ -448,7 +595,7 @@ export default function DataAnalysisModule({
                           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                           const csvData = XLSX.utils.sheet_to_csv(firstSheet, { FS: ";" });
                           setQuantitativeData(csvData);
-                          toast({ title: "Excel importé", description: `${file.name} converti en données tabulaires (${workbook.SheetNames[0]}).` });
+                          toast({ title: "Excel import\u00e9", description: `${file.name} converti en donn\u00e9es tabulaires (${workbook.SheetNames[0]}).` });
                         }
                       } catch (err: any) {
                         toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
@@ -464,7 +611,7 @@ export default function DataAnalysisModule({
               <Textarea
                 value={quantitativeData}
                 onChange={e => setQuantitativeData(e.target.value)}
-                placeholder={"Question;Réponse 1;Réponse 2;Réponse 3\nQ1;45%;30%;25%\nQ2;60%;25%;15%\n..."}
+                placeholder={"Question;R\u00e9ponse 1;R\u00e9ponse 2;R\u00e9ponse 3\nQ1;45%;30%;25%\nQ2;60%;25%;15%\n..."}
                 className="min-h-[200px] text-sm font-mono"
                 data-testid="textarea-quantitative-data"
               />
@@ -476,9 +623,9 @@ export default function DataAnalysisModule({
                 <Select value={quantitativeType} onValueChange={setQuantitativeType}>
                   <SelectTrigger className="w-[250px]" data-testid="select-quantitative-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cross_tab">Tableaux croisés</SelectItem>
+                    <SelectItem value="cross_tab">Tableaux crois\u00e9s</SelectItem>
                     <SelectItem value="trends">Analyse des tendances</SelectItem>
-                    <SelectItem value="interpretation">Interprétation globale</SelectItem>
+                    <SelectItem value="interpretation">Interpr\u00e9tation globale</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -489,13 +636,13 @@ export default function DataAnalysisModule({
                 data-testid="button-analyze-quantitative"
               >
                 {quantitativeMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                Analyser les données
+                Analyser les donn\u00e9es
               </Button>
             </div>
 
             {quantitativeResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Résultat de l'analyse quantitative</Label>
+                <Label className="text-base font-semibold">R\u00e9sultat de l'analyse quantitative</Label>
                 <Textarea
                   value={quantitativeResult}
                   onChange={e => setQuantitativeResult(e.target.value)}
@@ -504,33 +651,182 @@ export default function DataAnalysisModule({
                 />
               </div>
             )}
+
+            {parsedData && parsedData.headers.length >= 2 && (
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Visualisation des donn\u00e9es</Label>
+
+                <div className="overflow-x-auto rounded-md border">
+                  <table className="w-full text-sm" data-testid="table-cross-tab">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        {parsedData.headers.map((h, i) => (
+                          <th key={i} className="text-left p-2 font-medium text-xs whitespace-nowrap">
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {parsedData.rows.map((row, ri) => (
+                        <tr
+                          key={ri}
+                          className={ri % 2 === 0 ? "bg-background" : "bg-muted/30"}
+                          data-testid={`table-row-${ri}`}
+                        >
+                          {parsedData.headers.map((h, ci) => {
+                            const val = row[h] || "";
+                            const numVal = parseNumericValue(val);
+                            const isNumeric = ci > 0 && val.trim() !== "" && !isNaN(numVal);
+                            return (
+                              <td
+                                key={ci}
+                                className="p-2 text-xs whitespace-nowrap"
+                                style={isNumeric ? {
+                                  backgroundColor: getValueColor(numVal, numericStats.min, numericStats.max),
+                                  color: "#1a1a2e",
+                                } : undefined}
+                              >
+                                {val}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="space-y-1.5">
+                      <Label>Type de graphique</Label>
+                      <Select value={chartType} onValueChange={setChartType}>
+                        <SelectTrigger className="w-[200px]" data-testid="select-chart-type"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="bar">Barres</SelectItem>
+                          <SelectItem value="pie">Camembert</SelectItem>
+                          <SelectItem value="histogram">Histogramme</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="w-full h-[350px]" data-testid="chart-container">
+                    {chartType === "pie" ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine
+                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                            outerRadius={120}
+                            dataKey="value"
+                          >
+                            {pieData.map((_, index) => (
+                              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                          <YAxis tick={{ fontSize: 11 }} />
+                          <Tooltip />
+                          <Legend />
+                          {parsedData.headers.slice(1).map((header, i) => (
+                            <Bar
+                              key={header}
+                              dataKey={header}
+                              fill={CHART_COLORS[i % CHART_COLORS.length]}
+                              stackId={chartType === "histogram" ? "stack" : undefined}
+                            />
+                          ))}
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="confront" className="space-y-4 mt-4">
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Confrontez vos résultats de terrain (analyse qualitative et/ou quantitative) avec la revue de littérature et le cadre théorique pour identifier convergences, divergences et apports originaux.
+                Confrontez vos r\u00e9sultats de terrain (analyse qualitative et/ou quantitative) avec la revue de litt\u00e9rature et le cadre th\u00e9orique pour identifier convergences, divergences et apports originaux.
               </p>
               <div className="flex gap-2 flex-wrap">
                 {qualitativeResult && <Badge variant="default" className="bg-green-600/10 text-green-600 border-green-600/20">Analyse qualitative disponible</Badge>}
                 {quantitativeResult && <Badge variant="default" className="bg-blue-600/10 text-blue-600 border-blue-600/20">Analyse quantitative disponible</Badge>}
                 {!qualitativeResult && !quantitativeResult && (
-                  <Badge variant="outline" className="text-muted-foreground">Aucune analyse disponible - réalisez d'abord une analyse</Badge>
+                  <Badge variant="outline" className="text-muted-foreground">Aucune analyse disponible - r\u00e9alisez d'abord une analyse</Badge>
                 )}
               </div>
             </div>
+
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Importer des donn\u00e9es suppl\u00e9mentaires</Label>
+              <p className="text-xs text-muted-foreground">
+                Importez des retranscriptions d'entretien (.txt), des fichiers Excel/CSV avec verbatims ou donn\u00e9es de tableau crois\u00e9, ou collez directement du texte.
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleConfrontFileImport}
+                  data-testid="button-import-confront-file"
+                >
+                  <Upload className="w-4 h-4 mr-1" />Importer fichier(s)
+                </Button>
+                {confrontImportedData && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setConfrontImportedData("");
+                      toast({ title: "Donn\u00e9es import\u00e9es effac\u00e9es" });
+                    }}
+                    data-testid="button-clear-confront-import"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />Effacer import
+                  </Button>
+                )}
+              </div>
+              <Textarea
+                value={confrontImportedData}
+                onChange={e => setConfrontImportedData(e.target.value)}
+                placeholder="Collez ici des verbatims, r\u00e9sultats ou donn\u00e9es suppl\u00e9mentaires pour la confrontation..."
+                className="min-h-[120px] text-sm"
+                data-testid="textarea-confront-imported-data"
+              />
+              {confrontImportedData && (
+                <Badge variant="outline" className="text-xs">
+                  <FileText className="w-3 h-3 mr-1" />
+                  Donn\u00e9es import\u00e9es: {confrontImportedData.length} caract\u00e8res
+                </Badge>
+              )}
+            </div>
+
             <Button
               onClick={handleConfront}
-              disabled={confrontMutation.isPending || (!qualitativeResult && !quantitativeResult)}
+              disabled={confrontMutation.isPending || (!qualitativeResult && !quantitativeResult && !confrontImportedData)}
               data-testid="button-confront"
             >
               {confrontMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FlaskConical className="w-4 h-4 mr-2" />}
-              Confronter avec la littérature
+              Confronter avec la litt\u00e9rature
             </Button>
 
             {confrontResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Confrontation des résultats</Label>
+                <Label className="text-base font-semibold">Confrontation des r\u00e9sultats</Label>
                 <Textarea
                   value={confrontResult}
                   onChange={e => setConfrontResult(e.target.value)}
@@ -544,7 +840,7 @@ export default function DataAnalysisModule({
           <TabsContent value="validation" className="space-y-4 mt-4">
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Validez ou invalidez chaque hypothèse de recherche en vous appuyant sur l'ensemble des résultats (analyses qualitative/quantitative et confrontation avec la littérature).
+                Validez ou invalidez chaque hypoth\u00e8se de recherche en vous appuyant sur l'ensemble des r\u00e9sultats (analyses qualitative/quantitative et confrontation avec la litt\u00e9rature).
               </p>
               <div className="flex gap-2 flex-wrap">
                 {qualitativeResult && <Badge variant="outline" className="text-xs">Qualitative</Badge>}
@@ -558,12 +854,12 @@ export default function DataAnalysisModule({
               data-testid="button-validate-hypotheses"
             >
               {validateHypMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Valider les hypothèses
+              Valider les hypoth\u00e8ses
             </Button>
 
             {validationResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Validation des hypothèses</Label>
+                <Label className="text-base font-semibold">Validation des hypoth\u00e8ses</Label>
                 <Textarea
                   value={validationResult}
                   onChange={e => setValidationResult(e.target.value)}
