@@ -1,0 +1,186 @@
+📘 CORRECTIFS FONCTIONNELS — REVUE DE LITTÉRATURE, PLAN & COMPORTEMENT UI
+
+(Spécifications obligatoires – corrections bloquantes)
+
+1. Revue de littérature — Bouton « Générer le mapping »
+Problème constaté
+
+Lorsque l’utilisateur clique sur « Générer le mapping »,
+👉 l’action mouline dans le vide
+👉 aucun résultat n’est affiché
+
+Tous les autres boutons (analyser, confronter, résumer) moulinent en même temps
+
+Exigence fonctionnelle (OBLIGATOIRE)
+
+Un clic = une action
+
+Une action = un seul traitement
+
+Les autres boutons doivent être désactivés temporairement pendant le traitement en cours
+
+Comportement attendu
+
+Lorsque l’utilisateur clique sur « Générer le mapping » :
+
+Un loader spécifique au bouton apparaît
+
+Les autres boutons sont désactivés
+
+Une fois le traitement terminé :
+
+un popup (modal) s’ouvre automatiquement
+
+le graphique / schéma de mapping est affiché dans ce popup
+
+Popup « Mapping »
+
+Le popup doit contenir :
+
+le schéma / graphique généré
+
+un bouton Exporter l’illustration
+
+formats autorisés :
+
+image (PNG / JPG)
+
+Word (.docx)
+
+❌ Pas de PDF pour le mapping
+
+2. Revue de littérature — Boutons « Analyser » et « Confronter »
+Problème constaté
+
+Cliquer sur Analyser ou Confronter déclenche plusieurs chargements simultanés
+
+Le résultat n’est pas clairement affiché
+
+Exigence fonctionnelle
+
+Pour chaque bouton :
+
+traitement indépendant
+
+résultat affiché dans :
+
+une page dédiée
+
+ou un popup dédié
+
+jamais en tâche silencieuse
+
+3. Revue de littérature — Export PDF (SUPPRESSION)
+Problème constaté
+
+L’export PDF affiche un document blanc
+
+Décision fonctionnelle
+
+👉 SUPPRESSION COMPLÈTE du format PDF dans la section Revue de littérature
+
+Formats conservés :
+
+Word (.docx) uniquement
+
+Cette règle s’applique à :
+
+bibliographie
+
+résumés d’articles
+
+analyses
+
+confrontations
+
+mapping
+
+4. Revue de littérature — Sauvegarde automatique (BLOQUANT)
+Problème critique
+
+Lorsque l’utilisateur quitte la section Revue de littérature
+(ex. pour aller dans Méthodologie),
+👉 toutes les actions effectuées sont perdues
+
+Exigence fonctionnelle NON NÉGOCIABLE
+
+👉 Sauvegarde automatique obligatoire
+
+La plateforme doit sauvegarder automatiquement :
+
+les articles trouvés
+
+les articles sélectionnés
+
+les filtres appliqués
+
+les analyses générées
+
+les confrontations
+
+les mappings
+
+l’état de la page
+
+Déclencheurs de sauvegarde
+
+changement de section
+
+clic sur un bouton
+
+génération IA terminée
+
+intervalle automatique (autosave)
+
+👉 Au retour dans la section Revue de littérature,
+tout doit être restauré à l’identique.
+
+5. Plan — Problème de caractères indésirables
+Problème constaté
+
+Le texte du plan généré contient des caractères parasites
+(symboles, balises, caractères non académiques)
+
+Exigence fonctionnelle
+
+Le plan généré doit :
+
+être en texte propre
+
+sans symboles techniques
+
+sans balisage
+
+sans caractères spéciaux non souhaités
+
+👉 Format attendu :
+
+numérotation académique classique (I., 1., 1.1.)
+
+fond blanc
+
+texte prêt à être copié dans Word
+
+6. Règle UI générale (TRANSVERSALE)
+
+Un bouton = une action
+
+Un loader = une action
+
+Aucun traitement simultané non demandé
+
+Résultat toujours visible (popup ou page)
+
+✅ SYNTHÈSE DES CORRECTIONS
+
+Mapping : popup obligatoire avec visuel
+
+Boutons : traitements isolés
+
+PDF : supprimé dans la revue de littérature
+
+Word : format unique conservé
+
+Sauvegarde automatique obligatoire
+
+Plan : texte propre sans caractères parasites

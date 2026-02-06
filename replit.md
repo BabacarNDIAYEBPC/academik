@@ -103,6 +103,12 @@ shared/
 - 2026-02-06: Literature Review diagrams: synthesis schemas, confrontation schemas, mapping charts from articles
 - 2026-02-06: Conceptual Framework diagrams: concept relationship schemas, concept-problematic-hypotheses articulation
 - 2026-02-06: Improved PDF export with html2canvas settings and better container positioning
+- 2026-02-06: Isolated button loading: activeAction state tracks which button is processing, others disabled
+- 2026-02-06: Diagrams now open in modal/popup instead of inline rendering
+- 2026-02-06: Removed PDF export from Literature Review module entirely (Word .docx only)
+- 2026-02-06: Auto-save literature review state (articles, selections, filters, analyses, diagrams) to section config with 3s debounce
+- 2026-02-06: Added POST /api/sections/:id/config endpoint with ownership verification and config merge
+- 2026-02-06: Plan prompt updated: academic numbering (I., 1., 1.1.) without Markdown symbols or special characters
 
 ## User Preferences
 - Language: French (UI and AI responses)

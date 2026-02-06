@@ -219,6 +219,12 @@ export const api = {
         500: errorSchemas.internal,
       },
     },
+    updateConfig: {
+      method: 'POST' as const,
+      path: '/api/sections/:id/config',
+      input: z.object({ config: z.record(z.any()) }),
+      responses: { 200: z.custom<typeof projectSections.$inferSelect>(), 401: errorSchemas.unauthorized },
+    },
     generateDiagram: {
       method: 'POST' as const,
       path: '/api/sections/generate-diagram',

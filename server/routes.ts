@@ -258,62 +258,78 @@ Si des articles ou ouvrages de la revue de littérature sont disponibles dans le
 }
 
 function getPlanTask(projectType: string): string {
-  const common = `\n\nIMPORTANT:
-- Les titres des chapitres et sous-parties doivent être contextualisés et refléter le sujet spécifique du travail (pas de titres génériques comme "Partie 1" ou "Chapitre 2").
+  const common = `
+
+RÈGLES DE FORMATAGE OBLIGATOIRES:
+- Utilise UNIQUEMENT la numérotation académique classique: I., II., III. pour les parties principales, puis 1., 2., 3. pour les sous-parties, puis 1.1., 1.2. pour les sous-sous-parties.
+- NE JAMAIS utiliser de symboles Markdown (pas de **, ##, *, -, backticks).
+- NE JAMAIS utiliser de balises HTML, d'émojis, de symboles techniques ou de caractères spéciaux.
+- Texte propre et lisible, prêt à être copié directement dans un document Word.
+- Les titres des chapitres et sous-parties doivent être contextualisés et refléter le sujet spécifique du travail.
 - Chaque titre doit intégrer les termes clés du sujet, de la problématique ou des hypothèses validées.
-- Pour chaque partie et sous-partie: description brève du contenu attendu (2-3 phrases).
-- Le plan doit montrer la progression logique de la réflexion.`;
+- Pour chaque partie et sous-partie: description brève du contenu attendu (2-3 phrases) en retrait.
+- Le plan doit montrer la progression logique de la réflexion.
+
+EXEMPLE DE FORMAT ATTENDU:
+I. Introduction
+   Accroche et mise en contexte du sujet. Présentation de la problématique et annonce du plan.
+
+II. [Titre contextualisé de la première partie]
+   1. [Sous-titre contextualisé]
+      Description du contenu attendu.
+   2. [Sous-titre contextualisé]
+      Description du contenu attendu.`;
 
   const plans: Record<string, string> = {
     memoire: `=== TÂCHE: PLAN DU MÉMOIRE ===
-Génère un plan cohérent et structuré en utilisant des TITRES CONTEXTUALISÉS liés au sujet:
-1. **Introduction** (accroche, contexte, annonce du plan)
-2. **Cadre conceptuel** — titre à contextualiser selon les concepts clés identifiés
-3. **Cadre théorique** — titre à contextualiser selon les courants théoriques mobilisés
-4. **Revue de littérature** — titre à contextualiser selon les thématiques
-5. **Méthodologie** — préciser le type (quali/quanti/mixte) dans le titre
-6. **Analyse et discussion des résultats** — lier au sujet
-7. **Conclusion et perspectives**
-8. **Bibliographie**
-9. **Annexes**${common}`,
+Génère un plan cohérent et structuré en utilisant des TITRES CONTEXTUALISÉS liés au sujet. Le plan doit contenir les parties suivantes (à contextualiser):
+I. Introduction (accroche, contexte, annonce du plan)
+II. Cadre conceptuel — titre à contextualiser selon les concepts clés identifiés
+III. Cadre théorique — titre à contextualiser selon les courants théoriques mobilisés
+IV. Revue de littérature — titre à contextualiser selon les thématiques
+V. Méthodologie — préciser le type (quali/quanti/mixte) dans le titre
+VI. Analyse et discussion des résultats — lier au sujet
+VII. Conclusion et perspectives
+VIII. Bibliographie
+IX. Annexes${common}`,
 
     tfe: `=== TÂCHE: PLAN DU TFE ===
-Génère un plan conforme aux exigences du TFE santé/social avec des TITRES CONTEXTUALISÉS:
-1. **Introduction** (contexte professionnel, motivation)
-2. **Situation d'appel** — contextualiser selon la situation clinique/professionnelle
-3. **Questionnement / Question de départ** — formuler en lien avec la situation
-4. **Cadre conceptuel** — titre reflétant les concepts professionnels
-5. **Cadre théorique** — titre lié aux modèles de soins/intervention
-6. **Méthodologie** — préciser l'approche dans le titre
-7. **Analyse des résultats** — lier aux hypothèses opérationnelles
-8. **Recommandations professionnelles** — contextualiser selon le terrain
-9. **Conclusion**
-10. **Bibliographie**
-11. **Annexes**${common}`,
+Génère un plan conforme aux exigences du TFE santé/social avec des TITRES CONTEXTUALISÉS. Le plan doit contenir les parties suivantes (à contextualiser):
+I. Introduction (contexte professionnel, motivation)
+II. Situation d'appel — contextualiser selon la situation clinique/professionnelle
+III. Questionnement / Question de départ — formuler en lien avec la situation
+IV. Cadre conceptuel — titre reflétant les concepts professionnels
+V. Cadre théorique — titre lié aux modèles de soins/intervention
+VI. Méthodologie — préciser l'approche dans le titre
+VII. Analyse des résultats — lier aux hypothèses opérationnelles
+VIII. Recommandations professionnelles — contextualiser selon le terrain
+IX. Conclusion
+X. Bibliographie
+XI. Annexes${common}`,
 
     rapport_stage: `=== TÂCHE: PLAN DU RAPPORT DE STAGE ===
-Génère un plan professionnel avec des TITRES CONTEXTUALISÉS liés au stage:
-1. **Introduction** (contexte, objectifs du stage)
-2. **Présentation de la structure d'accueil** — nommer le type de structure
-3. **Présentation des missions** — contextualiser selon les missions réelles
-4. **Problématique professionnelle** — titre reflétant la question posée
-5. **Analyse des pratiques** — lier aux missions et observations
-6. **Apports et limites** — relier au développement professionnel
-7. **Conclusion et perspectives**
-8. **Bibliographie**
-9. **Annexes**${common}`,
+Génère un plan professionnel avec des TITRES CONTEXTUALISÉS liés au stage. Le plan doit contenir les parties suivantes (à contextualiser):
+I. Introduction (contexte, objectifs du stage)
+II. Présentation de la structure d'accueil — nommer le type de structure
+III. Présentation des missions — contextualiser selon les missions réelles
+IV. Problématique professionnelle — titre reflétant la question posée
+V. Analyse des pratiques — lier aux missions et observations
+VI. Apports et limites — relier au développement professionnel
+VII. Conclusion et perspectives
+VIII. Bibliographie
+IX. Annexes${common}`,
 
     vae: `=== TÂCHE: PLAN DU DOSSIER VAE ===
-Génère un plan structuré pour le dossier VAE avec des TITRES CONTEXTUALISÉS:
-1. **Introduction** (projet professionnel, motivation)
-2. **Présentation du candidat** — parcours et positionnement
-3. **Parcours professionnel** — chronologie et évolution
-4. **Motivation de la démarche VAE** — projet et diplôme visé
-5. **Blocs de compétences** — TITRES SPÉCIFIQUES selon le référentiel du diplôme
-6. **Situations professionnelles** — titres contextualisés par bloc
-7. **Conclusion et projection professionnelle**
-8. **Bibliographie** (si exigée)
-9. **Annexes** (preuves)${common}`,
+Génère un plan structuré pour le dossier VAE avec des TITRES CONTEXTUALISÉS. Le plan doit contenir les parties suivantes (à contextualiser):
+I. Introduction (projet professionnel, motivation)
+II. Présentation du candidat — parcours et positionnement
+III. Parcours professionnel — chronologie et évolution
+IV. Motivation de la démarche VAE — projet et diplôme visé
+V. Blocs de compétences — TITRES SPÉCIFIQUES selon le référentiel du diplôme
+VI. Situations professionnelles — titres contextualisés par bloc
+VII. Conclusion et projection professionnelle
+VIII. Bibliographie (si exigée)
+IX. Annexes (preuves)${common}`,
   };
   return plans[projectType] || plans.memoire;
 }
@@ -532,6 +548,26 @@ export async function registerRoutes(
     const sectionId = Number(req.params.id);
     const versions = await storage.getVersions(sectionId);
     res.json(versions);
+  });
+
+  app.post(api.sections.updateConfig.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const sectionId = Number(req.params.id);
+      const { config } = api.sections.updateConfig.input.parse(req.body);
+      const section = await storage.getSection(sectionId);
+      if (!section) return res.status(404).json({ message: "Section not found" });
+      const project = await storage.getProject(section.projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+      const existingConfig = (section.config as Record<string, any>) || {};
+      const mergedConfig = { ...existingConfig, ...config };
+      const updated = await storage.updateSectionConfig(sectionId, mergedConfig);
+      res.json(updated);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message || "Erreur lors de la mise à jour" });
+    }
   });
 
   app.post(api.sections.generate.path, async (req, res) => {
@@ -948,9 +984,13 @@ Les articles doivent être:
       const raw = response.choices[0].message.content || "[]";
       let articles;
       try {
-        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        let cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+        if (jsonMatch) cleaned = jsonMatch[0];
         articles = JSON.parse(cleaned);
-      } catch {
+        if (!Array.isArray(articles)) articles = [];
+      } catch (parseErr) {
+        console.error("Article JSON parse error:", parseErr, "Raw:", raw.substring(0, 200));
         articles = [];
       }
       res.json({ articles });

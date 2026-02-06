@@ -10,9 +10,10 @@ interface MermaidDiagramProps {
   title: string;
   onRegenerate?: () => void;
   isRegenerating?: boolean;
+  hideExportPdf?: boolean;
 }
 
-export default function MermaidDiagram({ code, title, onRegenerate, isRegenerating }: MermaidDiagramProps) {
+export default function MermaidDiagram({ code, title, onRegenerate, isRegenerating, hideExportPdf }: MermaidDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svgContent, setSvgContent] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -127,9 +128,11 @@ export default function MermaidDiagram({ code, title, onRegenerate, isRegenerati
             <Button variant="outline" size="sm" onClick={handleExportPng} data-testid="button-export-png">
               <Download className="w-4 h-4 mr-1" /> PNG
             </Button>
-            <Button variant="outline" size="sm" onClick={handleExportPdf} data-testid="button-export-diagram-pdf">
-              <FileDown className="w-4 h-4 mr-1" /> PDF
-            </Button>
+            {!hideExportPdf && (
+              <Button variant="outline" size="sm" onClick={handleExportPdf} data-testid="button-export-diagram-pdf">
+                <FileDown className="w-4 h-4 mr-1" /> PDF
+              </Button>
+            )}
             {onRegenerate && (
               <Button variant="outline" size="sm" onClick={onRegenerate} disabled={isRegenerating} data-testid="button-regenerate-diagram">
                 {isRegenerating ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-1" />}

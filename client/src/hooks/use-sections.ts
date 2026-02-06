@@ -135,6 +135,19 @@ export function useValidatedContents(projectId: number) {
   });
 }
 
+export function useSaveSectionConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sectionId, config, projectId }: { sectionId: number; config: Record<string, any>; projectId: number }) => {
+      const res = await apiRequest(api.sections.updateConfig.method, buildUrl(api.sections.updateConfig.path, { id: sectionId }), { config });
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sections.list.path, variables.projectId] });
+    },
+  });
+}
+
 export function useSearchArticles() {
   return useMutation({
     mutationFn: async (data: { projectId: number; config: Record<string, any>; extraContext?: string }) => {

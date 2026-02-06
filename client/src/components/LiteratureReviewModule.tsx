@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import {
   useValidateSection,
   useUnvalidateSection,
   useGenerateDiagram,
+  useSaveSectionConfig,
 } from "@/hooks/use-sections";
 import MermaidDiagram from "@/components/MermaidDiagram";
 import { SECTION_LABELS } from "@shared/schema";
@@ -22,13 +23,13 @@ import type { ProjectSection } from "@shared/schema";
 import ReactMarkdown from "react-markdown";
 import {
   Search, Loader2, ExternalLink, BookOpen, ChevronLeft, ChevronRight,
-  FileText, FileDown, GitCompare, Map as MapIcon,
+  FileText, GitCompare, Map as MapIcon,
   CheckSquare, Eye, Save, Check, X, ArrowUpDown, Filter, SlidersHorizontal,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import { exportToWord, exportToPdf } from "@/lib/export-utils";
+import { exportToWord } from "@/lib/export-utils";
 import type { LiteratureConfig, SectionVariables } from "@/components/SectionControls";
 
 interface LiteratureArticle {
@@ -60,6 +61,19 @@ const LITERATURE_SOURCE_TYPES = [
 
 const BATCH_SIZES = [10, 20, 30, 50];
 
+type ActiveAction =
+  | null
+  | "search"
+  | "summary_selected"
+  | "summary_all"
+  | "confrontation"
+  | "mapping"
+  | "bibliography"
+  | "diagram_synthesis"
+  | "diagram_confrontation"
+  | "diagram_mapping"
+  | `resume_${number}`;
+
 interface LiteratureReviewModuleProps {
   projectId: number;
   projectType: string;
@@ -68,6 +82,19 @@ interface LiteratureReviewModuleProps {
   variables: SectionVariables;
   extraContext?: string;
   section?: ProjectSection;
+}
+
+interface SavedLiteratureState {
+  articles: LiteratureArticle[];
+  selectedKeys: string[];
+  filterType: string;
+  filterYear: string;
+  sortBy: string;
+  batchSize: number;
+  currentPage: number;
+  bibliographyNorm: string;
+  analyses: { title: string; content: string }[];
+  diagrams: { code: string; title: string; type: string }[];
 }
 
 export default function LiteratureReviewModule({
@@ -94,6 +121,11 @@ export default function LiteratureReviewModule({
   const [sortBy, setSortBy] = useState<string>("default");
   const [showFilters, setShowFilters] = useState(false);
   const [diagrams, setDiagrams] = useState<{ code: string; title: string; type: string }[]>([]);
+  const [showDiagramDialog, setShowDiagramDialog] = useState(false);
+  const [activeDiagram, setActiveDiagram] = useState<{ code: string; title: string; type: string } | null>(null);
+  const [activeAction, setActiveAction] = useState<ActiveAction>(null);
+  const [savedAnalyses, setSavedAnalyses] = useState<{ title: string; content: string }[]>([]);
+  const [stateLoaded, setStateLoaded] = useState(false);
   const { toast } = useToast();
 
   const searchMutation = useSearchArticles();
@@ -103,6 +135,99 @@ export default function LiteratureReviewModule({
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
   const diagramMutation = useGenerateDiagram();
+  const saveConfigMutation = useSaveSectionConfig();
+
+  const isAnyActionRunning = activeAction !== null;
+
+  const stateRef = useRef({
+    articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams,
+  });
+  useEffect(() => {
+    stateRef.current = { articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams };
+  }, [articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams]);
+
+  const doSave = useCallback(() => {
+    if (!section) return;
+    const s = stateRef.current;
+    const state: SavedLiteratureState = {
+      articles: s.articles,
+      selectedKeys: Array.from(s.selectedKeys),
+      filterType: s.filterType,
+      filterYear: s.filterYear,
+      sortBy: s.sortBy,
+      batchSize: s.batchSize,
+      currentPage: s.currentPage,
+      bibliographyNorm: s.bibliographyNorm,
+      analyses: s.savedAnalyses,
+      diagrams: s.diagrams,
+    };
+    saveConfigMutation.mutate({
+      sectionId: section.id,
+      config: { literatureState: state },
+      projectId,
+    });
+  }, [section, projectId]);
+
+  useEffect(() => {
+    if (!section?.config || stateLoaded) return;
+    const cfg = section.config as any;
+    if (cfg?.literatureState) {
+      const s: SavedLiteratureState = cfg.literatureState;
+      if (s.articles?.length) setArticles(s.articles);
+      if (s.selectedKeys?.length) setSelectedKeys(new Set(s.selectedKeys));
+      if (s.filterType) setFilterType(s.filterType);
+      if (s.filterYear) setFilterYear(s.filterYear);
+      if (s.sortBy) setSortBy(s.sortBy);
+      if (s.batchSize) setBatchSize(s.batchSize);
+      if (s.currentPage !== undefined) setCurrentPage(s.currentPage);
+      if (s.bibliographyNorm) setBibliographyNorm(s.bibliographyNorm);
+      if (s.analyses?.length) setSavedAnalyses(s.analyses);
+      if (s.diagrams?.length) setDiagrams(s.diagrams);
+    }
+    setStateLoaded(true);
+  }, [section?.config, stateLoaded]);
+
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasDirtyState = useRef(false);
+  useEffect(() => {
+    if (!stateLoaded || !section) return;
+    hasDirtyState.current = true;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      doSave();
+      hasDirtyState.current = false;
+    }, 3000);
+    return () => {
+      if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    };
+  }, [articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams, stateLoaded, section]);
+
+  useEffect(() => {
+    const sectionId = section?.id;
+    return () => {
+      if (hasDirtyState.current && sectionId) {
+        const s = stateRef.current;
+        const state: SavedLiteratureState = {
+          articles: s.articles,
+          selectedKeys: Array.from(s.selectedKeys),
+          filterType: s.filterType,
+          filterYear: s.filterYear,
+          sortBy: s.sortBy,
+          batchSize: s.batchSize,
+          currentPage: s.currentPage,
+          bibliographyNorm: s.bibliographyNorm,
+          analyses: s.savedAnalyses,
+          diagrams: s.diagrams,
+        };
+        fetch(`/api/sections/${sectionId}/config`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ config: { literatureState: state } }),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+  }, [section?.id]);
 
   const saveToSection = (content: string, title: string) => {
     if (!section) return;
@@ -172,20 +297,32 @@ export default function LiteratureReviewModule({
   );
 
   const handleSearch = () => {
+    setActiveAction("search");
     searchMutation.mutate(
       { projectId, config, extraContext },
       {
         onSuccess: (data) => {
-          setArticles(data.articles || []);
+          const newArticles = data.articles || [];
+          setArticles(newArticles);
           setSelectedKeys(new Set());
           setCurrentPage(0);
           setFilterType("all");
           setFilterYear("");
           setSortBy("default");
-          toast({ title: "Recherche terminée", description: `${(data.articles || []).length} articles trouvés.` });
+          toast({ title: "Recherche terminée", description: `${newArticles.length} articles trouvés.` });
+          setActiveAction(null);
+          if (section) {
+            const state: SavedLiteratureState = {
+              articles: newArticles, selectedKeys: [], filterType: "all", filterYear: "", sortBy: "default",
+              batchSize, currentPage: 0, bibliographyNorm, analyses: savedAnalyses, diagrams,
+            };
+            saveConfigMutation.mutate({ sectionId: section.id, config: { literatureState: state }, projectId });
+            hasDirtyState.current = false;
+          }
         },
         onError: (err: any) => {
           toast({ title: "Erreur", description: err.message || "La recherche a échoué.", variant: "destructive" });
+          setActiveAction(null);
         },
       }
     );
@@ -219,7 +356,7 @@ export default function LiteratureReviewModule({
     }
   };
 
-  const handleAnalyze = (type: 'single' | 'multiple' | 'confrontation' | 'mapping', articleSubset?: LiteratureArticle[]) => {
+  const handleAnalyze = (type: 'single' | 'multiple' | 'confrontation' | 'mapping', articleSubset?: LiteratureArticle[], actionId?: ActiveAction) => {
     const toAnalyze = articleSubset || selectedArticles;
     if (toAnalyze.length === 0) {
       toast({ title: "Aucun article", description: "Sélectionnez au moins un article.", variant: "destructive" });
@@ -231,6 +368,8 @@ export default function LiteratureReviewModule({
       confrontation: "Confrontation des ouvrages",
       mapping: "Carte de mapping conceptuel",
     };
+    const action = actionId || (type === "confrontation" ? "confrontation" : type === "mapping" ? "mapping" : "summary_selected");
+    setActiveAction(action);
     setAnalysisTitle(titles[type] || "Analyse");
     analyzeMutation.mutate(
       {
@@ -250,9 +389,12 @@ export default function LiteratureReviewModule({
         onSuccess: (data) => {
           setAnalysisResult(data.content);
           setShowAnalysisDialog(true);
+          setSavedAnalyses(prev => [...prev, { title: titles[type] || "Analyse", content: data.content }]);
+          setActiveAction(null);
         },
         onError: (err: any) => {
           toast({ title: "Erreur", description: err.message || "L'analyse a échoué.", variant: "destructive" });
+          setActiveAction(null);
         },
       }
     );
@@ -263,6 +405,7 @@ export default function LiteratureReviewModule({
       toast({ title: "Aucun article", description: "Aucun article à résumer.", variant: "destructive" });
       return;
     }
+    setActiveAction("summary_all");
     setAnalysisTitle("Résumé de tous les articles");
     analyzeMutation.mutate(
       {
@@ -282,9 +425,12 @@ export default function LiteratureReviewModule({
         onSuccess: (data) => {
           setAnalysisResult(data.content);
           setShowAnalysisDialog(true);
+          setSavedAnalyses(prev => [...prev, { title: "Résumé de tous les articles", content: data.content }]);
+          setActiveAction(null);
         },
         onError: (err: any) => {
           toast({ title: "Erreur", description: err.message || "L'analyse a échoué.", variant: "destructive" });
+          setActiveAction(null);
         },
       }
     );
@@ -296,6 +442,7 @@ export default function LiteratureReviewModule({
       toast({ title: "Aucun article", description: "Sélectionnez au moins un article.", variant: "destructive" });
       return;
     }
+    setActiveAction("bibliography");
     bibMutation.mutate(
       {
         projectId,
@@ -314,38 +461,32 @@ export default function LiteratureReviewModule({
         onSuccess: (data) => {
           setBibliographyResult(data.content);
           setShowBibDialog(true);
+          setActiveAction(null);
         },
         onError: (err: any) => {
           toast({ title: "Erreur", description: err.message || "La génération a échoué.", variant: "destructive" });
+          setActiveAction(null);
         },
       }
     );
   };
 
-  const handleExportBib = async (format: "word" | "pdf") => {
+  const handleExportBib = async () => {
     if (!bibliographyResult) return;
     try {
       const normLabels: Record<string, string> = { apa7: "APA 7", vancouver: "Vancouver", mla: "MLA", chicago: "Chicago" };
       const title = `Bibliographie — ${normLabels[bibliographyNorm] || bibliographyNorm}`;
-      if (format === "word") {
-        await exportToWord(title, [{ label: title, content: bibliographyResult }], "bibliographie");
-      } else {
-        await exportToPdf(title, [{ label: title, content: bibliographyResult }], "bibliographie");
-      }
+      await exportToWord(title, [{ label: title, content: bibliographyResult }], "bibliographie");
       toast({ title: "Export réussi" });
     } catch {
       toast({ title: "Erreur d'export", variant: "destructive" });
     }
   };
 
-  const handleExportAnalysis = async (format: "word" | "pdf") => {
+  const handleExportAnalysis = async () => {
     if (!analysisResult) return;
     try {
-      if (format === "word") {
-        await exportToWord(analysisTitle, [{ label: analysisTitle, content: analysisResult }], "analyse");
-      } else {
-        await exportToPdf(analysisTitle, [{ label: analysisTitle, content: analysisResult }], "analyse");
-      }
+      await exportToWord(analysisTitle, [{ label: analysisTitle, content: analysisResult }], "analyse");
       toast({ title: "Export réussi" });
     } catch {
       toast({ title: "Erreur d'export", variant: "destructive" });
@@ -360,6 +501,12 @@ export default function LiteratureReviewModule({
       toast({ title: "Aucun article", description: "Aucun article disponible pour la génération.", variant: "destructive" });
       return;
     }
+    const actionMap: Record<string, ActiveAction> = {
+      article_synthesis: "diagram_synthesis",
+      article_confrontation: "diagram_confrontation",
+      article_mapping: "diagram_mapping",
+    };
+    setActiveAction(actionMap[diagramType]);
     diagramMutation.mutate(
       {
         projectId,
@@ -373,11 +520,15 @@ export default function LiteratureReviewModule({
       },
       {
         onSuccess: (data) => {
-          setDiagrams(prev => [...prev, { code: data.mermaidCode, title: data.title, type: diagramType }]);
-          toast({ title: "Diagramme généré", description: data.title });
+          const newDiagram = { code: data.mermaidCode, title: data.title, type: diagramType };
+          setDiagrams(prev => [...prev, newDiagram]);
+          setActiveDiagram(newDiagram);
+          setShowDiagramDialog(true);
+          setActiveAction(null);
         },
         onError: (err: any) => {
           toast({ title: "Erreur", description: err.message || "Erreur lors de la génération du diagramme", variant: "destructive" });
+          setActiveAction(null);
         },
       }
     );
@@ -522,10 +673,10 @@ export default function LiteratureReviewModule({
             <div className="pt-2">
               <Button
                 onClick={handleSearch}
-                disabled={searchMutation.isPending}
+                disabled={isAnyActionRunning}
                 data-testid="button-search-articles"
               >
-                {searchMutation.isPending ? (
+                {activeAction === "search" ? (
                   <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Recherche en cours...</>
                 ) : (
                   <><Search className="w-4 h-4 mr-2" /> Lancer la recherche</>
@@ -640,11 +791,11 @@ export default function LiteratureReviewModule({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleAnalyze(selectedArticles.length === 1 ? "single" : "multiple")}
-                    disabled={analyzeMutation.isPending}
+                    onClick={() => handleAnalyze(selectedArticles.length === 1 ? "single" : "multiple", undefined, "summary_selected")}
+                    disabled={isAnyActionRunning}
                     data-testid="button-summary-selected"
                   >
-                    {analyzeMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
+                    {activeAction === "summary_selected" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
                     Résumé ({selectedArticles.length})
                   </Button>
                 )}
@@ -652,10 +803,10 @@ export default function LiteratureReviewModule({
                   variant="outline"
                   size="sm"
                   onClick={handleSummaryAll}
-                  disabled={analyzeMutation.isPending}
+                  disabled={isAnyActionRunning}
                   data-testid="button-summary-all"
                 >
-                  {analyzeMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
+                  {activeAction === "summary_all" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
                   Résumé de tous ({filteredArticles.length})
                 </Button>
                 {selectedArticles.length >= 2 && (
@@ -663,10 +814,10 @@ export default function LiteratureReviewModule({
                     variant="outline"
                     size="sm"
                     onClick={() => handleAnalyze("confrontation")}
-                    disabled={analyzeMutation.isPending}
+                    disabled={isAnyActionRunning}
                     data-testid="button-confrontation"
                   >
-                    {analyzeMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
+                    {activeAction === "confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
                     Confronter
                   </Button>
                 )}
@@ -675,10 +826,10 @@ export default function LiteratureReviewModule({
                     variant="outline"
                     size="sm"
                     onClick={() => handleAnalyze("mapping")}
-                    disabled={analyzeMutation.isPending}
+                    disabled={isAnyActionRunning}
                     data-testid="button-mapping"
                   >
-                    {analyzeMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                    {activeAction === "mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
                     Mapping
                   </Button>
                 )}
@@ -698,10 +849,10 @@ export default function LiteratureReviewModule({
                     variant="outline"
                     size="sm"
                     onClick={() => handleBibliography(selectedArticles.length > 0 ? undefined : filteredArticles)}
-                    disabled={bibMutation.isPending}
+                    disabled={isAnyActionRunning}
                     data-testid="button-generate-bib"
                   >
-                    {bibMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <BookOpen className="w-4 h-4 mr-1" />}
+                    {activeAction === "bibliography" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <BookOpen className="w-4 h-4 mr-1" />}
                     Bibliographie {selectedArticles.length > 0 ? `(${selectedArticles.length})` : `(tous)`}
                   </Button>
                 </div>
@@ -713,10 +864,10 @@ export default function LiteratureReviewModule({
                   variant="outline"
                   size="sm"
                   onClick={() => handleGenerateDiagram("article_synthesis")}
-                  disabled={diagramMutation.isPending}
+                  disabled={isAnyActionRunning}
                   data-testid="button-diagram-synthesis"
                 >
-                  {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                  {activeAction === "diagram_synthesis" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
                   Schéma de synthèse
                 </Button>
                 {(selectedArticles.length >= 2 || filteredArticles.length >= 2) && (
@@ -724,10 +875,10 @@ export default function LiteratureReviewModule({
                     variant="outline"
                     size="sm"
                     onClick={() => handleGenerateDiagram("article_confrontation")}
-                    disabled={diagramMutation.isPending}
+                    disabled={isAnyActionRunning}
                     data-testid="button-diagram-confrontation"
                   >
-                    {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
+                    {activeAction === "diagram_confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
                     Schéma de confrontation
                   </Button>
                 )}
@@ -735,10 +886,10 @@ export default function LiteratureReviewModule({
                   variant="outline"
                   size="sm"
                   onClick={() => handleGenerateDiagram("article_mapping")}
-                  disabled={diagramMutation.isPending}
+                  disabled={isAnyActionRunning}
                   data-testid="button-diagram-mapping"
                 >
-                  {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                  {activeAction === "diagram_mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
                   Carte de mapping
                 </Button>
               </div>
@@ -748,6 +899,7 @@ export default function LiteratureReviewModule({
                   const key = articleKey(article);
                   const idx = getArticleIdx(article);
                   const isSelected = selectedKeys.has(key);
+                  const resumeAction: ActiveAction = `resume_${idx}`;
                   return (
                     <Card key={key} className={isSelected ? "border-primary" : ""} data-testid={`article-result-${idx}`}>
                       <CardContent className="py-3 flex items-start gap-3">
@@ -785,11 +937,12 @@ export default function LiteratureReviewModule({
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleAnalyze("single", [article])}
-                            disabled={analyzeMutation.isPending}
+                            onClick={() => handleAnalyze("single", [article], resumeAction)}
+                            disabled={isAnyActionRunning}
                             data-testid={`button-resume-${idx}`}
                           >
-                            <Eye className="w-4 h-4 mr-1" /> Résumé
+                            {activeAction === resumeAction ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
+                            Résumé
                           </Button>
                         </div>
                       </CardContent>
@@ -828,21 +981,6 @@ export default function LiteratureReviewModule({
         </CardContent>
       </Card>
 
-      {diagrams.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Illustrations générées</h3>
-          {diagrams.map((d, i) => (
-            <MermaidDiagram
-              key={`${d.type}-${i}`}
-              code={d.code}
-              title={d.title}
-              onRegenerate={() => handleGenerateDiagram(d.type as any)}
-              isRegenerating={diagramMutation.isPending}
-            />
-          ))}
-        </div>
-      )}
-
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -858,11 +996,8 @@ export default function LiteratureReviewModule({
                 <Save className="w-4 h-4 mr-1" /> Sauvegarder dans la section
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => handleExportAnalysis("word")} data-testid="button-export-analysis-word">
-              <FileText className="w-4 h-4 mr-1" /> Word
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleExportAnalysis("pdf")} data-testid="button-export-analysis-pdf">
-              <FileDown className="w-4 h-4 mr-1" /> PDF
+            <Button variant="outline" size="sm" onClick={handleExportAnalysis} data-testid="button-export-analysis-word">
+              <FileText className="w-4 h-4 mr-1" /> Word (.docx)
             </Button>
           </div>
         </DialogContent>
@@ -887,13 +1022,31 @@ export default function LiteratureReviewModule({
                 <Save className="w-4 h-4 mr-1" /> Sauvegarder dans la section
               </Button>
             )}
-            <Button variant="outline" size="sm" onClick={() => handleExportBib("word")} data-testid="button-export-bib-word">
+            <Button variant="outline" size="sm" onClick={handleExportBib} data-testid="button-export-bib-word">
               <FileText className="w-4 h-4 mr-1" /> Word (.docx)
             </Button>
-            <Button variant="outline" size="sm" onClick={() => handleExportBib("pdf")} data-testid="button-export-bib-pdf">
-              <FileDown className="w-4 h-4 mr-1" /> PDF (.pdf)
-            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDiagramDialog} onOpenChange={setShowDiagramDialog}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{activeDiagram?.title || "Illustration"}</DialogTitle>
+            <DialogDescription>Diagramme généré à partir des articles.</DialogDescription>
+          </DialogHeader>
+          {activeDiagram && (
+            <MermaidDiagram
+              code={activeDiagram.code}
+              title={activeDiagram.title}
+              onRegenerate={() => {
+                setShowDiagramDialog(false);
+                handleGenerateDiagram(activeDiagram.type as any);
+              }}
+              isRegenerating={diagramMutation.isPending}
+              hideExportPdf
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
