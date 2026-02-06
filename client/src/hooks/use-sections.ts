@@ -196,3 +196,30 @@ export function useGenerateEquations() {
     },
   });
 }
+
+export function useGenerateConcepts() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; sources: any[]; citationNorm: 'apa7' | 'vancouver' | 'mla' | 'chicago'; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateConcepts.method, api.sections.generateConcepts.path, data);
+      return res.json() as Promise<{ content: string; bibliography: string }>;
+    },
+  });
+}
+
+export function useSuggestSources() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; existingSources: any[]; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.suggestSources.method, api.sections.suggestSources.path, data);
+      return res.json() as Promise<{ articles: any[] }>;
+    },
+  });
+}
+
+export function useGenerateMethodologyTables() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; tableType: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateMethodologyTables.method, api.sections.generateMethodologyTables.path, data);
+      return res.json() as Promise<{ rows: Record<string, string>[]; comment: string }>;
+    },
+  });
+}

@@ -235,6 +235,37 @@ export const api = {
       }),
       responses: { 200: z.object({ content: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
     },
+    generateConcepts: {
+      method: 'POST' as const,
+      path: '/api/sections/conceptual/generate-concepts',
+      input: z.object({
+        projectId: z.number(),
+        sources: z.array(z.any()),
+        citationNorm: z.enum(['apa7', 'vancouver', 'mla', 'chicago']).default('apa7'),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ content: z.string(), bibliography: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    suggestSources: {
+      method: 'POST' as const,
+      path: '/api/sections/conceptual/suggest-sources',
+      input: z.object({
+        projectId: z.number(),
+        existingSources: z.array(z.any()),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ articles: z.array(z.any()) }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    generateMethodologyTables: {
+      method: 'POST' as const,
+      path: '/api/sections/methodology/generate-tables',
+      input: z.object({
+        projectId: z.number(),
+        tableType: z.enum(['methodological_choice', 'pre_operational', 'target_population', 'collection_tools', 'limits']),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ rows: z.array(z.record(z.string(), z.string())), comment: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
   },
 };
 

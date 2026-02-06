@@ -1283,6 +1283,259 @@ RÈGLES DE FORMATAGE:
     }
   });
 
+  // === CONCEPTUAL FRAMEWORK: GENERATE CONCEPTS FROM SOURCES ===
+  app.post(api.sections.generateConcepts.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, sources, citationNorm, extraContext } = api.sections.generateConcepts.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const normLabels: Record<string, string> = { apa7: "APA 7e édition", vancouver: "Vancouver", mla: "MLA", chicago: "Chicago" };
+      const normLabel = normLabels[citationNorm] || "APA 7e édition";
+
+      const sourceList = sources.map((s: any) =>
+        `- ${s.lastName || ""}, ${s.firstName || ""}. "${s.title || ""}". ${s.publisher || s.source || ""}. ${s.year || ""}. Type: ${s.type || "article"}`
+      ).join("\n");
+
+      const systemPrompt = `Tu es un expert en méthodologie de recherche académique. Tu identifies et définis les concepts-clés à partir de sources académiques sélectionnées. Tu utilises la norme ${normLabel} pour les citations dans le texte.`;
+
+      const userPrompt = `${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}
+
+=== SOURCES SÉLECTIONNÉES ===
+${sourceList}
+
+=== TÂCHE ===
+À partir des sources sélectionnées ci-dessus, génère le cadre conceptuel structuré:
+
+I. CADRE CONCEPTUEL
+
+Pour chaque concept identifié (minimum 3):
+1. Nom du concept
+2. Définition académique (avec citations selon la norme ${normLabel})
+3. Lien avec la problématique du projet
+4. Lien avec les hypothèses
+
+IMPORTANT:
+- Cite les auteurs des sources sélectionnées dans le texte selon la norme ${normLabel}
+- Ne génère PAS de cadre théorique (traité séparément dans la revue de littérature)
+- Structure claire avec numérotation académique (I., 1., 1.1.)
+- Minimum 3 concepts, maximum 5
+${extraContext ? `\n\nInstructions supplémentaires: ${extraContext}` : ""}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 4000,
+        temperature: 0.5,
+      });
+      const content = response.choices[0].message.content || "";
+
+      const bibPrompt = `Formate les références suivantes selon la norme ${normLabel}:
+
+${sourceList}
+
+Produis uniquement la liste bibliographique formatée, triée par ordre alphabétique du nom de famille. Chaque référence doit être correctement formatée selon la norme ${normLabel}.`;
+
+      const bibResponse = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: `Tu es un expert en normes bibliographiques. Formate selon ${normLabel}.` },
+          { role: "user", content: bibPrompt },
+        ],
+        max_tokens: 2000,
+        temperature: 0.3,
+      });
+      const bibliography = bibResponse.choices[0].message.content || "";
+
+      res.json({ content, bibliography });
+    } catch (err: any) {
+      console.error("Generate Concepts Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération des concepts" });
+    }
+  });
+
+  // === CONCEPTUAL FRAMEWORK: SUGGEST COMPLEMENTARY SOURCES ===
+  app.post(api.sections.suggestSources.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, existingSources, extraContext } = api.sections.suggestSources.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const existingList = existingSources.map((s: any) =>
+        `- ${s.lastName || ""}, ${s.firstName || ""}. "${s.title || ""}". ${s.year || ""}. ${s.publisher || ""}`
+      ).join("\n");
+
+      const prompt = `${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}
+
+=== SOURCES EXISTANTES ===
+${existingList}
+
+=== TÂCHE ===
+Propose 10 sources complémentaires qui enrichiraient le cadre conceptuel de ce projet.
+Les sources proposées doivent:
+- Être différentes des sources existantes
+- Être pertinentes pour la problématique et les hypothèses
+- Couvrir des aspects non traités par les sources existantes
+- Être des références académiques crédibles
+
+IMPORTANT: Réponds UNIQUEMENT en JSON valide, sous cette forme exacte:
+[
+  {"lastName": "Nom", "firstName": "Prénom", "title": "Titre de l'article ou ouvrage", "year": "2023", "publisher": "Revue ou Éditeur", "platform": "Google Scholar", "url": "", "type": "article"},
+  ...
+]
+${extraContext ? `\nInstructions: ${extraContext}` : ""}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: "Tu es un expert en recherche documentaire académique. Tu proposes des sources complémentaires pertinentes. Réponds UNIQUEMENT en JSON." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 3000,
+        temperature: 0.7,
+      });
+
+      const raw = (response.choices[0].message.content || "").trim();
+      let articles: any[] = [];
+      try {
+        const jsonMatch = raw.match(/\[[\s\S]*\]/);
+        if (jsonMatch) articles = JSON.parse(jsonMatch[0]);
+      } catch { articles = []; }
+
+      res.json({ articles });
+    } catch (err: any) {
+      console.error("Suggest Sources Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la suggestion de sources" });
+    }
+  });
+
+  // === METHODOLOGY: GENERATE ANALYTICAL TABLES ===
+  app.post(api.sections.generateMethodologyTables.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, tableType, extraContext } = api.sections.generateMethodologyTables.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const tablePrompts: Record<string, { columns: string[]; instruction: string }> = {
+        methodological_choice: {
+          columns: ["Type de méthodologie", "Justification du choix", "Lien avec la problématique", "Lien avec les hypothèses", "Avantages", "Limites"],
+          instruction: "Génère un tableau analytique présentant le choix méthodologique pour ce projet de recherche. Propose 2-3 options méthodologiques avec leurs justifications.",
+        },
+        pre_operational: {
+          columns: ["Objectifs du terrain", "Démarche retenue", "Contraintes identifiées", "Solutions envisagées"],
+          instruction: "Génère un tableau analytique de la phase préopératoire / terrain. Détaille les objectifs, la démarche, les contraintes et solutions.",
+        },
+        target_population: {
+          columns: ["Population concernée", "Tranche d'âge", "Région / lieu", "Comportements / caractéristiques", "Critères d'inclusion", "Critères d'exclusion"],
+          instruction: "Génère un tableau analytique de la population cible. Propose des critères adaptés au sujet et au type de recherche.",
+        },
+        collection_tools: {
+          columns: ["Outil", "Objectif de l'outil", "Type de données collectées", "Justification du choix"],
+          instruction: "Génère un tableau analytique des outils de collecte de données. Propose des outils adaptés (questionnaire, entretien, grille d'observation, etc.).",
+        },
+        limits: {
+          columns: ["Limites identifiées", "Impact potentiel", "Mesures correctives"],
+          instruction: "Génère un tableau analytique des limites méthodologiques. Identifie les biais possibles et propose des mesures correctives.",
+        },
+      };
+
+      const tableDef = tablePrompts[tableType];
+      if (!tableDef) return res.status(400).json({ message: "Type de tableau invalide" });
+
+      const prompt = `${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}
+
+=== TÂCHE ===
+${tableDef.instruction}
+
+Colonnes du tableau: ${tableDef.columns.join(", ")}
+
+IMPORTANT: Réponds UNIQUEMENT en JSON valide sous cette forme exacte:
+{
+  "rows": [
+    {${tableDef.columns.map(c => `"${c}": "contenu"`).join(", ")}},
+    ...
+  ],
+  "comment": "Commentaire explicatif et suggestions pour l'étudiant (formulations, améliorations possibles, points d'attention)."
+}
+
+Génère au minimum 2 lignes dans le tableau. Les contenus doivent être précis, académiques et adaptés au contexte du projet.
+${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: "Tu es un expert en méthodologie de recherche. Tu génères des tableaux analytiques structurés pour aider les étudiants à construire leur cadre méthodologique. Réponds UNIQUEMENT en JSON valide." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 4000,
+        temperature: 0.5,
+      });
+
+      const raw = (response.choices[0].message.content || "").trim();
+      let result = { rows: [] as any[], comment: "" };
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          result.comment = parsed.comment || "";
+          if (Array.isArray(parsed.rows)) {
+            result.rows = parsed.rows.map((row: any) => {
+              const normalized: Record<string, string> = {};
+              for (const col of tableDef.columns) {
+                normalized[col] = row[col] || "";
+              }
+              return normalized;
+            });
+          }
+        }
+      } catch {
+        result = { rows: [], comment: "Erreur de parsing. Veuillez réessayer." };
+      }
+
+      if (result.rows.length === 0) {
+        return res.status(422).json({ message: "L'IA n'a pas pu générer un tableau structuré. Veuillez réessayer." });
+      }
+
+      res.json(result);
+    } catch (err: any) {
+      console.error("Methodology Tables Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération du tableau" });
+    }
+  });
+
   // === USER API KEY ===
   app.post("/api/settings/openai-key", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });

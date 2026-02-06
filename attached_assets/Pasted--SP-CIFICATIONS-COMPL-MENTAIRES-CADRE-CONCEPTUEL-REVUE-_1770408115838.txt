@@ -1,0 +1,266 @@
+📘 SPÉCIFICATIONS COMPLÉMENTAIRES — CADRE CONCEPTUEL, REVUE DE LITTÉRATURE, MÉTHODOLOGIE
+
+(Règles fonctionnelles obligatoires)
+
+1. CADRE CONCEPTUEL — BIBLIOGRAPHIE & SOURCES (RÈGLE PAR DÉFAUT)
+1.1 Bibliographie par défaut (OBLIGATOIRE)
+
+Toute bibliographie associée au cadre conceptuel doit être :
+
+automatiquement générée
+
+au format APA 7 par défaut
+
+Les références doivent être :
+
+liées aux concepts générés
+
+issues des ouvrages / articles sélectionnés ou proposés par l’IA
+
+1.2 Changement de norme bibliographique (OPTION UTILISATEUR)
+
+Un bouton dédié doit permettre à l’utilisateur de :
+
+changer la norme bibliographique vers :
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+👉 Le changement de norme doit :
+
+s’appliquer à la bibliographie
+
+ET aux citations dans le texte (cohérence globale)
+
+être réversible à tout moment
+
+2. CADRE CONCEPTUEL — RECHERCHE DE SOURCES (FORMULAIRE COMPLET)
+2.1 Formulaire de recherche intégré (OBLIGATOIRE)
+
+Dans la section Cadre conceptuel, afficher le même formulaire de recherche que dans la Revue de littérature, sans modification, comprenant :
+
+plateformes (Google Scholar, Cairn, PubMed, HAL, etc.)
+
+période (année début / fin)
+
+type de sources :
+
+articles scientifiques
+
+ouvrages
+
+thèses / mémoires
+
+rapports
+
+filtres :
+
+type de document
+
+année de publication
+
+champ Consignes spécifiques
+
+instructions libres pour affiner la recherche IA
+
+2.2 Sélection et exploitation des sources
+
+Fonctionnalités obligatoires :
+
+l’utilisateur peut :
+
+sélectionner uniquement les sources souhaitées
+
+exclure certains types (ex. seulement articles, pas d’ouvrages)
+
+bouton « Générer les concepts à partir des sources sélectionnées »
+
+l’IA génère :
+
+les concepts
+
+les définitions
+
+les liens concept ↔ problématique ↔ hypothèses
+
+bouton « Proposer d’autres sources complémentaires »
+
+l’IA suggère des articles supplémentaires cohérents
+
+2.3 Affichage des sources (liste, pas de texte rédigé)
+
+Les sources doivent être affichées sous forme de résultats, comme un moteur académique :
+
+Nom, prénom de l’auteur
+
+Titre
+
+Année de publication
+
+Maison d’édition / revue
+
+Type de document
+
+Lien vers la source
+
+❌ Aucun texte rédigé automatique dans cette section.
+
+2.4 Suppression du cadre théorique dans le cadre conceptuel
+
+Supprimer toute sous-partie “Cadre théorique” dans la section Cadre conceptuel
+
+Le cadre théorique est traité exclusivement via la Revue de littérature
+👉 Éviter toute redondance
+
+3. REVUE DE LITTÉRATURE — RAPPEL FONCTIONNEL (ALIGNEMENT)
+
+Le formulaire de recherche est affiché automatiquement
+
+Les résultats sont affichés :
+
+par lots (10 / 20 / 30 / 50)
+
+avec pagination
+
+Possibilités :
+
+filtrer (année, type, auteur)
+
+analyser un article
+
+analyser plusieurs articles
+
+confronter des articles
+
+Exports autorisés :
+
+Word (.docx)
+
+Normes bibliographiques :
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+4. CADRE MÉTHODOLOGIQUE — STRUCTURE ANALYTIQUE (TABLEAUX)
+4.1 Principe général
+
+Le cadre méthodologique doit être présenté sous forme de tableaux analytiques, et non comme un texte rédigé.
+
+👉 L’objectif est de :
+
+justifier les choix
+
+permettre à l’étudiant de s’en servir pour rédiger
+
+4.2 Tableaux obligatoires
+Tableau 1 — Choix méthodologique
+
+Type de méthodologie
+
+Justification du choix
+
+Lien avec la problématique
+
+Lien avec les hypothèses
+
+Avantages
+
+Limites
+
+Tableau 2 — Phase préopératoire / terrain
+
+Objectifs du terrain
+
+Démarche retenue
+
+Contraintes identifiées
+
+Solutions envisagées
+
+Tableau 3 — Population cible
+
+Population concernée
+
+Tranche d’âge
+
+Région / lieu
+
+Comportements / caractéristiques
+
+Critères d’inclusion / exclusion
+
+Tableau 4 — Outils de collecte
+
+Outil (questionnaire, guide d’entretien, etc.)
+
+Objectif de l’outil
+
+Type de données collectées
+
+Justification du choix
+
+Tableau 5 — Limites méthodologiques
+
+Limites identifiées
+
+Impact potentiel
+
+Mesures correctives
+
+4.3 Commentaires IA (AIDE À LA RÉDACTION)
+
+À côté de chaque tableau, l’IA peut :
+
+ajouter des commentaires explicatifs
+
+proposer des formulations
+
+suggérer des améliorations
+
+👉 Ces commentaires servent d’appui à la rédaction, pas de rédaction finale automatique.
+
+5. RÈGLES TRANSVERSALES RAPPELÉES
+
+L’utilisateur décide :
+
+des sources
+
+des normes
+
+des choix méthodologiques
+
+L’IA :
+
+assiste
+
+structure
+
+justifie
+
+Aucun contenu n’est imposé
+
+✅ SYNTHÈSE
+
+Bibliographie du cadre conceptuel : APA 7 par défaut
+
+Bouton pour changer de norme (texte + biblio)
+
+Recherche de sources intégrée dans le cadre conceptuel
+
+Concepts générés à partir des sources sélectionnées
+
+Pas de cadre théorique redondant
+
+Méthodologie structurée en tableaux analytiques
+
+Commentaires IA utilisables par l’étudiant

@@ -7,6 +7,8 @@ import { useEntitlements, useCheckout, SECTION_TO_ENTITLEMENT, hasEntitlement } 
 import { useI18n } from "@/lib/i18n";
 import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
+import ConceptualFrameworkModule from "@/components/ConceptualFrameworkModule";
+import MethodologyModule from "@/components/MethodologyModule";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -60,9 +62,9 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "theoretical_framework", "literature_review", "methodology"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology"];
     case "tfe":
-      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "theoretical_framework", "literature_review", "methodology"];
+      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology"];
     case "vae":
       return ["vae_competencies", "plan"];
     case "rapport_stage":
@@ -86,9 +88,8 @@ function getModuleTabs(projectType: string) {
     tabs.push({ key: "plan", label: "Plan", icon: Map, sectionKeys: ["plan"] });
   }
 
-  const frameworkKeys = sections.filter(s => ["conceptual_framework", "theoretical_framework"].includes(s));
-  if (frameworkKeys.length > 0) {
-    tabs.push({ key: "framework", label: "Cadres", icon: Lightbulb, sectionKeys: frameworkKeys });
+  if (sections.includes("conceptual_framework")) {
+    tabs.push({ key: "framework", label: "Cadre conceptuel", icon: Lightbulb, sectionKeys: ["conceptual_framework"] });
   }
 
   if (sections.includes("literature_review")) {
@@ -590,6 +591,30 @@ function SingleSectionWrapper({
         projectType={projectType}
         config={literatureConfig}
         onConfigChange={onLiteratureConfigChange}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "conceptual_framework") {
+    return (
+      <ConceptualFrameworkModule
+        projectId={projectId}
+        projectType={projectType}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "methodology") {
+    return (
+      <MethodologyModule
+        projectId={projectId}
+        projectType={projectType}
         variables={variables}
         extraContext={buildExtraContext()}
         section={section}

@@ -69,6 +69,14 @@ shared/
 - Always guard with `if (!userId)` before DB writes
 
 ## Recent Changes
+- 2026-02-06: Rebuilt ConceptualFrameworkModule as dedicated component with source search, metadata cards, batch selection, concept generation from selected sources, complementary source suggestions, auto-generated bibliography with citation norm selector (APA7/Vancouver/MLA/Chicago)
+- 2026-02-06: Built MethodologyModule as dedicated component with 5 analytical tables (methodological_choice, pre_operational, target_population, collection_tools, limits) with AI comments as writing guidance
+- 2026-02-06: Added backend endpoints: POST /api/sections/generate-concepts, POST /api/sections/suggest-sources, POST /api/sections/generate-methodology-tables
+- 2026-02-06: Frontend hooks: useGenerateConcepts, useSuggestSources, useGenerateMethodologyTables in use-sections.ts
+- 2026-02-06: Both modules have auto-save state persistence (3s debounce to section config), Word export, validate/unvalidate
+- 2026-02-06: Methodology tables backend enforces column normalization and returns 422 on empty parse results
+- 2026-02-06: Removed theoretical_framework from project flows (handled by Literature Review)
+- 2026-02-06: ProjectDetails routes conceptual_framework and methodology to dedicated modules (like LiteratureReviewModule)
 - 2026-02-06: Added status timeline dialog with timestamped history of all status changes per section
 - 2026-02-06: Added status selector dropdown in SectionEditor (9 statuses: Brouillon, Généré, Modifié, Validé, Envoyé, En attente, Corrigé, Version finale, Archivé)
 - 2026-02-06: Added section_status_history table with automatic logging on every status change
