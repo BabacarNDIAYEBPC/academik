@@ -1,0 +1,231 @@
+📘 SPÉCIFICATION COMPLÈTE — OFFRE UNIQUE, QUOTAS IA, CADRE CONCEPTUEL & HARMONISATION DES SECTIONS
+1. OFFRE UNIQUE + SÉLECTION À LA CARTE — GESTION DES QUOTAS IA
+
+L’application repose sur une offre unique, avec un formulaire de sélection à la carte permettant à l’utilisateur de choisir les fonctionnalités dont il a besoin.
+
+1.1 Quotas IA (OBLIGATOIRE)
+
+Afin de maîtriser les coûts IA, l’offre unique doit intégrer des quotas d’usage, même si la génération est réalisée par l’IA.
+
+Quotas inclus dans l’offre unique
+
+Nombre de mots générés par mois : 20 000 mots
+
+Nombre d’actions IA par mois (générer, analyser, confronter, mapping, etc.)
+
+Nombre de dossiers / projets actifs par étudiant
+
+Stockage de documents lié aux dossiers
+
+👉 Les quotas sont mensuels et réinitialisés automatiquement.
+
+1.2 Surplus / dépassement de quota
+
+Lorsque l’utilisateur atteint un quota :
+
+blocage de l’action concernée
+
+affichage d’un message proposant :
+
+l’achat d’un surplus de mots
+
+l’achat d’un surplus d’actions IA
+
+l’ajout d’un dossier actif supplémentaire
+
+Les dossiers archivés ne comptent pas dans la limite.
+
+2. CADRE CONCEPTUEL — GÉNÉRATION DES CONCEPTS (AVEC OU SANS REVUE)
+2.1 Bouton « Générer les concepts » — TOUJOURS VISIBLE
+
+Dans la section Cadre conceptuel, le bouton :
+
+👉 « Générer les concepts » doit toujours apparaître,
+même si aucun article n’est sélectionné.
+
+2.2 Cas sans article sélectionné
+
+Si aucun article n’est sélectionné, afficher en bas de la section le message suivant :
+
+« Vous pouvez aussi décider de laisser la plateforme vous proposer automatiquement des articles pertinents en lien avec votre sujet. »
+
+Avec un bouton :
+
+Valider
+
+Si l’utilisateur clique :
+
+la plateforme propose automatiquement une liste d’articles pertinents
+
+l’utilisateur peut :
+
+accepter tous les articles
+
+en sélectionner certains
+
+en exclure d’autres
+
+Les concepts sont ensuite générés à partir des articles retenus.
+
+3. VARIABLES & OPTIONS — HARMONISATION DES 5 SECTIONS
+Sections concernées
+
+Fondement
+
+Plan
+
+Cadre conceptuel
+
+Revue de littérature
+
+Méthodologie
+
+3.1 Variables (repliées par défaut)
+
+Dans chacune de ces 5 sections, afficher le même bloc Variables, comprenant :
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Domaine / discipline
+
+Formation
+
+👉 Les variables sont :
+
+pré-remplies automatiquement
+
+modifiables manuellement
+
+issues du paramétrage global
+
+Si une variable est modifiée :
+
+l’IA détecte l’impact
+
+propose une réadaptation cohérente des autres sections
+
+3.2 Options IA (repliées par défaut)
+
+Dans chacune des 5 sections, afficher les mêmes options IA :
+
+Générer
+
+Régénérer (version similaire / version différente)
+
+Affiner via consignes spécifiques
+
+Exporter
+
+L’utilisateur choisit volontairement de déplier ces options.
+
+4. CADRE CONCEPTUEL — ÉQUATIONS DE RECHERCHE
+
+Dans le cadre conceptuel, permettre également :
+
+la génération d’équations de recherche
+
+exactement comme dans la Revue de littérature
+
+Formats proposés :
+
+Google Scholar
+
+PubMed
+
+Cairn
+
+HAL
+
+ScienceDirect
+
+Les équations sont :
+
+basées sur le sujet, la problématique et les concepts
+
+exportables
+
+réutilisables dans la Revue de littérature
+
+5. CADRE CONCEPTUEL — ANALYSE DES ARTICLES
+
+Dans le cadre conceptuel, permettre les actions suivantes sur les articles sélectionnés :
+
+Résumer un article
+
+Résumer plusieurs articles
+
+Confronter deux articles
+
+Confronter plusieurs articles
+
+Les résultats sont affichés :
+
+dans une page dédiée
+
+ou dans un popup dédié
+
+6. EXPORT DES ARTICLES & BIBLIOGRAPHIE
+
+À partir des articles sélectionnés, permettre :
+
+l’export de la bibliographie aux normes :
+
+APA 7 (par défaut)
+
+Vancouver
+
+MLA
+
+Chicago
+
+Formats autorisés :
+
+Word (.docx)
+
+7. RÈGLE TRANSVERSALE DE COHÉRENCE
+
+Les 5 sections clés utilisent :
+
+les mêmes variables
+
+les mêmes options IA
+
+la même logique de génération
+
+Aucune section ne fonctionne de manière isolée
+
+L’utilisateur garde toujours le contrôle :
+
+sur les variables
+
+sur les sources
+
+sur les normes
+
+sur la génération
+
+✅ SYNTHÈSE FINALE
+
+Offre unique avec sélection à la carte
+
+Quotas IA intégrés (20 000 mots, actions IA, dossiers)
+
+Surplus achetables
+
+Concepts générables avec ou sans revue
+
+Proposition automatique d’articles si aucun n’est sélectionné
+
+Variables et options harmonisées sur 5 sections
+
+Équations de recherche disponibles dans le cadre conceptuel
+
+Résumé, confrontation et export des articles
+
+Bibliographie multi-normes
+
+UX cohérente et contrôlée

@@ -117,6 +117,33 @@ export const userPurchases = pgTable("user_purchases", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === USER QUOTAS ===
+export const userQuotas = pgTable("user_quotas", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().unique(),
+  wordsUsed: integer("words_used").notNull().default(0),
+  wordsLimit: integer("words_limit").notNull().default(20000),
+  actionsUsed: integer("actions_used").notNull().default(0),
+  actionsLimit: integer("actions_limit").notNull().default(100),
+  activeProjectsLimit: integer("active_projects_limit").notNull().default(3),
+  documentsLimit: integer("documents_limit").notNull().default(20),
+  periodStart: timestamp("period_start").defaultNow(),
+  periodEnd: timestamp("period_end"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// === QUOTA SURPLUS PURCHASES ===
+export const quotaSurplus = pgTable("quota_surplus", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  surplusType: text("surplus_type").notNull(), // 'words', 'actions', 'projects'
+  amount: integer("amount").notNull(), // quantity added
+  price: integer("price").notNull(), // price in cents
+  stripeSessionId: text("stripe_session_id"),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // === SECTION STATUSES ===
 export const SECTION_STATUSES = {
   DRAFT: 'draft',
@@ -183,6 +210,8 @@ export const insertSectionSchema = createInsertSchema(projectSections).omit({ id
 export const insertVersionSchema = createInsertSchema(sectionVersions).omit({ id: true, createdAt: true });
 export const insertStatusHistorySchema = createInsertSchema(sectionStatusHistory).omit({ id: true, changedAt: true });
 export const insertPurchaseSchema = createInsertSchema(userPurchases).omit({ id: true, createdAt: true });
+export const insertQuotaSchema = createInsertSchema(userQuotas).omit({ id: true, updatedAt: true });
+export const insertSurplusSchema = createInsertSchema(quotaSurplus).omit({ id: true, createdAt: true });
 
 // === TYPES ===
 export type Profile = typeof profiles.$inferSelect;
@@ -199,6 +228,10 @@ export type InsertVersion = z.infer<typeof insertVersionSchema>;
 export type StatusHistory = typeof sectionStatusHistory.$inferSelect;
 export type UserPurchase = typeof userPurchases.$inferSelect;
 export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;
+export type UserQuota = typeof userQuotas.$inferSelect;
+export type InsertQuota = z.infer<typeof insertQuotaSchema>;
+export type QuotaSurplus = typeof quotaSurplus.$inferSelect;
+export type InsertSurplus = z.infer<typeof insertSurplusSchema>;
 
 export type CreateProjectRequest = InsertProject;
 export type UpdateProjectRequest = Partial<InsertProject>;

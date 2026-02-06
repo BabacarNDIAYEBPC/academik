@@ -2,12 +2,15 @@ import { db } from "./db";
 import {
   users, profiles, projects, documents, aiGenerations,
   projectSections, sectionVersions, sectionStatusHistory, userPurchases,
+  userQuotas, quotaSurplus,
   type User, type Profile, type Project, type Document, type AiGeneration,
   type InsertProfile, type InsertProject, type InsertDocument,
   type ProjectSection, type SectionVersion, type StatusHistory,
   type UserPurchase, type InsertPurchase,
+  type UserQuota, type QuotaSurplus, type InsertSurplus,
   SECTION_ORDER,
 } from "@shared/schema";
+import { sql } from "drizzle-orm";
 import { eq, desc, and, asc } from "drizzle-orm";
 
 export interface IStorage {
@@ -50,6 +53,13 @@ export interface IStorage {
   getUserPurchases(userId: string): Promise<UserPurchase[]>;
   createPurchase(purchase: InsertPurchase): Promise<UserPurchase>;
   getUserEntitlements(userId: string): Promise<string[]>;
+
+  getQuota(userId: string): Promise<UserQuota>;
+  incrementQuotaUsage(userId: string, words: number, actions: number): Promise<UserQuota>;
+  resetQuotaIfNeeded(userId: string): Promise<UserQuota>;
+  addQuotaSurplus(userId: string, surplusType: string, amount: number, price: number): Promise<void>;
+  getActiveProjectCount(userId: string): Promise<number>;
+  getDocumentCount(projectId: number): Promise<number>;
 }
 
 export class DatabaseStorage implements IStorage {
