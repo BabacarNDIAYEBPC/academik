@@ -930,94 +930,6 @@ Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodo
     }
   });
 
-  app.post(api.sections.generateDiagram.path, async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
-    const userId = getUserId(req);
-    if (!userId) return res.status(401).json({ message: "Unauthorized" });
-
-    try {
-      const { projectId, diagramType, articles, extraContext } = api.sections.generateDiagram.input.parse(req.body);
-      const project = await storage.getProject(projectId);
-      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
-
-      const profile = await storage.getProfile(userId);
-      const documents = await storage.getDocuments(projectId);
-      const projectContext = buildProjectContext(project, profile, documents);
-      const validatedContext = await storage.getValidatedSectionsContext(projectId);
-
-      const diagramPrompts: Record<string, { title: string; task: string }> = {
-        concept_relations: {
-          title: "Relations entre concepts",
-          task: `À partir du cadre conceptuel validé, génère un diagramme Mermaid montrant les relations entre les concepts identifiés.
-Utilise un diagramme de type 'graph TD' (top-down).
-- Chaque concept est un noeud
-- Les relations entre concepts sont des flèches avec des labels descriptifs
-- Utilise des formes différentes pour les concepts principaux vs secondaires`,
-        },
-        concept_problematic: {
-          title: "Articulation Concepts - Problématique - Hypothèses",
-          task: `Génère un diagramme Mermaid montrant l'articulation entre:
-- La problématique (au centre)
-- Les concepts clés (liés à la problématique)
-- Les hypothèses (découlant des concepts et de la problématique)
-Utilise un diagramme 'graph LR' (left-right) avec des couleurs et formes distinctes.`,
-        },
-        article_synthesis: {
-          title: "Synthèse des articles",
-          task: `À partir des articles fournis, génère un diagramme Mermaid de synthèse montrant:
-- Les thématiques principales abordées
-- Les liens entre articles par thématique
-- Les résultats convergents et divergents
-Utilise un diagramme 'graph TD'.`,
-        },
-        article_confrontation: {
-          title: "Confrontation des articles",
-          task: `À partir des articles fournis, génère un diagramme Mermaid de confrontation montrant:
-- Les points d'accord entre auteurs
-- Les points de désaccord ou divergence
-- Les complémentarités
-Utilise un diagramme 'graph LR' avec des couleurs distinctes pour accord/désaccord.`,
-        },
-        article_mapping: {
-          title: "Cartographie des articles",
-          task: `À partir des articles fournis, génère un diagramme Mermaid de type 'mindmap' ou 'graph TD' montrant:
-- Les axes thématiques principaux
-- La répartition des articles par axe
-- Les interconnexions entre thèmes
-Chaque article est un noeud avec auteur et année.`,
-        },
-      };
-
-      const config = diagramPrompts[diagramType];
-      let userPrompt = projectContext + "\n";
-      if (validatedContext) userPrompt += `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n`;
-      if (articles && articles.length > 0) {
-        userPrompt += `\n=== ARTICLES ===\n${articles.map(a => `- ${a.authors} (${a.year}). ${a.title}`).join("\n")}\n`;
-      }
-      if (extraContext) userPrompt += `\n=== CONTEXTE ADDITIONNEL ===\n${extraContext}\n`;
-      userPrompt += `\n${config.task}\n\nIMPORTANT: Retourne UNIQUEMENT le code Mermaid valide, sans commentaire ni explication. Ne mets PAS de blocs \`\`\`mermaid, retourne directement le code Mermaid.`;
-
-      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
-      const response = await openai.chat.completions.create({
-        model: "gpt-4.1",
-        messages: [
-          { role: "system", content: "Tu es un expert en visualisation de données académiques. Tu génères du code Mermaid.js valide et bien structuré." },
-          { role: "user", content: userPrompt },
-        ],
-        max_tokens: 2000,
-        temperature: 0.5,
-      });
-
-      let mermaidCode = response.choices[0].message.content || "";
-      mermaidCode = mermaidCode.replace(/```mermaid\n?/g, "").replace(/```\n?/g, "").trim();
-
-      res.json({ mermaidCode, title: config.title });
-    } catch (err: any) {
-      console.error("Diagram Generation Error:", err);
-      res.status(500).json({ message: err.message || "Erreur lors de la génération du diagramme" });
-    }
-  });
-
   app.post(api.sections.saveManual.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const sectionId = Number(req.params.id);
@@ -1301,143 +1213,73 @@ IMPORTANT: Produis uniquement la liste bibliographique formatée, sans explicati
     }
   });
 
-  // === DIAGRAM GENERATION ===
-  app.post(api.sections.generateDiagram.path, async (req, res) => {
+  // === RESEARCH EQUATIONS GENERATION ===
+  app.post(api.sections.generateEquations.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     try {
-      const { projectId, diagramType, articles, extraContext } = api.sections.generateDiagram.input.parse(req.body);
+      const { projectId, language, extraContext } = api.sections.generateEquations.input.parse(req.body);
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
       const profile = await storage.getProfile(userId);
-      const sections = await storage.getProjectSections(projectId);
-      const validatedContent: string[] = [];
-      for (const s of sections) {
-        if (s.status === "validated" && s.activeVersionId) {
-          const versions = await storage.getSectionVersions(s.id);
-          const active = versions.find(v => v.id === s.activeVersionId);
-          if (active?.content) {
-            const label = (SECTION_LABELS as any)[s.sectionKey] || s.sectionKey;
-            validatedContent.push(`${label}:\n${active.content}`);
-          }
-        }
-      }
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
 
-      const contextBlock = validatedContent.length > 0
-        ? `\nContenu validé du projet:\n${validatedContent.join("\n\n")}\n`
-        : "";
+      const langInstruction = language === "fr"
+        ? "Génère les équations en FRANÇAIS uniquement."
+        : language === "en"
+          ? "Génère les équations en ANGLAIS uniquement."
+          : "Génère les équations dans les DEUX langues (français ET anglais).";
 
-      const articleBlock = articles && articles.length > 0
-        ? `\nArticles de référence:\n${articles.map((a, i) => `${i + 1}. ${a.title} — ${a.authors} (${a.year})`).join("\n")}\n`
-        : "";
+      const prompt = `Tu es un expert en recherche documentaire académique. Génère les équations de recherche pour ce projet académique.
 
-      const diagramPrompts: Record<string, { title: string; prompt: string }> = {
-        concept_relations: {
-          title: "Relations entre les concepts clés",
-          prompt: `Génère un diagramme Mermaid (flowchart LR) montrant les relations entre les concepts clés du cadre conceptuel de ce projet académique.
-${contextBlock}
-Projet: ${project.subject || ""} — ${project.problematic || ""}
+${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}
 
-RÈGLES STRICTES pour le code Mermaid:
-- Utilise flowchart LR (orientation gauche-droite)
-- Chaque nœud doit avoir un identifiant simple (A, B, C...) suivi d'un label entre crochets
-- Les labels doivent être courts (3-5 mots maximum)
-- Utilise des flèches avec labels: A -->|relation| B
-- Maximum 8 nœuds et 12 liens
-- NE PAS utiliser de caractères spéciaux dans les labels (pas d'accents, pas d'apostrophes, pas de guillemets)
-- NE PAS utiliser subgraph
-- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
-        },
-        concept_problematic: {
-          title: "Articulation Concepts - Problématique - Hypothèses",
-          prompt: `Génère un diagramme Mermaid (flowchart TD) montrant l'articulation entre les concepts du cadre conceptuel, la problématique et les hypothèses de ce projet académique.
-${contextBlock}
-Projet: ${project.subject || ""} — ${project.problematic || ""}
-Hypothèses: ${project.hypotheses || ""}
+${langInstruction}
 
-RÈGLES STRICTES pour le code Mermaid:
-- Utilise flowchart TD (orientation haut-bas)
-- Place la problématique en haut, les concepts au milieu, les hypothèses en bas
-- Chaque noeud doit avoir un identifiant simple (P, C1, C2, H1...) suivi d'un label entre crochets
-- Les labels doivent être courts (3-5 mots maximum)
-- Maximum 10 noeuds
-- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
-- NE PAS utiliser subgraph
-- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
-        },
-        article_synthesis: {
-          title: "Schema de synthese des articles",
-          prompt: `Génère un diagramme Mermaid (flowchart TD) synthétisant les thèmes et résultats clés des articles de la revue de littérature.
-${contextBlock}${articleBlock}
+Structure attendue (texte uniquement, sans Markdown, sans symboles spéciaux):
 
-RÈGLES STRICTES pour le code Mermaid:
-- Utilise flowchart TD
-- Regroupe les articles par thème principal
-- Chaque noeud doit avoir un identifiant simple (T1, T2, A1, A2...) suivi d'un label entre crochets
-- Les labels doivent etre courts (3-5 mots maximum)
-- Maximum 10 noeuds et 15 liens
-- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
-- NE PAS utiliser subgraph
-- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
-        },
-        article_confrontation: {
-          title: "Schema de confrontation des articles",
-          prompt: `Génère un diagramme Mermaid (flowchart LR) montrant les convergences et divergences entre les articles de la revue de littérature.
-${contextBlock}${articleBlock}
+1. TERMES-CLÉS PRINCIPAUX
+   Liste les termes-clés extraits du sujet et de la problématique.
 
-RÈGLES STRICTES pour le code Mermaid:
-- Utilise flowchart LR
-- Montre les points de convergence et de divergence entre les articles
-- Chaque noeud doit avoir un identifiant simple (A1, A2, Conv1, Div1...) suivi d'un label entre crochets
-- Les labels doivent etre courts (3-5 mots maximum)
-- Utilise des styles de fleches differents: --> pour convergence, -.-> pour divergence
-- Maximum 10 noeuds et 12 liens
-- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
-- NE PAS utiliser subgraph
-- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
-        },
-        article_mapping: {
-          title: "Carte de mapping thematique",
-          prompt: `Génère un diagramme Mermaid (mindmap) cartographiant les thèmes, sous-thèmes et auteurs de la revue de littérature.
-${contextBlock}${articleBlock}
+2. SYNONYMES ET TERMES ASSOCIÉS
+   Pour chaque terme-clé, donne les synonymes, termes associés et variantes orthographiques.
 
-RÈGLES STRICTES pour le code Mermaid:
-- Utilise la syntaxe mindmap
-- Le noeud racine est le theme general de la recherche
-- Les branches sont les sous-themes
-- Les feuilles sont les auteurs ou references
-- Les labels doivent etre courts (3-5 mots maximum)
-- Maximum 3 niveaux de profondeur
-- Maximum 15 noeuds total
-- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
-- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
-        },
-      };
+3. ÉQUATIONS DE RECHERCHE
+   Formule les équations de recherche complètes utilisant les opérateurs booléens (AND, OR, NOT).
+   Propose au minimum 3 équations adaptées aux bases de données académiques.
 
-      const diagramInfo = diagramPrompts[diagramType];
-      if (!diagramInfo) return res.status(400).json({ message: "Type de diagramme inconnu" });
+4. RECOMMANDATIONS
+   Indique les bases de données les plus pertinentes pour ces équations.
+   Propose des filtres recommandés (période, type de document, langue).
+
+RÈGLES DE FORMATAGE:
+- NE JAMAIS utiliser de symboles Markdown (pas de **, ##, *, -, backticks).
+- NE JAMAIS utiliser de balises HTML ou d'émojis.
+- Texte propre et lisible, prêt à être copié dans un document Word.
+- Utilise la numérotation (1., 2., 3.) et l'indentation pour structurer.${extraContext ? `\n\nContexte additionnel: ${extraContext}` : ""}`;
 
       const openai = getOpenAIClient((profile as any)?.openaiApiKey);
       const response = await openai.chat.completions.create({
         model: "gpt-4.1",
         messages: [
-          { role: "system", content: "Tu es un expert en visualisation académique. Tu génères du code Mermaid.js valide et syntaxiquement correct. Tu ne retournes QUE le code Mermaid, sans bloc de code markdown, sans explication." },
-          { role: "user", content: diagramInfo.prompt + (extraContext ? `\n\nContexte additionnel: ${extraContext}` : "") },
+          { role: "system", content: "Tu es un expert en recherche documentaire et en méthodologie de recherche académique. Tu génères des équations de recherche claires et exploitables pour les bases de données scientifiques. Réponds en texte propre sans Markdown." },
+          { role: "user", content: prompt },
         ],
-        max_tokens: 2000,
+        max_tokens: 3000,
         temperature: 0.5,
       });
 
-      let mermaidCode = (response.choices[0].message.content || "").trim();
-      mermaidCode = mermaidCode.replace(/^```(?:mermaid)?\n?/g, "").replace(/\n?```$/g, "").trim();
-
-      res.json({ mermaidCode, title: diagramInfo.title });
+      const content = (response.choices[0].message.content || "").trim();
+      res.json({ content });
     } catch (err: any) {
-      console.error("Diagram Generation Error:", err);
-      res.status(500).json({ message: err.message || "Erreur lors de la génération du diagramme" });
+      console.error("Equations Generation Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération des équations" });
     }
   });
 

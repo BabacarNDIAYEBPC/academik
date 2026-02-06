@@ -14,16 +14,15 @@ import {
   useSaveManual,
   useValidateSection,
   useUnvalidateSection,
-  useGenerateDiagram,
   useSaveSectionConfig,
+  useGenerateEquations,
 } from "@/hooks/use-sections";
-import MermaidDiagram from "@/components/MermaidDiagram";
 import { SECTION_LABELS } from "@shared/schema";
 import type { ProjectSection } from "@shared/schema";
 import ReactMarkdown from "react-markdown";
 import {
   Search, Loader2, ExternalLink, BookOpen, ChevronLeft, ChevronRight, ChevronDown,
-  FileText, GitCompare, Map as MapIcon,
+  FileText, GitCompare, Map as MapIcon, History, Copy, Trash2, RotateCcw,
   CheckSquare, Eye, Save, Check, X, ArrowUpDown, Filter, SlidersHorizontal,
 } from "lucide-react";
 import {
@@ -69,9 +68,7 @@ type ActiveAction =
   | "confrontation"
   | "mapping"
   | "bibliography"
-  | "diagram_synthesis"
-  | "diagram_confrontation"
-  | "diagram_mapping"
+  | "equations"
   | `resume_${number}`;
 
 interface LiteratureReviewModuleProps {
@@ -94,7 +91,20 @@ interface SavedLiteratureState {
   currentPage: number;
   bibliographyNorm: string;
   analyses: { title: string; content: string }[];
-  diagrams: { code: string; title: string; type: string }[];
+}
+
+interface SearchHistoryEntry {
+  id: string;
+  timestamp: string;
+  platforms: string[];
+  language: string;
+  periodStart: string;
+  periodEnd: string;
+  level: string;
+  sourceTypes: string[];
+  articleCount: number;
+  resultCount: number;
+  state: SavedLiteratureState;
 }
 
 export default function LiteratureReviewModule({
@@ -121,10 +131,6 @@ export default function LiteratureReviewModule({
   const [sortBy, setSortBy] = useState<string>("default");
   const [showFilters, setShowFilters] = useState(false);
   const [showActions, setShowActions] = useState(false);
-  const [showIllustrations, setShowIllustrations] = useState(false);
-  const [diagrams, setDiagrams] = useState<{ code: string; title: string; type: string }[]>([]);
-  const [showDiagramDialog, setShowDiagramDialog] = useState(false);
-  const [activeDiagram, setActiveDiagram] = useState<{ code: string; title: string; type: string } | null>(null);
   const [activeAction, setActiveAction] = useState<ActiveAction>(null);
   const [savedAnalyses, setSavedAnalyses] = useState<{ title: string; content: string }[]>([]);
   const [stateLoaded, setStateLoaded] = useState(false);
@@ -136,17 +142,21 @@ export default function LiteratureReviewModule({
   const saveManualMutation = useSaveManual();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
-  const diagramMutation = useGenerateDiagram();
   const saveConfigMutation = useSaveSectionConfig();
+  const equationsMutation = useGenerateEquations();
+  const [equationsResult, setEquationsResult] = useState("");
+  const [showEquationsDialog, setShowEquationsDialog] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryEntry[]>([]);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
 
   const isAnyActionRunning = activeAction !== null;
 
   const stateRef = useRef({
-    articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams,
+    articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, searchHistory,
   });
   useEffect(() => {
-    stateRef.current = { articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams };
-  }, [articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams]);
+    stateRef.current = { articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, searchHistory };
+  }, [articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, searchHistory]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -161,11 +171,10 @@ export default function LiteratureReviewModule({
       currentPage: s.currentPage,
       bibliographyNorm: s.bibliographyNorm,
       analyses: s.savedAnalyses,
-      diagrams: s.diagrams,
     };
     saveConfigMutation.mutate({
       sectionId: section.id,
-      config: { literatureState: state },
+      config: { literatureState: state, searchHistory: s.searchHistory },
       projectId,
     });
   }, [section, projectId]);
@@ -184,8 +193,8 @@ export default function LiteratureReviewModule({
       if (s.currentPage !== undefined) setCurrentPage(s.currentPage);
       if (s.bibliographyNorm) setBibliographyNorm(s.bibliographyNorm);
       if (s.analyses?.length) setSavedAnalyses(s.analyses);
-      if (s.diagrams?.length) setDiagrams(s.diagrams);
     }
+    if (cfg?.searchHistory?.length) setSearchHistory(cfg.searchHistory);
     setStateLoaded(true);
   }, [section?.config, stateLoaded]);
 
@@ -202,7 +211,7 @@ export default function LiteratureReviewModule({
     return () => {
       if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
     };
-  }, [articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, diagrams, stateLoaded, section]);
+  }, [articles, selectedKeys, filterType, filterYear, sortBy, batchSize, currentPage, bibliographyNorm, savedAnalyses, stateLoaded, section]);
 
   useEffect(() => {
     const sectionId = section?.id;
@@ -219,12 +228,11 @@ export default function LiteratureReviewModule({
           currentPage: s.currentPage,
           bibliographyNorm: s.bibliographyNorm,
           analyses: s.savedAnalyses,
-          diagrams: s.diagrams,
         };
         fetch(`/api/sections/${sectionId}/config`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ config: { literatureState: state } }),
+          body: JSON.stringify({ config: { literatureState: state, searchHistory: s.searchHistory } }),
           keepalive: true,
         }).catch(() => {});
       }
@@ -313,12 +321,33 @@ export default function LiteratureReviewModule({
           setSortBy("default");
           toast({ title: "Recherche terminée", description: `${newArticles.length} articles trouvés.` });
           setActiveAction(null);
+
+          const newState: SavedLiteratureState = {
+            articles: newArticles, selectedKeys: [], filterType: "all", filterYear: "", sortBy: "default",
+            batchSize, currentPage: 0, bibliographyNorm, analyses: savedAnalyses,
+          };
+          const historyEntry: SearchHistoryEntry = {
+            id: `search_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            platforms: [...config.platforms],
+            language: config.language,
+            periodStart: config.periodStart,
+            periodEnd: config.periodEnd,
+            level: config.level,
+            sourceTypes: [...config.sourceTypes],
+            articleCount: config.articleCount,
+            resultCount: newArticles.length,
+            state: newState,
+          };
+          const updatedHistory = [historyEntry, ...searchHistory];
+          setSearchHistory(updatedHistory);
+
           if (section) {
-            const state: SavedLiteratureState = {
-              articles: newArticles, selectedKeys: [], filterType: "all", filterYear: "", sortBy: "default",
-              batchSize, currentPage: 0, bibliographyNorm, analyses: savedAnalyses, diagrams,
-            };
-            saveConfigMutation.mutate({ sectionId: section.id, config: { literatureState: state }, projectId });
+            saveConfigMutation.mutate({
+              sectionId: section.id,
+              config: { literatureState: newState, searchHistory: updatedHistory },
+              projectId,
+            });
             hasDirtyState.current = false;
           }
         },
@@ -495,46 +524,88 @@ export default function LiteratureReviewModule({
     }
   };
 
-  const getArticleIdx = (article: LiteratureArticle) => articles.indexOf(article);
-
-  const handleGenerateDiagram = (diagramType: "article_synthesis" | "article_confrontation" | "article_mapping") => {
-    const targetArticles = selectedArticles.length > 0 ? selectedArticles : filteredArticles;
-    if (targetArticles.length === 0) {
-      toast({ title: "Aucun article", description: "Aucun article disponible pour la génération.", variant: "destructive" });
-      return;
-    }
-    const actionMap: Record<string, ActiveAction> = {
-      article_synthesis: "diagram_synthesis",
-      article_confrontation: "diagram_confrontation",
-      article_mapping: "diagram_mapping",
-    };
-    setActiveAction(actionMap[diagramType]);
-    diagramMutation.mutate(
-      {
-        projectId,
-        diagramType,
-        articles: targetArticles.map(a => ({
-          title: a.title,
-          authors: `${a.lastName} ${a.firstName}`,
-          year: a.year,
-        })),
-        extraContext,
-      },
+  const handleGenerateEquations = () => {
+    setActiveAction("equations");
+    equationsMutation.mutate(
+      { projectId, language: config.language as 'fr' | 'en' | 'both', extraContext },
       {
         onSuccess: (data) => {
-          const newDiagram = { code: data.mermaidCode, title: data.title, type: diagramType };
-          setDiagrams(prev => [...prev, newDiagram]);
-          setActiveDiagram(newDiagram);
-          setShowDiagramDialog(true);
+          setEquationsResult(data.content);
+          setShowEquationsDialog(true);
           setActiveAction(null);
         },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "Erreur lors de la génération du diagramme", variant: "destructive" });
+          toast({ title: "Erreur", description: err.message || "La génération des équations a échoué.", variant: "destructive" });
           setActiveAction(null);
         },
       }
     );
   };
+
+  const handleExportEquations = async () => {
+    if (!equationsResult) return;
+    try {
+      await exportToWord("Équations de recherche", [{ label: "Équations de recherche", content: equationsResult }], "equations_recherche");
+      toast({ title: "Export réussi" });
+    } catch {
+      toast({ title: "Erreur d'export", variant: "destructive" });
+    }
+  };
+
+  const handleRestoreSearch = (entry: SearchHistoryEntry) => {
+    const s = entry.state;
+    setArticles(s.articles);
+    setSelectedKeys(new Set(s.selectedKeys));
+    setFilterType(s.filterType);
+    setFilterYear(s.filterYear);
+    setSortBy(s.sortBy);
+    setBatchSize(s.batchSize);
+    setCurrentPage(s.currentPage);
+    setBibliographyNorm(s.bibliographyNorm);
+    setSavedAnalyses(s.analyses || []);
+    onConfigChange({
+      ...config,
+      platforms: entry.platforms,
+      language: entry.language,
+      periodStart: entry.periodStart,
+      periodEnd: entry.periodEnd,
+      level: entry.level,
+      sourceTypes: entry.sourceTypes,
+      articleCount: entry.articleCount,
+    });
+    setShowHistoryDialog(false);
+    toast({ title: "Recherche restaurée", description: `${s.articles.length} articles restaurés.` });
+  };
+
+  const handleDuplicateSearch = (entry: SearchHistoryEntry) => {
+    onConfigChange({
+      ...config,
+      platforms: entry.platforms,
+      language: entry.language,
+      periodStart: entry.periodStart,
+      periodEnd: entry.periodEnd,
+      level: entry.level,
+      sourceTypes: entry.sourceTypes,
+      articleCount: entry.articleCount,
+    });
+    setShowHistoryDialog(false);
+    toast({ title: "Paramètres copiés", description: "Les paramètres de recherche ont été appliqués. Lancez la recherche." });
+  };
+
+  const handleDeleteSearch = (entryId: string) => {
+    const updatedHistory = searchHistory.filter(h => h.id !== entryId);
+    setSearchHistory(updatedHistory);
+    if (section) {
+      saveConfigMutation.mutate({
+        sectionId: section.id,
+        config: { searchHistory: updatedHistory },
+        projectId,
+      });
+    }
+    toast({ title: "Recherche supprimée" });
+  };
+
+  const getArticleIdx = (article: LiteratureArticle) => articles.indexOf(article);
 
   return (
     <div className="space-y-4">
@@ -672,7 +743,7 @@ export default function LiteratureReviewModule({
               </div>
             </div>
 
-            <div className="pt-2">
+            <div className="flex items-center gap-2 pt-2 flex-wrap">
               <Button
                 onClick={handleSearch}
                 disabled={isAnyActionRunning}
@@ -684,6 +755,29 @@ export default function LiteratureReviewModule({
                   <><Search className="w-4 h-4 mr-2" /> Lancer la recherche</>
                 )}
               </Button>
+              <Button
+                variant="outline"
+                onClick={handleGenerateEquations}
+                disabled={isAnyActionRunning}
+                data-testid="button-generate-equations"
+              >
+                {activeAction === "equations" ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Génération en cours...</>
+                ) : (
+                  <><FileText className="w-4 h-4 mr-2" /> Générer les équations de recherche</>
+                )}
+              </Button>
+              {searchHistory.length > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowHistoryDialog(true)}
+                  data-testid="button-search-history"
+                >
+                  <History className="w-4 h-4 mr-2" />
+                  Historique des recherches
+                  <Badge variant="secondary" className="ml-1">{searchHistory.length}</Badge>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -875,56 +969,6 @@ export default function LiteratureReviewModule({
                 )}
               </div>
 
-              <div className="rounded-lg border">
-                <button
-                  type="button"
-                  className="flex items-center justify-between w-full p-3 text-left hover-elevate rounded-lg"
-                  onClick={() => setShowIllustrations(!showIllustrations)}
-                  data-testid="button-toggle-illustrations"
-                >
-                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                    <MapIcon className="w-4 h-4" /> Illustrations & diagrammes
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showIllustrations ? "rotate-180" : ""}`} />
-                </button>
-                {showIllustrations && (
-                  <div className="flex items-center gap-2 flex-wrap p-3 pt-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleGenerateDiagram("article_synthesis")}
-                      disabled={isAnyActionRunning}
-                      data-testid="button-diagram-synthesis"
-                    >
-                      {activeAction === "diagram_synthesis" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
-                      Schéma de synthèse
-                    </Button>
-                    {(selectedArticles.length >= 2 || filteredArticles.length >= 2) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleGenerateDiagram("article_confrontation")}
-                        disabled={isAnyActionRunning}
-                        data-testid="button-diagram-confrontation"
-                      >
-                        {activeAction === "diagram_confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
-                        Schéma de confrontation
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleGenerateDiagram("article_mapping")}
-                      disabled={isAnyActionRunning}
-                      data-testid="button-diagram-mapping"
-                    >
-                      {activeAction === "diagram_mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
-                      Carte de mapping
-                    </Button>
-                  </div>
-                )}
-              </div>
-
               <div className="space-y-2">
                 {paginatedArticles.map((article) => {
                   const key = articleKey(article);
@@ -1060,26 +1104,94 @@ export default function LiteratureReviewModule({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showDiagramDialog} onOpenChange={setShowDiagramDialog}>
-        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{activeDiagram?.title || "Illustration"}</DialogTitle>
-            <DialogDescription>Diagramme généré à partir des articles.</DialogDescription>
+            <DialogTitle>Historique des recherches</DialogTitle>
+            <DialogDescription>{searchHistory.length} recherche(s) enregistrée(s)</DialogDescription>
           </DialogHeader>
-          {activeDiagram && (
-            <MermaidDiagram
-              code={activeDiagram.code}
-              title={activeDiagram.title}
-              onRegenerate={() => {
-                setShowDiagramDialog(false);
-                handleGenerateDiagram(activeDiagram.type as any);
-              }}
-              isRegenerating={diagramMutation.isPending}
-              hideExportPdf
-            />
-          )}
+          <div className="space-y-3">
+            {searchHistory.map((entry) => {
+              const date = new Date(entry.timestamp);
+              const dateStr = date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
+              const timeStr = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+              const langLabels: Record<string, string> = { fr: "Français", en: "Anglais", both: "FR + EN" };
+              return (
+                <Card key={entry.id} data-testid={`history-entry-${entry.id}`}>
+                  <CardContent className="py-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="text-sm font-medium">{dateStr} à {timeStr}</div>
+                      <Badge variant="secondary">{entry.resultCount} résultat(s)</Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>Plateformes : {entry.platforms.map(p => LITERATURE_PLATFORMS.find(lp => lp.key === p)?.label || p).join(", ") || "Aucune"}</p>
+                      <p>Langue : {langLabels[entry.language] || entry.language} | Niveau : {entry.level} | Résultats demandés : {entry.articleCount}</p>
+                      {(entry.periodStart || entry.periodEnd) && (
+                        <p>Période : {entry.periodStart || "..."} — {entry.periodEnd || "..."}</p>
+                      )}
+                      {entry.sourceTypes.length > 0 && (
+                        <p>Types : {entry.sourceTypes.map(t => LITERATURE_SOURCE_TYPES.find(lt => lt.key === t)?.label || t).join(", ")}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 pt-1 flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRestoreSearch(entry)}
+                        data-testid={`button-restore-${entry.id}`}
+                      >
+                        <RotateCcw className="w-4 h-4 mr-1" /> Restaurer
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDuplicateSearch(entry)}
+                        data-testid={`button-duplicate-${entry.id}`}
+                      >
+                        <Copy className="w-4 h-4 mr-1" /> Dupliquer les paramètres
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteSearch(entry.id)}
+                        data-testid={`button-delete-${entry.id}`}
+                      >
+                        <Trash2 className="w-4 h-4 mr-1" /> Supprimer
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+            {searchHistory.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">Aucune recherche enregistrée.</p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Équations de recherche</DialogTitle>
+            <DialogDescription>Termes-clés, synonymes et équations booléennes pour la recherche documentaire.</DialogDescription>
+          </DialogHeader>
+          <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/30 rounded-lg p-4 whitespace-pre-wrap">
+            {equationsResult}
+          </div>
+          <div className="flex items-center gap-2 pt-2 flex-wrap">
+            {section && (
+              <Button size="sm" onClick={() => saveToSection(equationsResult, "Équations de recherche")} disabled={saveManualMutation.isPending} data-testid="button-save-equations">
+                <Save className="w-4 h-4 mr-1" /> Sauvegarder dans la section
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleExportEquations} data-testid="button-export-equations-word">
+              <FileText className="w-4 h-4 mr-1" /> Word (.docx)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

@@ -225,20 +225,15 @@ export const api = {
       input: z.object({ config: z.record(z.any()) }),
       responses: { 200: z.custom<typeof projectSections.$inferSelect>(), 401: errorSchemas.unauthorized },
     },
-    generateDiagram: {
+    generateEquations: {
       method: 'POST' as const,
-      path: '/api/sections/generate-diagram',
+      path: '/api/sections/literature/equations',
       input: z.object({
         projectId: z.number(),
-        diagramType: z.enum(['concept_relations', 'concept_problematic', 'article_synthesis', 'article_confrontation', 'article_mapping']),
-        articles: z.array(z.object({
-          title: z.string(),
-          authors: z.string(),
-          year: z.string(),
-        })).optional(),
+        language: z.enum(['fr', 'en', 'both']).default('both'),
         extraContext: z.string().optional(),
       }),
-      responses: { 200: z.object({ mermaidCode: z.string(), title: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+      responses: { 200: z.object({ content: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
     },
   },
 };

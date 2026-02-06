@@ -188,11 +188,11 @@ export function useGenerateCombined() {
   });
 }
 
-export function useGenerateDiagram() {
+export function useGenerateEquations() {
   return useMutation({
-    mutationFn: async (data: { projectId: number; diagramType: string; articles?: { title: string; authors: string; year: string }[]; extraContext?: string }) => {
-      const res = await apiRequest(api.sections.generateDiagram.method, api.sections.generateDiagram.path, data);
-      return res.json() as Promise<{ mermaidCode: string; title: string }>;
+    mutationFn: async (data: { projectId: number; language: 'fr' | 'en' | 'both'; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateEquations.method, api.sections.generateEquations.path, data);
+      return res.json() as Promise<{ content: string }>;
     },
   });
 }

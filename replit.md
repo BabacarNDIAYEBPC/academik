@@ -112,6 +112,12 @@ shared/
 - 2026-02-06: UI/UX: All variable/option panels collapsed by default across all modules (clean, non-intimidating interface)
 - 2026-02-06: Literature Review: Actions and Illustrations sections collapsed by default with toggle buttons
 - 2026-02-06: Plan structure: Fixed academic plan template for Mémoire/TFE (INTRODUCTION, CADRE CONCEPTUEL, CADRE THÉORIQUE, CADRE MÉTHODOLOGIQUE, ANALYSE, CONCLUSION, BIBLIOGRAPHIE, ANNEXES)
+- 2026-02-06: Removed Mermaid diagram/illustration features from Literature Review (Option B: unreliable, removed for V1)
+- 2026-02-06: Added "Générer les équations de recherche" button: text-only output (keywords, synonyms, boolean equations), Word export, language selection
+- 2026-02-06: Added POST /api/sections/literature/equations endpoint for research equation generation
+- 2026-02-06: Added persistent search history: each search auto-archived with timestamp, platforms, filters, results, selections, analyses
+- 2026-02-06: Added "Historique des recherches" button with restore (full state), duplicate (parameters only), delete actions
+- 2026-02-06: Search history stored in section config alongside literatureState, persists across sessions
 
 ## User Preferences
 - Language: French (UI and AI responses)
