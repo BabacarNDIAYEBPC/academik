@@ -14,7 +14,9 @@ import {
   useSaveManual,
   useValidateSection,
   useUnvalidateSection,
+  useGenerateDiagram,
 } from "@/hooks/use-sections";
+import MermaidDiagram from "@/components/MermaidDiagram";
 import { SECTION_LABELS } from "@shared/schema";
 import type { ProjectSection } from "@shared/schema";
 import ReactMarkdown from "react-markdown";
@@ -91,6 +93,7 @@ export default function LiteratureReviewModule({
   const [filterYear, setFilterYear] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("default");
   const [showFilters, setShowFilters] = useState(false);
+  const [diagrams, setDiagrams] = useState<{ code: string; title: string; type: string }[]>([]);
   const { toast } = useToast();
 
   const searchMutation = useSearchArticles();
@@ -99,6 +102,7 @@ export default function LiteratureReviewModule({
   const saveManualMutation = useSaveManual();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
+  const diagramMutation = useGenerateDiagram();
 
   const saveToSection = (content: string, title: string) => {
     if (!section) return;
@@ -349,6 +353,35 @@ export default function LiteratureReviewModule({
   };
 
   const getArticleIdx = (article: LiteratureArticle) => articles.indexOf(article);
+
+  const handleGenerateDiagram = (diagramType: "article_synthesis" | "article_confrontation" | "article_mapping") => {
+    const targetArticles = selectedArticles.length > 0 ? selectedArticles : filteredArticles;
+    if (targetArticles.length === 0) {
+      toast({ title: "Aucun article", description: "Aucun article disponible pour la génération.", variant: "destructive" });
+      return;
+    }
+    diagramMutation.mutate(
+      {
+        projectId,
+        diagramType,
+        articles: targetArticles.map(a => ({
+          title: a.title,
+          authors: `${a.lastName} ${a.firstName}`,
+          year: a.year,
+        })),
+        extraContext,
+      },
+      {
+        onSuccess: (data) => {
+          setDiagrams(prev => [...prev, { code: data.mermaidCode, title: data.title, type: diagramType }]);
+          toast({ title: "Diagramme généré", description: data.title });
+        },
+        onError: (err: any) => {
+          toast({ title: "Erreur", description: err.message || "Erreur lors de la génération du diagramme", variant: "destructive" });
+        },
+      }
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -674,6 +707,42 @@ export default function LiteratureReviewModule({
                 </div>
               </div>
 
+              <div className="flex items-center gap-2 flex-wrap p-3 rounded-lg bg-muted/20 border">
+                <span className="text-xs font-medium text-muted-foreground mr-1">Illustrations :</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleGenerateDiagram("article_synthesis")}
+                  disabled={diagramMutation.isPending}
+                  data-testid="button-diagram-synthesis"
+                >
+                  {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                  Schéma de synthèse
+                </Button>
+                {(selectedArticles.length >= 2 || filteredArticles.length >= 2) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleGenerateDiagram("article_confrontation")}
+                    disabled={diagramMutation.isPending}
+                    data-testid="button-diagram-confrontation"
+                  >
+                    {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
+                    Schéma de confrontation
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleGenerateDiagram("article_mapping")}
+                  disabled={diagramMutation.isPending}
+                  data-testid="button-diagram-mapping"
+                >
+                  {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                  Carte de mapping
+                </Button>
+              </div>
+
               <div className="space-y-2">
                 {paginatedArticles.map((article) => {
                   const key = articleKey(article);
@@ -758,6 +827,21 @@ export default function LiteratureReviewModule({
           )}
         </CardContent>
       </Card>
+
+      {diagrams.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Illustrations générées</h3>
+          {diagrams.map((d, i) => (
+            <MermaidDiagram
+              key={`${d.type}-${i}`}
+              code={d.code}
+              title={d.title}
+              onRegenerate={() => handleGenerateDiagram(d.type as any)}
+              isRegenerating={diagramMutation.isPending}
+            />
+          ))}
+        </div>
+      )}
 
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">

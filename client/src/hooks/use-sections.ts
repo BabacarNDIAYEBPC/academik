@@ -161,3 +161,25 @@ export function useGenerateBibliography() {
     },
   });
 }
+
+export function useGenerateCombined() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { projectId: number; combo: 'subject_problematic' | 'subject_problematic_hypotheses'; mode: 'initial' | 'similar' | 'different'; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateCombined.method, api.sections.generateCombined.path, data);
+      return res.json() as Promise<{ results: Record<string, { section: ProjectSection; version: SectionVersion }> }>;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sections.list.path, variables.projectId] });
+    },
+  });
+}
+
+export function useGenerateDiagram() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; diagramType: string; articles?: { title: string; authors: string; year: string }[]; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateDiagram.method, api.sections.generateDiagram.path, data);
+      return res.json() as Promise<{ mermaidCode: string; title: string }>;
+    },
+  });
+}

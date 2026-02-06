@@ -113,7 +113,7 @@ export async function exportToPdf(
   const html2pdf = (await import("html2pdf.js")).default;
 
   let htmlContent = `
-    <div style="font-family: 'Times New Roman', serif; padding: 20px; max-width: 700px; margin: 0 auto;">
+    <div style="font-family: 'Times New Roman', serif; padding: 20px; max-width: 700px; margin: 0 auto; color: #000; background: #fff;">
       <h1 style="text-align: center; color: #1a1a1a; font-size: 24px; margin-bottom: 30px;">${escapeHtml(title)}</h1>
   `;
 
@@ -126,8 +126,14 @@ export async function exportToPdf(
 
   const container = document.createElement("div");
   container.innerHTML = htmlContent;
-  container.style.position = "absolute";
-  container.style.left = "-9999px";
+  container.style.position = "fixed";
+  container.style.left = "0";
+  container.style.top = "0";
+  container.style.width = "210mm";
+  container.style.zIndex = "-9999";
+  container.style.opacity = "0";
+  container.style.background = "#ffffff";
+  container.style.color = "#000000";
   document.body.appendChild(container);
 
   try {
@@ -136,7 +142,14 @@ export async function exportToPdf(
         margin: [15, 15, 15, 15],
         filename: `${filename}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+          width: container.scrollWidth,
+          height: container.scrollHeight,
+        },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       })
       .from(container)

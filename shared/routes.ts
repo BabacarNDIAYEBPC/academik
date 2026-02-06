@@ -199,6 +199,41 @@ export const api = {
       }),
       responses: { 200: z.object({ content: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
     },
+    generateCombined: {
+      method: 'POST' as const,
+      path: '/api/sections/generate-combined',
+      input: z.object({
+        projectId: z.number(),
+        combo: z.enum(['subject_problematic', 'subject_problematic_hypotheses']),
+        mode: z.enum(['initial', 'similar', 'different']),
+        extraContext: z.string().optional(),
+      }),
+      responses: {
+        200: z.object({
+          results: z.record(z.string(), z.object({
+            section: z.custom<typeof projectSections.$inferSelect>(),
+            version: z.custom<typeof sectionVersions.$inferSelect>(),
+          })),
+        }),
+        401: errorSchemas.unauthorized,
+        500: errorSchemas.internal,
+      },
+    },
+    generateDiagram: {
+      method: 'POST' as const,
+      path: '/api/sections/generate-diagram',
+      input: z.object({
+        projectId: z.number(),
+        diagramType: z.enum(['concept_relations', 'concept_problematic', 'article_synthesis', 'article_confrontation', 'article_mapping']),
+        articles: z.array(z.object({
+          title: z.string(),
+          authors: z.string(),
+          year: z.string(),
+        })).optional(),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ mermaidCode: z.string(), title: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
   },
 };
 

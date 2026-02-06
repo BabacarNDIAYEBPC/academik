@@ -95,6 +95,14 @@ shared/
 - 2026-02-06: Conceptual framework prompt updated to enforce exactly 3 concepts (I. Cadre conceptuel with 1.1, 1.2, 1.3)
 - 2026-02-06: Methodology prompt updated to reference literature review findings
 - 2026-02-06: Variables pre-fill from validated sections (subject, problematic, hypotheses) via useValidatedContents hook
+- 2026-02-06: Strict variable separation: each section (subject, problematic, hypotheses) generates ONLY its own content
+- 2026-02-06: Combined generation endpoint POST /api/sections/generate-combined with delimiter parsing (<<<SUJET>>>, <<<PROBLEMATIQUE>>>, <<<HYPOTHESES>>>)
+- 2026-02-06: Combined generation UI buttons in Foundations module (Sujet + Problématique, Sujet + Problématique + Hypothèses)
+- 2026-02-06: Mermaid.js diagram generation: POST /api/sections/generate-diagram endpoint for visual illustrations
+- 2026-02-06: MermaidDiagram component with SVG/PNG/PDF export capabilities
+- 2026-02-06: Literature Review diagrams: synthesis schemas, confrontation schemas, mapping charts from articles
+- 2026-02-06: Conceptual Framework diagrams: concept relationship schemas, concept-problematic-hypotheses articulation
+- 2026-02-06: Improved PDF export with html2canvas settings and better container positioning
 
 ## User Preferences
 - Language: French (UI and AI responses)

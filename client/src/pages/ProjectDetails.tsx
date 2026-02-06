@@ -2,7 +2,8 @@ import Layout from "@/components/Layout";
 import { useRoute } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
-import { useSections, useSectionVersions, useValidatedContents } from "@/hooks/use-sections";
+import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined, useGenerateDiagram } from "@/hooks/use-sections";
+import MermaidDiagram from "@/components/MermaidDiagram";
 import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
 import { useState, useMemo } from "react";
@@ -309,6 +310,28 @@ function ModuleSections({
   const [filterStates, setFilterStates] = useState<Record<string, Record<string, boolean>>>({});
   const [litConfigs, setLitConfigs] = useState<Record<string, LiteratureConfig>>({});
   const { data: validatedContents } = useValidatedContents(project.id);
+  const combinedMutation = useGenerateCombined();
+  const { toast } = useToast();
+
+  const isFoundationsModule = sectionKeys.some(k => ["subject", "problematic", "hypotheses"].includes(k));
+  const hasSubject = sectionKeys.includes("subject");
+  const hasProblematic = sectionKeys.includes("problematic");
+  const hasHypotheses = sectionKeys.includes("hypotheses");
+
+  const handleCombinedGeneration = (combo: "subject_problematic" | "subject_problematic_hypotheses") => {
+    combinedMutation.mutate(
+      { projectId: project.id, combo, mode: "initial" },
+      {
+        onSuccess: (data) => {
+          const count = Object.keys(data.results).length;
+          toast({ title: "Génération combinée terminée", description: `${count} section(s) générée(s) avec succès.` });
+        },
+        onError: (error: any) => {
+          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération combinée", variant: "destructive" });
+        },
+      }
+    );
+  };
 
   const defaultVars = useMemo(() => {
     const vars: SectionVariables = {
@@ -340,6 +363,36 @@ function ModuleSections({
 
   return (
     <div className="space-y-6">
+      {isFoundationsModule && hasSubject && hasProblematic && (
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground mb-3">Génération combinée : générer plusieurs éléments en une seule fois avec répartition automatique dans les champs correspondants.</p>
+            <div className="flex gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={() => handleCombinedGeneration("subject_problematic")}
+                disabled={combinedMutation.isPending}
+                data-testid="button-combined-subject-problematic"
+              >
+                {combinedMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                Sujet + Problématique
+              </Button>
+              {hasHypotheses && (
+                <Button
+                  variant="outline"
+                  onClick={() => handleCombinedGeneration("subject_problematic_hypotheses")}
+                  disabled={combinedMutation.isPending}
+                  data-testid="button-combined-all"
+                >
+                  {combinedMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                  Sujet + Problématique + Hypothèses
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {sectionKeys.map(key => {
         const section = sections.find(s => s.key === key);
         const mergedVars = { ...defaultVars, ...variableOverrides[key] };
@@ -500,7 +553,7 @@ function SingleSectionWrapper({
     );
   }
 
-  return (
+  const sectionEditor = (
     <SectionEditor
       projectId={projectId}
       sectionKey={sectionKey}
@@ -526,6 +579,84 @@ function SingleSectionWrapper({
         />
       }
     />
+  );
+
+  if (sectionKey === "conceptual_framework") {
+    return (
+      <ConceptualFrameworkWrapper projectId={projectId}>
+        {sectionEditor}
+      </ConceptualFrameworkWrapper>
+    );
+  }
+
+  return sectionEditor;
+}
+
+function ConceptualFrameworkWrapper({ projectId, children }: { projectId: number; children: React.ReactNode }) {
+  const diagramMutation = useGenerateDiagram();
+  const { toast } = useToast();
+  const [diagrams, setDiagrams] = useState<{ code: string; title: string; type: string }[]>([]);
+
+  const handleGenerateDiagram = (diagramType: "concept_relations" | "concept_problematic") => {
+    diagramMutation.mutate(
+      { projectId, diagramType },
+      {
+        onSuccess: (data) => {
+          setDiagrams(prev => [...prev, { code: data.mermaidCode, title: data.title, type: diagramType }]);
+          toast({ title: "Diagramme généré", description: data.title });
+        },
+        onError: (err: any) => {
+          toast({ title: "Erreur", description: err.message || "Erreur lors de la génération du diagramme", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      {children}
+
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-sm text-muted-foreground mb-3">Générer des schémas et graphiques pour visualiser les relations entre les concepts, la problématique et les hypothèses.</p>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              onClick={() => handleGenerateDiagram("concept_relations")}
+              disabled={diagramMutation.isPending}
+              data-testid="button-diagram-concept-relations"
+            >
+              {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lightbulb className="w-4 h-4 mr-2" />}
+              Schéma des relations entre concepts
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleGenerateDiagram("concept_problematic")}
+              disabled={diagramMutation.isPending}
+              data-testid="button-diagram-concept-problematic"
+            >
+              {diagramMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Map className="w-4 h-4 mr-2" />}
+              Articulation Concepts - Problématique - Hypothèses
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {diagrams.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Schémas générés</h3>
+          {diagrams.map((d, i) => (
+            <MermaidDiagram
+              key={`${d.type}-${i}`}
+              code={d.code}
+              title={d.title}
+              onRegenerate={() => handleGenerateDiagram(d.type as any)}
+              isRegenerating={diagramMutation.isPending}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

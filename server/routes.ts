@@ -103,41 +103,58 @@ function getSectionTask(sectionKey: string, projectType: string): string {
   switch (sectionKey) {
     case "subject":
       if (projectType === "memoire") {
-        return `=== TÂCHE: SUJET + PROBLÉMATIQUE ===
-Génère:
-1. **Sujet académique** : précis, original et réalisable
-2. **Problématique** : question de recherche problématisée avec tensions conceptuelles
-3. **Question de recherche** : formulée de façon ouverte
-Structure ta réponse avec des titres Markdown clairs.`;
+        return `=== TÂCHE: SUJET UNIQUEMENT ===
+IMPORTANT: Génère UNIQUEMENT le sujet académique. Ne génère PAS la problématique ni les hypothèses.
+
+Génère un sujet académique:
+- Précis, original et réalisable
+- Ancré dans le domaine et la formation de l'étudiant
+- Formulé comme un titre de mémoire académique
+
+Structure ta réponse avec un titre Markdown clair.`;
       } else if (projectType === "rapport_stage") {
-        return `=== TÂCHE: SUJET PROFESSIONNEL ===
+        return `=== TÂCHE: SUJET UNIQUEMENT ===
+IMPORTANT: Génère UNIQUEMENT le sujet professionnel. Ne génère PAS la problématique ni les hypothèses.
+
 En te basant sur le contexte du stage:
-1. **Sujet professionnel** : ancré dans la réalité du stage
-2. **Problématique** : question professionnelle problématisée
-3. **Axes d'analyse** : 3 axes structurants pour le rapport`;
+- **Sujet professionnel** : ancré dans la réalité du stage
+- Formulé comme un titre de rapport de stage
+
+Structure ta réponse avec un titre Markdown clair.`;
       }
-      return `=== TÂCHE: DÉFINITION DU SUJET ===\nGénère un sujet pertinent et une problématique cohérente pour ce travail académique.`;
+      return `=== TÂCHE: SUJET UNIQUEMENT ===
+IMPORTANT: Génère UNIQUEMENT le sujet. Ne génère PAS la problématique ni les hypothèses.
+Génère un sujet pertinent pour ce travail académique.`;
 
     case "problematic":
       if (projectType === "tfe") {
-        return `=== TÂCHE: QUESTIONNEMENT STRUCTURÉ ===
+        return `=== TÂCHE: PROBLÉMATIQUE UNIQUEMENT ===
+IMPORTANT: Génère UNIQUEMENT la problématique. Ne génère PAS le sujet ni les hypothèses.
+
 En te basant sur la situation d'appel et les éléments validés:
 1. **Questionnement structuré** : questionnement professionnel progressif
 2. **Question de départ** : claire et professionnelle
-3. **Sujet du TFE** : déduit de la situation d'appel`;
+
+Ne génère PAS le sujet du TFE ici, seulement la problématique.`;
       }
-      return `=== TÂCHE: PROBLÉMATIQUE ===\nGénère une problématique de recherche problématisée, mettant en tension des concepts clés du domaine.`;
+      return `=== TÂCHE: PROBLÉMATIQUE UNIQUEMENT ===
+IMPORTANT: Génère UNIQUEMENT la problématique. Ne génère PAS le sujet ni les hypothèses.
+Génère une problématique de recherche problématisée, mettant en tension des concepts clés du domaine.`;
 
     case "hypotheses":
       if (projectType === "tfe") {
-        return `=== TÂCHE: HYPOTHÈSES OPÉRATIONNELLES ===
+        return `=== TÂCHE: HYPOTHÈSES UNIQUEMENT ===
+IMPORTANT: Génère UNIQUEMENT les hypothèses. Ne génère PAS le sujet ni la problématique.
+
 Propose 3 hypothèses opérationnelles:
 - Formulées comme des leviers d'amélioration (PAS des hypothèses statistiques)
 - Orientées vers la pratique professionnelle
 - Testables sur le terrain
 Pour chaque hypothèse: énoncé, justification, piste de vérification.`;
       }
-      return `=== TÂCHE: HYPOTHÈSES DE RECHERCHE ===
+      return `=== TÂCHE: HYPOTHÈSES UNIQUEMENT ===
+IMPORTANT: Génère UNIQUEMENT les hypothèses. Ne génère PAS le sujet ni la problématique.
+
 Propose 3 hypothèses de recherche:
 - Chaque hypothèse doit être vérifiable
 - Cohérentes avec la problématique
@@ -576,6 +593,224 @@ export async function registerRoutes(
     }
   });
 
+  app.post(api.sections.generateCombined.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, combo, mode, extraContext } = api.sections.generateCombined.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+      const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
+
+      const sectionKeys = combo === "subject_problematic"
+        ? ["subject", "problematic"]
+        : ["subject", "problematic", "hypotheses"];
+
+      const labels: Record<string, string> = { subject: "Sujet", problematic: "Problématique", hypotheses: "Hypothèses" };
+      const sectionsList = sectionKeys.map(k => labels[k]).join(", ");
+
+      let currentContents = "";
+      if (mode !== "initial") {
+        for (const key of sectionKeys) {
+          const existing = await storage.getSectionByKey(projectId, key);
+          if (existing?.activeVersionId) {
+            const v = await storage.getActiveVersion(existing.id);
+            if (v?.content) currentContents += `\n--- ${labels[key]} actuel ---\n${v.content}\n`;
+          }
+        }
+      }
+
+      let taskPrompt = `=== TÂCHE: GÉNÉRATION COMBINÉE (${sectionsList}) ===
+IMPORTANT: Tu dois générer CHAQUE élément séparément et clairement délimité.
+
+Génère les éléments suivants, chacun dans sa section bien identifiée:
+
+`;
+      if (sectionKeys.includes("subject")) {
+        taskPrompt += `### <<<SUJET>>>
+Génère un sujet académique précis, original et réalisable.
+### <<<FIN_SUJET>>>
+
+`;
+      }
+      if (sectionKeys.includes("problematic")) {
+        taskPrompt += `### <<<PROBLEMATIQUE>>>
+Génère une problématique de recherche problématisée, mettant en tension des concepts clés.
+### <<<FIN_PROBLEMATIQUE>>>
+
+`;
+      }
+      if (sectionKeys.includes("hypotheses")) {
+        taskPrompt += `### <<<HYPOTHESES>>>
+Propose 3 hypothèses de recherche vérifiables, cohérentes avec la problématique.
+Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodologique.
+### <<<FIN_HYPOTHESES>>>
+
+`;
+      }
+
+      taskPrompt += `RÈGLE STRICTE: Utilise exactement les délimiteurs <<<SUJET>>>, <<<FIN_SUJET>>>, <<<PROBLEMATIQUE>>>, <<<FIN_PROBLEMATIQUE>>>, <<<HYPOTHESES>>>, <<<FIN_HYPOTHESES>>> pour séparer chaque partie. Ne mélange PAS le contenu entre les parties.`;
+
+      let userPrompt = projectContext + "\n";
+      if (validatedContext) userPrompt += `\n=== SECTIONS DÉJÀ VALIDÉES ===\n${validatedContext}\n`;
+      if (extraContext) userPrompt += `\n=== INFORMATIONS SPÉCIFIQUES ===\n${extraContext}\n`;
+      if (mode !== "initial" && currentContents) {
+        const verb = mode === "similar" ? "SIMILAIRE (reformulation)" : "DIFFÉRENTE (nouvel angle)";
+        userPrompt += `\n=== VERSIONS ACTUELLES - Génère une version ${verb} ===\n${currentContents}\n`;
+      }
+      userPrompt += "\n" + taskPrompt;
+
+      const temperature = mode === "similar" ? 0.5 : mode === "different" ? 0.9 : 0.7;
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 6000,
+        temperature,
+      });
+
+      const fullContent = response.choices[0].message.content || "";
+
+      const extractSection = (text: string, startTag: string, endTag: string): string => {
+        const startIdx = text.indexOf(startTag);
+        const endIdx = text.indexOf(endTag);
+        if (startIdx === -1) return "";
+        const contentStart = startIdx + startTag.length;
+        const contentEnd = endIdx === -1 ? text.length : endIdx;
+        return text.substring(contentStart, contentEnd).trim();
+      };
+
+      const parsedContent: Record<string, string> = {
+        subject: extractSection(fullContent, "<<<SUJET>>>", "<<<FIN_SUJET>>>"),
+        problematic: extractSection(fullContent, "<<<PROBLEMATIQUE>>>", "<<<FIN_PROBLEMATIQUE>>>"),
+        hypotheses: extractSection(fullContent, "<<<HYPOTHESES>>>", "<<<FIN_HYPOTHESES>>>"),
+      };
+
+      const contextSnapshot = projectContext.substring(0, 500);
+      const results: Record<string, any> = {};
+
+      for (const key of sectionKeys) {
+        const content = parsedContent[key];
+        if (!content) continue;
+
+        let section = await storage.getSectionByKey(projectId, key);
+        if (!section) {
+          section = await storage.createSection(projectId, key);
+        }
+
+        const version = await storage.createVersion(section.id, content, "ai", mode, contextSnapshot);
+        await storage.updateSectionStatus(section.id, "generated");
+        const updatedSection = await storage.getSection(section.id);
+        results[key] = { section: updatedSection, version };
+      }
+
+      res.json({ results });
+    } catch (err: any) {
+      console.error("Combined Generation Error:", err);
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        res.status(500).json({ message: err.message || "Erreur lors de la génération combinée" });
+      }
+    }
+  });
+
+  app.post(api.sections.generateDiagram.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, diagramType, articles, extraContext } = api.sections.generateDiagram.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const diagramPrompts: Record<string, { title: string; task: string }> = {
+        concept_relations: {
+          title: "Relations entre concepts",
+          task: `À partir du cadre conceptuel validé, génère un diagramme Mermaid montrant les relations entre les concepts identifiés.
+Utilise un diagramme de type 'graph TD' (top-down).
+- Chaque concept est un noeud
+- Les relations entre concepts sont des flèches avec des labels descriptifs
+- Utilise des formes différentes pour les concepts principaux vs secondaires`,
+        },
+        concept_problematic: {
+          title: "Articulation Concepts - Problématique - Hypothèses",
+          task: `Génère un diagramme Mermaid montrant l'articulation entre:
+- La problématique (au centre)
+- Les concepts clés (liés à la problématique)
+- Les hypothèses (découlant des concepts et de la problématique)
+Utilise un diagramme 'graph LR' (left-right) avec des couleurs et formes distinctes.`,
+        },
+        article_synthesis: {
+          title: "Synthèse des articles",
+          task: `À partir des articles fournis, génère un diagramme Mermaid de synthèse montrant:
+- Les thématiques principales abordées
+- Les liens entre articles par thématique
+- Les résultats convergents et divergents
+Utilise un diagramme 'graph TD'.`,
+        },
+        article_confrontation: {
+          title: "Confrontation des articles",
+          task: `À partir des articles fournis, génère un diagramme Mermaid de confrontation montrant:
+- Les points d'accord entre auteurs
+- Les points de désaccord ou divergence
+- Les complémentarités
+Utilise un diagramme 'graph LR' avec des couleurs distinctes pour accord/désaccord.`,
+        },
+        article_mapping: {
+          title: "Cartographie des articles",
+          task: `À partir des articles fournis, génère un diagramme Mermaid de type 'mindmap' ou 'graph TD' montrant:
+- Les axes thématiques principaux
+- La répartition des articles par axe
+- Les interconnexions entre thèmes
+Chaque article est un noeud avec auteur et année.`,
+        },
+      };
+
+      const config = diagramPrompts[diagramType];
+      let userPrompt = projectContext + "\n";
+      if (validatedContext) userPrompt += `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n`;
+      if (articles && articles.length > 0) {
+        userPrompt += `\n=== ARTICLES ===\n${articles.map(a => `- ${a.authors} (${a.year}). ${a.title}`).join("\n")}\n`;
+      }
+      if (extraContext) userPrompt += `\n=== CONTEXTE ADDITIONNEL ===\n${extraContext}\n`;
+      userPrompt += `\n${config.task}\n\nIMPORTANT: Retourne UNIQUEMENT le code Mermaid valide, sans commentaire ni explication. Ne mets PAS de blocs \`\`\`mermaid, retourne directement le code Mermaid.`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: "Tu es un expert en visualisation de données académiques. Tu génères du code Mermaid.js valide et bien structuré." },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 2000,
+        temperature: 0.5,
+      });
+
+      let mermaidCode = response.choices[0].message.content || "";
+      mermaidCode = mermaidCode.replace(/```mermaid\n?/g, "").replace(/```\n?/g, "").trim();
+
+      res.json({ mermaidCode, title: config.title });
+    } catch (err: any) {
+      console.error("Diagram Generation Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération du diagramme" });
+    }
+  });
+
   app.post(api.sections.saveManual.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const sectionId = Number(req.params.id);
@@ -852,6 +1087,146 @@ IMPORTANT: Produis uniquement la liste bibliographique formatée, sans explicati
     } catch (err: any) {
       console.error("Bibliography Error:", err);
       res.status(500).json({ message: err.message || "Erreur lors de la génération de la bibliographie" });
+    }
+  });
+
+  // === DIAGRAM GENERATION ===
+  app.post(api.sections.generateDiagram.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, diagramType, articles, extraContext } = api.sections.generateDiagram.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const sections = await storage.getProjectSections(projectId);
+      const validatedContent: string[] = [];
+      for (const s of sections) {
+        if (s.status === "validated" && s.activeVersionId) {
+          const versions = await storage.getSectionVersions(s.id);
+          const active = versions.find(v => v.id === s.activeVersionId);
+          if (active?.content) {
+            const label = (SECTION_LABELS as any)[s.sectionKey] || s.sectionKey;
+            validatedContent.push(`${label}:\n${active.content}`);
+          }
+        }
+      }
+
+      const contextBlock = validatedContent.length > 0
+        ? `\nContenu validé du projet:\n${validatedContent.join("\n\n")}\n`
+        : "";
+
+      const articleBlock = articles && articles.length > 0
+        ? `\nArticles de référence:\n${articles.map((a, i) => `${i + 1}. ${a.title} — ${a.authors} (${a.year})`).join("\n")}\n`
+        : "";
+
+      const diagramPrompts: Record<string, { title: string; prompt: string }> = {
+        concept_relations: {
+          title: "Relations entre les concepts clés",
+          prompt: `Génère un diagramme Mermaid (flowchart LR) montrant les relations entre les concepts clés du cadre conceptuel de ce projet académique.
+${contextBlock}
+Projet: ${project.subject || ""} — ${project.problematic || ""}
+
+RÈGLES STRICTES pour le code Mermaid:
+- Utilise flowchart LR (orientation gauche-droite)
+- Chaque nœud doit avoir un identifiant simple (A, B, C...) suivi d'un label entre crochets
+- Les labels doivent être courts (3-5 mots maximum)
+- Utilise des flèches avec labels: A -->|relation| B
+- Maximum 8 nœuds et 12 liens
+- NE PAS utiliser de caractères spéciaux dans les labels (pas d'accents, pas d'apostrophes, pas de guillemets)
+- NE PAS utiliser subgraph
+- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
+        },
+        concept_problematic: {
+          title: "Articulation Concepts - Problématique - Hypothèses",
+          prompt: `Génère un diagramme Mermaid (flowchart TD) montrant l'articulation entre les concepts du cadre conceptuel, la problématique et les hypothèses de ce projet académique.
+${contextBlock}
+Projet: ${project.subject || ""} — ${project.problematic || ""}
+Hypothèses: ${project.hypotheses || ""}
+
+RÈGLES STRICTES pour le code Mermaid:
+- Utilise flowchart TD (orientation haut-bas)
+- Place la problématique en haut, les concepts au milieu, les hypothèses en bas
+- Chaque noeud doit avoir un identifiant simple (P, C1, C2, H1...) suivi d'un label entre crochets
+- Les labels doivent être courts (3-5 mots maximum)
+- Maximum 10 noeuds
+- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
+- NE PAS utiliser subgraph
+- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
+        },
+        article_synthesis: {
+          title: "Schema de synthese des articles",
+          prompt: `Génère un diagramme Mermaid (flowchart TD) synthétisant les thèmes et résultats clés des articles de la revue de littérature.
+${contextBlock}${articleBlock}
+
+RÈGLES STRICTES pour le code Mermaid:
+- Utilise flowchart TD
+- Regroupe les articles par thème principal
+- Chaque noeud doit avoir un identifiant simple (T1, T2, A1, A2...) suivi d'un label entre crochets
+- Les labels doivent etre courts (3-5 mots maximum)
+- Maximum 10 noeuds et 15 liens
+- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
+- NE PAS utiliser subgraph
+- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
+        },
+        article_confrontation: {
+          title: "Schema de confrontation des articles",
+          prompt: `Génère un diagramme Mermaid (flowchart LR) montrant les convergences et divergences entre les articles de la revue de littérature.
+${contextBlock}${articleBlock}
+
+RÈGLES STRICTES pour le code Mermaid:
+- Utilise flowchart LR
+- Montre les points de convergence et de divergence entre les articles
+- Chaque noeud doit avoir un identifiant simple (A1, A2, Conv1, Div1...) suivi d'un label entre crochets
+- Les labels doivent etre courts (3-5 mots maximum)
+- Utilise des styles de fleches differents: --> pour convergence, -.-> pour divergence
+- Maximum 10 noeuds et 12 liens
+- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
+- NE PAS utiliser subgraph
+- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
+        },
+        article_mapping: {
+          title: "Carte de mapping thematique",
+          prompt: `Génère un diagramme Mermaid (mindmap) cartographiant les thèmes, sous-thèmes et auteurs de la revue de littérature.
+${contextBlock}${articleBlock}
+
+RÈGLES STRICTES pour le code Mermaid:
+- Utilise la syntaxe mindmap
+- Le noeud racine est le theme general de la recherche
+- Les branches sont les sous-themes
+- Les feuilles sont les auteurs ou references
+- Les labels doivent etre courts (3-5 mots maximum)
+- Maximum 3 niveaux de profondeur
+- Maximum 15 noeuds total
+- NE PAS utiliser de caracteres speciaux dans les labels (pas d accents, pas d apostrophes, pas de guillemets)
+- Retourne UNIQUEMENT le code Mermaid, sans backticks, sans explication`,
+        },
+      };
+
+      const diagramInfo = diagramPrompts[diagramType];
+      if (!diagramInfo) return res.status(400).json({ message: "Type de diagramme inconnu" });
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: "Tu es un expert en visualisation académique. Tu génères du code Mermaid.js valide et syntaxiquement correct. Tu ne retournes QUE le code Mermaid, sans bloc de code markdown, sans explication." },
+          { role: "user", content: diagramInfo.prompt + (extraContext ? `\n\nContexte additionnel: ${extraContext}` : "") },
+        ],
+        max_tokens: 2000,
+        temperature: 0.5,
+      });
+
+      let mermaidCode = (response.choices[0].message.content || "").trim();
+      mermaidCode = mermaidCode.replace(/^```(?:mermaid)?\n?/g, "").replace(/\n?```$/g, "").trim();
+
+      res.json({ mermaidCode, title: diagramInfo.title });
+    } catch (err: any) {
+      console.error("Diagram Generation Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération du diagramme" });
     }
   });
 
