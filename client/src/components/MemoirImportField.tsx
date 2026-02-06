@@ -26,7 +26,7 @@ export default function MemoirImportField({ value, onChange }: MemoirImportField
         const labeled = `--- ${file.name} ---\n${text}`;
         onChange(value ? `${value}\n\n${labeled}` : labeled);
         setExpanded(true);
-        toast({ title: "Fichier import\u00e9", description: `"${file.name}" import\u00e9 avec succ\u00e8s.` });
+        toast({ title: "Fichier importé", description: `"${file.name}" importé avec succès.` });
       } catch {
         toast({ title: "Erreur d'import", description: "Impossible de lire le fichier.", variant: "destructive" });
       }
@@ -45,7 +45,7 @@ export default function MemoirImportField({ value, onChange }: MemoirImportField
         >
           {expanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
           <FileText className="w-4 h-4 text-muted-foreground" />
-          <Label className="text-sm font-semibold cursor-pointer">Importer un fichier m\u00e9moire (\u00e9tat d'avancement)</Label>
+          <Label className="text-sm font-semibold cursor-pointer">Importer un fichier mémoire (état d'avancement)</Label>
         </button>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={handleImport} data-testid="button-import-memoir">
@@ -57,7 +57,7 @@ export default function MemoirImportField({ value, onChange }: MemoirImportField
               size="sm"
               onClick={() => {
                 onChange("");
-                toast({ title: "Import supprim\u00e9" });
+                toast({ title: "Import supprimé" });
               }}
               data-testid="button-clear-memoir"
             >
@@ -69,13 +69,13 @@ export default function MemoirImportField({ value, onChange }: MemoirImportField
       {expanded && (
         <>
           <p className="text-xs text-muted-foreground">
-            Si vous utilisez ce module ind\u00e9pendamment, importez ou collez votre m\u00e9moire en cours pour que l'IA r\u00e9cup\u00e8re les donn\u00e9es et s'adapte \u00e0 votre contexte.
+            Si vous utilisez ce module indépendamment, importez ou collez votre mémoire en cours pour que l'IA récupère les données et s'adapte à votre contexte.
           </p>
           <Textarea
             value={value}
             onChange={e => onChange(e.target.value)}
             className="min-h-[120px] text-xs font-mono"
-            placeholder="Collez ici le contenu de votre m\u00e9moire ou importez un fichier..."
+            placeholder="Collez ici le contenu de votre mémoire ou importez un fichier..."
             data-testid="textarea-imported-memoir"
           />
         </>

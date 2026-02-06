@@ -8,6 +8,29 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import OpenAI from "openai";
 
+const SECTION_TO_ENTITLEMENT: Record<string, string> = {
+  subject: "foundation",
+  problematic: "foundation",
+  hypotheses: "foundation",
+  situation_appel: "foundation",
+  vae_competencies: "foundation",
+  plan: "plan",
+  conceptual_framework: "conceptual",
+  theoretical_framework: "conceptual",
+  literature_review: "literature",
+  methodology: "methodology",
+  soutenance_ppt: "soutenance_ppt",
+  soutenance_simulation: "soutenance_simulation",
+  memoire_audit: "audit",
+};
+
+async function checkSectionEntitlement(userId: string, sectionKey: string): Promise<boolean> {
+  const entitlementKey = SECTION_TO_ENTITLEMENT[sectionKey];
+  if (!entitlementKey) return true;
+  const entitlements = await storage.getUserEntitlements(userId);
+  return entitlements.includes(entitlementKey);
+}
+
 function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(w => w.length > 0).length;
 }
@@ -856,19 +879,25 @@ export async function registerRoutes(
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const quotaCheck = await checkAndConsumeQuota(userId!);
-    if (!quotaCheck.allowed) {
-      return res.status(429).json({ 
-        message: quotaCheck.reason === "words" 
-          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
-        quotaExceeded: quotaCheck.reason,
-        quota: quotaCheck.quota 
-      });
-    }
-
     try {
       const { projectId, sectionKey, mode, extraContext, config } = api.sections.generate.input.parse(req.body);
+
+      const hasAccess = await checkSectionEntitlement(userId, sectionKey);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Cette fonctionnalité n'est pas incluse dans votre offre. Veuillez activer le module correspondant." });
+      }
+
+      const quotaCheck = await checkAndConsumeQuota(userId!);
+      if (!quotaCheck.allowed) {
+        return res.status(429).json({ 
+          message: quotaCheck.reason === "words" 
+            ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+            : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          quotaExceeded: quotaCheck.reason,
+          quota: quotaCheck.quota 
+        });
+      }
+
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 
@@ -930,19 +959,24 @@ export async function registerRoutes(
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const quotaCheck = await checkAndConsumeQuota(userId!);
-    if (!quotaCheck.allowed) {
-      return res.status(429).json({ 
-        message: quotaCheck.reason === "words" 
-          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
-        quotaExceeded: quotaCheck.reason,
-        quota: quotaCheck.quota 
-      });
-    }
-
     try {
       const { projectId, combo, mode, extraContext } = api.sections.generateCombined.input.parse(req.body);
+
+      const hasAccess = await checkSectionEntitlement(userId, "subject");
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Cette fonctionnalité n'est pas incluse dans votre offre. Veuillez activer le module correspondant." });
+      }
+
+      const quotaCheck = await checkAndConsumeQuota(userId!);
+      if (!quotaCheck.allowed) {
+        return res.status(429).json({ 
+          message: quotaCheck.reason === "words" 
+            ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
+            : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          quotaExceeded: quotaCheck.reason,
+          quota: quotaCheck.quota 
+        });
+      }
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
 

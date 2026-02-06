@@ -305,8 +305,14 @@ function AssistantTab({ project }: { project: any }) {
           {moduleTabs.map(tab => {
             const Icon = tab.icon;
             const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
-            const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated");
+            const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
             const hasContent = tabSections.some(s => s.activeVersionId);
+            const isWorkflow = tab.key === "workflow";
+
+            let dotColor = "bg-muted-foreground/40";
+            if (isWorkflow) dotColor = "bg-blue-500";
+            else if (allValidated) dotColor = "bg-green-500";
+            else if (hasContent) dotColor = "bg-yellow-500";
 
             return (
               <TabsTrigger
@@ -317,8 +323,11 @@ function AssistantTab({ project }: { project: any }) {
               >
                 <Icon className="w-4 h-4" />
                 {tab.label}
-                {allValidated && <Check className="w-3 h-3 text-green-500" />}
-                {!allValidated && hasContent && <div className="w-2 h-2 rounded-full bg-yellow-500" />}
+                {allValidated && !isWorkflow ? (
+                  <Check className="w-3 h-3 text-green-500" />
+                ) : (
+                  <div className={`w-2 h-2 rounded-full ${dotColor}`} />
+                )}
               </TabsTrigger>
             );
           })}
@@ -950,6 +959,7 @@ function SingleSectionWrapper({
   }
 
   if (sectionKey === "interview_simulation") {
+    const dataCollectionSection = sections.find(s => s.key === "data_collection");
     return (
       <div className="space-y-4">
         {memoirField}
@@ -960,6 +970,7 @@ function SingleSectionWrapper({
           variables={variables}
           extraContext={buildExtraContext()}
           section={section}
+          dataCollectionSection={dataCollectionSection}
         />
       </div>
     );

@@ -108,6 +108,12 @@ export default function AuditMemoireModule({
     setStateLoaded(true);
   }, [section, stateLoaded]);
 
+  const doSaveRef = useRef(doSave);
+  useEffect(() => { doSaveRef.current = doSave; }, [doSave]);
+  useEffect(() => {
+    return () => { doSaveRef.current(); };
+  }, []);
+
   useEffect(() => {
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);

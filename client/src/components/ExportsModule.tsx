@@ -69,6 +69,7 @@ export default function ExportsModule({
   const saveConfigMutation = useSaveSectionConfig();
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveStateRef = useRef<() => void>(() => {});
 
   const availableSections = (allSections || []).filter(
     s => !["assisted_writing", "bibliography", "exports"].includes(s.key)
@@ -97,6 +98,12 @@ export default function ExportsModule({
     const state: SavedState = { format, exportType, includeTableOfContents, includeBibliography, includeAnnexes, selectedSections };
     saveConfigMutation.mutate({ sectionId: section.id, config: state as any, projectId });
   }, [section?.id, format, exportType, includeTableOfContents, includeBibliography, includeAnnexes, selectedSections, stateLoaded, projectId]);
+
+  useEffect(() => { saveStateRef.current = saveState; }, [saveState]);
+
+  useEffect(() => {
+    return () => { saveStateRef.current(); };
+  }, []);
 
   useEffect(() => {
     if (!stateLoaded) return;

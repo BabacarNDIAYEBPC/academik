@@ -78,6 +78,7 @@ export default function AssistedWritingModule({
   const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveStateRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (section?.config && !stateLoaded) {
@@ -99,6 +100,12 @@ export default function AssistedWritingModule({
     const state: SavedState = { inputText, outputText, mode, sectionTarget, suggestions, contextInstructions };
     saveConfigMutation.mutate({ sectionId: section.id, config: state as any, projectId });
   }, [section?.id, inputText, outputText, mode, sectionTarget, suggestions, contextInstructions, stateLoaded, projectId]);
+
+  useEffect(() => { saveStateRef.current = saveState; }, [saveState]);
+
+  useEffect(() => {
+    return () => { saveStateRef.current(); };
+  }, []);
 
   useEffect(() => {
     if (!stateLoaded) return;
@@ -195,12 +202,12 @@ export default function AssistedWritingModule({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-1.5">
-            <Label htmlFor="context-instructions-writing" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+            <Label htmlFor="context-instructions-writing" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
             <Textarea
               id="context-instructions-writing"
               value={contextInstructions}
               onChange={e => setContextInstructions(e.target.value)}
-              placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+              placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
               className="min-h-[80px] text-sm"
               data-testid="textarea-context-instructions-writing"
             />

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, MessageSquare, Save, Check, X, FileDown,
-  Lightbulb, RefreshCw, Sparkles, Plus, Trash2, ListOrdered,
+  Lightbulb, RefreshCw, Sparkles, Plus, Trash2, ListOrdered, Import,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 
@@ -29,6 +29,7 @@ interface InterviewSimulationModuleProps {
   variables: Record<string, string | undefined>;
   extraContext?: string;
   section?: ProjectSection;
+  dataCollectionSection?: ProjectSection;
 }
 
 interface SimulationEntry {
@@ -71,6 +72,7 @@ export default function InterviewSimulationModule({
   variables,
   extraContext,
   section,
+  dataCollectionSection,
 }: InterviewSimulationModuleProps) {
   const [entries, setEntries] = useState<SimulationEntry[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState("");
@@ -135,6 +137,12 @@ export default function InterviewSimulationModule({
     setStateLoaded(true);
   }, [section, stateLoaded]);
 
+  const doSaveRef = useRef(doSave);
+  useEffect(() => { doSaveRef.current = doSave; }, [doSave]);
+  useEffect(() => {
+    return () => { doSaveRef.current(); };
+  }, []);
+
   useEffect(() => {
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
@@ -166,6 +174,52 @@ export default function InterviewSimulationModule({
         },
       }
     );
+  };
+
+  const guideContent = useMemo(() => {
+    if (!dataCollectionSection) return "";
+    const cfg = dataCollectionSection.config as any;
+    return cfg?.collectionState?.guideContent || "";
+  }, [dataCollectionSection]);
+
+  const parseGuideQuestions = useCallback((text: string): BatchQuestion[] => {
+    if (!text.trim()) return [];
+    const htmlStripped = text.replace(/<[^>]+>/g, "\n");
+    const lines = htmlStripped.split("\n").filter(l => l.trim());
+    const questions: BatchQuestion[] = [];
+    const questionStems = [
+      "comment", "quel", "quelle", "quels", "quelles", "pourquoi",
+      "pouvez", "décrivez", "expliquez", "parlez", "racontez",
+      "dans quelle mesure", "de quelle manière", "selon vous",
+      "pensez", "estimez", "considérez", "avez-vous", "êtes-vous",
+      "qu'est-ce", "que pensez", "que signifie", "en quoi",
+      "à quel point", "combien",
+    ];
+    for (const line of lines) {
+      const cleaned = line.replace(/^[\s\-\*•→▸◦]+/, "").replace(/^\d+[\.\)\-]\s*/, "").trim();
+      if (cleaned.length < 10) continue;
+      const lower = cleaned.toLowerCase();
+      const endsWithQuestion = cleaned.endsWith("?");
+      const startsWithStem = questionStems.some(stem => lower.startsWith(stem));
+      if (endsWithQuestion || startsWithStem) {
+        questions.push({ id: `guide_${Date.now()}_${questions.length}`, question: cleaned, prerequisites: "" });
+      }
+    }
+    return questions;
+  }, []);
+
+  const handleImportFromGuide = () => {
+    if (!guideContent.trim()) {
+      toast({ title: "Aucun guide disponible", description: "Générez d'abord un guide d'entretien dans le module Collecte de données.", variant: "destructive" });
+      return;
+    }
+    const parsed = parseGuideQuestions(guideContent);
+    if (parsed.length === 0) {
+      toast({ title: "Aucune question détectée", description: "Le guide d'entretien ne contient pas de questions identifiables.", variant: "destructive" });
+      return;
+    }
+    setBatchQuestions(parsed);
+    toast({ title: "Questions importées", description: `${parsed.length} question(s) importée(s) depuis le guide d'entretien.` });
   };
 
   const handleAddBatchQuestion = () => {
@@ -304,12 +358,12 @@ export default function InterviewSimulationModule({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-1.5">
-          <Label htmlFor="context-instructions-simulation" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+          <Label htmlFor="context-instructions-simulation" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
           <Textarea
             id="context-instructions-simulation"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+            placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
             className="min-h-[80px] text-sm"
             data-testid="textarea-context-instructions-simulation"
           />
@@ -417,14 +471,23 @@ export default function InterviewSimulationModule({
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <Label>Questions ({batchQuestions.length})</Label>
-                    <Button variant="outline" size="sm" onClick={handleAddBatchQuestion} data-testid="button-add-batch-question">
-                      <Plus className="w-4 h-4 mr-1" /> Ajouter une question
-                    </Button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {guideContent && (
+                        <Button variant="outline" size="sm" onClick={handleImportFromGuide} data-testid="button-import-guide">
+                          <Import className="w-4 h-4 mr-1" /> Importer du guide
+                        </Button>
+                      )}
+                      <Button variant="outline" size="sm" onClick={handleAddBatchQuestion} data-testid="button-add-batch-question">
+                        <Plus className="w-4 h-4 mr-1" /> Ajouter une question
+                      </Button>
+                    </div>
                   </div>
 
                   {batchQuestions.length === 0 && (
                     <div className="text-center py-6 text-muted-foreground text-sm border border-dashed rounded-md">
-                      Aucune question ajoutée. Cliquez sur "Ajouter une question" pour commencer.
+                      {guideContent
+                        ? "Aucune question ajoutée. Importez les questions depuis votre guide d'entretien ou ajoutez-en manuellement."
+                        : "Aucune question ajoutée. Cliquez sur \"Ajouter une question\" pour commencer."}
                     </div>
                   )}
 

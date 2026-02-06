@@ -154,6 +154,12 @@ export default function DataCollectionModule({
     setStateLoaded(true);
   }, [section, stateLoaded]);
 
+  const doSaveRef = useRef(doSave);
+  useEffect(() => { doSaveRef.current = doSave; }, [doSave]);
+  useEffect(() => {
+    return () => { doSaveRef.current(); };
+  }, []);
+
   useEffect(() => {
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
@@ -265,12 +271,12 @@ export default function DataCollectionModule({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-1.5">
-          <Label htmlFor="context-instructions-collection" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+          <Label htmlFor="context-instructions-collection" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
           <Textarea
             id="context-instructions-collection"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+            placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
             className="min-h-[80px] text-sm"
             data-testid="textarea-context-instructions-collection"
           />

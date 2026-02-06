@@ -167,6 +167,12 @@ export default function DataAnalysisModule({
     setStateLoaded(true);
   }, [section, stateLoaded]);
 
+  const doSaveRef = useRef(doSave);
+  useEffect(() => { doSaveRef.current = doSave; }, [doSave]);
+  useEffect(() => {
+    return () => { doSaveRef.current(); };
+  }, []);
+
   useEffect(() => {
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
@@ -239,7 +245,7 @@ export default function DataAnalysisModule({
 
   const handleQualitativeAnalysis = () => {
     if (verbatims.length === 0 || verbatims.every(v => !v.content.trim())) {
-      toast({ title: "Donn\u00e9es requises", description: "Ajoutez au moins un verbatim d'entretien.", variant: "destructive" });
+      toast({ title: "Données requises", description: "Ajoutez au moins un verbatim d'entretien.", variant: "destructive" });
       return;
     }
     qualitativeMutation.mutate(
@@ -247,7 +253,7 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setQualitativeResult(data.content);
-          toast({ title: "Analyse termin\u00e9e", description: "L'analyse qualitative a \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9e." });
+          toast({ title: "Analyse terminée", description: "L'analyse qualitative a été générée." });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de l'analyse", variant: "destructive" });
@@ -258,7 +264,7 @@ export default function DataAnalysisModule({
 
   const handleQuantitativeAnalysis = () => {
     if (!quantitativeData.trim()) {
-      toast({ title: "Donn\u00e9es requises", description: "Collez vos donn\u00e9es quantitatives.", variant: "destructive" });
+      toast({ title: "Données requises", description: "Collez vos données quantitatives.", variant: "destructive" });
       return;
     }
     quantitativeMutation.mutate(
@@ -266,7 +272,7 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setQuantitativeResult(data.content);
-          toast({ title: "Analyse termin\u00e9e", description: "L'analyse quantitative a \u00e9t\u00e9 g\u00e9n\u00e9r\u00e9e." });
+          toast({ title: "Analyse terminée", description: "L'analyse quantitative a été générée." });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de l'analyse", variant: "destructive" });
@@ -278,7 +284,7 @@ export default function DataAnalysisModule({
   const handleConfront = () => {
     const allResults = [qualitativeResult, quantitativeResult, confrontImportedData].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
-      toast({ title: "R\u00e9sultats requis", description: "G\u00e9n\u00e9rez d'abord une analyse qualitative ou quantitative.", variant: "destructive" });
+      toast({ title: "Résultats requis", description: "Générez d'abord une analyse qualitative ou quantitative.", variant: "destructive" });
       return;
     }
     confrontMutation.mutate(
@@ -286,7 +292,7 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setConfrontResult(data.content);
-          toast({ title: "Confrontation termin\u00e9e" });
+          toast({ title: "Confrontation terminée" });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de la confrontation", variant: "destructive" });
@@ -298,7 +304,7 @@ export default function DataAnalysisModule({
   const handleValidateHypotheses = () => {
     const allResults = [qualitativeResult, quantitativeResult, confrontResult].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
-      toast({ title: "R\u00e9sultats requis", description: "R\u00e9alisez d'abord les analyses.", variant: "destructive" });
+      toast({ title: "Résultats requis", description: "Réalisez d'abord les analyses.", variant: "destructive" });
       return;
     }
     validateHypMutation.mutate(
@@ -306,7 +312,7 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setValidationResult(data.content);
-          toast({ title: "Validation termin\u00e9e" });
+          toast({ title: "Validation terminée" });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de la validation", variant: "destructive" });
@@ -320,7 +326,7 @@ export default function DataAnalysisModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section valid\u00e9e" }),
+        onSuccess: () => toast({ title: "Section validée" }),
         onError: () => toast({ title: "Erreur", variant: "destructive" }),
       }
     );
@@ -331,7 +337,7 @@ export default function DataAnalysisModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retir\u00e9e" }),
+        onSuccess: () => toast({ title: "Validation retirée" }),
         onError: () => toast({ title: "Erreur", variant: "destructive" }),
       }
     );
@@ -375,7 +381,7 @@ export default function DataAnalysisModule({
           const combined = [prev, ...importedParts].filter(Boolean).join("\n\n");
           return combined;
         });
-        toast({ title: "Import r\u00e9ussi", description: `${importedParts.length} fichier(s) import\u00e9(s) pour la confrontation.` });
+        toast({ title: "Import réussi", description: `${importedParts.length} fichier(s) importé(s) pour la confrontation.` });
       }
     };
     input.click();
@@ -385,13 +391,13 @@ export default function DataAnalysisModule({
     const sections = [];
     if (qualitativeResult) sections.push({ label: "Analyse qualitative", content: qualitativeResult });
     if (quantitativeResult) sections.push({ label: "Analyse quantitative", content: quantitativeResult });
-    if (confrontResult) sections.push({ label: "Confrontation des r\u00e9sultats", content: confrontResult });
-    if (validationResult) sections.push({ label: "Validation des hypoth\u00e8ses", content: validationResult });
+    if (confrontResult) sections.push({ label: "Confrontation des résultats", content: confrontResult });
+    if (validationResult) sections.push({ label: "Validation des hypothèses", content: validationResult });
     if (sections.length === 0) {
-      toast({ title: "Rien \u00e0 exporter", variant: "destructive" });
+      toast({ title: "Rien à exporter", variant: "destructive" });
       return;
     }
-    exportToWord("Analyse des donn\u00e9es", sections, "analyse_donnees.docx");
+    exportToWord("Analyse des données", sections, "analyse_donnees.docx");
   };
 
   const isValidated = section?.status === "validated";
@@ -401,8 +407,8 @@ export default function DataAnalysisModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Analyse des donn\u00e9es</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Valid\u00e9</Badge>}
+          <CardTitle className="text-lg">Analyse des données</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-analysis">
@@ -425,12 +431,12 @@ export default function DataAnalysisModule({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-1.5">
-          <Label htmlFor="context-instructions" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+          <Label htmlFor="context-instructions" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
           <Textarea
             id="context-instructions"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+            placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
             className="min-h-[80px] text-sm"
             data-testid="textarea-context-instructions"
           />
@@ -448,7 +454,7 @@ export default function DataAnalysisModule({
               <FlaskConical className="w-4 h-4" />Confrontation
             </TabsTrigger>
             <TabsTrigger value="validation" className="gap-1" data-testid="tab-validation">
-              <Check className="w-4 h-4" />Hypoth\u00e8ses
+              <Check className="w-4 h-4" />Hypothèses
             </TabsTrigger>
           </TabsList>
 
@@ -461,7 +467,7 @@ export default function DataAnalysisModule({
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Collez le contenu retranscrit de chaque entretien pour l'analyse th\u00e9matique.
+                Collez le contenu retranscrit de chaque entretien pour l'analyse thématique.
               </p>
 
               {verbatims.map((v, index) => (
@@ -520,7 +526,7 @@ export default function DataAnalysisModule({
                       <Textarea
                         value={v.content}
                         onChange={e => updateVerbatim(v.id, "content", e.target.value)}
-                        placeholder="Collez ici la retranscription int\u00e9grale de l'entretien..."
+                        placeholder="Collez ici la retranscription intégrale de l'entretien..."
                         className="min-h-[120px] text-sm"
                         data-testid={`textarea-verbatim-content-${v.id}`}
                       />
@@ -536,9 +542,9 @@ export default function DataAnalysisModule({
                 <Select value={analysisMode} onValueChange={setAnalysisMode}>
                   <SelectTrigger className="w-[250px]" data-testid="select-analysis-mode"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="per_interview">Par entretien (puis synth\u00e8se)</SelectItem>
+                    <SelectItem value="per_interview">Par entretien (puis synthèse)</SelectItem>
                     <SelectItem value="global">Transversale globale</SelectItem>
-                    <SelectItem value="per_hypothesis">Par hypoth\u00e8se</SelectItem>
+                    <SelectItem value="per_hypothesis">Par hypothèse</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -555,7 +561,7 @@ export default function DataAnalysisModule({
 
             {qualitativeResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">R\u00e9sultat de l'analyse qualitative</Label>
+                <Label className="text-base font-semibold">Résultat de l'analyse qualitative</Label>
                 <Textarea
                   value={qualitativeResult}
                   onChange={e => setQualitativeResult(e.target.value)}
@@ -568,9 +574,9 @@ export default function DataAnalysisModule({
 
           <TabsContent value="quantitative" className="space-y-4 mt-4">
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Donn\u00e9es quantitatives</Label>
+              <Label className="text-base font-semibold">Données quantitatives</Label>
               <p className="text-xs text-muted-foreground">
-                Collez vos donn\u00e9es (format CSV ou tableau), ou importez un fichier Excel (.xlsx) pour l'analyse.
+                Collez vos données (format CSV ou tableau), ou importez un fichier Excel (.xlsx) pour l'analyse.
               </p>
               <div className="flex gap-2 flex-wrap">
                 <Button
@@ -587,7 +593,7 @@ export default function DataAnalysisModule({
                         if (file.name.endsWith(".csv")) {
                           const text = await file.text();
                           setQuantitativeData(text);
-                          toast({ title: "CSV import\u00e9", description: `${file.name} a \u00e9t\u00e9 charg\u00e9.` });
+                          toast({ title: "CSV importé", description: `${file.name} a été chargé.` });
                         } else {
                           const XLSX = await import("xlsx");
                           const buffer = await file.arrayBuffer();
@@ -595,7 +601,7 @@ export default function DataAnalysisModule({
                           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                           const csvData = XLSX.utils.sheet_to_csv(firstSheet, { FS: ";" });
                           setQuantitativeData(csvData);
-                          toast({ title: "Excel import\u00e9", description: `${file.name} converti en donn\u00e9es tabulaires (${workbook.SheetNames[0]}).` });
+                          toast({ title: "Excel importé", description: `${file.name} converti en données tabulaires (${workbook.SheetNames[0]}).` });
                         }
                       } catch (err: any) {
                         toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
@@ -611,7 +617,7 @@ export default function DataAnalysisModule({
               <Textarea
                 value={quantitativeData}
                 onChange={e => setQuantitativeData(e.target.value)}
-                placeholder={"Question;R\u00e9ponse 1;R\u00e9ponse 2;R\u00e9ponse 3\nQ1;45%;30%;25%\nQ2;60%;25%;15%\n..."}
+                placeholder={"Question;Réponse 1;Réponse 2;Réponse 3\nQ1;45%;30%;25%\nQ2;60%;25%;15%\n..."}
                 className="min-h-[200px] text-sm font-mono"
                 data-testid="textarea-quantitative-data"
               />
@@ -623,9 +629,9 @@ export default function DataAnalysisModule({
                 <Select value={quantitativeType} onValueChange={setQuantitativeType}>
                   <SelectTrigger className="w-[250px]" data-testid="select-quantitative-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cross_tab">Tableaux crois\u00e9s</SelectItem>
+                    <SelectItem value="cross_tab">Tableaux croisés</SelectItem>
                     <SelectItem value="trends">Analyse des tendances</SelectItem>
-                    <SelectItem value="interpretation">Interpr\u00e9tation globale</SelectItem>
+                    <SelectItem value="interpretation">Interprétation globale</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -636,13 +642,13 @@ export default function DataAnalysisModule({
                 data-testid="button-analyze-quantitative"
               >
                 {quantitativeMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                Analyser les donn\u00e9es
+                Analyser les données
               </Button>
             </div>
 
             {quantitativeResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">R\u00e9sultat de l'analyse quantitative</Label>
+                <Label className="text-base font-semibold">Résultat de l'analyse quantitative</Label>
                 <Textarea
                   value={quantitativeResult}
                   onChange={e => setQuantitativeResult(e.target.value)}
@@ -654,7 +660,7 @@ export default function DataAnalysisModule({
 
             {parsedData && parsedData.headers.length >= 2 && (
               <div className="space-y-4">
-                <Label className="text-base font-semibold">Visualisation des donn\u00e9es</Label>
+                <Label className="text-base font-semibold">Visualisation des données</Label>
 
                 <div className="overflow-x-auto rounded-md border">
                   <table className="w-full text-sm" data-testid="table-cross-tab">
@@ -761,21 +767,21 @@ export default function DataAnalysisModule({
           <TabsContent value="confront" className="space-y-4 mt-4">
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Confrontez vos r\u00e9sultats de terrain (analyse qualitative et/ou quantitative) avec la revue de litt\u00e9rature et le cadre th\u00e9orique pour identifier convergences, divergences et apports originaux.
+                Confrontez vos résultats de terrain (analyse qualitative et/ou quantitative) avec la revue de littérature et le cadre théorique pour identifier convergences, divergences et apports originaux.
               </p>
               <div className="flex gap-2 flex-wrap">
                 {qualitativeResult && <Badge variant="default" className="bg-green-600/10 text-green-600 border-green-600/20">Analyse qualitative disponible</Badge>}
                 {quantitativeResult && <Badge variant="default" className="bg-blue-600/10 text-blue-600 border-blue-600/20">Analyse quantitative disponible</Badge>}
                 {!qualitativeResult && !quantitativeResult && (
-                  <Badge variant="outline" className="text-muted-foreground">Aucune analyse disponible - r\u00e9alisez d'abord une analyse</Badge>
+                  <Badge variant="outline" className="text-muted-foreground">Aucune analyse disponible - réalisez d'abord une analyse</Badge>
                 )}
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Importer des donn\u00e9es suppl\u00e9mentaires</Label>
+              <Label className="text-base font-semibold">Importer des données supplémentaires</Label>
               <p className="text-xs text-muted-foreground">
-                Importez des retranscriptions d'entretien (.txt), des fichiers Excel/CSV avec verbatims ou donn\u00e9es de tableau crois\u00e9, ou collez directement du texte.
+                Importez des retranscriptions d'entretien (.txt), des fichiers Excel/CSV avec verbatims ou données de tableau croisé, ou collez directement du texte.
               </p>
               <div className="flex gap-2 flex-wrap">
                 <Button
@@ -792,7 +798,7 @@ export default function DataAnalysisModule({
                     size="sm"
                     onClick={() => {
                       setConfrontImportedData("");
-                      toast({ title: "Donn\u00e9es import\u00e9es effac\u00e9es" });
+                      toast({ title: "Données importées effacées" });
                     }}
                     data-testid="button-clear-confront-import"
                   >
@@ -803,14 +809,14 @@ export default function DataAnalysisModule({
               <Textarea
                 value={confrontImportedData}
                 onChange={e => setConfrontImportedData(e.target.value)}
-                placeholder="Collez ici des verbatims, r\u00e9sultats ou donn\u00e9es suppl\u00e9mentaires pour la confrontation..."
+                placeholder="Collez ici des verbatims, résultats ou données supplémentaires pour la confrontation..."
                 className="min-h-[120px] text-sm"
                 data-testid="textarea-confront-imported-data"
               />
               {confrontImportedData && (
                 <Badge variant="outline" className="text-xs">
                   <FileText className="w-3 h-3 mr-1" />
-                  Donn\u00e9es import\u00e9es: {confrontImportedData.length} caract\u00e8res
+                  Données importées: {confrontImportedData.length} caractères
                 </Badge>
               )}
             </div>
@@ -821,12 +827,12 @@ export default function DataAnalysisModule({
               data-testid="button-confront"
             >
               {confrontMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FlaskConical className="w-4 h-4 mr-2" />}
-              Confronter avec la litt\u00e9rature
+              Confronter avec la littérature
             </Button>
 
             {confrontResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Confrontation des r\u00e9sultats</Label>
+                <Label className="text-base font-semibold">Confrontation des résultats</Label>
                 <Textarea
                   value={confrontResult}
                   onChange={e => setConfrontResult(e.target.value)}
@@ -840,7 +846,7 @@ export default function DataAnalysisModule({
           <TabsContent value="validation" className="space-y-4 mt-4">
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Validez ou invalidez chaque hypoth\u00e8se de recherche en vous appuyant sur l'ensemble des r\u00e9sultats (analyses qualitative/quantitative et confrontation avec la litt\u00e9rature).
+                Validez ou invalidez chaque hypothèse de recherche en vous appuyant sur l'ensemble des résultats (analyses qualitative/quantitative et confrontation avec la littérature).
               </p>
               <div className="flex gap-2 flex-wrap">
                 {qualitativeResult && <Badge variant="outline" className="text-xs">Qualitative</Badge>}
@@ -854,12 +860,12 @@ export default function DataAnalysisModule({
               data-testid="button-validate-hypotheses"
             >
               {validateHypMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Valider les hypoth\u00e8ses
+              Valider les hypothèses
             </Button>
 
             {validationResult && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Validation des hypoth\u00e8ses</Label>
+                <Label className="text-base font-semibold">Validation des hypothèses</Label>
                 <Textarea
                   value={validationResult}
                   onChange={e => setValidationResult(e.target.value)}

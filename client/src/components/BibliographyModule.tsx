@@ -97,9 +97,10 @@ export default function BibliographyModule({
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
 
-  const combinedContext = [extraContext, contextInstructions, importedBibliography ? `\n=== BIBLIOGRAPHIE IMPORT\u00c9E ===\n${importedBibliography}` : ""].filter(Boolean).join("\n");
+  const combinedContext = [extraContext, contextInstructions, importedBibliography ? `\n=== BIBLIOGRAPHIE IMPORTÉE ===\n${importedBibliography}` : ""].filter(Boolean).join("\n");
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveStateRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (section?.config && !stateLoaded) {
@@ -122,6 +123,12 @@ export default function BibliographyModule({
     const state: SavedState = { bibliography, norm, sources, alerts, coherenceSuggestions, contextInstructions, importedBibliography };
     saveConfigMutation.mutate({ sectionId: section.id, config: state as any, projectId });
   }, [section?.id, bibliography, norm, sources, alerts, coherenceSuggestions, contextInstructions, importedBibliography, stateLoaded, projectId]);
+
+  useEffect(() => { saveStateRef.current = saveState; }, [saveState]);
+
+  useEffect(() => {
+    return () => { saveStateRef.current(); };
+  }, []);
 
   useEffect(() => {
     if (!stateLoaded) return;
@@ -228,12 +235,12 @@ export default function BibliographyModule({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-1.5">
-            <Label htmlFor="context-instructions-bibliography" className="text-base font-semibold">Contexte / consignes sp\u00e9cifiques</Label>
+            <Label htmlFor="context-instructions-bibliography" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
             <Textarea
               id="context-instructions-bibliography"
               value={contextInstructions}
               onChange={e => setContextInstructions(e.target.value)}
-              placeholder="Ex: Contraintes m\u00e9thodologiques, instructions du tuteur, contexte particulier..."
+              placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
               className="min-h-[80px] text-sm"
               data-testid="textarea-context-instructions-bibliography"
             />
@@ -259,7 +266,7 @@ export default function BibliographyModule({
                           const combined = [prev, `--- ${file.name} ---\n${text}`].filter(Boolean).join("\n\n");
                           return combined;
                         });
-                        toast({ title: "Import r\u00e9ussi", description: `"${file.name}" import\u00e9 comme r\u00e9f\u00e9rence bibliographique.` });
+                        toast({ title: "Import réussi", description: `"${file.name}" importé comme référence bibliographique.` });
                       } catch {
                         toast({ title: "Erreur d'import", description: "Impossible de lire le fichier.", variant: "destructive" });
                       }
@@ -276,7 +283,7 @@ export default function BibliographyModule({
                     size="sm"
                     onClick={() => {
                       setImportedBibliography("");
-                      toast({ title: "Import supprim\u00e9" });
+                      toast({ title: "Import supprimé" });
                     }}
                     data-testid="button-clear-imported-bib"
                   >
@@ -286,23 +293,23 @@ export default function BibliographyModule({
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Importez un m\u00e9moire ou une bibliographie existante pour que l'IA en extraie les r\u00e9f\u00e9rences et les convertisse dans la norme choisie.
+              Importez un mémoire ou une bibliographie existante pour que l'IA en extraie les références et les convertisse dans la norme choisie.
             </p>
             {importedBibliography && (
               <Textarea
                 value={importedBibliography}
                 onChange={e => setImportedBibliography(e.target.value)}
                 className="min-h-[100px] text-sm font-mono"
-                placeholder="Contenu import\u00e9..."
+                placeholder="Contenu importé..."
                 data-testid="textarea-imported-bibliography"
               />
             )}
           </div>
 
           <div className="bg-muted/50 rounded-md p-4 text-sm text-muted-foreground">
-            G\u00e9n\u00e9rez automatiquement votre bibliographie \u00e0 partir des sources cit\u00e9es dans vos sections valid\u00e9es
-            (revue de litt\u00e9rature, cadre conceptuel, etc.). Vous pouvez changer de norme bibliographique \u00e0 tout moment.
-            {importedBibliography && " Les r\u00e9f\u00e9rences import\u00e9es seront \u00e9galement prises en compte."}
+            Générez automatiquement votre bibliographie à partir des sources citées dans vos sections validées
+            (revue de littérature, cadre conceptuel, etc.). Vous pouvez changer de norme bibliographique à tout moment.
+            {importedBibliography && " Les références importées seront également prises en compte."}
           </div>
 
           <div className="flex items-end gap-4 flex-wrap">

@@ -95,6 +95,12 @@ export default function MethodologyModule({
     setStateLoaded(true);
   }, [section?.config, stateLoaded]);
 
+  const doSaveRef = useRef(doSave);
+  useEffect(() => { doSaveRef.current = doSave; }, [doSave]);
+  useEffect(() => {
+    return () => { doSaveRef.current(); };
+  }, []);
+
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!stateLoaded) return;

@@ -249,7 +249,7 @@ function FeatureModule({ mod, index, total, t, tArray }: { mod: any; index: numb
               data-testid={`button-expand-feature-${index}`}
             >
               {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              {expanded ? (t("common.close")) : "Voir le d\u00e9tail"}
+              {expanded ? (t("common.close")) : "Voir le détail"}
             </button>
 
             {expanded && (
@@ -290,7 +290,7 @@ function PricingSection() {
     if (payment === "success" && sessionId) {
       confirmPayment.mutate(sessionId, {
         onSuccess: () => {
-          toast({ title: "Paiement confirm\u00e9", description: "Vos modules ont \u00e9t\u00e9 activ\u00e9s avec succ\u00e8s." });
+          toast({ title: "Paiement confirmé", description: "Vos modules ont été activés avec succès." });
           window.history.replaceState({}, "", window.location.pathname);
         },
         onError: () => {
@@ -298,7 +298,7 @@ function PricingSection() {
         },
       });
     } else if (payment === "cancelled") {
-      toast({ title: "Paiement annul\u00e9", description: "Votre paiement a \u00e9t\u00e9 annul\u00e9." });
+      toast({ title: "Paiement annulé", description: "Votre paiement a été annulé." });
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -462,7 +462,7 @@ function PricingSection() {
                               {lang === "fr" ? packDef.fr : packDef.en}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {lang === "fr" ? "Tout inclus, \u00e9conomisez !" : "All included, save!"}
+                              {lang === "fr" ? "Tout inclus, économisez !" : "All included, save!"}
                             </span>
                           </div>
                         </div>

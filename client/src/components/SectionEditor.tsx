@@ -574,8 +574,8 @@ function VersionHistoryDialog({
                   >
                     {line.type === "same" && (
                       <>
-                        <div className="px-3 py-0.5 border-r border-border/30 whitespace-pre-wrap break-words">{line.text || "\u00A0"}</div>
-                        <div className="px-3 py-0.5 whitespace-pre-wrap break-words">{line.text || "\u00A0"}</div>
+                        <div className="px-3 py-0.5 border-r border-border/30 whitespace-pre-wrap break-words">{line.text || " "}</div>
+                        <div className="px-3 py-0.5 whitespace-pre-wrap break-words">{line.text || " "}</div>
                       </>
                     )}
                     {line.type === "removed" && (
