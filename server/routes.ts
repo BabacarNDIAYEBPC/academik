@@ -258,78 +258,249 @@ Si des articles ou ouvrages de la revue de littérature sont disponibles dans le
 }
 
 function getPlanTask(projectType: string): string {
-  const common = `
+  const formatting = `
 
 RÈGLES DE FORMATAGE OBLIGATOIRES:
-- Utilise UNIQUEMENT la numérotation académique classique: I., II., III. pour les parties principales, puis 1., 2., 3. pour les sous-parties, puis 1.1., 1.2. pour les sous-sous-parties.
 - NE JAMAIS utiliser de symboles Markdown (pas de **, ##, *, -, backticks).
 - NE JAMAIS utiliser de balises HTML, d'émojis, de symboles techniques ou de caractères spéciaux.
 - Texte propre et lisible, prêt à être copié directement dans un document Word.
-- Les titres des chapitres et sous-parties doivent être contextualisés et refléter le sujet spécifique du travail.
-- Chaque titre doit intégrer les termes clés du sujet, de la problématique ou des hypothèses validées.
-- Pour chaque partie et sous-partie: description brève du contenu attendu (2-3 phrases) en retrait.
-- Le plan doit montrer la progression logique de la réflexion.
-
-EXEMPLE DE FORMAT ATTENDU:
-I. Introduction
-   Accroche et mise en contexte du sujet. Présentation de la problématique et annonce du plan.
-
-II. [Titre contextualisé de la première partie]
-   1. [Sous-titre contextualisé]
-      Description du contenu attendu.
-   2. [Sous-titre contextualisé]
-      Description du contenu attendu.`;
+- Numérotation conforme au plan ci-dessus. Les grandes parties sont en MAJUSCULES sans numéro. Les sous-parties utilisent la numérotation décimale (1.1, 1.2, 2.1, etc.).
+- Aucun sous-titre parasite ou ajouté en dehors de la structure imposée.
+- CONTEXTUALISATION: Remplace "Concept 1", "Concept 2", "Concept 3" par les concepts réels identifiés dans le sujet et la problématique du projet. Remplace "Hypothèse 1", "Hypothèse 2", "Hypothèse 3" par les hypothèses réelles du projet. Tous les titres doivent refléter le sujet spécifique.
+- Pour chaque sous-partie: ajoute une description brève (2-3 phrases) du contenu attendu, indentée sous le titre.`;
 
   const plans: Record<string, string> = {
     memoire: `=== TÂCHE: PLAN DU MÉMOIRE ===
-Génère un plan cohérent et structuré en utilisant des TITRES CONTEXTUALISÉS liés au sujet. Le plan doit contenir les parties suivantes (à contextualiser):
-I. Introduction (accroche, contexte, annonce du plan)
-II. Cadre conceptuel — titre à contextualiser selon les concepts clés identifiés
-III. Cadre théorique — titre à contextualiser selon les courants théoriques mobilisés
-IV. Revue de littérature — titre à contextualiser selon les thématiques
-V. Méthodologie — préciser le type (quali/quanti/mixte) dans le titre
-VI. Analyse et discussion des résultats — lier au sujet
-VII. Conclusion et perspectives
-VIII. Bibliographie
-IX. Annexes${common}`,
+Génère le plan suivant EN RESPECTANT STRICTEMENT cette structure figée. Contextualise UNIQUEMENT les titres selon le sujet du projet. Ne modifie pas la structure, n'ajoute et ne supprime aucune partie.
+
+INTRODUCTION GÉNÉRALE
+   Contexte général du sujet
+   Intérêt et justification du choix du sujet
+   Problématisation
+   Question de recherche / question de départ
+   Objectifs de la recherche
+   Hypothèses de recherche
+   Structure du travail
+
+CADRE CONCEPTUEL
+   1.1 Concept 1
+      1.1.1 Définition du concept
+      1.1.2 Enjeux et dimensions
+      1.1.3 Lien avec la problématique
+   1.2 Concept 2
+      1.2.1 Définition du concept
+      1.2.2 Enjeux et dimensions
+      1.2.3 Lien avec la problématique
+   1.3 Concept 3
+      1.3.1 Définition du concept
+      1.3.2 Enjeux et dimensions
+      1.3.3 Lien avec la problématique
+
+CADRE THÉORIQUE
+   2.1 Théories et modèles mobilisés
+      2.1.1 Principaux courants théoriques
+      2.1.2 Apports des auteurs de référence
+      2.1.3 Limites des approches théoriques
+   2.2 Positionnement de la recherche
+      2.2.1 Choix du cadre théorique
+      2.2.2 Justification du positionnement
+      2.2.3 Cohérence avec le sujet et la problématique
+   2.3 Articulation entre cadre théorique et hypothèses
+      2.3.1 Lien théories – hypothèses
+      2.3.2 Construction du modèle d'analyse
+      2.3.3 Hypothèses opérationnalisées
+
+CADRE MÉTHODOLOGIQUE
+   3.1 Choix méthodologique général
+   3.2 Phase préopératoire / phase méthodologique
+   3.3 Population cible et échantillonnage
+   3.4 Outils de collecte des données
+   3.5 Limites méthodologiques
+
+ANALYSE ET INTERPRÉTATION DES DONNÉES
+   4.1 Analyse des entretiens / données recueillies
+      4.1.1 Thèmes émergents
+      4.1.2 Analyse des verbatims
+      4.1.3 Organisation des résultats
+   4.2 Interprétation des résultats
+      4.2.1 Lecture analytique des données
+      4.2.2 Mise en relation avec la problématique
+      4.2.3 Portée des résultats
+   4.3 Discussion et confrontation avec la revue de littérature
+      4.3.1 Convergences avec les travaux existants
+      4.3.2 Divergences observées
+      4.3.3 Apports spécifiques de la recherche
+   4.4 Synthèse
+   4.5 Validation ou invalidation des hypothèses
+      4.5.1 Hypothèse 1
+      4.5.2 Hypothèse 2
+      4.5.3 Hypothèse 3
+
+CONCLUSION GÉNÉRALE
+   Rappel de la problématique
+   Réponse à la question de recherche
+   Apports théoriques et pratiques
+   Limites de l'étude
+   Perspectives de recherche ou d'amélioration professionnelle
+
+BIBLIOGRAPHIE
+ANNEXES${formatting}`,
 
     tfe: `=== TÂCHE: PLAN DU TFE ===
-Génère un plan conforme aux exigences du TFE santé/social avec des TITRES CONTEXTUALISÉS. Le plan doit contenir les parties suivantes (à contextualiser):
-I. Introduction (contexte professionnel, motivation)
-II. Situation d'appel — contextualiser selon la situation clinique/professionnelle
-III. Questionnement / Question de départ — formuler en lien avec la situation
-IV. Cadre conceptuel — titre reflétant les concepts professionnels
-V. Cadre théorique — titre lié aux modèles de soins/intervention
-VI. Méthodologie — préciser l'approche dans le titre
-VII. Analyse des résultats — lier aux hypothèses opérationnelles
-VIII. Recommandations professionnelles — contextualiser selon le terrain
-IX. Conclusion
-X. Bibliographie
-XI. Annexes${common}`,
+Génère le plan suivant EN RESPECTANT STRICTEMENT cette structure figée. Contextualise UNIQUEMENT les titres selon le sujet du projet. Ne modifie pas la structure, n'ajoute et ne supprime aucune partie.
+
+INTRODUCTION GÉNÉRALE
+   Contexte général du sujet
+   Intérêt et justification du choix du sujet
+   Problématisation
+   Question de recherche / question de départ
+   Objectifs de la recherche
+   Hypothèses de recherche
+   Structure du travail
+
+CADRE CONCEPTUEL
+   1.1 Concept 1
+      1.1.1 Définition du concept
+      1.1.2 Enjeux et dimensions
+      1.1.3 Lien avec la problématique
+   1.2 Concept 2
+      1.2.1 Définition du concept
+      1.2.2 Enjeux et dimensions
+      1.2.3 Lien avec la problématique
+   1.3 Concept 3
+      1.3.1 Définition du concept
+      1.3.2 Enjeux et dimensions
+      1.3.3 Lien avec la problématique
+
+CADRE THÉORIQUE
+   2.1 Théories et modèles mobilisés
+      2.1.1 Principaux courants théoriques
+      2.1.2 Apports des auteurs de référence
+      2.1.3 Limites des approches théoriques
+   2.2 Positionnement de la recherche
+      2.2.1 Choix du cadre théorique
+      2.2.2 Justification du positionnement
+      2.2.3 Cohérence avec le sujet et la problématique
+   2.3 Articulation entre cadre théorique et hypothèses
+      2.3.1 Lien théories – hypothèses
+      2.3.2 Construction du modèle d'analyse
+      2.3.3 Hypothèses opérationnalisées
+
+CADRE MÉTHODOLOGIQUE
+   3.1 Choix méthodologique général
+   3.2 Phase préopératoire / phase méthodologique
+   3.3 Population cible et échantillonnage
+   3.4 Outils de collecte des données
+   3.5 Limites méthodologiques
+
+ANALYSE ET INTERPRÉTATION DES DONNÉES
+   4.1 Analyse des entretiens / données recueillies
+      4.1.1 Thèmes émergents
+      4.1.2 Analyse des verbatims
+      4.1.3 Organisation des résultats
+   4.2 Interprétation des résultats
+      4.2.1 Lecture analytique des données
+      4.2.2 Mise en relation avec la problématique
+      4.2.3 Portée des résultats
+   4.3 Discussion et confrontation avec la revue de littérature
+      4.3.1 Convergences avec les travaux existants
+      4.3.2 Divergences observées
+      4.3.3 Apports spécifiques de la recherche
+   4.4 Synthèse
+   4.5 Validation ou invalidation des hypothèses
+      4.5.1 Hypothèse 1
+      4.5.2 Hypothèse 2
+      4.5.3 Hypothèse 3
+
+CONCLUSION GÉNÉRALE
+   Rappel de la problématique
+   Réponse à la question de recherche
+   Apports théoriques et pratiques
+   Limites de l'étude
+   Perspectives de recherche ou d'amélioration professionnelle
+
+BIBLIOGRAPHIE
+ANNEXES${formatting}`,
 
     rapport_stage: `=== TÂCHE: PLAN DU RAPPORT DE STAGE ===
-Génère un plan professionnel avec des TITRES CONTEXTUALISÉS liés au stage. Le plan doit contenir les parties suivantes (à contextualiser):
-I. Introduction (contexte, objectifs du stage)
-II. Présentation de la structure d'accueil — nommer le type de structure
-III. Présentation des missions — contextualiser selon les missions réelles
-IV. Problématique professionnelle — titre reflétant la question posée
-V. Analyse des pratiques — lier aux missions et observations
-VI. Apports et limites — relier au développement professionnel
-VII. Conclusion et perspectives
-VIII. Bibliographie
-IX. Annexes${common}`,
+Génère un plan professionnel avec des TITRES CONTEXTUALISÉS liés au stage. Respecte strictement cette structure:
+
+INTRODUCTION
+   Contexte du stage
+   Objectifs du stage
+   Annonce du plan
+
+PRÉSENTATION DE LA STRUCTURE D'ACCUEIL
+   1.1 Organisation et missions de la structure
+   1.2 Environnement professionnel
+   1.3 Place du stagiaire dans la structure
+
+MISSIONS ET ACTIVITÉS RÉALISÉES
+   2.1 Description des missions principales
+   2.2 Activités quotidiennes et responsabilités
+   2.3 Projets spécifiques menés
+
+PROBLÉMATIQUE PROFESSIONNELLE
+   3.1 Identification de la problématique
+   3.2 Analyse de la situation
+   3.3 Méthodologie d'intervention
+
+ANALYSE DES PRATIQUES
+   4.1 Compétences mobilisées
+   4.2 Résultats obtenus
+   4.3 Difficultés rencontrées et solutions apportées
+
+APPORTS ET LIMITES
+   5.1 Apports professionnels et personnels
+   5.2 Limites de l'expérience
+   5.3 Développement des compétences
+
+CONCLUSION ET PERSPECTIVES
+   Bilan du stage
+   Perspectives professionnelles
+
+BIBLIOGRAPHIE
+ANNEXES${formatting}`,
 
     vae: `=== TÂCHE: PLAN DU DOSSIER VAE ===
-Génère un plan structuré pour le dossier VAE avec des TITRES CONTEXTUALISÉS. Le plan doit contenir les parties suivantes (à contextualiser):
-I. Introduction (projet professionnel, motivation)
-II. Présentation du candidat — parcours et positionnement
-III. Parcours professionnel — chronologie et évolution
-IV. Motivation de la démarche VAE — projet et diplôme visé
-V. Blocs de compétences — TITRES SPÉCIFIQUES selon le référentiel du diplôme
-VI. Situations professionnelles — titres contextualisés par bloc
-VII. Conclusion et projection professionnelle
-VIII. Bibliographie (si exigée)
-IX. Annexes (preuves)${common}`,
+Génère un plan structuré pour le dossier VAE avec des TITRES CONTEXTUALISÉS. Respecte strictement cette structure:
+
+INTRODUCTION
+   Projet professionnel et motivation
+   Présentation de la démarche
+
+PRÉSENTATION DU CANDIDAT
+   1.1 Parcours et positionnement professionnel
+   1.2 Formation initiale et continue
+
+PARCOURS PROFESSIONNEL
+   2.1 Chronologie des expériences
+   2.2 Évolution des responsabilités
+
+MOTIVATION DE LA DÉMARCHE VAE
+   3.1 Projet professionnel
+   3.2 Diplôme visé et référentiel
+
+BLOCS DE COMPÉTENCES
+   4.1 Bloc de compétences 1
+      4.1.1 Situation professionnelle
+      4.1.2 Compétences mobilisées
+      4.1.3 Preuves et résultats
+   4.2 Bloc de compétences 2
+      4.2.1 Situation professionnelle
+      4.2.2 Compétences mobilisées
+      4.2.3 Preuves et résultats
+   4.3 Bloc de compétences 3
+      4.3.1 Situation professionnelle
+      4.3.2 Compétences mobilisées
+      4.3.3 Preuves et résultats
+
+CONCLUSION ET PROJECTION PROFESSIONNELLE
+   Bilan des compétences acquises
+   Perspectives d'évolution
+
+BIBLIOGRAPHIE
+ANNEXES${formatting}`,
   };
   return plans[projectType] || plans.memoire;
 }

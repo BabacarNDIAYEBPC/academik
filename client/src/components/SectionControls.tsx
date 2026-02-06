@@ -295,8 +295,8 @@ export default function SectionControls({
   onLiteratureConfigChange,
   activeVersion,
 }: SectionControlsProps) {
-  const [showVariables, setShowVariables] = useState(true);
-  const [showFilters, setShowFilters] = useState(sectionKey === "literature_review");
+  const [showVariables, setShowVariables] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [pendingChange, setPendingChange] = useState<{ key: string; value: string } | null>(null);
   const { toast } = useToast();
 

@@ -109,6 +109,9 @@ shared/
 - 2026-02-06: Auto-save literature review state (articles, selections, filters, analyses, diagrams) to section config with 3s debounce
 - 2026-02-06: Added POST /api/sections/:id/config endpoint with ownership verification and config merge
 - 2026-02-06: Plan prompt updated: academic numbering (I., 1., 1.1.) without Markdown symbols or special characters
+- 2026-02-06: UI/UX: All variable/option panels collapsed by default across all modules (clean, non-intimidating interface)
+- 2026-02-06: Literature Review: Actions and Illustrations sections collapsed by default with toggle buttons
+- 2026-02-06: Plan structure: Fixed academic plan template for Mémoire/TFE (INTRODUCTION, CADRE CONCEPTUEL, CADRE THÉORIQUE, CADRE MÉTHODOLOGIQUE, ANALYSE, CONCLUSION, BIBLIOGRAPHIE, ANNEXES)
 
 ## User Preferences
 - Language: French (UI and AI responses)

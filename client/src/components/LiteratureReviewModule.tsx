@@ -22,7 +22,7 @@ import { SECTION_LABELS } from "@shared/schema";
 import type { ProjectSection } from "@shared/schema";
 import ReactMarkdown from "react-markdown";
 import {
-  Search, Loader2, ExternalLink, BookOpen, ChevronLeft, ChevronRight,
+  Search, Loader2, ExternalLink, BookOpen, ChevronLeft, ChevronRight, ChevronDown,
   FileText, GitCompare, Map as MapIcon,
   CheckSquare, Eye, Save, Check, X, ArrowUpDown, Filter, SlidersHorizontal,
 } from "lucide-react";
@@ -120,6 +120,8 @@ export default function LiteratureReviewModule({
   const [filterYear, setFilterYear] = useState<string>("");
   const [sortBy, setSortBy] = useState<string>("default");
   const [showFilters, setShowFilters] = useState(false);
+  const [showActions, setShowActions] = useState(false);
+  const [showIllustrations, setShowIllustrations] = useState(false);
   const [diagrams, setDiagrams] = useState<{ code: string; title: string; type: string }[]>([]);
   const [showDiagramDialog, setShowDiagramDialog] = useState(false);
   const [activeDiagram, setActiveDiagram] = useState<{ code: string; title: string; type: string } | null>(null);
@@ -785,113 +787,142 @@ export default function LiteratureReviewModule({
                 </div>
               )}
 
-              <div className="flex items-center gap-2 flex-wrap p-3 rounded-lg bg-muted/30 border">
-                <span className="text-xs font-medium text-muted-foreground mr-1">Actions :</span>
-                {selectedArticles.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAnalyze(selectedArticles.length === 1 ? "single" : "multiple", undefined, "summary_selected")}
-                    disabled={isAnyActionRunning}
-                    data-testid="button-summary-selected"
-                  >
-                    {activeAction === "summary_selected" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
-                    Résumé ({selectedArticles.length})
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSummaryAll}
-                  disabled={isAnyActionRunning}
-                  data-testid="button-summary-all"
+              <div className="rounded-lg border">
+                <button
+                  type="button"
+                  className="flex items-center justify-between w-full p-3 text-left hover-elevate rounded-lg"
+                  onClick={() => setShowActions(!showActions)}
+                  data-testid="button-toggle-actions"
                 >
-                  {activeAction === "summary_all" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
-                  Résumé de tous ({filteredArticles.length})
-                </Button>
-                {selectedArticles.length >= 2 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAnalyze("confrontation")}
-                    disabled={isAnyActionRunning}
-                    data-testid="button-confrontation"
-                  >
-                    {activeAction === "confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
-                    Confronter
-                  </Button>
+                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    <Eye className="w-4 h-4" /> Actions d'analyse
+                    {selectedArticles.length > 0 && <Badge variant="secondary" className="ml-1">{selectedArticles.length}</Badge>}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showActions ? "rotate-180" : ""}`} />
+                </button>
+                {showActions && (
+                  <div className="flex items-center gap-2 flex-wrap p-3 pt-0">
+                    {selectedArticles.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAnalyze(selectedArticles.length === 1 ? "single" : "multiple", undefined, "summary_selected")}
+                        disabled={isAnyActionRunning}
+                        data-testid="button-summary-selected"
+                      >
+                        {activeAction === "summary_selected" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
+                        Résumé ({selectedArticles.length})
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSummaryAll}
+                      disabled={isAnyActionRunning}
+                      data-testid="button-summary-all"
+                    >
+                      {activeAction === "summary_all" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
+                      Résumé de tous ({filteredArticles.length})
+                    </Button>
+                    {selectedArticles.length >= 2 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAnalyze("confrontation")}
+                        disabled={isAnyActionRunning}
+                        data-testid="button-confrontation"
+                      >
+                        {activeAction === "confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
+                        Confronter
+                      </Button>
+                    )}
+                    {selectedArticles.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAnalyze("mapping")}
+                        disabled={isAnyActionRunning}
+                        data-testid="button-mapping"
+                      >
+                        {activeAction === "mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                        Mapping
+                      </Button>
+                    )}
+                    <div className="flex items-center gap-1 ml-auto">
+                      <Select value={bibliographyNorm} onValueChange={setBibliographyNorm}>
+                        <SelectTrigger className="w-[120px]" data-testid="select-bib-norm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="apa7">APA 7</SelectItem>
+                          <SelectItem value="vancouver">Vancouver</SelectItem>
+                          <SelectItem value="mla">MLA</SelectItem>
+                          <SelectItem value="chicago">Chicago</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleBibliography(selectedArticles.length > 0 ? undefined : filteredArticles)}
+                        disabled={isAnyActionRunning}
+                        data-testid="button-generate-bib"
+                      >
+                        {activeAction === "bibliography" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <BookOpen className="w-4 h-4 mr-1" />}
+                        Bibliographie {selectedArticles.length > 0 ? `(${selectedArticles.length})` : `(tous)`}
+                      </Button>
+                    </div>
+                  </div>
                 )}
-                {selectedArticles.length > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAnalyze("mapping")}
-                    disabled={isAnyActionRunning}
-                    data-testid="button-mapping"
-                  >
-                    {activeAction === "mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
-                    Mapping
-                  </Button>
-                )}
-                <div className="flex items-center gap-1 ml-auto">
-                  <Select value={bibliographyNorm} onValueChange={setBibliographyNorm}>
-                    <SelectTrigger className="w-[120px]" data-testid="select-bib-norm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="apa7">APA 7</SelectItem>
-                      <SelectItem value="vancouver">Vancouver</SelectItem>
-                      <SelectItem value="mla">MLA</SelectItem>
-                      <SelectItem value="chicago">Chicago</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleBibliography(selectedArticles.length > 0 ? undefined : filteredArticles)}
-                    disabled={isAnyActionRunning}
-                    data-testid="button-generate-bib"
-                  >
-                    {activeAction === "bibliography" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <BookOpen className="w-4 h-4 mr-1" />}
-                    Bibliographie {selectedArticles.length > 0 ? `(${selectedArticles.length})` : `(tous)`}
-                  </Button>
-                </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap p-3 rounded-lg bg-muted/20 border">
-                <span className="text-xs font-medium text-muted-foreground mr-1">Illustrations :</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleGenerateDiagram("article_synthesis")}
-                  disabled={isAnyActionRunning}
-                  data-testid="button-diagram-synthesis"
+              <div className="rounded-lg border">
+                <button
+                  type="button"
+                  className="flex items-center justify-between w-full p-3 text-left hover-elevate rounded-lg"
+                  onClick={() => setShowIllustrations(!showIllustrations)}
+                  data-testid="button-toggle-illustrations"
                 >
-                  {activeAction === "diagram_synthesis" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
-                  Schéma de synthèse
-                </Button>
-                {(selectedArticles.length >= 2 || filteredArticles.length >= 2) && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleGenerateDiagram("article_confrontation")}
-                    disabled={isAnyActionRunning}
-                    data-testid="button-diagram-confrontation"
-                  >
-                    {activeAction === "diagram_confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
-                    Schéma de confrontation
-                  </Button>
+                  <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                    <MapIcon className="w-4 h-4" /> Illustrations & diagrammes
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showIllustrations ? "rotate-180" : ""}`} />
+                </button>
+                {showIllustrations && (
+                  <div className="flex items-center gap-2 flex-wrap p-3 pt-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleGenerateDiagram("article_synthesis")}
+                      disabled={isAnyActionRunning}
+                      data-testid="button-diagram-synthesis"
+                    >
+                      {activeAction === "diagram_synthesis" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                      Schéma de synthèse
+                    </Button>
+                    {(selectedArticles.length >= 2 || filteredArticles.length >= 2) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleGenerateDiagram("article_confrontation")}
+                        disabled={isAnyActionRunning}
+                        data-testid="button-diagram-confrontation"
+                      >
+                        {activeAction === "diagram_confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
+                        Schéma de confrontation
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleGenerateDiagram("article_mapping")}
+                      disabled={isAnyActionRunning}
+                      data-testid="button-diagram-mapping"
+                    >
+                      {activeAction === "diagram_mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
+                      Carte de mapping
+                    </Button>
+                  </div>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleGenerateDiagram("article_mapping")}
-                  disabled={isAnyActionRunning}
-                  data-testid="button-diagram-mapping"
-                >
-                  {activeAction === "diagram_mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
-                  Carte de mapping
-                </Button>
               </div>
 
               <div className="space-y-2">
