@@ -1,0 +1,168 @@
+📘 RÈGLE STRUCTURANTE — PLAN PERSONNALISÉ & LIBELLÉS DYNAMIQUES
+
+(Obligatoire pour la génération du plan)
+
+1. Principe fondamental
+
+Le plan généré par l’IA ne doit jamais utiliser de libellés génériques figés.
+
+❌ Interdit :
+
+« Concept 1 / Concept 2 / Concept 3 »
+
+« Analyse des résultats »
+
+« Présentation du terrain »
+
+« Synthèse des travaux »
+
+👉 Ces libellés ne sont que des exemples pédagogiques, jamais des sorties finales.
+
+2. Personnalisation obligatoire des intitulés
+
+Pour chaque projet, l’IA doit générer :
+
+des titres de parties personnalisés,
+
+des sous-parties contextualisées,
+
+directement liés :
+
+au sujet,
+
+à la problématique,
+
+aux hypothèses,
+
+au domaine,
+
+au terrain ou contexte professionnel.
+
+👉 Les intitulés doivent varier d’un sujet à l’autre.
+
+3. Règles de génération des libellés
+Cadre conceptuel
+
+Les parties 1.1 / 1.2 / 1.3 doivent correspondre à :
+
+de vrais concepts identifiés,
+
+explicitement nommés,
+
+pertinents pour la problématique.
+
+Exemple (indicatif, non figé) :
+
+1.1 La motivation au travail en milieu hospitalier
+
+1.2 La qualité de vie au travail des infirmiers
+
+1.3 Le rôle du management de proximité
+
+Revue de littérature
+
+Les sous-parties doivent refléter :
+
+les axes théoriques réels,
+
+les courants identifiés dans la littérature,
+
+les enjeux spécifiques du sujet.
+
+Exemple :
+
+1.1 Approches managériales de la qualité de vie au travail
+
+1.2 Études empiriques sur la motivation des soignants
+
+1.3 Limites des travaux existants en contexte hospitalier
+
+Analyse et discussion
+
+Les intitulés doivent être liés :
+
+aux résultats obtenus,
+
+aux hypothèses formulées,
+
+aux variables étudiées.
+
+Exemple :
+
+1.1 Effets du management sur la motivation perçue
+
+1.2 Impact des conditions de travail sur l’engagement
+
+2.1 Confrontation des résultats aux travaux de X et Y
+
+4. Personnalisation contrôlable par l’utilisateur
+
+Avant validation finale du plan, l’utilisateur doit pouvoir :
+
+modifier chaque intitulé,
+
+demander une régénération ciblée :
+
+d’un chapitre entier,
+
+d’une partie précise,
+
+ou d’un seul libellé.
+
+5. Régénération des intitulés (similaire ou différente)
+
+Lorsqu’un utilisateur clique sur « Regénérer le plan », il doit pouvoir choisir :
+
+Option A — Plan similaire
+
+même structure,
+
+intitulés reformulés,
+
+meilleure précision sémantique.
+
+Option B — Plan différent
+
+structure alternative,
+
+nouveaux axes d’analyse,
+
+réorganisation des parties,
+
+nouveaux intitulés.
+
+6. Interdiction des plans « génériques »
+
+L’IA doit explicitement éviter :
+
+les plans standards copiables d’un sujet à l’autre,
+
+les intitulés passe-partout,
+
+les structures scolaires non contextualisées.
+
+👉 Le plan doit être défendable devant un tuteur ou un jury.
+
+7. Objectif pédagogique
+
+Garantir que le plan :
+
+reflète une réflexion réelle,
+
+montre une appropriation du sujet,
+
+démontre une logique scientifique ou professionnelle,
+
+ne ressemble jamais à un modèle pré-fabriqué.
+
+✅ SYNTHÈSE À METTRE EN AVANT
+
+Libellés dynamiques et contextualisés
+
+Aucun intitulé générique
+
+Personnalisation totale
+
+Variation d’un sujet à l’autre
+
+Contrôle utilisateur à chaque niveau

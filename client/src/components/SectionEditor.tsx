@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
   useGenerateSection,
@@ -12,13 +13,16 @@ import {
   useUnvalidateSection,
   useSectionVersions,
   useActivateVersion,
+  useUpdateSectionStatus,
+  useStatusHistory,
 } from "@/hooks/use-sections";
-import { SECTION_LABELS } from "@shared/schema";
+import { SECTION_LABELS, SECTION_STATUS_LABELS } from "@shared/schema";
 import type { ProjectSection, SectionVersion } from "@shared/schema";
 import ReactMarkdown from "react-markdown";
 import {
   Sparkles, Pencil, Check, RefreshCw, History, ChevronDown, ChevronUp,
-  Loader2, Save, X, ArrowLeft, Copy, RotateCcw,
+  Loader2, Save, X, ArrowLeft, Copy, RotateCcw, Clock, Send,
+  FileCheck, Archive, CircleDot,
 } from "lucide-react";
 import {
   Dialog,
@@ -27,6 +31,36 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+
+const STATUS_COLORS: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  generated: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  modified: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  validated: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  sent_tutor: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  awaiting_correction: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  corrected: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+  final_version: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  archived: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+};
+
+const STATUS_ICONS: Record<string, any> = {
+  draft: CircleDot,
+  generated: Sparkles,
+  modified: Pencil,
+  validated: Check,
+  sent_tutor: Send,
+  awaiting_correction: Clock,
+  corrected: FileCheck,
+  final_version: FileCheck,
+  archived: Archive,
+};
+
+const STATUS_WORKFLOW_ORDER = [
+  "draft", "generated", "modified", "validated",
+  "sent_tutor", "awaiting_correction", "corrected",
+  "final_version", "archived",
+];
 
 interface SectionEditorProps {
   projectId: number;
@@ -52,6 +86,7 @@ export default function SectionEditor({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+  const [showStatusTimeline, setShowStatusTimeline] = useState(false);
   const [showRegenerateChoice, setShowRegenerateChoice] = useState(false);
   const { toast } = useToast();
 
@@ -60,9 +95,11 @@ export default function SectionEditor({
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
   const activateVersionMutation = useActivateVersion();
+  const updateStatusMutation = useUpdateSectionStatus();
 
   const label = SECTION_LABELS[sectionKey] || sectionKey;
-  const isValidated = section?.status === "validated";
+  const currentStatus = section?.status || "draft";
+  const isValidated = currentStatus === "validated" || currentStatus === "final_version";
   const hasContent = !!activeVersion?.content;
   const isPending = generateMutation.isPending;
 
@@ -124,10 +161,27 @@ export default function SectionEditor({
     );
   };
 
+  const handleStatusChange = (newStatus: string) => {
+    if (!section) return;
+    updateStatusMutation.mutate(
+      { sectionId: section.id, status: newStatus, projectId },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Statut mis à jour",
+            description: `${label} : ${SECTION_STATUS_LABELS[newStatus] || newStatus}`,
+          });
+        },
+      }
+    );
+  };
+
   const startEditing = () => {
     setEditContent(activeVersion?.content || "");
     setIsEditing(true);
   };
+
+  const StatusIcon = STATUS_ICONS[currentStatus] || CircleDot;
 
   return (
     <div className="space-y-4">
@@ -137,28 +191,50 @@ export default function SectionEditor({
             <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
               <Sparkles className="w-5 h-5 text-primary" />
               {label}
-              {isValidated && (
-                <Badge variant="default" className="bg-green-600 text-white" data-testid={`badge-validated-${sectionKey}`}>
-                  <Check className="w-3 h-3 mr-1" /> Validé
-                </Badge>
-              )}
-              {section && !isValidated && (
-                <Badge variant="secondary" data-testid={`badge-draft-${sectionKey}`}>
-                  Brouillon
-                </Badge>
-              )}
             </CardTitle>
+            {section && (
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <Badge className={`${STATUS_COLORS[currentStatus] || ""} no-default-hover-elevate no-default-active-elevate`} data-testid={`badge-status-${sectionKey}`}>
+                  <StatusIcon className="w-3 h-3 mr-1" />
+                  {SECTION_STATUS_LABELS[currentStatus] || currentStatus}
+                </Badge>
+                <Select value={currentStatus} onValueChange={handleStatusChange} data-testid={`select-status-${sectionKey}`}>
+                  <SelectTrigger className="w-[200px] h-8 text-xs" data-testid={`trigger-status-${sectionKey}`}>
+                    <SelectValue placeholder="Changer le statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_WORKFLOW_ORDER.map((s) => (
+                      <SelectItem key={s} value={s} data-testid={`status-option-${s}`}>
+                        {SECTION_STATUS_LABELS[s] || s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
-          {section && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowHistory(true)}
-              data-testid={`button-history-${sectionKey}`}
-            >
-              <History className="w-4 h-4 mr-1" /> Historique
-            </Button>
-          )}
+          <div className="flex gap-1">
+            {section && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowStatusTimeline(true)}
+                data-testid={`button-status-timeline-${sectionKey}`}
+              >
+                <Clock className="w-4 h-4 mr-1" /> Suivi
+              </Button>
+            )}
+            {section && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowHistory(true)}
+                data-testid={`button-history-${sectionKey}`}
+              >
+                <History className="w-4 h-4 mr-1" /> Historique
+              </Button>
+            )}
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -201,7 +277,7 @@ export default function SectionEditor({
                 <Button variant="outline" size="sm" onClick={() => setShowRegenerateChoice(true)} data-testid={`button-regenerate-${sectionKey}`}>
                   <RefreshCw className="w-4 h-4 mr-1" /> Changer
                 </Button>
-                {!isValidated ? (
+                {currentStatus !== "validated" && currentStatus !== "final_version" ? (
                   <Button size="sm" onClick={handleValidate} data-testid={`button-validate-${sectionKey}`}>
                     <Check className="w-4 h-4 mr-1" /> Valider cette version
                   </Button>
@@ -271,7 +347,75 @@ export default function SectionEditor({
         open={showHistory}
         onOpenChange={setShowHistory}
       />
+
+      <StatusTimelineDialog
+        sectionId={section?.id}
+        sectionKey={sectionKey}
+        open={showStatusTimeline}
+        onOpenChange={setShowStatusTimeline}
+      />
     </div>
+  );
+}
+
+function StatusTimelineDialog({
+  sectionId,
+  sectionKey,
+  open,
+  onOpenChange,
+}: {
+  sectionId?: number;
+  sectionKey: string;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const { data: history, isLoading } = useStatusHistory(open ? sectionId : undefined);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Suivi du statut — {SECTION_LABELS[sectionKey] || sectionKey}</DialogTitle>
+          <DialogDescription>Historique complet des changements de statut avec horodatage.</DialogDescription>
+        </DialogHeader>
+        {isLoading ? (
+          <Skeleton className="h-32 w-full" />
+        ) : !history || history.length === 0 ? (
+          <p className="text-muted-foreground text-sm py-4">Aucun changement de statut enregistré.</p>
+        ) : (
+          <div className="relative pl-6 space-y-0 pt-2">
+            <div className="absolute left-2 top-4 bottom-4 w-0.5 bg-border" />
+            {history.map((entry, idx) => {
+              const StatusIcon = STATUS_ICONS[entry.status] || CircleDot;
+              const isFirst = idx === 0;
+              return (
+                <div key={entry.id} className="relative pb-4" data-testid={`timeline-entry-${entry.id}`}>
+                  <div className={`absolute -left-4 top-1 w-4 h-4 rounded-full flex items-center justify-center ${isFirst ? "bg-primary text-primary-foreground" : "bg-muted border border-border"}`}>
+                    <StatusIcon className="w-2.5 h-2.5" />
+                  </div>
+                  <div className="ml-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className={`text-xs ${STATUS_COLORS[entry.status] || ""} no-default-hover-elevate no-default-active-elevate`}>
+                        {SECTION_STATUS_LABELS[entry.status] || entry.status}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(entry.changedAt!).toLocaleDateString("fr-FR", {
+                          day: "numeric", month: "short", year: "numeric",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    {entry.note && (
+                      <p className="text-xs text-muted-foreground mt-1 italic">{entry.note}</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

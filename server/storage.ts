@@ -1,10 +1,10 @@
 import { db } from "./db";
 import {
   users, profiles, projects, documents, aiGenerations,
-  projectSections, sectionVersions,
+  projectSections, sectionVersions, sectionStatusHistory,
   type User, type Profile, type Project, type Document, type AiGeneration,
   type InsertProfile, type InsertProject, type InsertDocument,
-  type ProjectSection, type SectionVersion,
+  type ProjectSection, type SectionVersion, type StatusHistory,
   SECTION_ORDER,
 } from "@shared/schema";
 import { eq, desc, and, asc } from "drizzle-orm";
@@ -31,7 +31,7 @@ export interface IStorage {
   getSection(id: number): Promise<ProjectSection | undefined>;
   getSectionByKey(projectId: number, key: string): Promise<ProjectSection | undefined>;
   createSection(projectId: number, key: string, config?: any): Promise<ProjectSection>;
-  updateSectionStatus(id: number, status: string): Promise<ProjectSection>;
+  updateSectionStatus(id: number, status: string, note?: string): Promise<ProjectSection>;
   updateSectionConfig(id: number, config: any): Promise<ProjectSection>;
   setActiveVersion(sectionId: number, versionId: number): Promise<ProjectSection>;
 
@@ -40,6 +40,9 @@ export interface IStorage {
   getActiveVersion(sectionId: number): Promise<SectionVersion | undefined>;
   createVersion(sectionId: number, content: string, source: string, mode?: string, contextSnapshot?: string): Promise<SectionVersion>;
   activateVersion(sectionId: number, versionId: number): Promise<void>;
+
+  getStatusHistory(sectionId: number): Promise<StatusHistory[]>;
+  addStatusHistory(sectionId: number, status: string, note?: string): Promise<StatusHistory>;
 
   getValidatedSectionsContext(projectId: number): Promise<string>;
 }
@@ -137,14 +140,16 @@ export class DatabaseStorage implements IStorage {
     const [section] = await db.insert(projectSections)
       .values({ projectId, key, status: "draft", config: config || null })
       .returning();
+    await this.addStatusHistory(section.id, "draft", "Création de la section");
     return section;
   }
 
-  async updateSectionStatus(id: number, status: string): Promise<ProjectSection> {
+  async updateSectionStatus(id: number, status: string, note?: string): Promise<ProjectSection> {
     const [updated] = await db.update(projectSections)
       .set({ status, updatedAt: new Date() })
       .where(eq(projectSections.id, id))
       .returning();
+    await this.addStatusHistory(id, status, note);
     return updated;
   }
 
@@ -244,6 +249,20 @@ export class DatabaseStorage implements IStorage {
       }
     }
     return result;
+  }
+
+  // === STATUS HISTORY ===
+  async getStatusHistory(sectionId: number): Promise<StatusHistory[]> {
+    return await db.select().from(sectionStatusHistory)
+      .where(eq(sectionStatusHistory.sectionId, sectionId))
+      .orderBy(desc(sectionStatusHistory.changedAt));
+  }
+
+  async addStatusHistory(sectionId: number, status: string, note?: string): Promise<StatusHistory> {
+    const [entry] = await db.insert(sectionStatusHistory)
+      .values({ sectionId, status, note: note || null })
+      .returning();
+    return entry;
   }
 
   // === CONTEXTUAL MEMORY ===

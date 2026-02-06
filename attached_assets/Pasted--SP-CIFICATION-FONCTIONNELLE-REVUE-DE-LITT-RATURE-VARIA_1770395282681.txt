@@ -1,0 +1,326 @@
+📘 SPÉCIFICATION FONCTIONNELLE — REVUE DE LITTÉRATURE, VARIABLES, WORKFLOW & EXPORTS
+
+(Extension officielle du cahier des charges – Modules Fondements → Méthodologie)
+
+1. Paramétrage — Variables fondamentales modifiables à tout moment
+Principe général
+
+Les paramètres définis lors de la création du projet (domaine, formation, discipline, type de travail, etc.) constituent les variables fondamentales utilisées par l’IA sur toute la plateforme.
+
+👉 Ces variables sont :
+
+visibles dans toutes les sections,
+
+pré-sélectionnées par défaut,
+
+modifiables à tout moment, section par section.
+
+Listes déroulantes obligatoires (identiques au paramétrage initial)
+
+Dans les sections :
+
+Fondements (sujet / problématique / hypothèses)
+
+Plan
+
+Cadre conceptuel
+
+Revue de littérature
+
+Méthodologie
+
+👉 Les mêmes listes déroulantes que dans le paramétrage initial doivent être disponibles :
+
+Domaine
+
+Filière
+
+Discipline
+
+Formation
+
+Type de travail
+
+Orientation (théorique / appliquée / mixte)
+
+Option « Autre » (obligatoire partout)
+
+Dans chaque liste déroulante, inclure :
+
+option « Autre »
+
+affichage automatique d’un champ texte libre
+
+valeur saisie immédiatement utilisable par l’IA
+
+Changement de variable & impact global
+
+Lorsqu’une variable fondamentale est modifiée (ex. domaine, discipline, type de travail) :
+
+👉 le système informe l’utilisateur :
+
+« Cette modification peut impacter le sujet, la problématique, les hypothèses, le plan, les concepts, la revue de littérature et la méthodologie. »
+
+L’utilisateur peut alors choisir :
+
+☐ Réadapter automatiquement toutes les sections
+
+☐ Réadapter seulement certaines sections
+
+☐ Ne rien modifier pour l’instant
+
+2. Workflow & statuts par section (fondements, plan, cadre, revue, méthodologie)
+
+Chaque section doit proposer un statut sélectionnable :
+
+Brouillon
+
+Généré par la plateforme
+
+Modifié par l’utilisateur
+
+Validé par l’utilisateur
+
+Envoyé au tuteur
+
+En attente de correction
+
+Corrigé
+
+Version finale
+
+Archivé
+
+👉 L’historique des statuts est horodaté et non supprimable.
+
+3. Boutons d’export (OBLIGATOIRES PARTOUT)
+
+Dans toutes les sections :
+
+Fondements
+
+Plan
+
+Cadre conceptuel
+
+Revue de littérature
+
+Méthodologie
+
+👉 Bouton Exporter visible en permanence.
+
+Types d’export
+
+Export global de la section (Word / PDF)
+
+Export par élément :
+
+uniquement le sujet
+
+uniquement la problématique
+
+uniquement les hypothèses
+
+sujet + problématique
+
+tout le bloc
+
+4. Revue de littérature — Comportement & affichage automatique
+Affichage automatique
+
+Dès que l’utilisateur entre dans la section Revue de littérature :
+
+👉 le formulaire de recherche s’affiche automatiquement, sans clic préalable.
+
+5. Formulaire avancé — Revue de littérature
+Plateformes (multi-sélection)
+
+Google Scholar
+
+PubMed
+
+HAL
+
+Cairn
+
+ScienceDirect
+
+Autre plateforme (champ texte)
+
+Paramètres de recherche
+
+Nombre d’articles souhaités :
+☐ 10 ☐ 20 ☐ 30 ☐ 50
+
+Langue : FR / EN / Autre
+
+Période : année début / fin
+
+Type de documents :
+
+☐ Articles scientifiques
+
+☐ Ouvrages
+
+☐ Rapports institutionnels
+
+☐ Recommandations officielles
+
+☐ Référentiels (VAE)
+
+6. Affichage des résultats — Par lots
+Règle d’affichage
+
+Les résultats sont affichés :
+
+par lots de 10, 20, 30 ou 50
+
+avec bouton « Suivant » / « Précédent »
+
+Présentation standard de chaque article / ouvrage
+
+Chaque source est affichée sous forme de carte ou ligne structurée contenant :
+
+Nom de l’auteur
+
+Prénom
+
+Titre de l’article / ouvrage
+
+Année de publication
+
+Revue / maison d’édition
+
+Plateforme source
+
+Lien cliquable vers l’article
+
+Cases à cocher :
+
+☐ Sélectionner pour la bibliographie
+
+☐ Comparer
+
+☐ Résumer
+
+7. Bibliographie dynamique & normes
+Normes disponibles
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+👉 Sélection de la norme via bouton ou menu déroulant.
+
+Fonctions avancées
+
+Export bibliographie complète
+
+Export bibliographie par axe du plan
+
+Export bibliographie par type de document
+
+Fusion de toutes les sources retenues dans un seul document final
+
+8. Résumés & confrontations d’articles
+Résumé
+
+Bouton « Résumer cet article »
+
+Bouton « Résumer tous les articles sélectionnés »
+
+👉 Le résultat s’affiche sur une page dédiée.
+
+Confrontation & comparaison
+
+Sélection de 2 ou plusieurs articles
+
+Bouton « Confronter / comparer »
+
+Analyse IA :
+
+convergences
+
+divergences
+
+approches théoriques
+
+apports respectifs
+
+Exports
+
+Résumé individuel (Word / PDF)
+
+Synthèse globale (Word / PDF)
+
+Comparaison / confrontation (Word / PDF)
+
+9. Outils visuels & idéation (cadre conceptuel & revue)
+
+À partir des articles sélectionnés, l’IA peut générer :
+
+schémas de concepts
+
+cartes de mapping
+
+diagrammes de confrontation théorique
+
+schémas de mémoire
+
+propositions d’axes de réflexion
+
+idées de structuration du cadre conceptuel
+
+👉 Chaque visuel est :
+
+affiché à l’écran
+
+téléchargeable (image / PDF)
+
+réutilisable dans le mémoire ou la soutenance
+
+10. Fusion finale de tout le travail
+
+À tout moment, l’utilisateur peut :
+
+👉 cliquer sur « Générer un document complet »
+
+Le système fusionne :
+
+fondements
+
+plan
+
+cadre conceptuel
+
+revue de littérature
+
+méthodologie
+
+bibliographie
+
+annexes
+
+👉 Export final :
+
+Word
+
+PDF
+
+✅ SYNTHÈSE PRODUIT (POSITIONNEMENT)
+
+Revue de littérature = module central intelligent
+
+Variables modifiables partout avec listes complètes
+
+IA contrôlée, explicable, ajustable
+
+Exports professionnels et granulaires
+
+Workflow compatible tuteur / jury / VAE
+
+Niveau outil académique semi-professionnel

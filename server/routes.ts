@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api, errorSchemas } from "@shared/routes";
-import { SECTION_LABELS } from "@shared/schema";
+import { SECTION_LABELS, SECTION_STATUSES } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerChatRoutes } from "./replit_integrations/chat";
@@ -219,66 +219,68 @@ Définis une méthodologie cohérente et justifiée:
 }
 
 function getPlanTask(projectType: string): string {
+  const common = `\n\nIMPORTANT:
+- Les titres des chapitres et sous-parties doivent être contextualisés et refléter le sujet spécifique du travail (pas de titres génériques comme "Partie 1" ou "Chapitre 2").
+- Chaque titre doit intégrer les termes clés du sujet, de la problématique ou des hypothèses validées.
+- Pour chaque partie et sous-partie: description brève du contenu attendu (2-3 phrases).
+- Le plan doit montrer la progression logique de la réflexion.`;
+
   const plans: Record<string, string> = {
     memoire: `=== TÂCHE: PLAN DU MÉMOIRE ===
-Génère un plan cohérent et structuré comprenant:
-1. **Introduction**
-2. **Cadre conceptuel** (concepts clés)
-3. **Cadre théorique** (fondements théoriques)
-4. **Revue de littérature**
-5. **Méthodologie** (approche, outils, population)
-6. **Analyse et discussion des résultats**
-7. **Conclusion**
+Génère un plan cohérent et structuré en utilisant des TITRES CONTEXTUALISÉS liés au sujet:
+1. **Introduction** (accroche, contexte, annonce du plan)
+2. **Cadre conceptuel** — titre à contextualiser selon les concepts clés identifiés
+3. **Cadre théorique** — titre à contextualiser selon les courants théoriques mobilisés
+4. **Revue de littérature** — titre à contextualiser selon les thématiques
+5. **Méthodologie** — préciser le type (quali/quanti/mixte) dans le titre
+6. **Analyse et discussion des résultats** — lier au sujet
+7. **Conclusion et perspectives**
 8. **Bibliographie**
-9. **Annexes**
-Pour chaque partie: sous-parties détaillées avec brève description du contenu attendu.`,
+9. **Annexes**${common}`,
 
     tfe: `=== TÂCHE: PLAN DU TFE ===
-Génère un plan conforme aux exigences du TFE santé/social:
-1. **Introduction**
-2. **Situation d'appel**
-3. **Questionnement / Question de départ**
-4. **Cadre conceptuel**
-5. **Cadre théorique**
-6. **Méthodologie**
-7. **Analyse des résultats**
-8. **Recommandations professionnelles**
+Génère un plan conforme aux exigences du TFE santé/social avec des TITRES CONTEXTUALISÉS:
+1. **Introduction** (contexte professionnel, motivation)
+2. **Situation d'appel** — contextualiser selon la situation clinique/professionnelle
+3. **Questionnement / Question de départ** — formuler en lien avec la situation
+4. **Cadre conceptuel** — titre reflétant les concepts professionnels
+5. **Cadre théorique** — titre lié aux modèles de soins/intervention
+6. **Méthodologie** — préciser l'approche dans le titre
+7. **Analyse des résultats** — lier aux hypothèses opérationnelles
+8. **Recommandations professionnelles** — contextualiser selon le terrain
 9. **Conclusion**
 10. **Bibliographie**
-11. **Annexes**
-Pour chaque partie: sous-parties détaillées.`,
+11. **Annexes**${common}`,
 
     rapport_stage: `=== TÂCHE: PLAN DU RAPPORT DE STAGE ===
-Génère un plan professionnel:
-1. **Introduction**
-2. **Présentation de la structure d'accueil**
-3. **Présentation des missions**
-4. **Problématique professionnelle**
-5. **Analyse des pratiques**
-6. **Apports et limites du stage**
-7. **Conclusion**
+Génère un plan professionnel avec des TITRES CONTEXTUALISÉS liés au stage:
+1. **Introduction** (contexte, objectifs du stage)
+2. **Présentation de la structure d'accueil** — nommer le type de structure
+3. **Présentation des missions** — contextualiser selon les missions réelles
+4. **Problématique professionnelle** — titre reflétant la question posée
+5. **Analyse des pratiques** — lier aux missions et observations
+6. **Apports et limites** — relier au développement professionnel
+7. **Conclusion et perspectives**
 8. **Bibliographie**
-9. **Annexes**
-Pour chaque partie: sous-parties détaillées.`,
+9. **Annexes**${common}`,
 
     vae: `=== TÂCHE: PLAN DU DOSSIER VAE ===
-Génère un plan structuré pour le dossier VAE:
-1. **Introduction**
-2. **Présentation de la personne**
-3. **Parcours professionnel**
-4. **Motivation de la démarche VAE**
-5. **Blocs de compétences** (détaillés selon le référentiel)
-6. **Situations professionnelles** (une par bloc minimum)
-7. **Conclusion**
+Génère un plan structuré pour le dossier VAE avec des TITRES CONTEXTUALISÉS:
+1. **Introduction** (projet professionnel, motivation)
+2. **Présentation du candidat** — parcours et positionnement
+3. **Parcours professionnel** — chronologie et évolution
+4. **Motivation de la démarche VAE** — projet et diplôme visé
+5. **Blocs de compétences** — TITRES SPÉCIFIQUES selon le référentiel du diplôme
+6. **Situations professionnelles** — titres contextualisés par bloc
+7. **Conclusion et projection professionnelle**
 8. **Bibliographie** (si exigée)
-9. **Annexes** (preuves)
-Pour chaque partie: sous-parties et éléments attendus.`,
+9. **Annexes** (preuves)${common}`,
   };
   return plans[projectType] || plans.memoire;
 }
 
-function getUserId(req: any): string | undefined {
-  return req.user?.claims?.sub;
+function getUserId(req: any): string {
+  return req.user?.claims?.sub || "";
 }
 
 export async function registerRoutes(
@@ -538,6 +540,7 @@ export async function registerRoutes(
       const contextSnapshot = projectContext.substring(0, 500) + (validatedContext ? "\n..." + validatedContext.substring(0, 500) : "");
       const version = await storage.createVersion(section.id, content, "ai", mode, contextSnapshot);
 
+      await storage.updateSectionStatus(section.id, "generated");
       const updatedSection = await storage.getSection(section.id);
       res.json({ section: updatedSection, version });
 
@@ -556,6 +559,7 @@ export async function registerRoutes(
     const sectionId = Number(req.params.id);
     const { content } = api.sections.saveManual.input.parse(req.body);
     const version = await storage.createVersion(sectionId, content, "manual");
+    await storage.updateSectionStatus(sectionId, "modified");
     res.json(version);
   });
 
@@ -586,6 +590,25 @@ export async function registerRoutes(
     const projectId = Number(req.params.projectId);
     const contents = await storage.getSectionsWithContent(projectId);
     res.json(contents);
+  });
+
+  app.post(api.sections.updateStatus.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    const { status, note } = req.body;
+    const validStatuses = Object.values(SECTION_STATUSES);
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: `Statut invalide: ${status}` });
+    }
+    const section = await storage.updateSectionStatus(sectionId, status, note);
+    res.json(section);
+  });
+
+  app.get(api.sections.statusHistory.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    const history = await storage.getStatusHistory(sectionId);
+    res.json(history);
   });
 
   // === USER API KEY ===

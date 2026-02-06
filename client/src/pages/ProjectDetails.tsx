@@ -310,10 +310,13 @@ function ModuleSections({
 
   const defaultVars = useMemo(() => {
     const vars: SectionVariables = {
-      domain: DOMAIN_LABELS[project.mainDomain] || project.mainDomainOther || project.mainDomain || "",
-      projectType: TYPE_LABELS[project.type] || project.type || "",
+      domain: project.mainDomain || "",
+      domainOther: project.mainDomainOther || "",
+      projectType: project.type || "",
       degreeLevel: project.degreeLevel || "",
-      orientation: APPROACH_LABELS[project.approach] || project.approach || "",
+      filiere: project.degreeTitle || "",
+      orientation: project.approach || "",
+      finality: project.finality || "",
       context: [project.workDomain, project.workFunction, project.workStructure].filter(Boolean).join(", "),
     };
     return vars;
@@ -388,9 +391,26 @@ function SingleSectionWrapper({
 
   const buildExtraContext = () => {
     let ctx = "";
-    const varOverrides = Object.entries(variables).filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`);
-    if (varOverrides.length > 0) {
-      ctx += "Variables du projet:\n" + varOverrides.join("\n") + "\n\n";
+    const resolveVarLabel = (key: string, val: string) => {
+      if (key === "domain") return DOMAIN_LABELS[val] || variables.domainOther || val;
+      if (key === "projectType") return TYPE_LABELS[val] || variables.projectTypeOther || val;
+      if (key === "degreeLevel") {
+        const lvlLabels: Record<string, string> = { bts_dut: "BTS / DUT", licence: "Licence", bachelor: "Bachelor", master1: "Master 1", master2: "Master 2", mba: "MBA", diplome_etat: "Diplôme d'État", doctorat: "Doctorat", vae: "VAE" };
+        return lvlLabels[val] || variables.degreeLevelOther || val;
+      }
+      if (key === "orientation") return APPROACH_LABELS[val] || variables.orientationOther || val;
+      if (key === "finality") return FINALITY_LABELS[val] || val;
+      return val;
+    };
+    const displayKeys = ["domain", "projectType", "degreeLevel", "filiere", "orientation", "finality", "subject", "problematic", "hypotheses", "context"];
+    const varEntries = displayKeys
+      .filter(k => variables[k])
+      .map(k => {
+        const label = { domain: "Domaine", projectType: "Type de travail", degreeLevel: "Niveau", filiere: "Filière/Formation", orientation: "Orientation", finality: "Finalité", subject: "Sujet", problematic: "Problématique", hypotheses: "Hypothèses", context: "Contexte" }[k] || k;
+        return `${label}: ${resolveVarLabel(k, variables[k]!)}`;
+      });
+    if (varEntries.length > 0) {
+      ctx += "Variables du projet:\n" + varEntries.join("\n") + "\n\n";
     }
     const activeFilters = Object.entries(filters).filter(([, v]) => v).map(([k]) => k);
     if (activeFilters.length > 0) {
@@ -426,6 +446,17 @@ function SingleSectionWrapper({
       ctx += `- Langue: ${literatureConfig.language === "fr" ? "Français" : literatureConfig.language === "en" ? "Anglais" : "Les deux"}\n`;
       ctx += `- Niveau: ${levelLabels[literatureConfig.level] || literatureConfig.level}\n`;
       ctx += `- Types de sources: ${literatureConfig.sourceTypes.map(t => sourceLabels[t] || t).join(", ")}\n`;
+      if (literatureConfig.articles && literatureConfig.articles.length > 0) {
+        ctx += "\nArticles/références fournis par l'utilisateur:\n";
+        literatureConfig.articles.forEach((a, i) => {
+          ctx += `${i + 1}. ${a.title}`;
+          if (a.authors) ctx += ` — ${a.authors}`;
+          if (a.year) ctx += ` (${a.year})`;
+          if (a.source) ctx += `, ${a.source}`;
+          if (a.notes) ctx += ` [Note: ${a.notes}]`;
+          ctx += "\n";
+        });
+      }
     }
     if (correctionPrompt.trim()) {
       ctx += "\n=== INSTRUCTIONS DE L'UTILISATEUR (PRIORITAIRE) ===\n" + correctionPrompt.trim() + "\n";

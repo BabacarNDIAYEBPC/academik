@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { apiRequest } from "@/lib/queryClient";
-import type { ProjectSection, SectionVersion, SectionGenerateRequest } from "@shared/schema";
+import type { ProjectSection, SectionVersion, SectionGenerateRequest, StatusHistory } from "@shared/schema";
 
 export function useSections(projectId: number) {
   return useQuery<ProjectSection[]>({
@@ -80,6 +80,32 @@ export function useUnvalidateSection() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [api.sections.list.path, variables.projectId] });
     },
+  });
+}
+
+export function useUpdateSectionStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sectionId, status, note, projectId }: { sectionId: number; status: string; note?: string; projectId: number }) => {
+      const res = await apiRequest(api.sections.updateStatus.method, buildUrl(api.sections.updateStatus.path, { id: sectionId }), { status, note });
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sections.list.path, variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: [api.sections.statusHistory.path, variables.sectionId] });
+    },
+  });
+}
+
+export function useStatusHistory(sectionId: number | undefined) {
+  return useQuery<StatusHistory[]>({
+    queryKey: [api.sections.statusHistory.path, sectionId],
+    queryFn: async () => {
+      const res = await fetch(buildUrl(api.sections.statusHistory.path, { id: sectionId! }));
+      if (!res.ok) throw new Error("Failed to load status history");
+      return res.json();
+    },
+    enabled: !!sectionId,
   });
 }
 

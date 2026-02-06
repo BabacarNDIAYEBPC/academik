@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { insertProjectSchema, insertProfileSchema, insertDocumentSchema, projects, profiles, documents, aiGenerations, projectSections, sectionVersions } from './schema';
+import { insertProjectSchema, insertProfileSchema, insertDocumentSchema, projects, profiles, documents, aiGenerations, projectSections, sectionVersions, sectionStatusHistory } from './schema';
 export type { GenerateRequest, CreateProjectRequest, UpdateProjectRequest, CreateProfileRequest, SectionGenerateRequest } from './schema';
 
 export const errorSchemas = {
@@ -144,6 +144,17 @@ export const api = {
       method: 'GET' as const,
       path: '/api/projects/:projectId/sections/export',
       responses: { 200: z.array(z.object({ key: z.string(), label: z.string(), content: z.string() })), 401: errorSchemas.unauthorized },
+    },
+    updateStatus: {
+      method: 'POST' as const,
+      path: '/api/sections/:id/status',
+      input: z.object({ status: z.string(), note: z.string().optional() }),
+      responses: { 200: z.custom<typeof projectSections.$inferSelect>(), 401: errorSchemas.unauthorized },
+    },
+    statusHistory: {
+      method: 'GET' as const,
+      path: '/api/sections/:id/status-history',
+      responses: { 200: z.array(z.custom<typeof sectionStatusHistory.$inferSelect>()), 401: errorSchemas.unauthorized },
     },
   },
 };

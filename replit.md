@@ -69,6 +69,12 @@ shared/
 - Always guard with `if (!userId)` before DB writes
 
 ## Recent Changes
+- 2026-02-06: Added status timeline dialog with timestamped history of all status changes per section
+- 2026-02-06: Added status selector dropdown in SectionEditor (9 statuses: Brouillon, Généré, Modifié, Validé, Envoyé, En attente, Corrigé, Version finale, Archivé)
+- 2026-02-06: Added section_status_history table with automatic logging on every status change
+- 2026-02-06: Added API routes: POST /api/sections/:id/status, GET /api/sections/:id/status-history
+- 2026-02-06: Literature review: article management cards with add/remove/pagination and contextual AI injection
+- 2026-02-06: Dynamic plan generation with contextual titles based on project type and validated content
 - 2026-02-06: Added SectionControls component with editable variables panel, module-specific filters, correction prompt, and export
 - 2026-02-06: Added per-section and batch export (Word .docx and PDF) via docx, file-saver, html2pdf.js
 - 2026-02-06: Batch export uses API endpoint GET /api/projects/:id/sections/export for cross-section content

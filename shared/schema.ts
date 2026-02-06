@@ -94,6 +94,40 @@ export const sectionVersions = pgTable("section_versions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === SECTION STATUS HISTORY ===
+export const sectionStatusHistory = pgTable("section_status_history", {
+  id: serial("id").primaryKey(),
+  sectionId: integer("section_id").notNull(),
+  status: text("status").notNull(),
+  changedAt: timestamp("changed_at").defaultNow(),
+  note: text("note"),
+});
+
+// === SECTION STATUSES ===
+export const SECTION_STATUSES = {
+  DRAFT: 'draft',
+  GENERATED: 'generated',
+  MODIFIED: 'modified',
+  VALIDATED: 'validated',
+  SENT_TUTOR: 'sent_tutor',
+  AWAITING_CORRECTION: 'awaiting_correction',
+  CORRECTED: 'corrected',
+  FINAL: 'final_version',
+  ARCHIVED: 'archived',
+} as const;
+
+export const SECTION_STATUS_LABELS: Record<string, string> = {
+  draft: "Brouillon",
+  generated: "Généré par la plateforme",
+  modified: "Modifié par l'utilisateur",
+  validated: "Validé par l'utilisateur",
+  sent_tutor: "Envoyé au tuteur",
+  awaiting_correction: "En attente de correction",
+  corrected: "Corrigé",
+  final_version: "Version finale",
+  archived: "Archivé",
+};
+
 // === SECTION KEY CONSTANTS ===
 export const SECTION_KEYS = {
   SUBJECT: 'subject',
@@ -133,6 +167,7 @@ export const insertProjectSchema = createInsertSchema(projects).omit({ id: true,
 export const insertDocumentSchema = createInsertSchema(documents).omit({ id: true, createdAt: true });
 export const insertSectionSchema = createInsertSchema(projectSections).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertVersionSchema = createInsertSchema(sectionVersions).omit({ id: true, createdAt: true });
+export const insertStatusHistorySchema = createInsertSchema(sectionStatusHistory).omit({ id: true, changedAt: true });
 
 // === TYPES ===
 export type Profile = typeof profiles.$inferSelect;
@@ -146,6 +181,7 @@ export type ProjectSection = typeof projectSections.$inferSelect;
 export type InsertSection = z.infer<typeof insertSectionSchema>;
 export type SectionVersion = typeof sectionVersions.$inferSelect;
 export type InsertVersion = z.infer<typeof insertVersionSchema>;
+export type StatusHistory = typeof sectionStatusHistory.$inferSelect;
 
 export type CreateProjectRequest = InsertProject;
 export type UpdateProjectRequest = Partial<InsertProject>;
