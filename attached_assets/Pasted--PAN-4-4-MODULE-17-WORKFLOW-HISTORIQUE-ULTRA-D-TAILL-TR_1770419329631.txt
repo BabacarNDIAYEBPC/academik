@@ -1,0 +1,188 @@
+🔷 PAN 4/4 — 📘 MODULE 17
+WORKFLOW & HISTORIQUE (ULTRA DÉTAILLÉ – TRANSVERSAL)
+17.0 Objectif général
+
+Garantir :
+
+la traçabilité complète du travail,
+
+la continuité pédagogique,
+
+la non-perte de données,
+
+un suivi clair pour l’étudiant (et plus tard le tuteur).
+
+👉 Ce module est transversal : il s’applique à TOUTES les sections
+(Fondements, Sujet, Plan, Cadres, Revue, Méthodo, Collecte, Analyse, Soutenance, etc.)
+
+17.1 Workflow par section (obligatoire)
+
+Chaque section dispose de son propre workflow indépendant.
+
+17.1.1 Statuts disponibles (liste standard)
+
+Brouillon
+
+Généré par l’IA
+
+Modifié par l’utilisateur
+
+Validé par l’utilisateur
+
+Envoyé au tuteur
+
+Retour du tuteur reçu
+
+Correction en cours
+
+Version finale
+
+Archivé
+
+👉 L’utilisateur peut changer manuellement le statut à tout moment.
+
+17.2 Historique horodaté (non supprimable)
+
+Pour chaque section, le système conserve :
+
+Date et heure de génération IA
+
+Modifications manuelles
+
+Régénérations (similaire / différente)
+
+Changements de statut
+
+Exports effectués (Word / PPT / PDF)
+
+Documents importés
+
+Notes et remarques du tuteur
+
+👉 Aucune action n’est écrasée.
+
+17.3 Gestion avancée des versions
+
+À chaque modification ou régénération :
+
+une nouvelle version est créée,
+
+l’ancienne reste accessible.
+
+Fonctionnalités :
+
+comparer deux versions,
+
+restaurer une version précédente,
+
+archiver une version non retenue.
+
+17.4 Impact des changements (logique intelligente)
+
+Si l’utilisateur modifie un élément fondamental :
+
+sujet
+
+problématique
+
+hypothèses
+
+plan
+
+domaine / formation
+
+👉 Le système :
+
+identifie les sections impactées,
+
+les marque comme :
+« à réévaluer » ou « potentiellement impactées »,
+
+propose une mise à jour cohérente, sans forcer.
+
+17.5 Sauvegarde automatique (critique)
+
+Sauvegarde automatique à chaque action :
+
+frappe clavier,
+
+clic bouton,
+
+import,
+
+changement de section.
+
+Si l’utilisateur quitte une section et revient :
+👉 RIEN n’est perdu.
+
+17.6 Import & continuité
+
+Dans CHAQUE section, possibilité de :
+
+importer un document existant (Word / PDF / Excel),
+
+analyser le document,
+
+l’intégrer au workflow comme version officielle.
+
+👉 Permet d’entrer sur la plateforme à n’importe quelle étape.
+
+17.7 Objectif pédagogique du module 17
+
+Sécuriser l’étudiant
+
+Éviter la perte de travail
+
+Donner une vision claire de l’avancement
+
+Préparer l’ouverture future aux tuteurs
+
+✅ MODULES À AJOUTER DANS FEATURING
+
+(Page d’accueil – promesse produit)
+
+👉 Voici la liste corrigée et complète, incluant ce qui manquait :
+
+🧠 Méthodologie & Recherche
+
+Génération de sujet, problématique & hypothèses
+
+Plans académiques intelligents
+
+Cadre conceptuel & méthodologique
+
+📚 Revue de littérature avancée
+
+Recherche multi-plateformes (Google Scholar, PubMed, HAL…)
+
+Résumés & confrontation d’articles
+
+Bibliographie multi-normes (APA 7, Vancouver, MLA, Chicago)
+
+🧪 Collecte & Analyse des données
+
+Questionnaires & guides d’entretien
+
+Simulation d’entretien IA
+
+Analyse qualitative (verbatims, codage)
+
+Analyse quantitative (tableaux + graphiques dynamiques)
+
+🧾 Production & livrables
+
+Export Word / PowerPoint
+
+PowerPoint de soutenance
+
+Simulation de soutenance
+
+Audit de mémoire
+
+🔄 Suivi & sécurité
+
+Workflow & historique complets
+
+Sauvegarde automatique
+
+Import de documents existants
