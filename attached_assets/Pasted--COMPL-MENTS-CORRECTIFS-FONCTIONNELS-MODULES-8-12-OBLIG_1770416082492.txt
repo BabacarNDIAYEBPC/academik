@@ -1,0 +1,234 @@
+📘 COMPLÉMENTS & CORRECTIFS FONCTIONNELS — MODULES 8 À 12 (OBLIGATOIRES)
+1. MODULE 10 — ANALYSE QUANTITATIVE
+1.1 Tableaux croisés dynamiques (EXIGENCE VISUELLE)
+
+Les tableaux croisés dynamiques générés doivent être :
+
+visuellement plus jolis
+
+colorés (codes couleurs cohérents)
+
+symétriques et lisibles
+
+adaptés à une utilisation directe dans un mémoire ou rapport
+
+👉 Pas de tableaux bruts ou “Excel brut”.
+
+1.2 Graphiques croisés dynamiques (OBLIGATOIRE)
+
+En complément des tableaux croisés dynamiques, le module doit générer automatiquement :
+
+des graphiques croisés dynamiques
+
+avec plusieurs types de visualisation au choix :
+
+diagrammes en barres
+
+diagrammes en camembert
+
+histogrammes
+
+autres graphiques pertinents selon les données
+
+Fonctionnalités attendues :
+
+choix du type de graphique
+
+affichage clair et lisible
+
+export des graphiques (Word minimum)
+
+2. SAUVEGARDE DES DONNÉES — RÈGLE TRANSVERSALE CRITIQUE
+2.1 Sauvegarde automatique (TOUTES LES SECTIONS)
+
+Dans chaque section de l’application, toutes les données doivent être :
+
+sauvegardées automatiquement
+
+non perdues si l’utilisateur quitte la section
+
+restaurées à l’identique lorsqu’il revient
+
+👉 Cette règle s’applique à :
+
+questionnaires
+
+guides d’entretien
+
+analyses qualitatives
+
+analyses quantitatives
+
+tableaux
+
+graphiques
+
+imports de documents
+
+confrontations
+
+❌ Aucune perte de données ne doit être possible.
+
+3. MODULE 8 — BUGS BLOQUANTS À CORRIGER
+3.1 Guide d’entretien — ERREUR
+
+Le guide d’entretien ne se lance pas
+
+Un code d’erreur apparaît
+
+👉 Bug bloquant à corriger.
+
+3.2 Questionnaire — ERREUR
+
+Le questionnaire ne se génère pas
+
+Un code d’erreur apparaît également
+
+👉 Bug bloquant à corriger.
+
+4. INDÉPENDANCE DES MODULES (PRINCIPE FONDAMENTAL)
+4.1 Accès indépendant aux sections
+
+Chaque module doit pouvoir être utilisé indépendamment.
+
+Exemple :
+
+un étudiant peut venir uniquement pour :
+
+créer un guide d’entretien
+
+analyser des verbatims
+
+faire une bibliographie
+
+analyser des données quantitatives
+
+👉 L’utilisateur ne doit pas être obligé d’avoir complété toutes les sections précédentes.
+
+5. CHAMP « CONTEXTE & CONSIGNES » — OBLIGATOIRE PARTOUT
+5.1 Nouveau champ obligatoire dans TOUTES les sections
+
+Dans toutes les sections du menu, ajouter un champ :
+
+« Contexte / importance du travail / consignes spécifiques »
+
+Ce champ permet à l’utilisateur d’indiquer :
+
+l’importance du mémoire / TFE
+
+les exigences du guide méthodologique
+
+les consignes du tuteur
+
+toute contrainte spécifique
+
+👉 Ce champ doit être :
+
+présent dans toutes les sections
+
+pris en compte par l’IA
+
+modifiable à tout moment
+
+6. MODULE 10 — ANALYSE QUALITATIVE (À TESTER / SÉCURISER)
+6.1 Verbatims & entretiens
+
+Tester entièrement :
+
+l’ajout de verbatims
+
+l’analyse des verbatims
+
+l’analyse des entretiens
+
+Vérifier :
+
+absence d’erreur
+
+sauvegarde correcte
+
+restitution cohérente
+
+7. CONFRONTATION — IMPORT DE DONNÉES (EXTENSION OBLIGATOIRE)
+
+Dans la fonctionnalité Confrontation, permettre :
+
+import :
+
+d’entretiens
+
+de verbatims
+
+de tableaux croisés dynamiques
+
+de graphiques
+
+de fichiers Excel / CSV
+
+👉 L’utilisateur peut confronter :
+
+terrain ↔ terrain
+
+terrain ↔ revue
+
+quanti ↔ quali
+
+8. MODULE BIBLIOGRAPHIE — IMPORT DE DOCUMENTS
+8.1 Import existant (OBLIGATOIRE)
+
+Dans la section Bibliographie, permettre :
+
+import :
+
+d’un mémoire existant
+
+d’une bibliographie existante
+
+Fonctionnalités attendues :
+
+extraction automatique des références
+
+conversion vers les normes demandées :
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+9. IMPORT DE DOCUMENTS — RÈGLE TRANSVERSALE
+9.1 Principe général
+
+Dans chaque section, permettre :
+
+l’import d’un document existant
+
+l’analyse du document importé
+
+la génération à partir de l’existant
+
+👉 L’utilisateur ne doit jamais être obligé de recommencer depuis zéro.
+
+✅ SYNTHÈSE FINALE (À METTRE EN AVANT)
+
+Tableaux quantitatifs lisibles, colorés, professionnels
+
+Graphiques croisés dynamiques obligatoires
+
+Sauvegarde automatique partout
+
+Bugs guide d’entretien & questionnaire à corriger
+
+Modules utilisables indépendamment
+
+Champ “contexte / consignes” dans toutes les sections
+
+Analyse qualitative à tester intégralement
+
+Confrontation enrichie (imports multiples)
+
+Bibliographie générable à partir de documents existants
+
+Import possible dans toutes les sections
