@@ -1,0 +1,455 @@
+📘 PRINCIPES TRANSVERSAUX — MÉMOIRE CONTEXTUELLE, MODIFICATION UTILISATEUR & RÉGÉNÉRATION IA CONTRÔLÉE
+
+(Règles obligatoires pour toute la plateforme)
+
+1. Principe général
+
+L’application repose sur un principe de mémoire contextuelle persistante par projet.
+
+👉 Toute information :
+
+générée,
+
+validée,
+
+modifiée
+
+dans une section est automatiquement conservée, historisée et réutilisée dans toutes les sections suivantes.
+
+👉 Aucun module ne fonctionne de manière isolée.
+👉 L’IA ne repart jamais de zéro.
+
+2. Mémoire du projet (contexte global)
+
+Pour chaque projet, la plateforme conserve en mémoire :
+
+paramétrage du projet,
+
+sujet,
+
+problématique / question de départ,
+
+hypothèses (si existantes),
+
+plan du travail,
+
+cadre conceptuel,
+
+cadre théorique,
+
+revue de littérature,
+
+choix méthodologiques,
+
+outils de collecte,
+
+documents importés,
+
+analyses produites,
+
+bibliographie,
+
+annexes,
+
+historiques, versions et validations.
+
+👉 Cette mémoire constitue le contexte prioritaire transmis à l’IA avant toute génération.
+
+3. Pré-remplissage automatique entre sections (OBLIGATOIRE)
+Principe
+
+👉 Toute information déjà générée ou saisie est automatiquement réinjectée dans les sections suivantes.
+
+Exemple
+
+Sujet, problématique et hypothèses déjà générés
+→ dans le module Plan, les champs sont pré-remplis automatiquement
+→ l’utilisateur ne ressaisit rien.
+
+Cas inverse
+
+Si une section précédente n’a pas été remplie,
+→ l’utilisateur peut saisir manuellement les informations,
+→ l’IA les utilise comme base de génération.
+
+👉 Cette règle s’applique à tous les modules, sans exception.
+
+4. Droit de modification utilisateur (fondamental)
+
+Dans chaque section (sujet, plan, cadre conceptuel, revue de littérature, méthodologie, etc.), l’utilisateur peut :
+
+modifier manuellement le contenu proposé,
+
+ajuster les formulations,
+
+supprimer ou ajouter des éléments,
+
+remplacer totalement une proposition IA.
+
+👉 L’utilisateur reste décisionnaire final.
+👉 L’IA est un assistant, jamais une contrainte.
+
+5. Actions obligatoires par section
+
+Chaque section générée par l’IA doit proposer au minimum :
+
+Modifier manuellement
+
+Changer / Générer une autre proposition
+
+Valider cette version
+
+6. Régénération IA contrôlée (SIMILAIRE ou DIFFÉRENTE)
+
+Lorsqu’un utilisateur clique sur « Changer » ou « Générer une autre proposition », le système doit obligatoirement demander le type de résultat souhaité :
+
+Option A — Proposition similaire
+
+même axe,
+
+même logique méthodologique,
+
+reformulation,
+
+amélioration stylistique ou structurelle,
+
+nuances sans rupture.
+
+Option B — Proposition différente
+
+angle d’analyse différent,
+
+problématique alternative,
+
+hypothèses différentes,
+
+plan réorganisé ou reconstruit,
+
+nouvelle logique argumentative.
+
+👉 Cette règle s’applique à :
+
+sujet,
+
+problématique,
+
+hypothèses,
+
+plan,
+
+cadre conceptuel,
+
+cadre théorique,
+
+revue de littérature,
+
+méthodologie,
+
+toute autre section IA.
+
+7. Versions, historique et cohérence
+
+À chaque modification ou régénération :
+
+la version précédente est conservée,
+
+aucune version n’est supprimée,
+
+la nouvelle version devient active uniquement après validation explicite,
+
+les sections dépendantes sont automatiquement marquées :
+
+« à réévaluer »
+
+ou « potentiellement impactées ».
+
+👉 L’utilisateur peut :
+
+comparer les versions,
+
+revenir à une version antérieure,
+
+archiver une version non retenue.
+
+8. Gestion de l’IA & clé OpenAI (TRANSVERSAL)
+8.1 Clé API
+
+Dans les paramètres du compte ou du projet :
+
+champ clé API OpenAI,
+
+l’utilisateur peut :
+
+saisir sa propre clé,
+
+ou utiliser une clé fournie par la plateforme (selon modèle économique).
+
+👉 Cette clé est utilisée sur toute la plateforme :
+
+génération,
+
+analyse,
+
+reformulation,
+
+synthèse.
+
+8.2 Fonctionnement IA
+
+Tous les modules utilisent le même moteur IA,
+
+Tous les appels IA exploitent :
+
+la mémoire du projet,
+
+les sections déjà validées.
+
+📘 MODULE 4 — PLAN DU TRAVAIL (STRUCTURATION)
+Objectif
+
+Générer un plan cohérent, logique et complet, conforme :
+
+au type de travail,
+
+aux éléments déjà produits,
+
+aux normes académiques ou professionnelles.
+
+Entrées
+
+Sujet / problématique / hypothèses (pré-remplis automatiquement si existants),
+
+sinon champs manuels activés,
+
+paramétrage du projet (obligatoire).
+
+Traitement IA
+
+identification de la structure attendue,
+
+adaptation au niveau d’étude,
+
+respect des usages méthodologiques,
+
+progression logique des parties.
+
+Sorties — Plans par type de travail
+🔹 Mémoire
+
+Introduction
+
+Cadre conceptuel
+
+Cadre théorique
+
+Revue de littérature
+
+Méthodologie
+
+Analyse / discussion
+
+Conclusion
+
+Bibliographie
+
+Annexes
+
+🔹 TFE (Santé / Social)
+
+Introduction
+
+Situation d’appel
+
+Questionnement / question de départ
+
+Cadre conceptuel
+
+Cadre théorique
+
+Méthodologie
+
+Analyse
+
+Recommandations professionnelles
+
+Conclusion
+
+Bibliographie
+
+Annexes
+
+🔹 Rapport de stage
+
+Introduction
+
+Présentation de la structure
+
+Présentation des missions
+
+Problématique professionnelle
+
+Analyse des pratiques
+
+Apports / limites
+
+Conclusion
+
+Bibliographie
+
+Annexes
+
+🔹 VAE
+
+Introduction
+
+Présentation de la personne
+
+Parcours professionnel
+
+Motivation de la démarche VAE
+
+Blocs de compétences
+
+Situations professionnelles
+
+Conclusion
+
+Bibliographie (si exigée)
+
+Annexes (preuves)
+
+Actions
+
+Modifier / Changer (similaire ou différent) / Valider
+
+Exporter :
+
+Word (.docx)
+
+PDF (.pdf)
+
+📘 MODULE 5 — CADRE CONCEPTUEL & CADRE THÉORIQUE
+Objectif
+
+Construire :
+
+un cadre conceptuel (concepts clés),
+
+puis un cadre théorique (fondements),
+en lien direct avec la problématique.
+
+Entrées
+
+Sujet, problématique, hypothèses, domaine
+(pré-remplis automatiquement)
+
+Traitement IA
+
+identification de 2 à 4 concepts clés,
+
+définitions synthétiques,
+
+lien concepts ↔ hypothèses,
+
+identification des courants théoriques,
+
+structuration logique.
+
+Sorties
+
+concepts et définitions,
+
+structure du cadre conceptuel,
+
+structure du cadre théorique.
+
+Actions :
+
+Modifier / Changer / Valider
+
+Export Word / PDF
+
+📘 MODULE 6 — REVUE DE LITTÉRATURE
+Objectif
+
+Construire une revue de littérature rigoureuse et exploitable.
+
+Paramétrage
+
+Plateformes : Google Scholar, PubMed, Cairn, HAL, ScienceDirect, autres
+Période : année début / fin
+
+Types de sources (sélection obligatoire)
+
+Académiques : articles, ouvrages, thèses
+
+Professionnelles : rapports, guides
+
+Institutionnelles : lois, décrets, recommandations
+
+Santé / Social : HAS, ANESM, OMS, protocoles
+
+VAE : RNCP, référentiels, guides jury
+
+Traitement IA
+
+équations de recherche,
+
+sélection pertinente,
+
+résumés,
+
+classement par concept et axe du plan.
+
+Sorties
+
+tableau des sources,
+
+synthèses thématiques,
+
+consensus / divergences / manques.
+
+Actions :
+
+Modifier / Changer / Valider
+
+Export Word / PDF
+
+📘 MODULE 7 — MÉTHODOLOGIE DE RECHERCHE
+Objectif
+
+Définir une méthodologie cohérente et justifiée.
+
+Types proposés
+
+Qualitative
+
+Quantitative
+
+Mixte
+
+Analyse documentaire (VAE)
+
+Justification IA
+
+lien avec la problématique,
+
+lien avec chaque hypothèse,
+
+avantages,
+
+limites,
+
+contraintes terrain.
+
+Sorties
+
+méthodologie détaillée,
+
+structure du chapitre méthodologique.
+
+Actions :
+
+Modifier / Changer / Valider
+
+Export Word / PDF

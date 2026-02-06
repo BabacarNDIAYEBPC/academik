@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api, errorSchemas } from "@shared/routes";
+import { SECTION_LABELS } from "@shared/schema";
 import { z } from "zod";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerChatRoutes } from "./replit_integrations/chat";
@@ -48,11 +49,9 @@ function buildProjectContext(project: any, profile: any, documents: any[]) {
   ctx += `Profil: ${project.userProfile || "Non spécifié"}\n`;
   ctx += `Finalité: ${project.finality || "Non spécifié"}\n`;
   ctx += `Approche: ${project.approach || "Non spécifié"}\n`;
-  
   if (project.workDomain) ctx += `Domaine du poste: ${project.workDomain}\n`;
   if (project.workFunction) ctx += `Fonction: ${project.workFunction}\n`;
   if (project.workStructure) ctx += `Structure: ${project.workStructure}\n`;
-  
   if (documents.length > 0) {
     ctx += `\n=== DOCUMENTS DE RÉFÉRENCE ===\n`;
     documents.forEach(d => {
@@ -62,16 +61,12 @@ function buildProjectContext(project: any, profile: any, documents: any[]) {
       }
     });
   }
-  
   return ctx;
 }
 
 function getSystemPrompt(projectType: string, language: string) {
-  const langInstruction = language === "English"
-    ? "Respond entirely in English."
-    : "Réponds entièrement en français.";
-
-  const base = `Tu es un expert académique et méthodologique de haut niveau, spécialisé dans l'accompagnement des étudiants et professionnels dans la rédaction de travaux académiques. ${langInstruction}
+  const langInstruction = language === "English" ? "Respond entirely in English." : "Réponds entièrement en français.";
+  return `Tu es un expert académique et méthodologique de haut niveau, spécialisé dans l'accompagnement des étudiants et professionnels dans la rédaction de travaux académiques. ${langInstruction}
 
 RÈGLES IMPORTANTES:
 - Adapte le niveau de complexité au diplôme visé
@@ -80,121 +75,206 @@ RÈGLES IMPORTANTES:
 - Formule de manière claire et structurée
 - Ne génère JAMAIS de contenu rédigé final, seulement des propositions structurées
 - Retourne tes réponses en Markdown bien formaté avec des titres, sous-titres et listes`;
-
-  return base;
 }
 
-function buildPromptForType(type: string, projectType: string, context: string, projectContext: string, extraContext?: string) {
+// === SECTION PROMPT BUILDERS (Modules 3-7) ===
+function buildSectionPrompt(sectionKey: string, projectType: string, mode: string, projectContext: string, validatedContext: string, extraContext?: string, currentContent?: string) {
   let prompt = projectContext + "\n";
-  
+
+  if (validatedContext) {
+    prompt += `\n=== SECTIONS DÉJÀ VALIDÉES (MÉMOIRE DU PROJET) ===\n${validatedContext}\n`;
+  }
+
   if (extraContext) {
-    prompt += `\n=== INFORMATIONS SPÉCIFIQUES ===\n${extraContext}\n`;
-  }
-  if (context) {
-    prompt += `\n=== REMARQUES DE L'UTILISATEUR ===\n${context}\n`;
+    prompt += `\n=== INFORMATIONS SPÉCIFIQUES DE L'UTILISATEUR ===\n${extraContext}\n`;
   }
 
-  switch (projectType) {
-    case "memoire":
-      if (type === "subject") {
-        prompt += `\n=== TÂCHE: CAS A — MÉMOIRE ===
-Génère les éléments suivants de manière cohérente et académique:
-
-1. **Sujet académique** : Un sujet précis, original et réalisable dans le cadre du diplôme
-2. **Problématique** : Une question de recherche problématisée, qui met en tension des concepts clés
-3. **Question de recherche** : La question centrale, formulée de façon ouverte
-4. **3 hypothèses de recherche** : 
-   - Chaque hypothèse doit être vérifiable
-   - Formulées comme des propositions à tester
-   - Cohérentes avec la problématique
-   - Adaptées au niveau académique du diplôme
-
-Structure ta réponse avec des titres Markdown clairs.`;
-      } else if (type === "hypotheses") {
-        prompt += `\n=== TÂCHE: GÉNÉRATION D'HYPOTHÈSES ===
-En te basant sur le contexte du projet et les éventuelles générations précédentes, propose:
-
-1. **3 hypothèses de recherche** bien formulées
-2. Pour chaque hypothèse:
-   - Énoncé clair et vérifiable
-   - Justification théorique brève
-   - Piste méthodologique pour la vérifier
-
-Les hypothèses doivent être cohérentes entre elles et avec le domaine d'étude.`;
-      }
-      break;
-
-    case "tfe":
-      if (type === "analysis") {
-        prompt += `\n=== TÂCHE: CAS B — TFE — ANALYSE DE LA SITUATION D'APPEL ===
-À partir de la situation d'appel décrite ci-dessus:
-
-1. **Reformulation de la situation** : Reformule la situation de manière structurée et professionnelle
-2. **Identification des enjeux professionnels** : 
-   - Enjeux pour le patient/bénéficiaire
-   - Enjeux pour le professionnel
-   - Enjeux pour l'institution
-3. **Concepts clés identifiés** : Liste les concepts professionnels et théoriques en jeu
-4. **Problème central** : Synthétise le problème principal identifié
-
-Attends la validation de l'utilisateur avant de passer à la génération du questionnement.`;
-      } else if (type === "problematic") {
-        prompt += `\n=== TÂCHE: CAS B — TFE — GÉNÉRATION DU QUESTIONNEMENT ===
-En te basant sur la situation d'appel et l'analyse:
-
-1. **Questionnement structuré** : Développe un questionnement professionnel progressif
-2. **Question de départ** : Formule une question de départ claire et professionnelle
-3. **Sujet du TFE** : Déduit de la situation d'appel
-4. **3 hypothèses opérationnelles** :
-   - Formulées comme des leviers d'amélioration (PAS des hypothèses statistiques)
-   - Orientées vers la pratique professionnelle
-   - Testables sur le terrain`;
-      }
-      break;
-
-    case "vae":
-      if (type === "vae_competencies") {
-        prompt += `\n=== TÂCHE: CAS C — VAE — ANALYSE DES COMPÉTENCES ===
-IMPORTANT: En VAE, il n'y a PAS de sujet académique, PAS de problématique de recherche, PAS d'hypothèses théoriques.
-
-Analyse tous les documents fournis (CV, référentiel, attestations, etc.) et produis:
-
-1. **Identification des blocs de compétences** (4, 6 ou 8 blocs selon le référentiel)
-2. Pour CHAQUE bloc identifié:
-   - **Intitulé du bloc**
-   - **Activités professionnelles à valoriser** : Liste des activités pertinentes du parcours
-   - **Situations professionnelles pertinentes** : Situations concrètes à développer dans le dossier
-   - **Logique de démonstration** : Ce que le jury attend comme preuves et argumentation
-
-NE PAS rédiger de texte final. Fournir uniquement la structure et les pistes.`;
-      }
-      break;
-
-    case "rapport_stage":
-      if (type === "subject") {
-        prompt += `\n=== TÂCHE: CAS D — RAPPORT DE STAGE ===
-En te basant sur le contexte du stage et les missions décrites:
-
-1. **Sujet professionnel** : Un sujet ancré dans la réalité du stage
-2. **Problématique** : Une question professionnelle problématisée
-3. **Axes d'analyse** : 3 axes structurants pour le rapport
-4. **3 hypothèses** (si pertinent selon le niveau du diplôme):
-   - Orientées terrain
-   - Liées aux missions effectuées`;
-      } else if (type === "hypotheses") {
-        prompt += `\n=== TÂCHE: AXES D'ANALYSE ET HYPOTHÈSES ===
-Propose:
-
-1. **3 axes d'analyse** pour structurer le rapport
-2. **3 hypothèses** liées aux missions du stage
-3. Pour chaque axe:
-   - Questions à explorer
-   - Méthodologie suggérée`;
-      }
-      break;
+  if (mode === "similar" && currentContent) {
+    prompt += `\n=== VERSION ACTUELLE À REFORMULER/AMÉLIORER ===\nVoici la version actuelle. Génère une proposition SIMILAIRE : même axe, même logique, mais reformulée et améliorée.\n${currentContent}\n`;
+  } else if (mode === "different" && currentContent) {
+    prompt += `\n=== VERSION ACTUELLE (À CHANGER) ===\nVoici la version actuelle. Génère une proposition DIFFÉRENTE : angle différent, logique alternative, nouvelle approche.\n${currentContent}\n`;
   }
 
+  prompt += "\n" + getSectionTask(sectionKey, projectType);
   return prompt;
+}
+
+function getSectionTask(sectionKey: string, projectType: string): string {
+  switch (sectionKey) {
+    case "subject":
+      if (projectType === "memoire") {
+        return `=== TÂCHE: SUJET + PROBLÉMATIQUE ===
+Génère:
+1. **Sujet académique** : précis, original et réalisable
+2. **Problématique** : question de recherche problématisée avec tensions conceptuelles
+3. **Question de recherche** : formulée de façon ouverte
+Structure ta réponse avec des titres Markdown clairs.`;
+      } else if (projectType === "rapport_stage") {
+        return `=== TÂCHE: SUJET PROFESSIONNEL ===
+En te basant sur le contexte du stage:
+1. **Sujet professionnel** : ancré dans la réalité du stage
+2. **Problématique** : question professionnelle problématisée
+3. **Axes d'analyse** : 3 axes structurants pour le rapport`;
+      }
+      return `=== TÂCHE: DÉFINITION DU SUJET ===\nGénère un sujet pertinent et une problématique cohérente pour ce travail académique.`;
+
+    case "problematic":
+      if (projectType === "tfe") {
+        return `=== TÂCHE: QUESTIONNEMENT STRUCTURÉ ===
+En te basant sur la situation d'appel et les éléments validés:
+1. **Questionnement structuré** : questionnement professionnel progressif
+2. **Question de départ** : claire et professionnelle
+3. **Sujet du TFE** : déduit de la situation d'appel`;
+      }
+      return `=== TÂCHE: PROBLÉMATIQUE ===\nGénère une problématique de recherche problématisée, mettant en tension des concepts clés du domaine.`;
+
+    case "hypotheses":
+      if (projectType === "tfe") {
+        return `=== TÂCHE: HYPOTHÈSES OPÉRATIONNELLES ===
+Propose 3 hypothèses opérationnelles:
+- Formulées comme des leviers d'amélioration (PAS des hypothèses statistiques)
+- Orientées vers la pratique professionnelle
+- Testables sur le terrain
+Pour chaque hypothèse: énoncé, justification, piste de vérification.`;
+      }
+      return `=== TÂCHE: HYPOTHÈSES DE RECHERCHE ===
+Propose 3 hypothèses de recherche:
+- Chaque hypothèse doit être vérifiable
+- Cohérentes avec la problématique
+- Adaptées au niveau du diplôme
+Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodologique.`;
+
+    case "situation_appel":
+      return `=== TÂCHE: ANALYSE DE LA SITUATION D'APPEL ===
+À partir de la situation d'appel:
+1. **Reformulation** : reformule de manière structurée et professionnelle
+2. **Enjeux professionnels** : pour le patient, le professionnel, l'institution
+3. **Concepts clés** : concepts professionnels et théoriques en jeu
+4. **Problème central** : synthèse du problème principal`;
+
+    case "vae_competencies":
+      return `=== TÂCHE: ANALYSE DES COMPÉTENCES VAE ===
+IMPORTANT: En VAE, PAS de sujet académique, PAS de problématique de recherche, PAS d'hypothèses.
+Analyse les documents et produis:
+1. **Blocs de compétences** (4, 6 ou 8 blocs selon le référentiel)
+2. Pour CHAQUE bloc:
+   - Intitulé du bloc
+   - Activités professionnelles à valoriser
+   - Situations professionnelles pertinentes
+   - Logique de démonstration (preuves attendues par le jury)`;
+
+    case "plan":
+      return getPlanTask(projectType);
+
+    case "conceptual_framework":
+      return `=== TÂCHE: CADRE CONCEPTUEL ===
+En lien direct avec la problématique et les hypothèses:
+1. **Identification de 2 à 4 concepts clés** en lien avec le sujet
+2. Pour chaque concept:
+   - Définition synthétique et académique
+   - Lien avec la problématique
+   - Auteurs de référence
+3. **Articulation des concepts** : comment ils interagissent dans cette recherche
+Structure avec des titres Markdown.`;
+
+    case "theoretical_framework":
+      return `=== TÂCHE: CADRE THÉORIQUE ===
+En s'appuyant sur le cadre conceptuel:
+1. **Courants théoriques** : identification des théories et modèles pertinents
+2. Pour chaque courant:
+   - Fondements et auteurs clés
+   - Pertinence pour la problématique
+   - Articulation avec les hypothèses
+3. **Positionnement théorique** : justification du choix de l'ancrage théorique`;
+
+    case "literature_review":
+      return `=== TÂCHE: REVUE DE LITTÉRATURE ===
+Construis une revue de littérature structurée:
+1. **Équations de recherche** : propositions pour les bases de données académiques
+2. **Synthèse thématique** : organisée par concept clé ou axe du plan
+3. Pour chaque thématique:
+   - Résumé des travaux existants
+   - Consensus et divergences
+   - Lacunes identifiées dans la littérature
+4. **Tableau récapitulatif** : auteur, année, type, résultat principal
+Adapte les sources au domaine (académiques, professionnelles, institutionnelles).`;
+
+    case "methodology":
+      return `=== TÂCHE: MÉTHODOLOGIE DE RECHERCHE ===
+Définis une méthodologie cohérente et justifiée:
+1. **Type de recherche** : qualitative, quantitative, mixte ou analyse documentaire
+2. **Justification** :
+   - Lien avec la problématique
+   - Lien avec chaque hypothèse
+   - Avantages de cette approche
+   - Limites et contraintes terrain
+3. **Population et échantillon** : qui, combien, critères de sélection
+4. **Outils de collecte** : entretiens, questionnaires, observation, analyse documentaire
+5. **Méthode d'analyse** : comment les données seront traitées
+6. **Considérations éthiques** : si applicable`;
+
+    default:
+      return `=== TÂCHE: GÉNÉRATION DE CONTENU ===\nGénère le contenu approprié pour la section "${sectionKey}".`;
+  }
+}
+
+function getPlanTask(projectType: string): string {
+  const plans: Record<string, string> = {
+    memoire: `=== TÂCHE: PLAN DU MÉMOIRE ===
+Génère un plan cohérent et structuré comprenant:
+1. **Introduction**
+2. **Cadre conceptuel** (concepts clés)
+3. **Cadre théorique** (fondements théoriques)
+4. **Revue de littérature**
+5. **Méthodologie** (approche, outils, population)
+6. **Analyse et discussion des résultats**
+7. **Conclusion**
+8. **Bibliographie**
+9. **Annexes**
+Pour chaque partie: sous-parties détaillées avec brève description du contenu attendu.`,
+
+    tfe: `=== TÂCHE: PLAN DU TFE ===
+Génère un plan conforme aux exigences du TFE santé/social:
+1. **Introduction**
+2. **Situation d'appel**
+3. **Questionnement / Question de départ**
+4. **Cadre conceptuel**
+5. **Cadre théorique**
+6. **Méthodologie**
+7. **Analyse des résultats**
+8. **Recommandations professionnelles**
+9. **Conclusion**
+10. **Bibliographie**
+11. **Annexes**
+Pour chaque partie: sous-parties détaillées.`,
+
+    rapport_stage: `=== TÂCHE: PLAN DU RAPPORT DE STAGE ===
+Génère un plan professionnel:
+1. **Introduction**
+2. **Présentation de la structure d'accueil**
+3. **Présentation des missions**
+4. **Problématique professionnelle**
+5. **Analyse des pratiques**
+6. **Apports et limites du stage**
+7. **Conclusion**
+8. **Bibliographie**
+9. **Annexes**
+Pour chaque partie: sous-parties détaillées.`,
+
+    vae: `=== TÂCHE: PLAN DU DOSSIER VAE ===
+Génère un plan structuré pour le dossier VAE:
+1. **Introduction**
+2. **Présentation de la personne**
+3. **Parcours professionnel**
+4. **Motivation de la démarche VAE**
+5. **Blocs de compétences** (détaillés selon le référentiel)
+6. **Situations professionnelles** (une par bloc minimum)
+7. **Conclusion**
+8. **Bibliographie** (si exigée)
+9. **Annexes** (preuves)
+Pour chaque partie: sous-parties et éléments attendus.`,
+  };
+  return plans[projectType] || plans.memoire;
 }
 
 function getUserId(req: any): string | undefined {
@@ -344,7 +424,7 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
-  // === AI GENERATION ===
+  // === LEGACY AI GENERATION ===
   app.get(api.ai.listGenerations.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const projectId = Number(req.params.projectId);
@@ -358,37 +438,26 @@ export async function registerRoutes(
   app.post(api.ai.generate.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
-
     try {
       const { projectId, type, context } = api.ai.generate.input.parse(req.body);
-
       const project = await storage.getProject(projectId);
       if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
-
       const profile = await storage.getProfile(userId);
       const documents = await storage.getDocuments(projectId);
-
       const projectContext = buildProjectContext(project, profile, documents);
       const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
-      const userPrompt = buildPromptForType(type, project.type, context || "", projectContext);
-
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+      const userPrompt = buildSectionPrompt(type, project.type, "initial", projectContext, validatedContext, context);
       const openai = getOpenAIClient((profile as any)?.openaiApiKey);
-
       const response = await openai.chat.completions.create({
         model: "gpt-4.1",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
         max_tokens: 4000,
         temperature: 0.7,
       });
-
       const content = response.choices[0].message.content || "";
-
       const generation = await storage.createAiGeneration(projectId, type, { content });
       res.json(generation);
-
     } catch (err: any) {
       console.error("AI Generation Error:", err);
       if (err instanceof z.ZodError) {
@@ -399,23 +468,133 @@ export async function registerRoutes(
     }
   });
 
+  // === SECTIONS (Modules 3-7 with versioning) ===
+  app.get(api.sections.list.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const projectId = Number(req.params.projectId);
+    const userId = getUserId(req);
+    const project = await storage.getProject(projectId);
+    if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+    const sections = await storage.getSections(projectId);
+    res.json(sections);
+  });
+
+  app.get(api.sections.get.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const section = await storage.getSection(Number(req.params.id));
+    if (!section) return res.status(404).json({ message: "Section not found" });
+    res.json(section);
+  });
+
+  app.get(api.sections.versions.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    const versions = await storage.getVersions(sectionId);
+    res.json(versions);
+  });
+
+  app.post(api.sections.generate.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const { projectId, sectionKey, mode, extraContext, config } = api.sections.generate.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      let section = await storage.getSectionByKey(projectId, sectionKey);
+      if (!section) {
+        section = await storage.createSection(projectId, sectionKey, config);
+      } else if (config) {
+        section = await storage.updateSectionConfig(section.id, config);
+      }
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      let currentContent: string | undefined;
+      if (mode !== "initial" && section.activeVersionId) {
+        const activeVersion = await storage.getActiveVersion(section.id);
+        currentContent = activeVersion?.content;
+      }
+
+      const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
+      const userPrompt = buildSectionPrompt(sectionKey, project.type, mode, projectContext, validatedContext, extraContext, currentContent);
+
+      const temperature = mode === "similar" ? 0.5 : mode === "different" ? 0.9 : 0.7;
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 4000,
+        temperature,
+      });
+
+      const content = response.choices[0].message.content || "";
+      const contextSnapshot = projectContext.substring(0, 500) + (validatedContext ? "\n..." + validatedContext.substring(0, 500) : "");
+      const version = await storage.createVersion(section.id, content, "ai", mode, contextSnapshot);
+
+      const updatedSection = await storage.getSection(section.id);
+      res.json({ section: updatedSection, version });
+
+    } catch (err: any) {
+      console.error("Section Generation Error:", err);
+      if (err instanceof z.ZodError) {
+        res.status(400).json({ message: err.errors[0].message });
+      } else {
+        res.status(500).json({ message: err.message || "Erreur lors de la génération" });
+      }
+    }
+  });
+
+  app.post(api.sections.saveManual.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    const { content } = api.sections.saveManual.input.parse(req.body);
+    const version = await storage.createVersion(sectionId, content, "manual");
+    res.json(version);
+  });
+
+  app.post(api.sections.validate.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    const section = await storage.updateSectionStatus(sectionId, "validated");
+    res.json(section);
+  });
+
+  app.post(api.sections.unvalidate.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    const section = await storage.updateSectionStatus(sectionId, "draft");
+    res.json(section);
+  });
+
+  app.post(api.sections.activateVersion.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    const versionId = Number(req.params.versionId);
+    await storage.activateVersion(sectionId, versionId);
+    res.json({ success: true });
+  });
+
   // === USER API KEY ===
   app.post("/api/settings/openai-key", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     const { apiKey } = req.body;
-
     try {
       if (apiKey) {
         const testClient = new OpenAI({ apiKey });
         await testClient.models.list();
       }
-
       const existing = await storage.getProfile(userId);
       if (existing) {
         await storage.updateProfile(userId, { openaiApiKey: apiKey || null } as any);
       }
-
       res.json({ success: true, hasKey: !!apiKey });
     } catch (err: any) {
       res.status(400).json({ message: "Clé API invalide. Vérifiez qu'elle est correcte." });

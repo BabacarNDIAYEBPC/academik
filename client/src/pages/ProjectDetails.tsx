@@ -1,9 +1,10 @@
 import Layout from "@/components/Layout";
 import { useRoute } from "wouter";
-import { useProject, useUpdateProject } from "@/hooks/use-projects";
+import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
-import { useGenerations, useGenerateAI } from "@/hooks/use-ai";
-import { useState } from "react";
+import { useSections, useSectionVersions } from "@/hooks/use-sections";
+import SectionEditor from "@/components/SectionEditor";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -13,29 +14,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  FileText,
-  Sparkles,
-  Download,
-  Trash2,
-  Plus,
-  File,
-  Loader2,
-  Bot,
-  BookOpen,
-  ClipboardList,
-  Award,
-  Briefcase,
-  Settings2
+  FileText, Sparkles, Trash2, Plus, File, Loader2,
+  BookOpen, ClipboardList, Award, Briefcase,
+  Map, Lightbulb, BookMarked, FlaskConical, Check
 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import ReactMarkdown from "react-markdown";
+import { SECTION_LABELS, SECTION_KEYS } from "@shared/schema";
+import type { ProjectSection, SectionVersion } from "@shared/schema";
 
 const DOMAIN_LABELS: Record<string, string> = {
   soins_infirmiers: "Soins infirmiers / Santé",
@@ -60,26 +48,54 @@ const DOMAIN_LABELS: Record<string, string> = {
   autre: "Autre",
 };
 
-const FINALITY_LABELS: Record<string, string> = {
-  academique: "Académique",
-  professionnelle: "Professionnelle",
-  mixte: "Mixte",
-};
+const FINALITY_LABELS: Record<string, string> = { academique: "Académique", professionnelle: "Professionnelle", mixte: "Mixte" };
+const APPROACH_LABELS: Record<string, string> = { theorique: "Théorique", appliquee: "Appliquée", analyse_pratiques: "Analyse de pratiques", etude_cas: "Étude de cas", ne_sais_pas: "Non défini" };
+const TYPE_LABELS: Record<string, string> = { memoire: "Mémoire", tfe: "TFE", vae: "VAE", rapport_stage: "Rapport de Stage" };
 
-const APPROACH_LABELS: Record<string, string> = {
-  theorique: "Théorique",
-  appliquee: "Appliquée",
-  analyse_pratiques: "Analyse de pratiques",
-  etude_cas: "Étude de cas",
-  ne_sais_pas: "Non défini",
-};
+function getSectionsForProjectType(projectType: string): string[] {
+  switch (projectType) {
+    case "memoire":
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "theoretical_framework", "literature_review", "methodology"];
+    case "tfe":
+      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "theoretical_framework", "literature_review", "methodology"];
+    case "vae":
+      return ["vae_competencies", "plan"];
+    case "rapport_stage":
+      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology"];
+    default:
+      return ["subject", "plan", "methodology"];
+  }
+}
 
-const TYPE_LABELS: Record<string, string> = {
-  memoire: "Mémoire",
-  tfe: "TFE",
-  vae: "VAE",
-  rapport_stage: "Rapport de Stage",
-};
+function getModuleTabs(projectType: string) {
+  const sections = getSectionsForProjectType(projectType);
+  const tabs: { key: string; label: string; icon: any; sectionKeys: string[] }[] = [];
+
+  const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "vae_competencies"].includes(s));
+  if (foundationKeys.length > 0) {
+    const icon = projectType === "tfe" ? ClipboardList : projectType === "vae" ? Award : projectType === "rapport_stage" ? Briefcase : BookOpen;
+    tabs.push({ key: "foundations", label: "Fondements", icon, sectionKeys: foundationKeys });
+  }
+
+  if (sections.includes("plan")) {
+    tabs.push({ key: "plan", label: "Plan", icon: Map, sectionKeys: ["plan"] });
+  }
+
+  const frameworkKeys = sections.filter(s => ["conceptual_framework", "theoretical_framework"].includes(s));
+  if (frameworkKeys.length > 0) {
+    tabs.push({ key: "framework", label: "Cadres", icon: Lightbulb, sectionKeys: frameworkKeys });
+  }
+
+  if (sections.includes("literature_review")) {
+    tabs.push({ key: "literature", label: "Revue", icon: BookMarked, sectionKeys: ["literature_review"] });
+  }
+
+  if (sections.includes("methodology")) {
+    tabs.push({ key: "methodology", label: "Méthodo", icon: FlaskConical, sectionKeys: ["methodology"] });
+  }
+
+  return tabs;
+}
 
 export default function ProjectDetails() {
   const [, params] = useRoute("/projects/:id");
@@ -159,7 +175,6 @@ function OverviewTab({ project }: { project: any }) {
           <InfoRow label="Niveau" value={project.degreeLevel || "Non défini"} />
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Profil & Orientation</CardTitle>
@@ -173,7 +188,6 @@ function OverviewTab({ project }: { project: any }) {
           {project.workStructure && <InfoRow label="Structure" value={project.workStructure} />}
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Informations</CardTitle>
@@ -198,244 +212,149 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 function AssistantTab({ project }: { project: any }) {
-  const { data: generations, isLoading } = useGenerations(project.id);
-  const { mutate: generate, isPending } = useGenerateAI();
-  const [context, setContext] = useState("");
-  const [situationAppel, setSituationAppel] = useState("");
-  const [stageMissions, setStageMissions] = useState("");
-  const { toast } = useToast();
+  const { data: sections, isLoading: sectionsLoading } = useSections(project.id);
+  const moduleTabs = useMemo(() => getModuleTabs(project.type), [project.type]);
+  const [activeModule, setActiveModule] = useState(moduleTabs[0]?.key || "foundations");
 
-  const handleGenerate = (type: string, extraContext?: string) => {
-    generate(
-      {
-        projectId: project.id,
-        type: type as any,
-        context: extraContext || context || undefined,
-      },
-      {
-        onError: (err: any) => {
-          toast({
-            title: "Erreur",
-            description: err.message || "La génération a échoué. Réessayez.",
-            variant: "destructive",
-          });
-        },
-      }
-    );
+  const getSectionData = (key: string) => {
+    if (!sections) return { section: undefined, activeVersion: undefined };
+    const section = sections.find((s: ProjectSection) => s.key === key);
+    return { section };
   };
 
+  const validatedCount = sections?.filter((s: ProjectSection) => s.status === "validated").length || 0;
+  const totalSections = getSectionsForProjectType(project.type).length;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="space-y-6">
-        {project.type === "memoire" && <MemoireControls context={context} setContext={setContext} onGenerate={handleGenerate} isPending={isPending} />}
-        {project.type === "tfe" && <TFEControls situationAppel={situationAppel} setSituationAppel={setSituationAppel} context={context} setContext={setContext} onGenerate={handleGenerate} isPending={isPending} />}
-        {project.type === "vae" && <VAEControls context={context} setContext={setContext} onGenerate={handleGenerate} isPending={isPending} />}
-        {project.type === "rapport_stage" && <RapportStageControls stageMissions={stageMissions} setStageMissions={setStageMissions} context={context} setContext={setContext} onGenerate={handleGenerate} isPending={isPending} />}
-      </div>
-
-      <div className="lg:col-span-2 space-y-6">
-        {isLoading ? (
-          <Skeleton className="h-64 w-full" />
-        ) : generations?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 text-center border-2 border-dashed border-border rounded-xl">
-            <Sparkles className="w-10 h-10 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground">Aucune génération pour le moment.</p>
-            <p className="text-xs text-muted-foreground mt-1">Utilisez les outils à gauche pour commencer.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {isPending && (
-              <Card className="border-primary/50 shadow-lg animate-pulse">
-                <CardContent className="p-8 flex items-center justify-center text-primary gap-3">
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                  <span className="font-medium">L'IA travaille... cela peut prendre un moment</span>
-                </CardContent>
-              </Card>
-            )}
-
-            {generations?.slice().reverse().map((gen: any) => (
-              <Card key={gen.id} className="overflow-hidden border-border shadow-sm">
-                <div className="bg-muted/30 px-6 py-3 border-b border-border flex justify-between items-center gap-2 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-background">{gen.type}</Badge>
-                    <span className="text-xs text-muted-foreground">{new Date(gen.createdAt).toLocaleString('fr-FR')}</span>
-                  </div>
-                </div>
-                <CardContent className="p-6 prose prose-sm dark:prose-invert max-w-none font-serif">
-                  <ReactMarkdown>
-                    {typeof gen.data === 'string' ? gen.data : (gen.data?.content || gen.data?.text || JSON.stringify(gen.data, null, 2))}
-                  </ReactMarkdown>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 flex-wrap">
+        <Badge variant="outline" className="text-xs">
+          {validatedCount}/{totalSections} sections validées
+        </Badge>
+        {validatedCount > 0 && validatedCount < totalSections && (
+          <p className="text-xs text-muted-foreground">Les sections validées alimentent la mémoire contextuelle pour les générations suivantes.</p>
+        )}
+        {validatedCount === totalSections && totalSections > 0 && (
+          <Badge variant="default" className="bg-green-600 text-white text-xs">
+            <Check className="w-3 h-3 mr-1" /> Toutes les sections sont validées
+          </Badge>
         )}
       </div>
+
+      <Tabs value={activeModule} onValueChange={setActiveModule}>
+        <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1">
+          {moduleTabs.map(tab => {
+            const Icon = tab.icon;
+            const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
+            const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated");
+            const hasContent = tabSections.some(s => s.activeVersionId);
+
+            return (
+              <TabsTrigger
+                key={tab.key}
+                value={tab.key}
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-4 rounded-lg transition-all gap-2"
+                data-testid={`tab-module-${tab.key}`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+                {allValidated && <Check className="w-3 h-3 text-green-500" />}
+                {!allValidated && hasContent && <div className="w-2 h-2 rounded-full bg-yellow-500" />}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+
+        {moduleTabs.map(tab => (
+          <TabsContent key={tab.key} value={tab.key} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6">
+            {sectionsLoading ? (
+              <Skeleton className="h-48 w-full" />
+            ) : (
+              <ModuleSections
+                projectId={project.id}
+                projectType={project.type}
+                sectionKeys={tab.sectionKeys}
+                sections={sections || []}
+              />
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 }
 
-function MemoireControls({ context, setContext, onGenerate, isPending }: { context: string; setContext: (v: string) => void; onGenerate: (type: string, ctx?: string) => void; isPending: boolean }) {
+function ModuleSections({
+  projectId,
+  projectType,
+  sectionKeys,
+  sections,
+}: {
+  projectId: number;
+  projectType: string;
+  sectionKeys: string[];
+  sections: ProjectSection[];
+}) {
+  const [extraContexts, setExtraContexts] = useState<Record<string, string>>({});
+
   return (
-    <Card className="border-primary/20 shadow-md">
-      <CardHeader className="bg-primary/5 pb-4">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <BookOpen className="w-5 h-5 text-primary" />
-          Mémoire
-        </CardTitle>
-        <CardDescription className="text-xs">Génération du sujet, de la problématique et des hypothèses.</CardDescription>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-4">
-        <div>
-          <label className="text-xs font-semibold uppercase text-muted-foreground mb-2 block">Remarques spécifiques</label>
-          <Textarea
-            placeholder="Ajoutez des contraintes, thèmes, ou détails importants..."
-            className="resize-none h-28 text-sm"
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            data-testid="textarea-memoire-context"
-          />
-        </div>
-        <div className="space-y-2 pt-2">
-          <Button className="w-full justify-start gap-2" variant="outline" onClick={() => onGenerate("subject")} disabled={isPending} data-testid="button-generate-subject">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4 text-primary" />}
-            Générer Sujet + Problématique
-          </Button>
-          <Button className="w-full justify-start gap-2" variant="outline" onClick={() => onGenerate("hypotheses")} disabled={isPending} data-testid="button-generate-hypotheses">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary" />}
-            Générer 3 Hypothèses
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      {sectionKeys.map(key => (
+        <SingleSectionWrapper
+          key={key}
+          sectionKey={key}
+          projectId={projectId}
+          projectType={projectType}
+          section={sections.find(s => s.key === key)}
+          extraContext={extraContexts[key] || ""}
+          onExtraContextChange={(val) => setExtraContexts(prev => ({ ...prev, [key]: val }))}
+        />
+      ))}
+    </div>
   );
 }
 
-function TFEControls({ situationAppel, setSituationAppel, context, setContext, onGenerate, isPending }: { situationAppel: string; setSituationAppel: (v: string) => void; context: string; setContext: (v: string) => void; onGenerate: (type: string, ctx?: string) => void; isPending: boolean }) {
+function SingleSectionWrapper({
+  sectionKey,
+  projectId,
+  projectType,
+  section,
+  extraContext,
+  onExtraContextChange,
+}: {
+  sectionKey: string;
+  projectId: number;
+  projectType: string;
+  section?: ProjectSection;
+  extraContext: string;
+  onExtraContextChange: (v: string) => void;
+}) {
+  const { data: versions } = useSectionVersions(section?.id);
+  const activeVersion = useMemo(() => {
+    if (!versions || !section?.activeVersionId) return undefined;
+    return versions.find(v => v.isActive);
+  }, [versions, section?.activeVersionId]);
+
   return (
-    <Card className="border-primary/20 shadow-md">
-      <CardHeader className="bg-primary/5 pb-4">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <ClipboardList className="w-5 h-5 text-primary" />
-          TFE (Santé / Social)
-        </CardTitle>
-        <CardDescription className="text-xs">Partez de votre situation d'appel pour générer votre questionnement.</CardDescription>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-4">
-        <div>
-          <label className="text-xs font-semibold uppercase text-muted-foreground mb-2 block">Situation d'appel</label>
+    <SectionEditor
+      projectId={projectId}
+      sectionKey={sectionKey}
+      section={section}
+      activeVersion={activeVersion}
+      projectType={projectType}
+      getExtraContext={() => extraContext}
+      extraInputs={
+        <div className="mb-2">
           <Textarea
-            placeholder="Décrivez la situation observée : contexte, acteurs, problème identifié, conséquences..."
-            className="resize-none h-36 text-sm"
-            value={situationAppel}
-            onChange={(e) => setSituationAppel(e.target.value)}
-            data-testid="textarea-situation-appel"
-          />
-          <p className="text-xs text-muted-foreground mt-1">Incluez : contexte, acteurs, situation observée, problème identifié, conséquences.</p>
-        </div>
-        <div>
-          <label className="text-xs font-semibold uppercase text-muted-foreground mb-2 block">Remarques additionnelles</label>
-          <Textarea
-            placeholder="Précisions, contraintes..."
+            placeholder={`Instructions supplémentaires pour ${SECTION_LABELS[sectionKey]}...`}
             className="resize-none h-20 text-sm"
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            data-testid="textarea-tfe-context"
+            value={extraContext}
+            onChange={(e) => onExtraContextChange(e.target.value)}
+            data-testid={`textarea-extra-${sectionKey}`}
           />
         </div>
-        <div className="space-y-2 pt-2">
-          <Button className="w-full justify-start gap-2" variant="outline" onClick={() => onGenerate("analysis", situationAppel)} disabled={isPending || !situationAppel.trim()} data-testid="button-tfe-analyze">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4 text-primary" />}
-            Analyser la situation d'appel
-          </Button>
-          <Button className="w-full justify-start gap-2" variant="outline" onClick={() => onGenerate("problematic", situationAppel)} disabled={isPending || !situationAppel.trim()} data-testid="button-tfe-generate">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary" />}
-            Générer Question de départ + Hypothèses
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function VAEControls({ context, setContext, onGenerate, isPending }: { context: string; setContext: (v: string) => void; onGenerate: (type: string, ctx?: string) => void; isPending: boolean }) {
-  return (
-    <Card className="border-primary/20 shadow-md">
-      <CardHeader className="bg-primary/5 pb-4">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Award className="w-5 h-5 text-primary" />
-          VAE
-        </CardTitle>
-        <CardDescription className="text-xs">Analyse de votre parcours pour identifier les blocs de compétences. Pas de sujet académique ni d'hypothèses.</CardDescription>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-4">
-        <div>
-          <label className="text-xs font-semibold uppercase text-muted-foreground mb-2 block">Informations complémentaires</label>
-          <Textarea
-            placeholder="Ajoutez des précisions sur votre parcours, vos expériences clés..."
-            className="resize-none h-28 text-sm"
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            data-testid="textarea-vae-context"
-          />
-        </div>
-        <p className="text-xs text-muted-foreground bg-muted/50 p-3 rounded-md">
-          Assurez-vous d'avoir ajouté votre CV et votre référentiel de compétences dans l'onglet Documents avant de lancer l'analyse.
-        </p>
-        <div className="space-y-2 pt-2">
-          <Button className="w-full justify-start gap-2" variant="outline" onClick={() => onGenerate("vae_competencies")} disabled={isPending} data-testid="button-vae-analyze">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4 text-primary" />}
-            Analyser les compétences
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function RapportStageControls({ stageMissions, setStageMissions, context, setContext, onGenerate, isPending }: { stageMissions: string; setStageMissions: (v: string) => void; context: string; setContext: (v: string) => void; onGenerate: (type: string, ctx?: string) => void; isPending: boolean }) {
-  return (
-    <Card className="border-primary/20 shadow-md">
-      <CardHeader className="bg-primary/5 pb-4">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Briefcase className="w-5 h-5 text-primary" />
-          Rapport de Stage
-        </CardTitle>
-        <CardDescription className="text-xs">Décrivez vos missions pour générer un sujet et des axes d'analyse.</CardDescription>
-      </CardHeader>
-      <CardContent className="pt-6 space-y-4">
-        <div>
-          <label className="text-xs font-semibold uppercase text-muted-foreground mb-2 block">Contexte du stage / Missions</label>
-          <Textarea
-            placeholder="Décrivez l'entreprise, votre poste, vos missions principales..."
-            className="resize-none h-36 text-sm"
-            value={stageMissions}
-            onChange={(e) => setStageMissions(e.target.value)}
-            data-testid="textarea-stage-missions"
-          />
-        </div>
-        <div>
-          <label className="text-xs font-semibold uppercase text-muted-foreground mb-2 block">Remarques</label>
-          <Textarea
-            placeholder="Précisions..."
-            className="resize-none h-20 text-sm"
-            value={context}
-            onChange={(e) => setContext(e.target.value)}
-            data-testid="textarea-stage-context"
-          />
-        </div>
-        <div className="space-y-2 pt-2">
-          <Button className="w-full justify-start gap-2" variant="outline" onClick={() => onGenerate("subject", stageMissions)} disabled={isPending || !stageMissions.trim()} data-testid="button-stage-subject">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bot className="w-4 h-4 text-primary" />}
-            Générer Sujet + Problématique
-          </Button>
-          <Button className="w-full justify-start gap-2" variant="outline" onClick={() => onGenerate("hypotheses", stageMissions)} disabled={isPending || !stageMissions.trim()} data-testid="button-stage-hypotheses">
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-primary" />}
-            Générer Axes d'analyse + Hypothèses
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+      }
+    />
   );
 }
 

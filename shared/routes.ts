@@ -1,130 +1,78 @@
 import { z } from 'zod';
-import { insertProjectSchema, insertProfileSchema, insertDocumentSchema, projects, profiles, documents, aiGenerations } from './schema';
-export type { GenerateRequest, CreateProjectRequest, UpdateProjectRequest, CreateProfileRequest } from './schema';
+import { insertProjectSchema, insertProfileSchema, insertDocumentSchema, projects, profiles, documents, aiGenerations, projectSections, sectionVersions } from './schema';
+export type { GenerateRequest, CreateProjectRequest, UpdateProjectRequest, CreateProfileRequest, SectionGenerateRequest } from './schema';
 
 export const errorSchemas = {
-  validation: z.object({
-    message: z.string(),
-    field: z.string().optional(),
-  }),
-  notFound: z.object({
-    message: z.string(),
-  }),
-  internal: z.object({
-    message: z.string(),
-  }),
-  unauthorized: z.object({
-    message: z.string(),
-  }),
+  validation: z.object({ message: z.string(), field: z.string().optional() }),
+  notFound: z.object({ message: z.string() }),
+  internal: z.object({ message: z.string() }),
+  unauthorized: z.object({ message: z.string() }),
 };
 
 export const api = {
-  // Profiles
   profiles: {
     get: {
       method: 'GET' as const,
       path: '/api/profiles/me',
-      responses: {
-        200: z.custom<typeof profiles.$inferSelect>(),
-        404: errorSchemas.notFound, // If not created yet
-        401: errorSchemas.unauthorized,
-      },
+      responses: { 200: z.custom<typeof profiles.$inferSelect>(), 404: errorSchemas.notFound, 401: errorSchemas.unauthorized },
     },
     upsert: {
       method: 'POST' as const,
       path: '/api/profiles',
       input: insertProfileSchema,
-      responses: {
-        200: z.custom<typeof profiles.$inferSelect>(),
-        401: errorSchemas.unauthorized,
-        400: errorSchemas.validation,
-      },
+      responses: { 200: z.custom<typeof profiles.$inferSelect>(), 401: errorSchemas.unauthorized, 400: errorSchemas.validation },
     },
   },
 
-  // Projects
   projects: {
     list: {
       method: 'GET' as const,
       path: '/api/projects',
-      responses: {
-        200: z.array(z.custom<typeof projects.$inferSelect>()),
-        401: errorSchemas.unauthorized,
-      },
+      responses: { 200: z.array(z.custom<typeof projects.$inferSelect>()), 401: errorSchemas.unauthorized },
     },
     get: {
       method: 'GET' as const,
       path: '/api/projects/:id',
-      responses: {
-        200: z.custom<typeof projects.$inferSelect>(),
-        404: errorSchemas.notFound,
-        401: errorSchemas.unauthorized,
-      },
+      responses: { 200: z.custom<typeof projects.$inferSelect>(), 404: errorSchemas.notFound, 401: errorSchemas.unauthorized },
     },
     create: {
       method: 'POST' as const,
       path: '/api/projects',
       input: insertProjectSchema,
-      responses: {
-        201: z.custom<typeof projects.$inferSelect>(),
-        401: errorSchemas.unauthorized,
-        400: errorSchemas.validation,
-      },
+      responses: { 201: z.custom<typeof projects.$inferSelect>(), 401: errorSchemas.unauthorized, 400: errorSchemas.validation },
     },
     update: {
       method: 'PUT' as const,
       path: '/api/projects/:id',
       input: insertProjectSchema.partial(),
-      responses: {
-        200: z.custom<typeof projects.$inferSelect>(),
-        404: errorSchemas.notFound,
-        401: errorSchemas.unauthorized,
-        400: errorSchemas.validation,
-      },
+      responses: { 200: z.custom<typeof projects.$inferSelect>(), 404: errorSchemas.notFound, 401: errorSchemas.unauthorized, 400: errorSchemas.validation },
     },
     delete: {
       method: 'DELETE' as const,
       path: '/api/projects/:id',
-      responses: {
-        204: z.void(),
-        404: errorSchemas.notFound,
-        401: errorSchemas.unauthorized,
-      },
+      responses: { 204: z.void(), 404: errorSchemas.notFound, 401: errorSchemas.unauthorized },
     },
   },
 
-  // Documents
   documents: {
     list: {
       method: 'GET' as const,
       path: '/api/projects/:projectId/documents',
-      responses: {
-        200: z.array(z.custom<typeof documents.$inferSelect>()),
-        401: errorSchemas.unauthorized,
-      },
+      responses: { 200: z.array(z.custom<typeof documents.$inferSelect>()), 401: errorSchemas.unauthorized },
     },
     create: {
       method: 'POST' as const,
       path: '/api/projects/:projectId/documents',
-      input: insertDocumentSchema.omit({ projectId: true }), // projectId from URL
-      responses: {
-        201: z.custom<typeof documents.$inferSelect>(),
-        401: errorSchemas.unauthorized,
-        400: errorSchemas.validation,
-      },
+      input: insertDocumentSchema.omit({ projectId: true }),
+      responses: { 201: z.custom<typeof documents.$inferSelect>(), 401: errorSchemas.unauthorized, 400: errorSchemas.validation },
     },
     delete: {
       method: 'DELETE' as const,
       path: '/api/documents/:id',
-      responses: {
-        204: z.void(),
-        404: errorSchemas.notFound,
-        401: errorSchemas.unauthorized,
-      },
+      responses: { 204: z.void(), 404: errorSchemas.notFound, 401: errorSchemas.unauthorized },
     },
   },
 
-  // AI Generation
   ai: {
     generate: {
       method: 'POST' as const,
@@ -134,22 +82,65 @@ export const api = {
         type: z.enum(['subject', 'problematic', 'hypotheses', 'analysis', 'vae_competencies']),
         context: z.string().optional(),
       }),
-      responses: {
-        200: z.custom<typeof aiGenerations.$inferSelect>(),
-        401: errorSchemas.unauthorized,
-        400: errorSchemas.validation,
-        500: errorSchemas.internal,
-      },
+      responses: { 200: z.custom<typeof aiGenerations.$inferSelect>(), 401: errorSchemas.unauthorized, 400: errorSchemas.validation, 500: errorSchemas.internal },
     },
     listGenerations: {
       method: 'GET' as const,
       path: '/api/projects/:projectId/generations',
-      responses: {
-        200: z.array(z.custom<typeof aiGenerations.$inferSelect>()),
-        401: errorSchemas.unauthorized,
-      },
-    }
-  }
+      responses: { 200: z.array(z.custom<typeof aiGenerations.$inferSelect>()), 401: errorSchemas.unauthorized },
+    },
+  },
+
+  sections: {
+    list: {
+      method: 'GET' as const,
+      path: '/api/projects/:projectId/sections',
+      responses: { 200: z.array(z.custom<typeof projectSections.$inferSelect>()), 401: errorSchemas.unauthorized },
+    },
+    get: {
+      method: 'GET' as const,
+      path: '/api/sections/:id',
+      responses: { 200: z.custom<typeof projectSections.$inferSelect>(), 404: errorSchemas.notFound, 401: errorSchemas.unauthorized },
+    },
+    generate: {
+      method: 'POST' as const,
+      path: '/api/sections/generate',
+      input: z.object({
+        projectId: z.number(),
+        sectionKey: z.string(),
+        mode: z.enum(['initial', 'similar', 'different']),
+        extraContext: z.string().optional(),
+        config: z.record(z.any()).optional(),
+      }),
+      responses: { 200: z.object({ section: z.custom<typeof projectSections.$inferSelect>(), version: z.custom<typeof sectionVersions.$inferSelect>() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    saveManual: {
+      method: 'POST' as const,
+      path: '/api/sections/:id/save',
+      input: z.object({ content: z.string() }),
+      responses: { 200: z.custom<typeof sectionVersions.$inferSelect>(), 401: errorSchemas.unauthorized },
+    },
+    validate: {
+      method: 'POST' as const,
+      path: '/api/sections/:id/validate',
+      responses: { 200: z.custom<typeof projectSections.$inferSelect>(), 401: errorSchemas.unauthorized },
+    },
+    unvalidate: {
+      method: 'POST' as const,
+      path: '/api/sections/:id/unvalidate',
+      responses: { 200: z.custom<typeof projectSections.$inferSelect>(), 401: errorSchemas.unauthorized },
+    },
+    versions: {
+      method: 'GET' as const,
+      path: '/api/sections/:id/versions',
+      responses: { 200: z.array(z.custom<typeof sectionVersions.$inferSelect>()), 401: errorSchemas.unauthorized },
+    },
+    activateVersion: {
+      method: 'POST' as const,
+      path: '/api/sections/:id/activate/:versionId',
+      responses: { 200: z.object({ success: z.boolean() }), 401: errorSchemas.unauthorized },
+    },
+  },
 };
 
 export function buildUrl(path: string, params?: Record<string, string | number>): string {
