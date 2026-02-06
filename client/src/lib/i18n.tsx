@@ -35,86 +35,50 @@ const translations = {
     these: { fr: "Thèse", en: "Thesis" },
     vae: { fr: "VAE", en: "VAE (Prior Learning)" },
     rapportStage: { fr: "Rapport de Stage", en: "Internship Report" },
-    module1Title: { fr: "Fondement méthodologique", en: "Methodological Foundation" },
-    module1Desc: {
-      fr: "Génération du sujet, de la problématique et des hypothèses. Séparation stricte, régénération en version similaire ou alternative, modification manuelle et historique des versions.",
-      en: "Generate subject, problematic, and hypotheses. Strict separation, regeneration in similar or alternative versions, manual editing and version history.",
+    feat1Title: { fr: "Méthodologie & Recherche", en: "Methodology & Research" },
+    feat1Desc: {
+      fr: "Génération de sujet, problématique & hypothèses. Plans académiques intelligents. Cadre conceptuel & méthodologique complet.",
+      en: "Subject, problematic & hypotheses generation. Intelligent academic plans. Complete conceptual & methodological framework.",
     },
-    module1Details: {
-      fr: ["Sujet, Problématique, Hypothèses", "Génération individuelle ou combinée", "Régénération similaire ou alternative", "Historique complet des versions", "Export Word"],
-      en: ["Subject, Problematic, Hypotheses", "Individual or combined generation", "Similar or alternative regeneration", "Complete version history", "Word export"],
+    feat1Details: {
+      fr: ["Génération de sujet, problématique & hypothèses", "Plans académiques intelligents", "Cadre conceptuel & méthodologique", "Régénération similaire ou alternative", "Historique complet des versions", "Export Word par section"],
+      en: ["Subject, problematic & hypotheses generation", "Intelligent academic plans", "Conceptual & methodological framework", "Similar or alternative regeneration", "Complete version history", "Word export per section"],
     },
-    module2Title: { fr: "Plan du travail", en: "Work Plan" },
-    module2Desc: {
-      fr: "Génération d'un plan académique structuré, conforme aux exigences de votre type de travail, avec numérotation académique propre.",
-      en: "Generate a structured academic plan, compliant with your project type requirements, with proper academic numbering.",
+    feat2Title: { fr: "Revue de littérature avancée", en: "Advanced Literature Review" },
+    feat2Desc: {
+      fr: "Recherche multi-plateformes (Google Scholar, PubMed, HAL…). Résumés & confrontation d'articles. Bibliographie multi-normes (APA 7, Vancouver, MLA, Chicago).",
+      en: "Multi-platform search (Google Scholar, PubMed, HAL…). Article summaries & confrontation. Multi-standard bibliography (APA 7, Vancouver, MLA, Chicago).",
     },
-    module2Details: {
-      fr: ["Plan structuré académique", "Numérotation propre (1.1 / 1.1.1)", "Conforme Mémoire, TFE, Thèse, Rapport", "Modification et régénération", "Export Word"],
-      en: ["Structured academic plan", "Proper numbering (1.1 / 1.1.1)", "Compliant for all project types", "Editing and regeneration", "Word export"],
+    feat2Details: {
+      fr: ["Recherche multi-plateformes (Google Scholar, PubMed, HAL…)", "Résumés & confrontation d'articles", "Bibliographie multi-normes (APA 7, Vancouver, MLA, Chicago)", "Équations de recherche FR/EN", "Analyse individuelle et croisée"],
+      en: ["Multi-platform search (Google Scholar, PubMed, HAL…)", "Article summaries & confrontation", "Multi-standard bibliography (APA 7, Vancouver, MLA, Chicago)", "Research equations FR/EN", "Individual and cross-analysis"],
     },
-    module3Title: { fr: "Cadre conceptuel", en: "Conceptual Framework" },
-    module3Desc: {
-      fr: "Identification de 3 concepts clés avec définitions académiques et liens avec la problématique et les hypothèses.",
-      en: "Identification of 3 key concepts with academic definitions and links to the problematic and hypotheses.",
+    feat3Title: { fr: "Collecte & Analyse des données", en: "Data Collection & Analysis" },
+    feat3Desc: {
+      fr: "Questionnaires & guides d'entretien. Simulation d'entretien IA. Analyse qualitative (verbatims, codage). Analyse quantitative (tableaux + graphiques dynamiques).",
+      en: "Questionnaires & interview guides. AI interview simulation. Qualitative analysis (verbatims, coding). Quantitative analysis (tables + dynamic charts).",
     },
-    module3Details: {
-      fr: ["3 concepts clés identifiés", "Définitions académiques", "Lien concepts-problématique-hypothèses", "Structure claire et rigoureuse", "Export Word"],
-      en: ["3 key concepts identified", "Academic definitions", "Concept-problematic-hypotheses links", "Clear and rigorous structure", "Word export"],
+    feat3Details: {
+      fr: ["Questionnaires & guides d'entretien", "Simulation d'entretien IA", "Analyse qualitative (verbatims, codage)", "Analyse quantitative (tableaux + graphiques dynamiques)"],
+      en: ["Questionnaires & interview guides", "AI interview simulation", "Qualitative analysis (verbatims, coding)", "Quantitative analysis (tables + dynamic charts)"],
     },
-    module4Title: { fr: "Revue de littérature", en: "Literature Review" },
-    module4Desc: {
-      fr: "Recherche avancée sur Google Scholar, PubMed, Cairn, HAL. Génération d'équations de recherche, analyse d'articles, bibliographie multi-normes.",
-      en: "Advanced search on Google Scholar, PubMed, Cairn, HAL. Research equation generation, article analysis, multi-standard bibliography.",
+    feat4Title: { fr: "Production & livrables", en: "Production & Deliverables" },
+    feat4Desc: {
+      fr: "Export Word / PowerPoint. PowerPoint de soutenance. Simulation de soutenance. Audit de mémoire.",
+      en: "Word / PowerPoint export. Defense PowerPoint. Defense simulation. Dissertation audit.",
     },
-    module4Details: {
-      fr: ["Recherche multi-plateformes", "Équations de recherche FR/EN", "Analyse individuelle et croisée", "Confrontation d'articles", "Bibliographie APA7, Vancouver, MLA, Chicago", "Historique des recherches", "Export Word"],
-      en: ["Multi-platform search", "Research equations FR/EN", "Individual and cross-analysis", "Article confrontation", "APA7, Vancouver, MLA, Chicago bibliography", "Search history", "Word export"],
+    feat4Details: {
+      fr: ["Export Word / PowerPoint", "PowerPoint de soutenance", "Simulation de soutenance", "Audit de mémoire"],
+      en: ["Word / PowerPoint export", "Defense PowerPoint", "Defense simulation", "Dissertation audit"],
     },
-    module5Title: { fr: "Méthodologie de recherche", en: "Research Methodology" },
-    module5Desc: {
-      fr: "Proposition du type de méthodologie, cohérence automatique avec la problématique et les hypothèses, définition de la population et des outils.",
-      en: "Methodology type proposal, automatic coherence with problematic and hypotheses, population and tools definition.",
+    feat5Title: { fr: "Suivi & sécurité", en: "Tracking & Security" },
+    feat5Desc: {
+      fr: "Workflow & historique complets. Sauvegarde automatique. Import de documents existants. Comparaison de versions.",
+      en: "Complete workflow & history. Automatic saving. Existing document import. Version comparison.",
     },
-    module5Details: {
-      fr: ["Qualitative, quantitative ou mixte", "Cohérence problématique-hypothèses", "Population cible et outils", "Phases méthodologiques", "Limites identifiées", "Export Word"],
-      en: ["Qualitative, quantitative or mixed", "Problematic-hypotheses coherence", "Target population and tools", "Methodological phases", "Identified limitations", "Word export"],
-    },
-    cat1Title: { fr: "Collecte & Analyse des données", en: "Data Collection & Analysis" },
-    cat1Desc: {
-      fr: "Questionnaires & guides d'entretien, simulation d'entretien IA, analyse qualitative (verbatims, codage), analyse quantitative (tableaux + graphiques dynamiques).",
-      en: "Questionnaires & interview guides, AI interview simulation, qualitative analysis (verbatims, coding), quantitative analysis (tables + dynamic charts).",
-    },
-    cat1Details: {
-      fr: ["Questionnaires avancés", "Guides d'entretien complets", "Simulation d'entretien IA", "Analyse qualitative (verbatims, codage, synthèse)", "Analyse quantitative (tableaux + graphiques)", "Export Word"],
-      en: ["Advanced questionnaires", "Complete interview guides", "AI interview simulation", "Qualitative analysis (verbatims, coding, synthesis)", "Quantitative analysis (tables + charts)", "Word export"],
-    },
-    cat2Title: { fr: "Revue de littérature avancée", en: "Advanced Literature Review" },
-    cat2Desc: {
-      fr: "Recherche multi-plateformes (Google Scholar, PubMed, HAL…), résumés & confrontation d'articles, bibliographie multi-normes (APA 7, Vancouver, MLA, Chicago).",
-      en: "Multi-platform search (Google Scholar, PubMed, HAL…), article summaries & confrontation, multi-standard bibliography (APA 7, Vancouver, MLA, Chicago).",
-    },
-    cat2Details: {
-      fr: ["Résumé & analyse d'articles (lot)", "Confrontation d'articles", "Bibliographie APA 7, Vancouver, MLA, Chicago", "Recherche multi-plateformes"],
-      en: ["Article summary & analysis (batch)", "Article confrontation", "APA 7, Vancouver, MLA, Chicago bibliography", "Multi-platform search"],
-    },
-    cat3Title: { fr: "Soutenance & Finalisation", en: "Defense & Finalization" },
-    cat3Desc: {
-      fr: "PowerPoint de soutenance structuré, simulation de soutenance (questions jury), audit complet du mémoire.",
-      en: "Structured defense PowerPoint, defense simulation (jury questions), complete dissertation audit.",
-    },
-    cat3Details: {
-      fr: ["PowerPoint de soutenance", "Simulation de soutenance (questions jury)", "Audit complet du mémoire", "Export Word / PPT"],
-      en: ["Defense PowerPoint", "Defense simulation (jury questions)", "Complete dissertation audit", "Word / PPT export"],
-    },
-    cat4Title: { fr: "Suivi & Sécurité", en: "Tracking & Security" },
-    cat4Desc: {
-      fr: "Workflow & historique complets, sauvegarde automatique, import de documents existants.",
-      en: "Complete workflow & history, automatic saving, existing document import.",
-    },
-    cat4Details: {
-      fr: ["Workflow par section", "Historique horodaté", "Gestion des versions", "Sauvegarde automatique", "Import de documents"],
-      en: ["Per-section workflow", "Timestamped history", "Version management", "Automatic saving", "Document import"],
+    feat5Details: {
+      fr: ["Workflow & historique complets", "Sauvegarde automatique", "Import de documents existants", "Comparaison de versions", "Détection d'impact automatique"],
+      en: ["Complete workflow & history", "Automatic saving", "Existing document import", "Version comparison", "Automatic impact detection"],
     },
   },
   pricing: {

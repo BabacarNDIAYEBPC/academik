@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -15,6 +16,7 @@ import {
   useActivateVersion,
   useUpdateSectionStatus,
   useStatusHistory,
+  useClearNeedsReview,
 } from "@/hooks/use-sections";
 import { SECTION_LABELS, SECTION_STATUS_LABELS } from "@shared/schema";
 import type { ProjectSection, SectionVersion } from "@shared/schema";
@@ -22,7 +24,7 @@ import ReactMarkdown from "react-markdown";
 import {
   Sparkles, Pencil, Check, RefreshCw, History, ChevronDown, ChevronUp,
   Loader2, Save, X, ArrowLeft, Copy, RotateCcw, Clock, Send,
-  FileCheck, Archive, CircleDot,
+  FileCheck, Archive, CircleDot, GitCompareArrows,
 } from "lucide-react";
 import {
   Dialog,
@@ -96,12 +98,16 @@ export default function SectionEditor({
   const unvalidateMutation = useUnvalidateSection();
   const activateVersionMutation = useActivateVersion();
   const updateStatusMutation = useUpdateSectionStatus();
+  const clearReviewMutation = useClearNeedsReview();
 
   const label = SECTION_LABELS[sectionKey] || sectionKey;
   const currentStatus = section?.status || "draft";
   const isValidated = currentStatus === "validated" || currentStatus === "final_version";
   const hasContent = !!activeVersion?.content;
   const isPending = generateMutation.isPending;
+  const sectionConfig = (section?.config as Record<string, any>) || {};
+  const needsReview = !!sectionConfig.needsReview;
+  const reviewReason = sectionConfig.reviewReason as string | undefined;
 
   const handleGenerate = (mode: "initial" | "similar" | "different") => {
     setShowRegenerateChoice(false);
@@ -238,6 +244,28 @@ export default function SectionEditor({
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {needsReview && (
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800" data-testid={`alert-needs-review-${sectionKey}`}>
+              <RefreshCw className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Section à réévaluer</p>
+                <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                  La section « {reviewReason ? (SECTION_LABELS[reviewReason] || reviewReason) : "un élément fondamental"} » a été modifiée. Vérifiez si cette section nécessite une mise à jour.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-shrink-0"
+                onClick={() => section && clearReviewMutation.mutate({ sectionId: section.id, projectId })}
+                disabled={clearReviewMutation.isPending}
+                data-testid={`button-dismiss-review-${sectionKey}`}
+              >
+                <Check className="w-3 h-3 mr-1" /> OK
+              </Button>
+            </div>
+          )}
+
           {extraInputs}
 
           {isPending && (
@@ -419,6 +447,33 @@ function StatusTimelineDialog({
   );
 }
 
+function computeLineDiff(oldText: string, newText: string): { type: "same" | "added" | "removed"; text: string }[] {
+  const oldLines = oldText.split("\n");
+  const newLines = newText.split("\n");
+  const result: { type: "same" | "added" | "removed"; text: string }[] = [];
+  let oi = 0, ni = 0;
+
+  while (oi < oldLines.length || ni < newLines.length) {
+    if (oi < oldLines.length && ni < newLines.length && oldLines[oi] === newLines[ni]) {
+      result.push({ type: "same", text: oldLines[oi] });
+      oi++;
+      ni++;
+    } else if (oi < oldLines.length && ni < newLines.length) {
+      result.push({ type: "removed", text: oldLines[oi] });
+      result.push({ type: "added", text: newLines[ni] });
+      oi++;
+      ni++;
+    } else if (oi < oldLines.length) {
+      result.push({ type: "removed", text: oldLines[oi] });
+      oi++;
+    } else {
+      result.push({ type: "added", text: newLines[ni] });
+      ni++;
+    }
+  }
+  return result;
+}
+
 function VersionHistoryDialog({
   sectionId,
   projectId,
@@ -436,6 +491,9 @@ function VersionHistoryDialog({
   const activateMutation = useActivateVersion();
   const { toast } = useToast();
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareA, setCompareA] = useState<number | null>(null);
+  const [compareB, setCompareB] = useState<number | null>(null);
 
   const handleActivate = (versionId: number) => {
     if (!sectionId) return;
@@ -450,63 +508,162 @@ function VersionHistoryDialog({
     );
   };
 
+  const toggleCompare = (vId: number) => {
+    if (compareA === vId) { setCompareA(null); return; }
+    if (compareB === vId) { setCompareB(null); return; }
+    if (!compareA) { setCompareA(vId); return; }
+    if (!compareB) { setCompareB(vId); return; }
+    setCompareA(vId);
+    setCompareB(null);
+  };
+
+  const versionA = versions?.find(v => v.id === compareA);
+  const versionB = versions?.find(v => v.id === compareB);
+  const canCompare = compareMode && versionA && versionB;
+  const diffLines = canCompare ? computeLineDiff(versionA.content, versionB.content) : [];
+
+  const exitCompare = () => {
+    setCompareMode(false);
+    setCompareA(null);
+    setCompareB(null);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={(v) => { if (!v) exitCompare(); onOpenChange(v); }}>
+      <DialogContent className={`${canCompare ? "max-w-4xl" : "max-w-2xl"} max-h-[80vh] overflow-y-auto`}>
         <DialogHeader>
-          <DialogTitle>Historique des versions — {SECTION_LABELS[sectionKey] || sectionKey}</DialogTitle>
-          <DialogDescription>Consultez, comparez et restaurez les versions précédentes.</DialogDescription>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <DialogTitle>Historique des versions — {SECTION_LABELS[sectionKey] || sectionKey}</DialogTitle>
+              <DialogDescription>Consultez, comparez et restaurez les versions précédentes.</DialogDescription>
+            </div>
+            {versions && versions.length >= 2 && (
+              <Button
+                variant={compareMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => compareMode ? exitCompare() : setCompareMode(true)}
+                data-testid="button-toggle-compare"
+              >
+                <GitCompareArrows className="w-4 h-4 mr-1" />
+                {compareMode ? "Quitter la comparaison" : "Comparer"}
+              </Button>
+            )}
+          </div>
         </DialogHeader>
+
+        {canCompare && (
+          <div className="space-y-3" data-testid="version-diff-panel">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-xs">Version {versionA.versionNumber}</Badge>
+              <span className="text-xs text-muted-foreground">vs</span>
+              <Badge variant="outline" className="text-xs">Version {versionB.versionNumber}</Badge>
+            </div>
+            <div className="border rounded-lg overflow-hidden">
+              <div className="grid grid-cols-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground">
+                <div className="px-3 py-2 border-r">Version {versionA.versionNumber} (ancienne)</div>
+                <div className="px-3 py-2">Version {versionB.versionNumber} (récente)</div>
+              </div>
+              <div className="max-h-[40vh] overflow-y-auto">
+                {diffLines.map((line, i) => (
+                  <div
+                    key={i}
+                    className={`grid grid-cols-2 text-xs font-mono ${
+                      line.type === "removed" ? "bg-red-50 dark:bg-red-950/30" :
+                      line.type === "added" ? "bg-green-50 dark:bg-green-950/30" : ""
+                    }`}
+                  >
+                    {line.type === "same" && (
+                      <>
+                        <div className="px-3 py-0.5 border-r border-border/30 whitespace-pre-wrap break-words">{line.text || "\u00A0"}</div>
+                        <div className="px-3 py-0.5 whitespace-pre-wrap break-words">{line.text || "\u00A0"}</div>
+                      </>
+                    )}
+                    {line.type === "removed" && (
+                      <>
+                        <div className="px-3 py-0.5 border-r border-border/30 whitespace-pre-wrap break-words text-red-700 dark:text-red-400">- {line.text}</div>
+                        <div className="px-3 py-0.5" />
+                      </>
+                    )}
+                    {line.type === "added" && (
+                      <>
+                        <div className="px-3 py-0.5 border-r border-border/30" />
+                        <div className="px-3 py-0.5 whitespace-pre-wrap break-words text-green-700 dark:text-green-400">+ {line.text}</div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {compareMode && !canCompare && (
+          <div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">
+            Sélectionnez deux versions ci-dessous pour les comparer.
+            {compareA && !compareB && <span className="block mt-1 font-medium">1 version sélectionnée, choisissez la seconde.</span>}
+          </div>
+        )}
+
         {isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : !versions || versions.length === 0 ? (
           <p className="text-muted-foreground text-sm py-4">Aucune version enregistrée.</p>
         ) : (
           <div className="space-y-3 pt-2">
-            {versions.map((v) => (
-              <Card key={v.id} className={v.isActive ? "border-primary" : ""}>
-                <CardHeader className="py-3 flex flex-row items-center justify-between gap-2 flex-wrap">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium text-sm">Version {v.versionNumber}</span>
-                    {v.isActive && <Badge variant="default" className="text-xs">Active</Badge>}
-                    <Badge variant="secondary" className="text-xs">{v.source === "ai" ? "IA" : "Manuel"}</Badge>
-                    {v.mode && v.mode !== "initial" && (
-                      <Badge variant="outline" className="text-xs">{v.mode === "similar" ? "Similaire" : "Différent"}</Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setExpandedId(expandedId === v.id ? null : v.id)}
-                    >
-                      {expandedId === v.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </Button>
-                    {!v.isActive && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleActivate(v.id)}
-                        disabled={activateMutation.isPending}
-                        data-testid={`button-restore-version-${v.id}`}
-                      >
-                        <ArrowLeft className="w-3 h-3 mr-1" /> Restaurer
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                {expandedId === v.id && (
-                  <CardContent className="pt-0">
-                    <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/20 rounded p-3 max-h-60 overflow-y-auto">
-                      <ReactMarkdown>{v.content}</ReactMarkdown>
+            {versions.map((v) => {
+              const isSelectedForCompare = compareA === v.id || compareB === v.id;
+              return (
+                <Card key={v.id} className={`${v.isActive ? "border-primary" : ""} ${isSelectedForCompare ? "ring-2 ring-primary/50" : ""}`}>
+                  <CardHeader className="py-3 flex flex-row items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {compareMode && (
+                        <Checkbox
+                          checked={isSelectedForCompare}
+                          onCheckedChange={() => toggleCompare(v.id)}
+                          data-testid={`checkbox-compare-${v.id}`}
+                        />
+                      )}
+                      <span className="font-medium text-sm">Version {v.versionNumber}</span>
+                      {v.isActive && <Badge variant="default" className="text-xs">Active</Badge>}
+                      <Badge variant="secondary" className="text-xs">{v.source === "ai" ? "IA" : "Manuel"}</Badge>
+                      {v.mode && v.mode !== "initial" && (
+                        <Badge variant="outline" className="text-xs">{v.mode === "similar" ? "Similaire" : "Différent"}</Badge>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Créé le {new Date(v.createdAt!).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  </CardContent>
-                )}
-              </Card>
-            ))}
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpandedId(expandedId === v.id ? null : v.id)}
+                      >
+                        {expandedId === v.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </Button>
+                      {!v.isActive && !compareMode && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleActivate(v.id)}
+                          disabled={activateMutation.isPending}
+                          data-testid={`button-restore-version-${v.id}`}
+                        >
+                          <ArrowLeft className="w-3 h-3 mr-1" /> Restaurer
+                        </Button>
+                      )}
+                    </div>
+                  </CardHeader>
+                  {expandedId === v.id && (
+                    <CardContent className="pt-0">
+                      <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/20 rounded p-3 max-h-60 overflow-y-auto">
+                        <ReactMarkdown>{v.content}</ReactMarkdown>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Créé le {new Date(v.createdAt!).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                    </CardContent>
+                  )}
+                </Card>
+              );
+            })}
           </div>
         )}
       </DialogContent>

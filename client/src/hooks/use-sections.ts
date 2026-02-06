@@ -148,6 +148,31 @@ export function useSaveSectionConfig() {
   });
 }
 
+export function useClearNeedsReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sectionId, projectId }: { sectionId: number; projectId: number }) => {
+      const res = await apiRequest(api.sections.clearNeedsReview.method, buildUrl(api.sections.clearNeedsReview.path, { id: sectionId }));
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [api.sections.list.path, variables.projectId] });
+    },
+  });
+}
+
+export function useProjectStatusHistory(projectId: number, enabled = true) {
+  return useQuery<(StatusHistory & { sectionKey: string })[]>({
+    queryKey: [api.sections.projectStatusHistory.path, projectId],
+    queryFn: async () => {
+      const res = await fetch(buildUrl(api.sections.projectStatusHistory.path, { projectId }));
+      if (!res.ok) throw new Error("Failed to load project status history");
+      return res.json();
+    },
+    enabled: !!projectId && enabled,
+  });
+}
+
 export function useSearchArticles() {
   return useMutation({
     mutationFn: async (data: { projectId: number; config: Record<string, any>; extraContext?: string }) => {

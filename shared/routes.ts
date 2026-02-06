@@ -161,6 +161,16 @@ export const api = {
       path: '/api/projects/:projectId/sections/validated-contents',
       responses: { 200: z.record(z.string(), z.string()), 401: errorSchemas.unauthorized },
     },
+    projectStatusHistory: {
+      method: 'GET' as const,
+      path: '/api/projects/:projectId/status-history',
+      responses: { 200: z.array(z.any()), 401: errorSchemas.unauthorized },
+    },
+    clearNeedsReview: {
+      method: 'POST' as const,
+      path: '/api/sections/:id/clear-review',
+      responses: { 200: z.object({ success: z.boolean() }), 401: errorSchemas.unauthorized },
+    },
     analyzeArticles: {
       method: 'POST' as const,
       path: '/api/sections/literature/analyze',

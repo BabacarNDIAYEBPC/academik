@@ -275,6 +275,16 @@ export const SECTION_LABELS: Record<string, string> = {
   memoire_audit: "Audit de mémoire",
 };
 
+// === IMPACT DEPENDENCIES (Module 17) ===
+export const FOUNDATIONAL_SECTIONS = ['subject', 'problematic', 'hypotheses', 'plan'] as const;
+
+export const SECTION_DEPENDENCIES: Record<string, string[]> = {
+  subject: ['problematic', 'hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'data_collection', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
+  problematic: ['hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'data_collection', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
+  hypotheses: ['plan', 'conceptual_framework', 'methodology', 'data_collection', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
+  plan: ['conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'data_collection', 'data_analysis', 'assisted_writing', 'soutenance_ppt', 'memoire_audit'],
+};
+
 // === SCHEMAS ===
 export const insertProfileSchema = createInsertSchema(profiles).omit({ id: true, userId: true, updatedAt: true, openaiApiKey: true });
 export const insertProjectSchema = createInsertSchema(projects).omit({ id: true, userId: true, createdAt: true, updatedAt: true });

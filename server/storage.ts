@@ -12,7 +12,7 @@ import {
   SECTION_ORDER,
 } from "@shared/schema";
 import { sql } from "drizzle-orm";
-import { eq, desc, and, asc, ilike, or, count } from "drizzle-orm";
+import { eq, desc, and, asc, ilike, or, count, inArray } from "drizzle-orm";
 
 export interface IStorage {
   getProfile(userId: string): Promise<Profile | undefined>;
@@ -215,6 +215,56 @@ export class DatabaseStorage implements IStorage {
       .where(eq(projectSections.id, sectionId))
       .returning();
     return updated;
+  }
+
+  async markImpactedSections(projectId: number, changedSectionKey: string): Promise<string[]> {
+    const deps = (await import("@shared/schema")).SECTION_DEPENDENCIES;
+    const impactedKeys = deps[changedSectionKey];
+    if (!impactedKeys || impactedKeys.length === 0) return [];
+
+    const allSections = await this.getSections(projectId);
+    const marked: string[] = [];
+
+    for (const section of allSections) {
+      if (impactedKeys.includes(section.key) && section.status === "validated") {
+        const existingConfig = (section.config as Record<string, any>) || {};
+        await db.update(projectSections)
+          .set({
+            config: { ...existingConfig, needsReview: true, reviewReason: changedSectionKey },
+            updatedAt: new Date(),
+          })
+          .where(eq(projectSections.id, section.id));
+        await this.addStatusHistory(section.id, section.status, `À réévaluer suite à la modification de : ${(await import("@shared/schema")).SECTION_LABELS[changedSectionKey] || changedSectionKey}`);
+        marked.push(section.key);
+      }
+    }
+    return marked;
+  }
+
+  async clearNeedsReview(sectionId: number): Promise<void> {
+    const section = await this.getSection(sectionId);
+    if (!section) return;
+    const existingConfig = (section.config as Record<string, any>) || {};
+    const { needsReview, reviewReason, ...rest } = existingConfig;
+    await db.update(projectSections)
+      .set({ config: Object.keys(rest).length > 0 ? rest : null, updatedAt: new Date() })
+      .where(eq(projectSections.id, sectionId));
+  }
+
+  async getProjectStatusHistory(projectId: number): Promise<(StatusHistory & { sectionKey: string })[]> {
+    const sections = await this.getSections(projectId);
+    const sectionIds = sections.map(s => s.id);
+    if (sectionIds.length === 0) return [];
+
+    const allHistory = await db.select().from(sectionStatusHistory)
+      .where(inArray(sectionStatusHistory.sectionId, sectionIds))
+      .orderBy(desc(sectionStatusHistory.changedAt));
+
+    const sectionKeyMap = new Map(sections.map(s => [s.id, s.key]));
+    return allHistory.map(h => ({
+      ...h,
+      sectionKey: sectionKeyMap.get(h.sectionId!) || "unknown",
+    }));
   }
 
   // === VERSIONS ===

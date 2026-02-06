@@ -190,22 +190,13 @@ function ProjectTypesBar() {
 function FeaturesSection() {
   const { t, tArray } = useI18n();
 
-  const coreModules = [
-    { icon: BookOpen, titleKey: "features.module1Title", descKey: "features.module1Desc", detailsKey: "features.module1Details", color: "text-blue-500", bgColor: "bg-blue-500/10" },
-    { icon: Map, titleKey: "features.module2Title", descKey: "features.module2Desc", detailsKey: "features.module2Details", color: "text-emerald-500", bgColor: "bg-emerald-500/10" },
-    { icon: Lightbulb, titleKey: "features.module3Title", descKey: "features.module3Desc", detailsKey: "features.module3Details", color: "text-amber-500", bgColor: "bg-amber-500/10" },
-    { icon: BookMarked, titleKey: "features.module4Title", descKey: "features.module4Desc", detailsKey: "features.module4Details", color: "text-purple-500", bgColor: "bg-purple-500/10" },
-    { icon: FlaskConical, titleKey: "features.module5Title", descKey: "features.module5Desc", detailsKey: "features.module5Details", color: "text-rose-500", bgColor: "bg-rose-500/10" },
+  const allModules = [
+    { icon: BrainCircuit, titleKey: "features.feat1Title", descKey: "features.feat1Desc", detailsKey: "features.feat1Details", color: "text-blue-500", bgColor: "bg-blue-500/10" },
+    { icon: Search, titleKey: "features.feat2Title", descKey: "features.feat2Desc", detailsKey: "features.feat2Details", color: "text-indigo-500", bgColor: "bg-indigo-500/10" },
+    { icon: FlaskConical, titleKey: "features.feat3Title", descKey: "features.feat3Desc", detailsKey: "features.feat3Details", color: "text-cyan-500", bgColor: "bg-cyan-500/10" },
+    { icon: FileText, titleKey: "features.feat4Title", descKey: "features.feat4Desc", detailsKey: "features.feat4Details", color: "text-orange-500", bgColor: "bg-orange-500/10" },
+    { icon: ShieldCheck, titleKey: "features.feat5Title", descKey: "features.feat5Desc", detailsKey: "features.feat5Details", color: "text-teal-500", bgColor: "bg-teal-500/10" },
   ];
-
-  const extraCategories = [
-    { icon: Mic, titleKey: "features.cat1Title", descKey: "features.cat1Desc", detailsKey: "features.cat1Details", color: "text-cyan-500", bgColor: "bg-cyan-500/10" },
-    { icon: Search, titleKey: "features.cat2Title", descKey: "features.cat2Desc", detailsKey: "features.cat2Details", color: "text-indigo-500", bgColor: "bg-indigo-500/10" },
-    { icon: Presentation, titleKey: "features.cat3Title", descKey: "features.cat3Desc", detailsKey: "features.cat3Details", color: "text-orange-500", bgColor: "bg-orange-500/10" },
-    { icon: ShieldCheck, titleKey: "features.cat4Title", descKey: "features.cat4Desc", detailsKey: "features.cat4Details", color: "text-teal-500", bgColor: "bg-teal-500/10" },
-  ];
-
-  const allModules = [...coreModules, ...extraCategories];
   const totalCount = allModules.length;
 
   return (

@@ -909,8 +909,11 @@ export async function registerRoutes(
       const version = await storage.createVersion(section.id, content, "ai", mode, contextSnapshot);
 
       await storage.updateSectionStatus(section.id, "generated");
+
+      const impactedSections = await storage.markImpactedSections(projectId, sectionKey);
+
       const updatedSection = await storage.getSection(section.id);
-      res.json({ section: updatedSection, version });
+      res.json({ section: updatedSection, version, impactedSections });
 
     } catch (err: any) {
       console.error("Section Generation Error:", err);
@@ -1070,12 +1073,19 @@ Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodo
     const { content } = api.sections.saveManual.input.parse(req.body);
     const version = await storage.createVersion(sectionId, content, "manual");
     await storage.updateSectionStatus(sectionId, "modified");
+
+    const section = await storage.getSection(sectionId);
+    if (section) {
+      await storage.markImpactedSections(section.projectId, section.key);
+    }
+
     res.json(version);
   });
 
   app.post(api.sections.validate.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const sectionId = Number(req.params.id);
+    await storage.clearNeedsReview(sectionId);
     const section = await storage.updateSectionStatus(sectionId, "validated");
     res.json(section);
   });
@@ -1119,6 +1129,20 @@ Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodo
     const sectionId = Number(req.params.id);
     const history = await storage.getStatusHistory(sectionId);
     res.json(history);
+  });
+
+  app.get(api.sections.projectStatusHistory.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const projectId = Number(req.params.projectId);
+    const history = await storage.getProjectStatusHistory(projectId);
+    res.json(history);
+  });
+
+  app.post(api.sections.clearNeedsReview.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const sectionId = Number(req.params.id);
+    await storage.clearNeedsReview(sectionId);
+    res.json({ success: true });
   });
 
   // === VALIDATED SECTION CONTENTS ===

@@ -2,7 +2,7 @@ import Layout from "@/components/Layout";
 import { useRoute } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
-import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined } from "@/hooks/use-sections";
+import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined, useProjectStatusHistory } from "@/hooks/use-sections";
 import { useEntitlements, useCheckout, SECTION_TO_ENTITLEMENT, hasEntitlement } from "@/hooks/use-entitlements";
 import { useI18n } from "@/lib/i18n";
 import SectionEditor from "@/components/SectionEditor";
@@ -35,7 +35,8 @@ import {
   BookOpen, ClipboardList, Award, Briefcase,
   Map, Lightbulb, BookMarked, FlaskConical, Check,
   MessageSquare, BarChart3, PenTool, Library, Download,
-  Presentation, Mic, ShieldCheck,
+  Presentation, Mic, ShieldCheck, GitBranch, Clock,
+  CircleDot, AlertTriangle, RefreshCw,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -149,6 +150,8 @@ function getModuleTabs(projectType: string) {
   if (sections.includes("memoire_audit")) {
     tabs.push({ key: "memoire_audit", label: "Audit", icon: ShieldCheck, sectionKeys: ["memoire_audit"] });
   }
+
+  tabs.push({ key: "workflow", label: "Workflow", icon: GitBranch, sectionKeys: [] });
 
   return tabs;
 }
@@ -323,7 +326,9 @@ function AssistantTab({ project }: { project: any }) {
 
         {moduleTabs.map(tab => (
           <TabsContent key={tab.key} value={tab.key} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6">
-            {sectionsLoading ? (
+            {tab.key === "workflow" ? (
+              <WorkflowOverview project={project} sections={sections || []} />
+            ) : sectionsLoading ? (
               <Skeleton className="h-48 w-full" />
             ) : (
               <ModuleSections
@@ -335,6 +340,188 @@ function AssistantTab({ project }: { project: any }) {
           </TabsContent>
         ))}
       </Tabs>
+    </div>
+  );
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  draft: "bg-muted text-muted-foreground",
+  generated: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  modified: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  validated: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  sent_tutor: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  awaiting_correction: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  corrected: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200",
+  final_version: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  archived: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
+};
+
+const SECTION_STATUS_LABELS: Record<string, string> = {
+  draft: "Brouillon",
+  generated: "Généré",
+  modified: "Modifié",
+  validated: "Validé",
+  sent_tutor: "Envoyé tuteur",
+  awaiting_correction: "En correction",
+  corrected: "Corrigé",
+  final_version: "Version finale",
+  archived: "Archivé",
+};
+
+function WorkflowOverview({ project, sections }: { project: any; sections: ProjectSection[] }) {
+  const sectionOrder = getSectionsForProjectType(project.type);
+  const { data: history, isLoading: historyLoading } = useProjectStatusHistory(project.id);
+
+  const sectionsByKey = useMemo(() => {
+    const map = new Map<string, ProjectSection>();
+    sections.forEach(s => map.set(s.key, s));
+    return map;
+  }, [sections]);
+
+  const stats = useMemo(() => {
+    const total = sectionOrder.length;
+    const created = sections.length;
+    const validated = sections.filter(s => s.status === "validated" || s.status === "final_version").length;
+    const needsReview = sections.filter(s => {
+      const cfg = (s.config as Record<string, any>) || {};
+      return cfg.needsReview;
+    }).length;
+    const withContent = sections.filter(s => s.activeVersionId).length;
+    return { total, created, validated, needsReview, withContent };
+  }, [sections, sectionOrder]);
+
+  const progressPercent = stats.total > 0 ? Math.round((stats.validated / stats.total) * 100) : 0;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
+            <GitBranch className="w-5 h-5 text-primary" />
+            Vue d'ensemble du workflow
+          </CardTitle>
+          <CardDescription>Suivi global de l'avancement et historique consolidé de toutes les sections.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="text-center p-3 rounded-lg bg-muted/30" data-testid="stat-total">
+              <p className="text-2xl font-bold">{stats.withContent}/{stats.total}</p>
+              <p className="text-xs text-muted-foreground">Sections rédigées</p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-green-50 dark:bg-green-950/20" data-testid="stat-validated">
+              <p className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.validated}</p>
+              <p className="text-xs text-muted-foreground">Validées</p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20" data-testid="stat-review">
+              <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.needsReview}</p>
+              <p className="text-xs text-muted-foreground">À réévaluer</p>
+            </div>
+            <div className="text-center p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20" data-testid="stat-progress">
+              <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{progressPercent}%</p>
+              <p className="text-xs text-muted-foreground">Progression</p>
+            </div>
+          </div>
+
+          <div>
+            <div className="h-3 bg-muted rounded-full overflow-hidden" data-testid="progress-bar">
+              <div
+                className="h-full bg-gradient-to-r from-primary to-green-500 rounded-full transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Statut par section</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {sectionOrder.map((key, idx) => {
+              const section = sectionsByKey.get(key);
+              const status = section?.status || "draft";
+              const cfg = (section?.config as Record<string, any>) || {};
+              const needsRev = cfg.needsReview;
+              const hasContent = !!section?.activeVersionId;
+
+              return (
+                <div
+                  key={key}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover-elevate"
+                  data-testid={`workflow-section-${key}`}
+                >
+                  <span className="text-xs text-muted-foreground w-6 text-right">{idx + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium">{SECTION_LABELS[key] || key}</span>
+                  </div>
+                  {needsRev && (
+                    <Badge variant="outline" className="text-xs border-amber-300 text-amber-700 dark:text-amber-400 gap-1 no-default-hover-elevate no-default-active-elevate">
+                      <AlertTriangle className="w-3 h-3" />
+                      À réévaluer
+                    </Badge>
+                  )}
+                  <Badge className={`text-xs ${STATUS_COLORS[status] || ""} no-default-hover-elevate no-default-active-elevate`}>
+                    {SECTION_STATUS_LABELS[status] || status}
+                  </Badge>
+                  {hasContent && status !== "validated" && status !== "final_version" && (
+                    <div className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" />
+                  )}
+                  {(status === "validated" || status === "final_version") && (
+                    <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2 flex-wrap">
+            <Clock className="w-4 h-4" />
+            Historique consolidé
+          </CardTitle>
+          <CardDescription>Timeline de toutes les actions sur toutes les sections.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {historyLoading ? (
+            <Skeleton className="h-32 w-full" />
+          ) : !history || history.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">Aucune action enregistrée.</p>
+          ) : (
+            <div className="relative pl-6 space-y-0 max-h-[400px] overflow-y-auto" data-testid="consolidated-timeline">
+              <div className="absolute left-2 top-4 bottom-4 w-0.5 bg-border" />
+              {history.slice(0, 50).map((entry, idx) => (
+                <div key={entry.id} className="relative pb-3" data-testid={`timeline-entry-${entry.id}`}>
+                  <div className={`absolute -left-4 top-1 w-4 h-4 rounded-full flex items-center justify-center ${idx === 0 ? "bg-primary text-primary-foreground" : "bg-muted border border-border"}`}>
+                    <CircleDot className="w-2.5 h-2.5" />
+                  </div>
+                  <div className="ml-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge variant="secondary" className="text-xs">{SECTION_LABELS[entry.sectionKey] || entry.sectionKey}</Badge>
+                      <Badge className={`text-xs ${STATUS_COLORS[entry.status] || ""} no-default-hover-elevate no-default-active-elevate`}>
+                        {SECTION_STATUS_LABELS[entry.status] || entry.status}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(entry.changedAt!).toLocaleDateString("fr-FR", {
+                          day: "numeric", month: "short", year: "numeric",
+                          hour: "2-digit", minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    {entry.note && (
+                      <p className="text-xs text-muted-foreground mt-0.5 italic">{entry.note}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
