@@ -12,6 +12,9 @@ import MethodologyModule from "@/components/MethodologyModule";
 import DataCollectionModule from "@/components/DataCollectionModule";
 import InterviewSimulationModule from "@/components/InterviewSimulationModule";
 import DataAnalysisModule from "@/components/DataAnalysisModule";
+import AssistedWritingModule from "@/components/AssistedWritingModule";
+import BibliographyModule from "@/components/BibliographyModule";
+import ExportsModule from "@/components/ExportsModule";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -25,7 +28,7 @@ import {
   FileText, Sparkles, Trash2, Plus, File, Loader2, Lock,
   BookOpen, ClipboardList, Award, Briefcase,
   Map, Lightbulb, BookMarked, FlaskConical, Check,
-  MessageSquare, BarChart3
+  MessageSquare, BarChart3, PenTool, Library, Download
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -66,15 +69,15 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports"];
     case "tfe":
-      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis"];
+      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports"];
     case "vae":
-      return ["vae_competencies", "plan"];
+      return ["vae_competencies", "plan", "assisted_writing", "exports"];
     case "rapport_stage":
-      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis"];
+      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports"];
     default:
-      return ["subject", "plan", "methodology"];
+      return ["subject", "plan", "methodology", "assisted_writing", "exports"];
   }
 }
 
@@ -114,6 +117,18 @@ function getModuleTabs(projectType: string) {
 
   if (sections.includes("data_analysis")) {
     tabs.push({ key: "data_analysis", label: "Analyse", icon: BarChart3, sectionKeys: ["data_analysis"] });
+  }
+
+  if (sections.includes("assisted_writing")) {
+    tabs.push({ key: "assisted_writing", label: "Rédaction", icon: PenTool, sectionKeys: ["assisted_writing"] });
+  }
+
+  if (sections.includes("bibliography")) {
+    tabs.push({ key: "bibliography", label: "Biblio", icon: Library, sectionKeys: ["bibliography"] });
+  }
+
+  if (sections.includes("exports")) {
+    tabs.push({ key: "exports", label: "Export", icon: Download, sectionKeys: ["exports"] });
   }
 
   return tabs;
@@ -665,6 +680,42 @@ function SingleSectionWrapper({
   if (sectionKey === "data_analysis") {
     return (
       <DataAnalysisModule
+        projectId={projectId}
+        projectType={projectType}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "assisted_writing") {
+    return (
+      <AssistedWritingModule
+        projectId={projectId}
+        projectType={projectType}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "bibliography") {
+    return (
+      <BibliographyModule
+        projectId={projectId}
+        projectType={projectType}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "exports") {
+    return (
+      <ExportsModule
         projectId={projectId}
         projectType={projectType}
         variables={variables}

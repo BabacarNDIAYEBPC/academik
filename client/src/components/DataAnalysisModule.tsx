@@ -20,7 +20,7 @@ import {
 import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, BarChart3, Save, Check, X, FileDown,
-  Plus, Trash2, BookOpen, FlaskConical,
+  Plus, Trash2, BookOpen, FlaskConical, Upload,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 
@@ -423,8 +423,44 @@ export default function DataAnalysisModule({
             <div className="space-y-3">
               <Label className="text-base font-semibold">Données quantitatives</Label>
               <p className="text-xs text-muted-foreground">
-                Collez vos données (format CSV ou tableau) issues du questionnaire pour l'analyse.
+                Collez vos données (format CSV ou tableau), ou importez un fichier Excel (.xlsx) pour l'analyse.
               </p>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const input = document.createElement("input");
+                    input.type = "file";
+                    input.accept = ".xlsx,.xls,.csv";
+                    input.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (!file) return;
+                      try {
+                        if (file.name.endsWith(".csv")) {
+                          const text = await file.text();
+                          setQuantitativeData(text);
+                          toast({ title: "CSV importé", description: `${file.name} a été chargé.` });
+                        } else {
+                          const XLSX = await import("xlsx");
+                          const buffer = await file.arrayBuffer();
+                          const workbook = XLSX.read(buffer, { type: "array" });
+                          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                          const csvData = XLSX.utils.sheet_to_csv(firstSheet, { FS: ";" });
+                          setQuantitativeData(csvData);
+                          toast({ title: "Excel importé", description: `${file.name} converti en données tabulaires (${workbook.SheetNames[0]}).` });
+                        }
+                      } catch (err: any) {
+                        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+                      }
+                    };
+                    input.click();
+                  }}
+                  data-testid="button-import-excel"
+                >
+                  <Upload className="w-4 h-4 mr-1" /> Importer Excel / CSV
+                </Button>
+              </div>
               <Textarea
                 value={quantitativeData}
                 onChange={e => setQuantitativeData(e.target.value)}

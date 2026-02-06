@@ -9,15 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import {
   useSimulateResponse,
+  useSimulateBatch,
   useImproveQuestion,
   useSaveSectionConfig,
   useValidateSection,
   useUnvalidateSection,
 } from "@/hooks/use-sections";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, MessageSquare, Save, Check, X, FileDown,
-  Lightbulb, RefreshCw, Sparkles,
+  Lightbulb, RefreshCw, Sparkles, Plus, Trash2, ListOrdered,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 
@@ -38,11 +40,20 @@ interface SimulationEntry {
   improvements: { type: string; improved: string; explanation: string }[];
 }
 
+interface BatchQuestion {
+  id: string;
+  question: string;
+  prerequisites: string;
+}
+
 interface SavedState {
   entries: SimulationEntry[];
   currentQuestion: string;
   currentProfile: string;
   currentTone: string;
+  batchQuestions: BatchQuestion[];
+  batchProfile: string;
+  batchTone: string;
 }
 
 const IMPROVEMENT_TYPES = [
@@ -64,19 +75,24 @@ export default function InterviewSimulationModule({
   const [currentQuestion, setCurrentQuestion] = useState("");
   const [currentProfile, setCurrentProfile] = useState("");
   const [currentTone, setCurrentTone] = useState("professionnel");
+  const [batchQuestions, setBatchQuestions] = useState<BatchQuestion[]>([]);
+  const [batchProfile, setBatchProfile] = useState("");
+  const [batchTone, setBatchTone] = useState("professionnel");
+  const [simMode, setSimMode] = useState("single");
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
   const simulateMutation = useSimulateResponse();
+  const batchMutation = useSimulateBatch();
   const improveMutation = useImproveQuestion();
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
 
-  const stateRef = useRef({ entries, currentQuestion, currentProfile, currentTone });
+  const stateRef = useRef({ entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone });
   useEffect(() => {
-    stateRef.current = { entries, currentQuestion, currentProfile, currentTone };
-  }, [entries, currentQuestion, currentProfile, currentTone]);
+    stateRef.current = { entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone };
+  }, [entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -86,6 +102,9 @@ export default function InterviewSimulationModule({
       currentQuestion: s.currentQuestion,
       currentProfile: s.currentProfile,
       currentTone: s.currentTone,
+      batchQuestions: s.batchQuestions,
+      batchProfile: s.batchProfile,
+      batchTone: s.batchTone,
     };
     saveConfigMutation.mutate({
       sectionId: section.id,
@@ -103,6 +122,9 @@ export default function InterviewSimulationModule({
       if (s.currentQuestion) setCurrentQuestion(s.currentQuestion);
       if (s.currentProfile) setCurrentProfile(s.currentProfile);
       if (s.currentTone) setCurrentTone(s.currentTone);
+      if (s.batchQuestions) setBatchQuestions(s.batchQuestions);
+      if (s.batchProfile) setBatchProfile(s.batchProfile);
+      if (s.batchTone) setBatchTone(s.batchTone);
     }
     setStateLoaded(true);
   }, [section, stateLoaded]);
@@ -111,7 +133,7 @@ export default function InterviewSimulationModule({
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
     return () => clearTimeout(timer);
-  }, [entries, currentQuestion, currentProfile, currentTone, stateLoaded, doSave]);
+  }, [entries, currentQuestion, currentProfile, currentTone, batchQuestions, batchProfile, batchTone, stateLoaded, doSave]);
 
   const handleSimulate = () => {
     if (!currentQuestion.trim() || !currentProfile.trim()) {
@@ -135,6 +157,56 @@ export default function InterviewSimulationModule({
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de la simulation", variant: "destructive" });
+        },
+      }
+    );
+  };
+
+  const handleAddBatchQuestion = () => {
+    setBatchQuestions(prev => [...prev, { id: Date.now().toString(), question: "", prerequisites: "" }]);
+  };
+
+  const handleRemoveBatchQuestion = (id: string) => {
+    setBatchQuestions(prev => prev.filter(q => q.id !== id));
+  };
+
+  const handleUpdateBatchQuestion = (id: string, field: "question" | "prerequisites", value: string) => {
+    setBatchQuestions(prev => prev.map(q => q.id === id ? { ...q, [field]: value } : q));
+  };
+
+  const handleSimulateBatch = () => {
+    const validQuestions = batchQuestions.filter(q => q.question.trim());
+    if (validQuestions.length === 0) {
+      toast({ title: "Questions requises", description: "Ajoutez au moins une question à simuler.", variant: "destructive" });
+      return;
+    }
+    if (!batchProfile.trim()) {
+      toast({ title: "Profil requis", description: "Renseignez le profil de l'interviewé.", variant: "destructive" });
+      return;
+    }
+    batchMutation.mutate(
+      {
+        projectId,
+        questions: validQuestions.map(q => ({ question: q.question, prerequisites: q.prerequisites || undefined })),
+        intervieweeProfile: batchProfile,
+        tone: batchTone,
+        extraContext,
+      },
+      {
+        onSuccess: (data) => {
+          const newEntries: SimulationEntry[] = (data.responses || []).map((r, i) => ({
+            id: `batch_${Date.now()}_${i}`,
+            question: r.question,
+            profile: batchProfile,
+            response: r.response,
+            suggestions: r.suggestions || [],
+            improvements: [],
+          }));
+          setEntries(prev => [...newEntries, ...prev]);
+          toast({ title: "Simulation batch terminée", description: `${newEntries.length} réponse(s) simulée(s) d'une traite.` });
+        },
+        onError: (error: any) => {
+          toast({ title: "Erreur", description: error.message || "Erreur lors de la simulation batch", variant: "destructive" });
         },
       }
     );
@@ -225,59 +297,162 @@ export default function InterviewSimulationModule({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Simulez une réponse d'interviewé pour tester et améliorer vos questions d'entretien.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Question à tester</Label>
-                  <Textarea
-                    value={currentQuestion}
-                    onChange={e => setCurrentQuestion(e.target.value)}
-                    placeholder="Ex: Comment percevez-vous l'évolution de votre pratique professionnelle au cours des 5 dernières années ?"
-                    className="h-24 text-sm"
-                    data-testid="textarea-sim-question"
-                  />
+        <Tabs value={simMode} onValueChange={setSimMode}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="single" data-testid="tab-sim-single">
+              <MessageSquare className="w-4 h-4 mr-1" /> Question unique
+            </TabsTrigger>
+            <TabsTrigger value="batch" data-testid="tab-sim-batch">
+              <ListOrdered className="w-4 h-4 mr-1" /> Batch (d'une traite)
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="single">
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Simulez une réponse d'interviewé pour tester et améliorer vos questions d'entretien.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label>Question à tester</Label>
+                      <Textarea
+                        value={currentQuestion}
+                        onChange={e => setCurrentQuestion(e.target.value)}
+                        placeholder="Ex: Comment percevez-vous l'évolution de votre pratique professionnelle au cours des 5 dernières années ?"
+                        className="h-24 text-sm"
+                        data-testid="textarea-sim-question"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label>Profil de l'interviewé</Label>
+                      <Input
+                        value={currentProfile}
+                        onChange={e => setCurrentProfile(e.target.value)}
+                        placeholder="Ex: IDE en gériatrie, 15 ans d'expérience, CHU"
+                        data-testid="input-sim-profile"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Ton de la réponse</Label>
+                      <Select value={currentTone} onValueChange={setCurrentTone}>
+                        <SelectTrigger data-testid="select-sim-tone"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="professionnel">Professionnel</SelectItem>
+                          <SelectItem value="enthousiaste">Enthousiaste</SelectItem>
+                          <SelectItem value="reserve">Réservé / Prudent</SelectItem>
+                          <SelectItem value="critique">Critique</SelectItem>
+                          <SelectItem value="neutre">Neutre</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Profil de l'interviewé</Label>
-                  <Input
-                    value={currentProfile}
-                    onChange={e => setCurrentProfile(e.target.value)}
-                    placeholder="Ex: IDE en gériatrie, 15 ans d'expérience, CHU"
-                    data-testid="input-sim-profile"
-                  />
+                <Button
+                  onClick={handleSimulate}
+                  disabled={simulateMutation.isPending || !currentQuestion.trim() || !currentProfile.trim()}
+                  data-testid="button-simulate"
+                >
+                  {simulateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                  Simuler la réponse
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="batch">
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Préparez toutes vos questions à l'avance, puis simulez les réponses d'une traite.
+                  Vous pouvez ajouter des prérequis/contexte pour chaque question.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label>Profil de l'interviewé</Label>
+                    <Input
+                      value={batchProfile}
+                      onChange={e => setBatchProfile(e.target.value)}
+                      placeholder="Ex: Cadre de santé, 20 ans d'expérience, clinique privée"
+                      data-testid="input-batch-profile"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Ton des réponses</Label>
+                    <Select value={batchTone} onValueChange={setBatchTone}>
+                      <SelectTrigger data-testid="select-batch-tone"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="professionnel">Professionnel</SelectItem>
+                        <SelectItem value="enthousiaste">Enthousiaste</SelectItem>
+                        <SelectItem value="reserve">Réservé / Prudent</SelectItem>
+                        <SelectItem value="critique">Critique</SelectItem>
+                        <SelectItem value="neutre">Neutre</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Ton de la réponse</Label>
-                  <Select value={currentTone} onValueChange={setCurrentTone}>
-                    <SelectTrigger data-testid="select-sim-tone"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="professionnel">Professionnel</SelectItem>
-                      <SelectItem value="enthousiaste">Enthousiaste</SelectItem>
-                      <SelectItem value="reserve">Réservé / Prudent</SelectItem>
-                      <SelectItem value="critique">Critique</SelectItem>
-                      <SelectItem value="neutre">Neutre</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <Label>Questions ({batchQuestions.length})</Label>
+                    <Button variant="outline" size="sm" onClick={handleAddBatchQuestion} data-testid="button-add-batch-question">
+                      <Plus className="w-4 h-4 mr-1" /> Ajouter une question
+                    </Button>
+                  </div>
+
+                  {batchQuestions.length === 0 && (
+                    <div className="text-center py-6 text-muted-foreground text-sm border border-dashed rounded-md">
+                      Aucune question ajoutée. Cliquez sur "Ajouter une question" pour commencer.
+                    </div>
+                  )}
+
+                  {batchQuestions.map((q, idx) => (
+                    <div key={q.id} className="border rounded-md p-3 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant="outline" className="text-xs">Q{idx + 1}</Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveBatchQuestion(q.id)}
+                          data-testid={`button-remove-batch-q-${idx}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-muted-foreground" />
+                        </Button>
+                      </div>
+                      <Textarea
+                        value={q.question}
+                        onChange={e => handleUpdateBatchQuestion(q.id, "question", e.target.value)}
+                        placeholder="Votre question d'entretien..."
+                        className="h-16 text-sm"
+                        data-testid={`textarea-batch-q-${idx}`}
+                      />
+                      <Input
+                        value={q.prerequisites}
+                        onChange={e => handleUpdateBatchQuestion(q.id, "prerequisites", e.target.value)}
+                        placeholder="Prérequis / contexte (optionnel)"
+                        className="text-sm"
+                        data-testid={`input-batch-prereq-${idx}`}
+                      />
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </div>
-            <Button
-              onClick={handleSimulate}
-              disabled={simulateMutation.isPending || !currentQuestion.trim() || !currentProfile.trim()}
-              data-testid="button-simulate"
-            >
-              {simulateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-              Simuler la réponse
-            </Button>
-          </CardContent>
-        </Card>
+
+                <Button
+                  onClick={handleSimulateBatch}
+                  disabled={batchMutation.isPending || batchQuestions.filter(q => q.question.trim()).length === 0 || !batchProfile.trim()}
+                  data-testid="button-simulate-batch"
+                >
+                  {batchMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                  Simuler toutes les réponses d'une traite
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {entries.length > 0 && (
           <div className="space-y-4">

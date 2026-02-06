@@ -295,3 +295,69 @@ export function useValidateHypotheses() {
     },
   });
 }
+
+export function useImportDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { projectId: number; content: string; fileName: string }) => {
+      const res = await apiRequest(
+        api.sections.importDocument.method,
+        buildUrl(api.sections.importDocument.path, { projectId: data.projectId }),
+        { content: data.content, fileName: data.fileName }
+      );
+      return res.json() as Promise<{ subject?: string; problematic?: string; hypotheses?: string; summary?: string; fullContent: string }>;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', variables.projectId, 'documents'] });
+    },
+  });
+}
+
+export function useSimulateBatch() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; questions: { question: string; prerequisites?: string }[]; intervieweeProfile: string; tone?: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.simulateBatch.method, api.sections.simulateBatch.path, data);
+      return res.json() as Promise<{ responses: { question: string; response: string; suggestions?: string[] }[] }>;
+    },
+  });
+}
+
+export function useAssistWriting() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; text: string; mode: string; sectionTarget?: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.assistWriting.method, api.sections.assistWriting.path, data);
+      return res.json() as Promise<{ content: string; suggestions?: string[] }>;
+    },
+  });
+}
+
+export function useGenerateBibliographyFull() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; norm: 'apa7' | 'vancouver' | 'mla' | 'chicago'; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateBibliographyFull.method, api.sections.generateBibliographyFull.path, data);
+      return res.json() as Promise<{ content: string; sources: any[] }>;
+    },
+  });
+}
+
+export function useCheckBibliographyCoherence() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; bibliography: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.checkBibliographyCoherence.method, api.sections.checkBibliographyCoherence.path, data);
+      return res.json() as Promise<{ alerts: { type: string; message: string }[]; suggestions: string[] }>;
+    },
+  });
+}
+
+export function useExportDocument() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; format: string; sections?: string[]; exportType?: string; includeTableOfContents?: boolean; includeBibliography?: boolean; includeAnnexes?: boolean; formatting?: { font: string; fontSize: number; lineSpacing: number } }) => {
+      const res = await apiRequest(
+        api.sections.exportDocument.method,
+        buildUrl(api.sections.exportDocument.path, { projectId: data.projectId }),
+        data
+      );
+      return res.json() as Promise<{ content: string; fileName: string }>;
+    },
+  });
+}

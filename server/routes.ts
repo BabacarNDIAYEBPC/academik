@@ -3133,5 +3133,567 @@ IMPORTANT:
     }
   });
 
+  // === MODULE 11: DOCUMENT IMPORT + EXTRACT ===
+  app.post(api.sections.importDocument.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const projectId = Number(req.params.projectId);
+      const { content, fileName } = api.sections.importDocument.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+
+      await storage.createDocument({ projectId, name: fileName, type: 'import', content });
+
+      const systemPrompt = `Tu es un expert en analyse de documents académiques. Tu maîtrises parfaitement l'extraction d'informations structurées à partir de documents de recherche, mémoires, thèses, rapports de stage et travaux académiques. Réponds entièrement en français.`;
+
+      const taskPrompt = `${projectContext}
+
+=== TÂCHE: ANALYSE ET EXTRACTION D'UN DOCUMENT IMPORTÉ ===
+
+Le document suivant a été importé par l'utilisateur. Analyse-le en profondeur et extrais les éléments structurants s'ils sont identifiables.
+
+=== CONTENU DU DOCUMENT: ${fileName} ===
+${content.substring(0, 8000)}${content.length > 8000 ? "\n[...contenu tronqué]" : ""}
+
+Analyse ce document et extrais les éléments suivants s'ils sont identifiables:
+1. **Sujet** : le sujet principal du travail
+2. **Problématique** : la question de recherche ou problématique centrale
+3. **Hypothèses** : les hypothèses formulées (si présentes)
+4. **Résumé** : un résumé structuré du contenu (200-400 mots)
+
+IMPORTANT: Réponds en JSON valide sous cette forme exacte:
+{
+  "subject": "Le sujet identifié ou null si non identifiable",
+  "problematic": "La problématique identifiée ou null si non identifiable",
+  "hypotheses": "Les hypothèses identifiées ou null si non identifiables",
+  "summary": "Résumé structuré du document"
+}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: taskPrompt },
+        ],
+        max_tokens: 3000,
+        temperature: 0.3,
+      });
+
+      const raw = (completion.choices[0]?.message?.content || "").trim();
+      await recordQuotaUsage(userId, raw);
+
+      let subject: string | undefined;
+      let problematic: string | undefined;
+      let hypotheses: string | undefined;
+      let summary: string | undefined;
+
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          subject = parsed.subject && parsed.subject !== "null" ? parsed.subject : undefined;
+          problematic = parsed.problematic && parsed.problematic !== "null" ? parsed.problematic : undefined;
+          hypotheses = parsed.hypotheses && parsed.hypotheses !== "null" ? parsed.hypotheses : undefined;
+          summary = parsed.summary || undefined;
+        }
+      } catch {
+        summary = raw;
+      }
+
+      res.json({ subject, problematic, hypotheses, summary, fullContent: content });
+    } catch (err: any) {
+      console.error("Import Document Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'import du document" });
+    }
+  });
+
+  // === MODULE 9: BATCH SIMULATION ===
+  app.post(api.sections.simulateBatch.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, questions, intervieweeProfile, tone, extraContext } = api.sections.simulateBatch.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un simulateur d'entretien académique. Tu incarnes un interviewé réaliste et crédible pour aider un étudiant-chercheur à préparer ses entretiens de terrain. Tu dois produire des réponses authentiques, nuancées et contextualisées pour CHAQUE question posée.`;
+
+      const questionsList = questions.map((q, i) =>
+        `Question ${i + 1}: "${q.question}"${q.prerequisites ? `\nPrérequis/contexte: ${q.prerequisites}` : ""}`
+      ).join("\n\n");
+
+      const taskPrompt = `${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}
+${extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : ""}
+=== TÂCHE: SIMULATION BATCH DE RÉPONSES D'ENTRETIEN ===
+
+Profil de l'interviewé à incarner: ${intervieweeProfile}
+${tone ? `Ton souhaité: ${tone}` : ""}
+
+Voici les questions auxquelles tu dois répondre en incarnant le profil ci-dessus:
+
+${questionsList}
+
+Consignes de simulation:
+1. **Incarne le profil** : adopte le langage, le niveau de vocabulaire, les préoccupations et la posture professionnelle correspondant au profil décrit
+2. **Réponses réalistes** : chaque réponse doit sembler authentique avec des exemples concrets, des nuances et un niveau de détail cohérent
+3. **Longueur adaptée** : chaque réponse doit faire entre 150 et 300 mots
+4. **Suggestions de relance** : propose 2-3 suggestions de relance pour chaque question
+
+IMPORTANT: Réponds en JSON valide sous cette forme exacte:
+{
+  "responses": [
+    {
+      "question": "La question posée",
+      "response": "La réponse simulée de l'interviewé...",
+      "suggestions": ["Suggestion de relance 1", "Suggestion de relance 2"]
+    }
+  ]
+}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: taskPrompt },
+        ],
+        max_tokens: 4000,
+        temperature: 0.8,
+      });
+
+      const raw = (completion.choices[0]?.message?.content || "").trim();
+      await recordQuotaUsage(userId, raw);
+
+      let responses: Array<{ question: string; response: string; suggestions?: string[] }> = [];
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          responses = Array.isArray(parsed.responses) ? parsed.responses : [];
+        }
+      } catch {
+        responses = questions.map(q => ({ question: q.question, response: raw, suggestions: [] }));
+      }
+
+      res.json({ responses });
+    } catch (err: any) {
+      console.error("Simulate Batch Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la simulation batch" });
+    }
+  });
+
+  // === MODULE 11: ASSISTED WRITING ===
+  app.post(api.sections.assistWriting.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, text, mode, sectionTarget, extraContext } = api.sections.assistWriting.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un assistant de rédaction académique de haut niveau. Tu aides les étudiants à AMÉLIORER leur propre texte sans jamais écrire de contenu nouveau à leur place. Tu respectes leur voix et leur style tout en élevant la qualité académique. Réponds entièrement en français.
+
+RÈGLE ABSOLUE: Tu ne rédiges JAMAIS de contenu à la place de l'utilisateur. Tu améliores, reformules, structures ou corriges UNIQUEMENT le texte qu'il te soumet.`;
+
+      const modeInstructions: Record<string, string> = {
+        reformulate: `MODE: REFORMULATION ACADÉMIQUE
+Reformule le texte suivant dans un registre académique plus soutenu:
+- Améliore le vocabulaire (termes plus précis, académiques)
+- Restructure les phrases pour plus de clarté
+- Maintiens le sens original intact
+- Ajoute des connecteurs logiques si nécessaire`,
+        clarify: `MODE: CLARIFICATION
+Simplifie et clarifie le texte suivant:
+- Rends les idées plus accessibles
+- Élimine les ambiguïtés
+- Découpe les phrases trop longues
+- Assure la fluidité de lecture`,
+        structure: `MODE: STRUCTURATION
+Restructure le texte suivant pour une meilleure logique argumentaire:
+- Organise les idées en paragraphes cohérents
+- Assure une progression logique
+- Ajoute des transitions entre les idées
+- Identifie et corrige les ruptures de logique`,
+        improve_style: `MODE: AMÉLIORATION DU STYLE ACADÉMIQUE
+Améliore le style académique du texte suivant:
+- Élimine les tournures familières ou journalistiques
+- Utilise la voix passive quand approprié
+- Renforce la précision terminologique
+- Assure un ton objectif et distancié`,
+        check_coherence: `MODE: VÉRIFICATION DE COHÉRENCE
+Vérifie la cohérence du texte suivant par rapport au plan et aux hypothèses du projet:
+- Identifie les contradictions avec les sections validées
+- Vérifie l'alignement avec la problématique
+- Signale les écarts par rapport aux hypothèses
+- Propose des ajustements pour renforcer la cohérence`,
+      };
+
+      const taskPrompt = `${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : ""}
+${sectionTarget ? `\n=== SECTION CIBLE ===\nCette amélioration concerne la section: ${sectionTarget}\n` : ""}
+${extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : ""}
+
+=== TÂCHE: RÉDACTION ASSISTÉE ===
+
+${modeInstructions[mode] || modeInstructions.reformulate}
+
+=== TEXTE DE L'UTILISATEUR À AMÉLIORER ===
+${text}
+
+IMPORTANT: Réponds en JSON valide sous cette forme exacte:
+{
+  "content": "Le texte amélioré selon le mode demandé...",
+  "suggestions": [
+    "Suggestion d'amélioration supplémentaire 1",
+    "Suggestion d'amélioration supplémentaire 2"
+  ]
+}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: taskPrompt },
+        ],
+        max_tokens: 3000,
+        temperature: 0.4,
+      });
+
+      const raw = (completion.choices[0]?.message?.content || "").trim();
+      await recordQuotaUsage(userId, raw);
+
+      let content = raw;
+      let suggestions: string[] | undefined;
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          content = parsed.content || raw;
+          suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : undefined;
+        }
+      } catch {
+        content = raw;
+      }
+
+      res.json({ content, suggestions });
+    } catch (err: any) {
+      console.error("Assist Writing Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'assistance à la rédaction" });
+    }
+  });
+
+  // === MODULE 12: GENERATE FULL BIBLIOGRAPHY ===
+  app.post(api.sections.generateBibliographyFull.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, norm, extraContext } = api.sections.generateBibliographyFull.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const normLabels: Record<string, string> = {
+        apa7: "APA 7e édition",
+        vancouver: "Vancouver",
+        mla: "MLA (Modern Language Association)",
+        chicago: "Chicago (Notes et bibliographie)",
+      };
+
+      const systemPrompt = `Tu es un expert en bibliographie académique et en normes de citation. Tu maîtrises parfaitement les normes ${normLabels[norm] || norm}. Tu génères des bibliographies complètes, rigoureuses et parfaitement formatées. Réponds entièrement en français.`;
+
+      const taskPrompt = `${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES (contenant les sources citées) ===\n${validatedContext}\n` : ""}
+${extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : ""}
+
+=== TÂCHE: GÉNÉRATION DE LA BIBLIOGRAPHIE COMPLÈTE ===
+
+Norme bibliographique demandée: **${normLabels[norm] || norm}**
+
+À partir de TOUTES les sections validées du projet (revue de littérature, cadre conceptuel, cadre théorique, méthodologie, etc.), identifie et compile toutes les sources citées ou référencées.
+
+Pour chaque source identifiée:
+1. Reconstitue la référence bibliographique complète selon la norme ${normLabels[norm] || norm}
+2. Classe les sources par ordre alphabétique (ou numérique pour Vancouver)
+3. Vérifie la cohérence du formatage
+
+IMPORTANT: Réponds en JSON valide sous cette forme exacte:
+{
+  "content": "La bibliographie complète formatée en Markdown...",
+  "sources": [
+    {"author": "Nom, Prénom", "year": "2024", "title": "Titre de l'ouvrage", "type": "article/livre/thèse/web", "reference": "Référence complète formatée selon la norme"}
+  ]
+}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: taskPrompt },
+        ],
+        max_tokens: 4000,
+        temperature: 0.3,
+      });
+
+      const raw = (completion.choices[0]?.message?.content || "").trim();
+      await recordQuotaUsage(userId, raw);
+
+      let content = raw;
+      let sources: any[] = [];
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          content = parsed.content || raw;
+          sources = Array.isArray(parsed.sources) ? parsed.sources : [];
+        }
+      } catch {
+        content = raw;
+      }
+
+      res.json({ content, sources });
+    } catch (err: any) {
+      console.error("Generate Bibliography Full Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération de la bibliographie" });
+    }
+  });
+
+  // === MODULE 12: CHECK BIBLIOGRAPHY COHERENCE ===
+  app.post(api.sections.checkBibliographyCoherence.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, bibliography, extraContext } = api.sections.checkBibliographyCoherence.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un expert en vérification bibliographique académique. Tu vérifies la cohérence entre les citations dans le texte et les entrées bibliographiques. Tu identifies les erreurs, omissions et incohérences avec rigueur. Réponds entièrement en français.`;
+
+      const taskPrompt = `${projectContext}
+${validatedContext ? `\n=== SECTIONS VALIDÉES (contenant les citations dans le texte) ===\n${validatedContext}\n` : ""}
+${extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : ""}
+
+=== TÂCHE: VÉRIFICATION DE COHÉRENCE BIBLIOGRAPHIQUE ===
+
+Voici la bibliographie soumise par l'utilisateur:
+${bibliography}
+
+Vérifie la cohérence entre:
+1. **Citations dans le texte** : identifie toutes les citations (auteur, année) présentes dans les sections validées
+2. **Entrées bibliographiques** : vérifie que chaque citation a une entrée correspondante dans la bibliographie
+3. **Références orphelines** : identifie les entrées bibliographiques qui ne sont citées nulle part dans le texte
+4. **Format** : vérifie la cohérence du formatage des entrées
+5. **Complétude** : signale les informations manquantes dans les entrées
+
+IMPORTANT: Réponds en JSON valide sous cette forme exacte:
+{
+  "alerts": [
+    {"type": "missing_entry", "message": "La citation (Dupont, 2023) n'a pas d'entrée correspondante dans la bibliographie"},
+    {"type": "orphan_reference", "message": "L'entrée 'Martin (2022)' n'est citée nulle part dans le texte"},
+    {"type": "format_error", "message": "L'entrée pour 'Durand (2021)' est incomplète: éditeur manquant"},
+    {"type": "inconsistency", "message": "Description de l'incohérence..."}
+  ],
+  "suggestions": [
+    "Suggestion d'amélioration 1",
+    "Suggestion d'amélioration 2"
+  ]
+}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: taskPrompt },
+        ],
+        max_tokens: 3000,
+        temperature: 0.3,
+      });
+
+      const raw = (completion.choices[0]?.message?.content || "").trim();
+      await recordQuotaUsage(userId, raw);
+
+      let alerts: Array<{ type: string; message: string }> = [];
+      let suggestions: string[] = [];
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          alerts = Array.isArray(parsed.alerts) ? parsed.alerts : [];
+          suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : [];
+        }
+      } catch {
+        alerts = [{ type: "info", message: raw }];
+      }
+
+      res.json({ alerts, suggestions });
+    } catch (err: any) {
+      console.error("Check Bibliography Coherence Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la vérification de cohérence bibliographique" });
+    }
+  });
+
+  // === MODULE 13: EXPORT DOCUMENT ===
+  app.post(api.sections.exportDocument.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    try {
+      const projectId = Number(req.params.projectId);
+      const input = api.sections.exportDocument.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const allSections = await storage.getSections(projectId);
+      const sectionsToExport = input.sections
+        ? allSections.filter(s => input.sections!.includes(s.key))
+        : allSections;
+
+      let exportContent = "";
+
+      if (input.includeTableOfContents) {
+        exportContent += "# Table des matières\n\n";
+        for (const section of sectionsToExport) {
+          const label = SECTION_LABELS[section.key] || section.key;
+          exportContent += `- ${label}\n`;
+        }
+        exportContent += "\n---\n\n";
+      }
+
+      for (const section of sectionsToExport) {
+        const label = SECTION_LABELS[section.key] || section.key;
+        const version = await storage.getActiveVersion(section.id);
+        const content = version?.content || "_Section non rédigée_";
+        exportContent += `# ${label}\n\n${content}\n\n---\n\n`;
+      }
+
+      if (input.includeBibliography) {
+        const bibSection = allSections.find(s => s.key === "bibliography");
+        if (bibSection) {
+          const bibVersion = await storage.getActiveVersion(bibSection.id);
+          if (bibVersion) {
+            exportContent += `# Bibliographie\n\n${bibVersion.content}\n\n---\n\n`;
+          }
+        }
+      }
+
+      if (input.includeAnnexes) {
+        const docs = await storage.getDocuments(projectId);
+        if (docs.length > 0) {
+          exportContent += `# Annexes\n\n`;
+          for (const doc of docs) {
+            exportContent += `## ${doc.name}\n\n${doc.content || "_Contenu non disponible_"}\n\n`;
+          }
+        }
+      }
+
+      const exportTypeLabels: Record<string, string> = {
+        draft: "brouillon",
+        tutor: "tuteur",
+        final: "final",
+      };
+
+      const fileName = `${project.name.replace(/[^a-zA-Z0-9àâäéèêëïîôùûüÿçœæ\s-]/g, "").replace(/\s+/g, "_")}_${exportTypeLabels[input.exportType] || "export"}.${input.format}`;
+
+      res.json({ content: exportContent, fileName });
+    } catch (err: any) {
+      console.error("Export Document Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'export du document" });
+    }
+  });
+
   return httpServer;
 }

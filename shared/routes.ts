@@ -376,6 +376,100 @@ export const api = {
       }),
       responses: { 200: z.object({ content: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
     },
+    importDocument: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/import-document',
+      input: z.object({
+        content: z.string(),
+        fileName: z.string(),
+      }),
+      responses: {
+        200: z.object({
+          subject: z.string().optional(),
+          problematic: z.string().optional(),
+          hypotheses: z.string().optional(),
+          summary: z.string().optional(),
+          fullContent: z.string(),
+        }),
+        401: errorSchemas.unauthorized,
+        500: errorSchemas.internal,
+      },
+    },
+    simulateBatch: {
+      method: 'POST' as const,
+      path: '/api/sections/simulation/simulate-batch',
+      input: z.object({
+        projectId: z.number(),
+        questions: z.array(z.object({
+          question: z.string(),
+          prerequisites: z.string().optional(),
+        })),
+        intervieweeProfile: z.string(),
+        tone: z.string().optional(),
+        extraContext: z.string().optional(),
+      }),
+      responses: {
+        200: z.object({
+          responses: z.array(z.object({
+            question: z.string(),
+            response: z.string(),
+            suggestions: z.array(z.string()).optional(),
+          })),
+        }),
+        401: errorSchemas.unauthorized,
+        500: errorSchemas.internal,
+      },
+    },
+    assistWriting: {
+      method: 'POST' as const,
+      path: '/api/sections/writing/assist',
+      input: z.object({
+        projectId: z.number(),
+        text: z.string(),
+        mode: z.enum(['reformulate', 'clarify', 'structure', 'improve_style', 'check_coherence']),
+        sectionTarget: z.string().optional(),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ content: z.string(), suggestions: z.array(z.string()).optional() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    generateBibliographyFull: {
+      method: 'POST' as const,
+      path: '/api/sections/bibliography/generate',
+      input: z.object({
+        projectId: z.number(),
+        norm: z.enum(['apa7', 'vancouver', 'mla', 'chicago']),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ content: z.string(), sources: z.array(z.any()) }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    checkBibliographyCoherence: {
+      method: 'POST' as const,
+      path: '/api/sections/bibliography/check-coherence',
+      input: z.object({
+        projectId: z.number(),
+        bibliography: z.string(),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ alerts: z.array(z.object({ type: z.string(), message: z.string() })), suggestions: z.array(z.string()) }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    exportDocument: {
+      method: 'POST' as const,
+      path: '/api/projects/:projectId/export',
+      input: z.object({
+        format: z.enum(['docx', 'pdf', 'pptx']),
+        sections: z.array(z.string()).optional(),
+        exportType: z.enum(['draft', 'tutor', 'final']).default('draft'),
+        includeTableOfContents: z.boolean().default(false),
+        includeBibliography: z.boolean().default(false),
+        includeAnnexes: z.boolean().default(false),
+        formatting: z.object({
+          font: z.string().default('Times New Roman'),
+          fontSize: z.number().default(12),
+          lineSpacing: z.number().default(1.5),
+        }).optional(),
+      }),
+      responses: { 200: z.object({ content: z.string(), fileName: z.string() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
   },
 };
 

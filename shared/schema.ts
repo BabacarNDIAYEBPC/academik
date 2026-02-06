@@ -236,6 +236,9 @@ export const SECTION_KEYS = {
   DATA_COLLECTION: 'data_collection',
   INTERVIEW_SIMULATION: 'interview_simulation',
   DATA_ANALYSIS: 'data_analysis',
+  ASSISTED_WRITING: 'assisted_writing',
+  BIBLIOGRAPHY: 'bibliography',
+  EXPORTS: 'exports',
 } as const;
 
 export const SECTION_ORDER = [
@@ -243,6 +246,7 @@ export const SECTION_ORDER = [
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
   'data_collection', 'interview_simulation', 'data_analysis',
+  'assisted_writing', 'bibliography', 'exports',
 ];
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -259,6 +263,9 @@ export const SECTION_LABELS: Record<string, string> = {
   data_collection: "Outils de collecte",
   interview_simulation: "Simulation d'entretien",
   data_analysis: "Analyse des données",
+  assisted_writing: "Rédaction assistée",
+  bibliography: "Bibliographie",
+  exports: "Exports",
 };
 
 // === SCHEMAS ===
