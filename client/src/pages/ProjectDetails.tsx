@@ -637,6 +637,8 @@ function SingleSectionWrapper({
     conceptual: "Cadre conceptuel & théorique",
     literature: "Revue de littérature",
     methodology: "Méthodologie de recherche",
+    soutenance: "Soutenance (PPT + Simulation orale)",
+    audit: "Audit de mémoire",
   };
 
   if (isLocked) {

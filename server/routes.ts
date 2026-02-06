@@ -2650,6 +2650,8 @@ IMPORTANT:
     multilingualEq: { price: 900, label: "Équations multilingues" },
     advancedHistory: { price: 900, label: "Historique avancé" },
     multiExport: { price: 900, label: "Export multi-normes" },
+    soutenance: { price: 1900, label: "Soutenance (PPT + Simulation)" },
+    audit: { price: 1900, label: "Audit de mémoire" },
   };
 
   const PACK_PRICES: Record<string, { price: number; items: string[] }> = {
