@@ -9,6 +9,9 @@ import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
 import ConceptualFrameworkModule from "@/components/ConceptualFrameworkModule";
 import MethodologyModule from "@/components/MethodologyModule";
+import DataCollectionModule from "@/components/DataCollectionModule";
+import InterviewSimulationModule from "@/components/InterviewSimulationModule";
+import DataAnalysisModule from "@/components/DataAnalysisModule";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,7 +24,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   FileText, Sparkles, Trash2, Plus, File, Loader2, Lock,
   BookOpen, ClipboardList, Award, Briefcase,
-  Map, Lightbulb, BookMarked, FlaskConical, Check
+  Map, Lightbulb, BookMarked, FlaskConical, Check,
+  MessageSquare, BarChart3
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -62,13 +66,13 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis"];
     case "tfe":
-      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology"];
+      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis"];
     case "vae":
       return ["vae_competencies", "plan"];
     case "rapport_stage":
-      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology"];
+      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis"];
     default:
       return ["subject", "plan", "methodology"];
   }
@@ -98,6 +102,18 @@ function getModuleTabs(projectType: string) {
 
   if (sections.includes("methodology")) {
     tabs.push({ key: "methodology", label: "Méthodo", icon: FlaskConical, sectionKeys: ["methodology"] });
+  }
+
+  if (sections.includes("data_collection")) {
+    tabs.push({ key: "data_collection", label: "Collecte", icon: ClipboardList, sectionKeys: ["data_collection"] });
+  }
+
+  if (sections.includes("interview_simulation")) {
+    tabs.push({ key: "interview_simulation", label: "Simulation", icon: MessageSquare, sectionKeys: ["interview_simulation"] });
+  }
+
+  if (sections.includes("data_analysis")) {
+    tabs.push({ key: "data_analysis", label: "Analyse", icon: BarChart3, sectionKeys: ["data_analysis"] });
   }
 
   return tabs;
@@ -613,6 +629,42 @@ function SingleSectionWrapper({
   if (sectionKey === "methodology") {
     return (
       <MethodologyModule
+        projectId={projectId}
+        projectType={projectType}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "data_collection") {
+    return (
+      <DataCollectionModule
+        projectId={projectId}
+        projectType={projectType}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "interview_simulation") {
+    return (
+      <InterviewSimulationModule
+        projectId={projectId}
+        projectType={projectType}
+        variables={variables}
+        extraContext={buildExtraContext()}
+        section={section}
+      />
+    );
+  }
+
+  if (sectionKey === "data_analysis") {
+    return (
+      <DataAnalysisModule
         projectId={projectId}
         projectType={projectType}
         variables={variables}

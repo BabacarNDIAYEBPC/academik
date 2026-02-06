@@ -223,3 +223,75 @@ export function useGenerateMethodologyTables() {
     },
   });
 }
+
+export function useGenerateQuestionnaire() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; config: any; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateQuestionnaire.method, api.sections.generateQuestionnaire.path, data);
+      return res.json() as Promise<{ content: string; traceability: string }>;
+    },
+  });
+}
+
+export function useGenerateInterviewGuide() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; config: any; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateInterviewGuide.method, api.sections.generateInterviewGuide.path, data);
+      return res.json() as Promise<{ content: string }>;
+    },
+  });
+}
+
+export function useSimulateResponse() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; question: string; intervieweeProfile: string; tone?: string; length?: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.simulateResponse.method, api.sections.simulateResponse.path, data);
+      return res.json() as Promise<{ response: string; suggestions?: string[] }>;
+    },
+  });
+}
+
+export function useImproveQuestion() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; question: string; improvementType: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.improveQuestion.method, api.sections.improveQuestion.path, data);
+      return res.json() as Promise<{ improved: string; explanation: string }>;
+    },
+  });
+}
+
+export function useAnalyzeQualitative() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; verbatims: any[]; analysisMode: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.analyzeQualitative.method, api.sections.analyzeQualitative.path, data);
+      return res.json() as Promise<{ content: string }>;
+    },
+  });
+}
+
+export function useAnalyzeQuantitative() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; data: string; analysisType: string; filters?: any; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.analyzeQuantitative.method, api.sections.analyzeQuantitative.path, data);
+      return res.json() as Promise<{ content: string }>;
+    },
+  });
+}
+
+export function useConfrontResults() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; results: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.confrontResults.method, api.sections.confrontResults.path, data);
+      return res.json() as Promise<{ content: string }>;
+    },
+  });
+}
+
+export function useValidateHypotheses() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; results: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.validateHypotheses.method, api.sections.validateHypotheses.path, data);
+      return res.json() as Promise<{ content: string }>;
+    },
+  });
+}

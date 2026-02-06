@@ -73,7 +73,7 @@ export const aiGenerations = pgTable("ai_generations", {
 export const projectSections = pgTable("project_sections", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull(),
-  key: text("key").notNull(), // 'subject', 'problematic', 'hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'situation_appel', 'vae_competencies'
+  key: text("key").notNull(), // 'subject', 'problematic', 'hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'situation_appel', 'vae_competencies', 'data_collection', 'interview_simulation', 'data_analysis'
   status: text("status").notNull().default("draft"), // 'draft', 'validated', 'to_review'
   activeVersionId: integer("active_version_id"), // FK to section_versions
   config: jsonb("config"), // Module-specific config (e.g. literature review filters)
@@ -233,12 +233,16 @@ export const SECTION_KEYS = {
   THEORETICAL_FRAMEWORK: 'theoretical_framework',
   LITERATURE_REVIEW: 'literature_review',
   METHODOLOGY: 'methodology',
+  DATA_COLLECTION: 'data_collection',
+  INTERVIEW_SIMULATION: 'interview_simulation',
+  DATA_ANALYSIS: 'data_analysis',
 } as const;
 
 export const SECTION_ORDER = [
   'subject', 'problematic', 'hypotheses', 'situation_appel', 'vae_competencies',
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
+  'data_collection', 'interview_simulation', 'data_analysis',
 ];
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -252,6 +256,9 @@ export const SECTION_LABELS: Record<string, string> = {
   theoretical_framework: "Cadre théorique",
   literature_review: "Revue de littérature",
   methodology: "Méthodologie",
+  data_collection: "Outils de collecte",
+  interview_simulation: "Simulation d'entretien",
+  data_analysis: "Analyse des données",
 };
 
 // === SCHEMAS ===

@@ -272,6 +272,85 @@ En t'appuyant sur la problématique, les hypothèses, le cadre conceptuel/théor
 
 Si des articles ou ouvrages de la revue de littérature sont disponibles dans le contexte, cite-les pour justifier tes choix méthodologiques.`;
 
+    case "data_collection":
+      return `=== TÂCHE: OUTILS DE COLLECTE DE DONNÉES ===
+En t'appuyant sur la méthodologie validée, les hypothèses et le cadre conceptuel:
+
+1. **Choix des outils** : questionnaire structuré, guide d'entretien semi-directif, grille d'observation, analyse documentaire
+   - Justifie le choix de chaque outil en lien avec les hypothèses
+   - Précise le type de données collectées (qualitatives / quantitatives)
+2. **Construction de l'outil** :
+   - Structure en sections cohérentes
+   - Questions/items liés aux indicateurs des hypothèses
+   - Échelles de mesure adaptées
+3. **Tableau de traçabilité** : Hypothèse | Indicateur | Questions/Items | Type de données
+4. **Modalités d'administration** : durée, conditions, consignes
+
+Adapte les outils au domaine, au terrain et au niveau du diplôme.`;
+
+    case "interview_simulation":
+      return `=== TÂCHE: SIMULATION D'ENTRETIEN ===
+En t'appuyant sur le guide d'entretien et le profil de l'interviewé:
+
+1. **Simulation réaliste** : génère des réponses crédibles et nuancées
+2. **Adaptation au profil** : langage, posture, niveau de détail
+3. **Suggestions d'amélioration** : reformulations, relances possibles, points à approfondir
+
+La simulation doit aider l'étudiant à préparer ses entretiens de terrain.`;
+
+    case "data_analysis":
+      return `=== TÂCHE: ANALYSE DES DONNÉES ===
+En t'appuyant sur les données collectées, la méthodologie et les hypothèses:
+
+1. **Analyse qualitative** (si applicable) :
+   - Segmentation thématique des verbatims
+   - Codage thématique (thèmes, sous-thèmes, catégories)
+   - Citations clés et interprétation
+   - Synthèse par thème et par hypothèse
+2. **Analyse quantitative** (si applicable) :
+   - Tendances et distributions
+   - Tableaux croisés et interprétation
+   - Implications statistiques
+3. **Confrontation avec la littérature** : convergences, divergences, apports
+4. **Validation des hypothèses** : H1, H2, H3 — validée / invalidée / nuancée avec justification
+
+Structure l'analyse de manière rigoureuse et académique.`;
+
+    case "data_collection":
+      return `=== TÂCHE: OUTILS DE COLLECTE DES DONNÉES ===
+En t'appuyant sur la méthodologie, les hypothèses et la population cible:
+
+1. **Choix de l'outil** : questionnaire et/ou guide d'entretien
+2. **Justification** : pourquoi cet outil est adapté
+3. **Structure préliminaire** : grandes lignes de l'instrument
+4. **Lien hypothèses-questions** : comment chaque hypothèse sera mesurée
+5. **Considérations pratiques** : durée, mode de passation, éthique
+
+Structure ta réponse en Markdown avec des sections claires.`;
+
+    case "interview_simulation":
+      return `=== TÂCHE: PRÉPARATION À L'ENTRETIEN ===
+En t'appuyant sur le guide d'entretien et la méthodologie:
+
+1. **Points de vigilance** : questions à risque (trop fermées, biaisées, ambiguës)
+2. **Conseils de passation** : posture, relances, gestion du temps
+3. **Anticipation des difficultés** : situations complexes possibles
+4. **Grille de prise de notes** : structure recommandée
+
+Structure ta réponse en Markdown.`;
+
+    case "data_analysis":
+      return `=== TÂCHE: STRATÉGIE D'ANALYSE DES DONNÉES ===
+En t'appuyant sur la méthodologie et les outils de collecte:
+
+1. **Plan d'analyse** : approche qualitative et/ou quantitative
+2. **Méthodes de traitement** : codage thématique, analyses statistiques
+3. **Outils recommandés** : logiciels et techniques
+4. **Lien avec les hypothèses** : comment chaque hypothèse sera testée
+5. **Présentation des résultats** : format et structure attendus
+
+Structure ta réponse en Markdown.`;
+
     default:
       return `=== TÂCHE: GÉNÉRATION DE CONTENU ===\nGénère le contenu approprié pour la section "${sectionKey}".`;
   }
@@ -1673,6 +1752,844 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
     } catch (err: any) {
       console.error("Methodology Tables Error:", err);
       res.status(500).json({ message: err.message || "Erreur lors de la génération du tableau" });
+    }
+  });
+
+  // === MODULE 8: GENERATE QUESTIONNAIRE ===
+  app.post(api.sections.generateQuestionnaire.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, config, extraContext } = api.sections.generateQuestionnaire.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
+
+      const taskPrompt = `=== TÂCHE: GÉNÉRATION D'UN QUESTIONNAIRE STRUCTURÉ ===
+
+Configuration demandée:
+- Type de questionnaire: ${config.questionnaireType}
+- Nombre de questions souhaité: ${config.questionCount}
+- Formats de questions: ${config.questionFormats.join(", ")}
+- Durée cible: ${config.targetDuration}
+- Profil du répondant: ${config.respondentProfile}
+${config.instructions ? `- Instructions spécifiques: ${config.instructions}` : ""}
+
+Génère un questionnaire complet et structuré en respectant les règles suivantes:
+
+**PARTIE 1 — QUESTIONNAIRE**
+
+Structure obligatoire:
+1. **Section A — Profil du répondant**
+   - Variables sociodémographiques pertinentes (âge, genre, ancienneté, fonction, structure, etc.)
+   - Adapte au profil cible: ${config.respondentProfile}
+
+2. **Section B — Contexte et pratiques**
+   - Questions contextuelles liées au sujet de recherche
+   - Permettent de situer le répondant dans son environnement professionnel
+
+3. **Section C — Items par hypothèse**
+   - Pour CHAQUE hypothèse (H1, H2, H3):
+     - Sous-section dédiée avec titre explicite
+     - Questions mesurant les indicateurs de l'hypothèse
+     - Variété de formats: ${config.questionFormats.join(", ")}
+     - Chaque question doit mesurer UN indicateur précis
+
+4. **Section D — Conclusion**
+   - Question ouverte finale
+   - Remerciements
+
+Pour CHAQUE question, indique:
+- **ID**: Q1, Q2, Q3... (numérotation continue)
+- **Type**: ${config.questionFormats.join(" / ")}
+- **Hypothèse liée**: H1, H2, H3 ou "Profil"
+- **Indicateur mesuré**: l'indicateur précis que cette question permet de mesurer
+- **Modalités de réponse**: les options proposées (échelle de Likert, choix multiples, texte libre, etc.)
+
+**PARTIE 2 — TABLEAU DE TRAÇABILITÉ**
+
+Génère un tableau de traçabilité au format Markdown avec les colonnes suivantes:
+| Hypothèse | Indicateur | Questions | Type de données |
+
+Ce tableau doit permettre de vérifier que CHAQUE hypothèse est couverte par au moins 2-3 questions, et que chaque indicateur est mesuré.
+
+IMPORTANT:
+- Sépare clairement les deux parties avec le marqueur: <!-- TRACEABILITY_SEPARATOR -->
+- La première partie (questionnaire) précède le marqueur
+- La deuxième partie (tableau de traçabilité) suit le marqueur
+- Adapte le vocabulaire et la complexité au domaine et au niveau du diplôme
+- Les questions doivent être neutres, sans biais, claires et univoques
+- Respecte les principes méthodologiques de construction de questionnaires`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 6000,
+        temperature: 0.7,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      const parts = result.split("<!-- TRACEABILITY_SEPARATOR -->");
+      const content = (parts[0] || result).trim();
+      const traceability = (parts[1] || "").trim();
+
+      res.json({ content, traceability });
+    } catch (err: any) {
+      console.error("Generate Questionnaire Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération du questionnaire" });
+    }
+  });
+
+  // === MODULE 8: GENERATE INTERVIEW GUIDE ===
+  app.post(api.sections.generateInterviewGuide.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, config, extraContext } = api.sections.generateInterviewGuide.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
+
+      const taskPrompt = `=== TÂCHE: GÉNÉRATION D'UN GUIDE D'ENTRETIEN ===
+
+Configuration demandée:
+- Type d'entretien: ${config.interviewType}
+- Durée cible: ${config.targetDuration}
+- Nombre de thèmes: ${config.themeCount}
+- Questions par thème: ${config.questionsPerTheme}
+- Ton: ${config.tone}
+${config.intervieweeProfile ? `- Profil de l'interviewé: ${config.intervieweeProfile}` : ""}
+${config.intervieweeFunction ? `- Fonction de l'interviewé: ${config.intervieweeFunction}` : ""}
+${config.structureType ? `- Type de structure: ${config.structureType}` : ""}
+${config.instructions ? `- Instructions spécifiques: ${config.instructions}` : ""}
+
+Génère un guide d'entretien ${config.interviewType} complet et professionnel:
+
+**I. INTRODUCTION**
+- Présentation du chercheur et de l'objet de la recherche
+- Objectif de l'entretien (formulé clairement pour l'interviewé)
+- Rappel de la confidentialité et du consentement éclairé
+- Demande d'autorisation d'enregistrement
+- Durée estimée: ${config.targetDuration}
+- Mise en confiance de l'interviewé
+
+**II. THÈMES ET QUESTIONS**
+Pour chaque thème (${config.themeCount} thèmes attendus):
+- **Titre du thème** : en lien avec une hypothèse ou un axe de recherche
+- **Hypothèse(s) associée(s)** : H1, H2 ou H3
+- **Question principale** : ouverte, neutre, non-directive
+- **Questions de relance** (${config.questionsPerTheme} par thème) :
+  - Reformulations pour approfondir
+  - Relances de clarification
+  - Relances d'approfondissement
+  - Relances de confrontation (si pertinent)
+- **Indicateurs visés** : ce que la question permet d'explorer
+
+**III. CONCLUSION**
+- Question de synthèse ouverte ("Souhaitez-vous ajouter quelque chose ?")
+- Remerciements
+- Rappel de la suite du processus
+
+RÈGLES:
+- Adapte le vocabulaire et le niveau de langage au profil de l'interviewé${config.intervieweeProfile ? ` (${config.intervieweeProfile})` : ""}
+- Questions ouvertes, neutres, sans biais
+- Ton ${config.tone}
+- Progression logique du général au spécifique
+- Chaque thème doit être clairement relié à au moins une hypothèse
+- Utilise le format Markdown structuré`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 5000,
+        temperature: 0.7,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      res.json({ content: result });
+    } catch (err: any) {
+      console.error("Generate Interview Guide Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération du guide d'entretien" });
+    }
+  });
+
+  // === MODULE 9: SIMULATE RESPONSE ===
+  app.post(api.sections.simulateResponse.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, question, intervieweeProfile, tone, length, extraContext } = api.sections.simulateResponse.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un simulateur d'entretien académique. Tu incarnes un interviewé réaliste et crédible pour aider un étudiant-chercheur à préparer ses entretiens de terrain. Tu dois produire des réponses authentiques, nuancées et contextualisées.`;
+
+      const taskPrompt = `=== TÂCHE: SIMULATION DE RÉPONSE D'ENTRETIEN ===
+
+Question posée par le chercheur:
+"${question}"
+
+Profil de l'interviewé à incarner: ${intervieweeProfile}
+${tone ? `Ton souhaité: ${tone}` : ""}
+${length ? `Longueur de réponse souhaitée: ${length}` : ""}
+
+Consignes de simulation:
+1. **Incarne le profil** : adopte le langage, le niveau de vocabulaire, les préoccupations et la posture professionnelle correspondant au profil décrit
+2. **Réponse réaliste** : la réponse doit sembler authentique, avec:
+   - Des hésitations naturelles si pertinent
+   - Des exemples concrets tirés de l'expérience professionnelle simulée
+   - Des nuances et des réserves (pas de réponse trop "parfaite")
+   - Un niveau de détail cohérent avec le profil
+3. **Longueur adaptée** : ${length || "réponse de 150 à 300 mots, comme dans un entretien réel"}
+
+IMPORTANT: Réponds en JSON valide sous cette forme exacte:
+{
+  "response": "La réponse simulée de l'interviewé...",
+  "suggestions": [
+    "Suggestion de relance 1 pour approfondir",
+    "Suggestion de relance 2 pour clarifier un point",
+    "Suggestion d'amélioration de la question initiale"
+  ]
+}`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 2000,
+        temperature: 0.8,
+      });
+
+      const raw = (completion.choices[0]?.message?.content || "").trim();
+      await recordQuotaUsage(userId, raw);
+
+      let responseText = raw;
+      let suggestions: string[] = [];
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          responseText = parsed.response || raw;
+          suggestions = Array.isArray(parsed.suggestions) ? parsed.suggestions : [];
+        }
+      } catch {
+        responseText = raw;
+        suggestions = [];
+      }
+
+      res.json({ response: responseText, suggestions });
+    } catch (err: any) {
+      console.error("Simulate Response Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la simulation de réponse" });
+    }
+  });
+
+  // === MODULE 9: IMPROVE QUESTION ===
+  app.post(api.sections.improveQuestion.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, question, improvementType, extraContext } = api.sections.improveQuestion.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const improvementLabels: Record<string, string> = {
+        clarify: "Clarifier la question — la rendre plus compréhensible, sans ambiguïté",
+        remove_bias: "Supprimer les biais — reformuler pour une neutralité totale",
+        make_open: "Rendre la question plus ouverte — favoriser une réponse libre et développée",
+        make_targeted: "Rendre la question plus ciblée — focaliser sur un aspect précis",
+        suggest_relances: "Proposer des relances — générer des questions de suivi pour approfondir",
+      };
+
+      const improvementInstruction = improvementLabels[improvementType] || "Améliorer la question";
+
+      const systemPrompt = `Tu es un expert en méthodologie de recherche qualitative et en construction d'outils de collecte de données. Tu aides les chercheurs à améliorer leurs questions d'entretien et de questionnaire.`;
+
+      const taskPrompt = `=== TÂCHE: AMÉLIORATION D'UNE QUESTION ===
+
+Question originale:
+"${question}"
+
+Type d'amélioration demandée: ${improvementInstruction}
+
+Consignes:
+1. Analyse la question originale: identifie ses forces et ses faiblesses
+2. Propose une version améliorée selon le type d'amélioration demandé
+3. Explique clairement pourquoi la version améliorée est meilleure
+
+${improvementType === "suggest_relances" ? `
+Pour les relances, propose 3 à 5 questions de relance:
+- Relance de clarification
+- Relance d'approfondissement
+- Relance de confrontation
+- Relance de reformulation
+` : ""}
+
+IMPORTANT: Réponds en JSON valide sous cette forme exacte:
+{
+  "improved": "La question améliorée (ou les relances proposées)",
+  "explanation": "Explication détaillée de l'amélioration apportée et pourquoi elle est plus pertinente méthodologiquement"
+}`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 2000,
+        temperature: 0.6,
+      });
+
+      const raw = (completion.choices[0]?.message?.content || "").trim();
+      await recordQuotaUsage(userId, raw);
+
+      let improved = raw;
+      let explanation = "";
+      try {
+        const jsonMatch = raw.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          improved = parsed.improved || raw;
+          explanation = parsed.explanation || "";
+        }
+      } catch {
+        improved = raw;
+        explanation = "";
+      }
+
+      res.json({ improved, explanation });
+    } catch (err: any) {
+      console.error("Improve Question Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'amélioration de la question" });
+    }
+  });
+
+  // === MODULE 10: ANALYZE QUALITATIVE ===
+  app.post(api.sections.analyzeQualitative.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, verbatims, analysisMode, extraContext } = api.sections.analyzeQualitative.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un expert en analyse qualitative de données de recherche. Tu maîtrises l'analyse thématique (Paillé & Mucchielli), l'analyse de contenu (Bardin) et le codage thématique. Tu produis des analyses rigoureuses, structurées et académiques.`;
+
+      const verbatimsList = verbatims.map((v, i) =>
+        `\n--- Entretien ${i + 1} ---\nInitiales: ${v.initials}\nFonction: ${v.function}\nStructure: ${v.structureType}${v.date ? `\nDate: ${v.date}` : ""}\n\nVerbatim:\n${v.content}`
+      ).join("\n");
+
+      const modeLabels: Record<string, string> = {
+        per_interview: "Analyse par entretien — chaque entretien est analysé individuellement avant la synthèse",
+        global: "Analyse globale transversale — tous les entretiens sont analysés ensemble par thèmes",
+        per_hypothesis: "Analyse par hypothèse — les données sont organisées et analysées en fonction de chaque hypothèse",
+      };
+
+      const taskPrompt = `=== TÂCHE: ANALYSE QUALITATIVE DES DONNÉES ===
+
+Mode d'analyse: ${modeLabels[analysisMode] || analysisMode}
+
+${verbatimsList}
+
+Réalise une analyse qualitative complète selon le mode demandé:
+
+${analysisMode === "per_interview" ? `
+**Pour CHAQUE entretien:**
+1. **Fiche synthétique** : profil, contexte, durée, conditions
+2. **Segmentation** : découpage du verbatim en unités de sens
+3. **Codage thématique** : identification des thèmes et sous-thèmes
+4. **Citations clés** : verbatims significatifs avec interprétation
+5. **Synthèse individuelle** : points saillants, posture, apports
+
+**Puis synthèse transversale:**
+` : ""}
+
+${analysisMode === "global" ? `
+**Analyse transversale:**
+` : ""}
+
+${analysisMode === "per_hypothesis" ? `
+**Pour CHAQUE hypothèse (H1, H2, H3):**
+1. **Données pertinentes** : extraits de verbatims liés à l'hypothèse
+2. **Codage thématique** : thèmes et sous-thèmes associés
+3. **Analyse interprétative** : ce que les données révèlent sur l'hypothèse
+4. **Degré de validation** : éléments qui confirment / infirment / nuancent
+
+**Puis synthèse globale:**
+` : ""}
+
+1. **Tableau thématique** : Thème | Sous-thème | Catégorie | Fréquence | Entretiens concernés
+2. **Thèmes principaux** : description détaillée de chaque thème identifié
+3. **Citations clés** : les verbatims les plus significatifs (entre guillemets, avec attribution)
+4. **Synthèse par thème** : interprétation et mise en perspective
+5. **Synthèse par hypothèse** : lien entre les résultats et chaque hypothèse
+6. **Points de convergence et de divergence** entre les entretiens
+
+IMPORTANT:
+- Utilise des citations directes entre guillemets avec attribution (initiales)
+- Reste fidèle aux propos des interviewés
+- Distingue les faits des interprétations
+- Structure en Markdown avec titres et sous-titres clairs`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 6000,
+        temperature: 0.5,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      res.json({ content: result });
+    } catch (err: any) {
+      console.error("Analyze Qualitative Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'analyse qualitative" });
+    }
+  });
+
+  // === MODULE 10: ANALYZE QUANTITATIVE ===
+  app.post(api.sections.analyzeQuantitative.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, data, analysisType, filters, extraContext } = api.sections.analyzeQuantitative.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un expert en analyse quantitative de données de recherche. Tu maîtrises l'analyse statistique descriptive, les tableaux croisés, l'interprétation des tendances et la mise en relation des résultats avec les hypothèses de recherche. Tu produis des analyses rigoureuses et académiques.`;
+
+      const analysisLabels: Record<string, string> = {
+        cross_tab: "Tableaux croisés — analyse des relations entre variables",
+        trends: "Analyse des tendances — identification des patterns et distributions",
+        interpretation: "Interprétation globale — synthèse et mise en perspective des résultats",
+      };
+
+      const taskPrompt = `=== TÂCHE: ANALYSE QUANTITATIVE DES DONNÉES ===
+
+Type d'analyse: ${analysisLabels[analysisType] || analysisType}
+${filters ? `Filtres appliqués: ${JSON.stringify(filters)}` : ""}
+
+=== DONNÉES À ANALYSER ===
+${data}
+
+Réalise une analyse quantitative complète:
+
+${analysisType === "cross_tab" ? `
+**Tableaux croisés:**
+1. Pour chaque croisement pertinent de variables:
+   - Tableau croisé en Markdown (effectifs et pourcentages)
+   - Interprétation du tableau: que révèle-t-il ?
+   - Lien avec les hypothèses de recherche
+2. **Synthèse des croisements** : tendances principales observées
+` : ""}
+
+${analysisType === "trends" ? `
+**Analyse des tendances:**
+1. **Distribution des réponses** : pour chaque question/variable, présente la répartition
+2. **Tendances centrales** : modes, médianes, moyennes si pertinent
+3. **Patterns identifiés** : régularités, anomalies, groupes distincts
+4. **Représentation** : décris les graphiques recommandés (histogrammes, diagrammes circulaires, etc.)
+` : ""}
+
+${analysisType === "interpretation" ? `
+**Interprétation globale:**
+1. **Résultats principaux** : synthèse des données les plus significatives
+2. **Mise en relation avec les hypothèses** : H1, H2, H3
+3. **Implications** : que signifient ces résultats pour la recherche ?
+4. **Limites** : biais possibles, limites de l'échantillon
+` : ""}
+
+Pour TOUS les types d'analyse:
+- **Lien avec chaque hypothèse** : quels résultats soutiennent / infirment chaque hypothèse
+- **Tableaux de synthèse** en Markdown
+- **Interprétation académique** : utilise un vocabulaire rigoureux
+- **Recommandations** : analyses complémentaires suggérées
+
+IMPORTANT:
+- Structure en Markdown avec titres et sous-titres clairs
+- Utilise des tableaux Markdown pour présenter les données
+- Reste objectif dans l'interprétation
+- Distingue description et interprétation`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 5000,
+        temperature: 0.5,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      res.json({ content: result });
+    } catch (err: any) {
+      console.error("Analyze Quantitative Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'analyse quantitative" });
+    }
+  });
+
+  // === MODULE 10: CONFRONT RESULTS ===
+  app.post(api.sections.confrontResults.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, results, extraContext } = api.sections.confrontResults.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un expert en méthodologie de recherche académique. Tu excelles dans la confrontation des résultats de terrain avec la littérature scientifique. Tu produis des discussions académiques rigoureuses, nuancées et bien argumentées.`;
+
+      const taskPrompt = `=== TÂCHE: CONFRONTATION DES RÉSULTATS AVEC LA LITTÉRATURE ===
+
+=== RÉSULTATS DE TERRAIN ===
+${results}
+
+Réalise une confrontation rigoureuse des résultats de terrain avec la revue de littérature et le cadre conceptuel/théorique:
+
+**I. RAPPEL DES RÉSULTATS PRINCIPAUX**
+- Synthèse brève des résultats clés issus de l'analyse des données
+
+**II. CONFRONTATION AVEC LA LITTÉRATURE**
+Pour chaque résultat significatif:
+
+1. **Convergences** :
+   - Quels résultats confirment les travaux existants ?
+   - Références aux auteurs et théories du cadre conceptuel/théorique
+   - Explication des convergences observées
+
+2. **Divergences** :
+   - Quels résultats contredisent ou nuancent la littérature ?
+   - Hypothèses explicatives de ces divergences
+   - Facteurs contextuels pouvant expliquer les écarts
+
+3. **Apports originaux** :
+   - Quels résultats constituent des contributions nouvelles ?
+   - En quoi enrichissent-ils le champ de connaissances ?
+   - Implications pour la pratique professionnelle
+
+**III. DISCUSSION PAR HYPOTHÈSE**
+Pour chaque hypothèse (H1, H2, H3):
+- Résultats associés
+- Position par rapport à la littérature
+- Degré de validation à la lumière de la confrontation
+
+**IV. CONTRIBUTIONS AU CHAMP**
+- Apports théoriques de la recherche
+- Apports pratiques et professionnels
+- Limites et perspectives
+
+IMPORTANT:
+- Cite les auteurs de la revue de littérature quand tu fais des rapprochements
+- Structure en Markdown avec titres et sous-titres clairs
+- Reste académique et nuancé dans le propos
+- Distingue clairement convergences, divergences et apports originaux`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 5000,
+        temperature: 0.6,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      res.json({ content: result });
+    } catch (err: any) {
+      console.error("Confront Results Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la confrontation des résultats" });
+    }
+  });
+
+  // === MODULE 10: VALIDATE HYPOTHESES ===
+  app.post(api.sections.validateHypotheses.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, results, extraContext } = api.sections.validateHypotheses.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un expert en méthodologie de recherche académique. Tu maîtrises la validation et l'invalidation des hypothèses de recherche en t'appuyant sur les données collectées, l'analyse réalisée et la confrontation avec la littérature. Tu produis des conclusions rigoureuses, nuancées et académiquement fondées.`;
+
+      const taskPrompt = `=== TÂCHE: VALIDATION / INVALIDATION DES HYPOTHÈSES ===
+
+=== RÉSULTATS ET ANALYSE ===
+${results}
+
+Produis une validation rigoureuse de chaque hypothèse de recherche:
+
+**I. RAPPEL DES HYPOTHÈSES**
+- Rappelle chaque hypothèse telle que formulée initialement
+
+**II. VALIDATION PAR HYPOTHÈSE**
+
+Pour CHAQUE hypothèse (H1, H2, H3):
+
+### Hypothèse [N] : [Rappel de l'énoncé]
+
+1. **Statut** : VALIDÉE / PARTIELLEMENT VALIDÉE (NUANCÉE) / INVALIDÉE
+
+2. **Éléments de preuve** :
+   - Données quantitatives appuyant le verdict (chiffres, pourcentages, tendances)
+   - Données qualitatives appuyant le verdict (verbatims clés, thèmes identifiés)
+   - Références à la littérature confirmant ou contredisant
+
+3. **Justification détaillée** :
+   - Argumentation rigoureuse expliquant le verdict
+   - Nuances et réserves éventuelles
+   - Conditions de validité (contexte, population, limites)
+
+4. **Implications** :
+   - Conséquences théoriques
+   - Conséquences pratiques et professionnelles
+
+**III. SYNTHÈSE GLOBALE**
+- Tableau récapitulatif: | Hypothèse | Statut | Justification résumée |
+- Cohérence d'ensemble des résultats
+- Forces et limites de la validation
+- Pistes de recherche futures
+
+IMPORTANT:
+- Sois rigoureux et honnête: ne valide pas une hypothèse sans preuves suffisantes
+- Utilise la formulation "nuancée" quand les résultats sont partiels ou ambigus
+- Appuie-toi sur les données réelles, pas sur des suppositions
+- Structure en Markdown avec titres et sous-titres clairs`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (extraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${extraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 5000,
+        temperature: 0.5,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      res.json({ content: result });
+    } catch (err: any) {
+      console.error("Validate Hypotheses Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la validation des hypothèses" });
     }
   });
 
