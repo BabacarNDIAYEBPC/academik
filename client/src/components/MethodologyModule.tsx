@@ -18,7 +18,7 @@ import {
   FileDown, MessageSquare, Table2,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
-import VariablesPanel from "@/components/VariablesPanel";
+
 
 interface MethodologyModuleProps {
   projectId: number;
@@ -256,8 +256,6 @@ export default function MethodologyModule({
           </p>
         </CardHeader>
       </Card>
-
-      <VariablesPanel variables={variables} readOnly />
 
       <Card>
         <CardContent className="p-4 space-y-4">

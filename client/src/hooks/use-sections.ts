@@ -361,3 +361,36 @@ export function useExportDocument() {
     },
   });
 }
+
+export function useGenerateSoutenancePPT() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; slideCount?: number; theme?: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateSoutenancePPT.method, api.sections.generateSoutenancePPT.path, data);
+      return res.json() as Promise<{ slides: { title: string; content: string; notes?: string }[] }>;
+    },
+  });
+}
+
+export function useGenerateJuryQuestions() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; juryType?: string; questionCount?: number; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.generateJuryQuestions.method, api.sections.generateJuryQuestions.path, data);
+      return res.json() as Promise<{ questions: { category: string; question: string; suggestedAnswer: string; difficulty: string }[]; weakPoints: string[] }>;
+    },
+  });
+}
+
+export function useAuditMemoire() {
+  return useMutation({
+    mutationFn: async (data: { projectId: number; memoireContent: string; guideContent?: string; tutorInstructions?: string; extraContext?: string }) => {
+      const res = await apiRequest(api.sections.auditMemoire.method, api.sections.auditMemoire.path, data);
+      return res.json() as Promise<{
+        structural: { strengths: string[]; weaknesses: string[]; recommendations: string[] };
+        methodological: { strengths: string[]; weaknesses: string[]; recommendations: string[] };
+        theoretical: { strengths: string[]; weaknesses: string[]; recommendations: string[] };
+        priorities: string[];
+        score?: number;
+      }>;
+    },
+  });
+}

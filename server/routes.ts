@@ -3625,6 +3625,280 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
     }
   });
 
+  // === MODULE 14: SOUTENANCE PPT ===
+  app.post(api.sections.generateSoutenancePPT.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint."
+          : "Quota d'actions IA mensuel atteint.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, slideCount, theme, extraContext } = api.sections.generateSoutenancePPT.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const systemPrompt = `Tu es un expert en préparation de soutenances académiques. Tu crées des présentations PowerPoint structurées, claires et professionnelles pour des soutenances de mémoire, TFE et rapports de stage. Réponds UNIQUEMENT en JSON valide.`;
+
+      const userPrompt = `${projectContext}
+
+${validatedContext ? `=== CONTENU VALIDÉ DU PROJET ===\n${validatedContext}\n` : ""}
+${extraContext || ""}
+
+Génère une présentation de soutenance de ${slideCount} slides au format JSON.
+Thème visuel: ${theme}
+
+Structure attendue (adapte selon le contenu disponible):
+1. Page de garde (titre, auteur, formation)
+2. Contexte & justification du sujet
+3. Problématique & objectifs
+4. Hypothèses
+5. Cadre conceptuel
+6. Méthodologie
+7-8. Résultats principaux
+9. Discussion & confrontation avec la littérature
+10. Validation / invalidation des hypothèses
+11. Conclusion & perspectives
+12. Remerciements
+
+IMPORTANT: Utilise UNIQUEMENT le contenu déjà validé du projet. Ne crée PAS de nouveau contenu.
+
+Réponds en JSON: { "slides": [{ "title": "...", "content": "...", "notes": "..." }] }`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 6000,
+        temperature: 0.5,
+      });
+
+      const raw = response.choices[0].message.content || "{}";
+      await recordQuotaUsage(userId, raw);
+
+      let slides: { title: string; content: string; notes?: string }[] = [];
+      try {
+        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+        slides = parsed.slides || [];
+      } catch {
+        slides = [{ title: "Erreur", content: "Impossible de parser la réponse. Contenu brut:\n" + raw }];
+      }
+
+      res.json({ slides });
+    } catch (err: any) {
+      console.error("Soutenance PPT Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération du PowerPoint" });
+    }
+  });
+
+  // === MODULE 15: SIMULATION DE SOUTENANCE ===
+  app.post(api.sections.generateJuryQuestions.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint."
+          : "Quota d'actions IA mensuel atteint.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, juryType, questionCount, extraContext } = api.sections.generateJuryQuestions.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const juryDescriptions: Record<string, string> = {
+        academique: "jury académique (enseignants-chercheurs, directeurs de mémoire) - questions théoriques, méthodologiques, épistémologiques",
+        professionnel: "jury professionnel (experts métier, tuteurs de stage) - questions pratiques, opérationnelles, retour d'expérience",
+        mixte: "jury mixte (académiques et professionnels) - équilibre entre théorie et pratique",
+      };
+
+      const systemPrompt = `Tu es un expert en préparation de soutenances académiques. Tu simules un ${juryDescriptions[juryType] || juryDescriptions.academique}. Tu identifies les points faibles du travail et proposes des réponses structurées. Réponds UNIQUEMENT en JSON valide.`;
+
+      const userPrompt = `${projectContext}
+
+${validatedContext ? `=== CONTENU VALIDÉ DU PROJET ===\n${validatedContext}\n` : ""}
+${extraContext || ""}
+
+Génère exactement ${questionCount} questions qu'un jury de soutenance pourrait poser, réparties dans ces catégories:
+- Méthodologiques: questions sur le choix de méthode, la validité, la fiabilité
+- Théoriques: questions sur le cadre conceptuel, les théories mobilisées
+- Critiques: questions sur les limites, les biais, les lacunes
+- Pratiques: questions sur l'application, les recommandations, les perspectives
+
+Pour chaque question, propose une réponse argumentée et structurée.
+Identifie aussi les points faibles du travail que le jury pourrait relever.
+
+Réponds en JSON:
+{
+  "questions": [
+    { "category": "Méthodologique|Théorique|Critique|Pratique", "question": "...", "suggestedAnswer": "...", "difficulty": "facile|moyenne|difficile" }
+  ],
+  "weakPoints": ["point faible 1", "point faible 2", ...]
+}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 6000,
+        temperature: 0.7,
+      });
+
+      const raw = response.choices[0].message.content || "{}";
+      await recordQuotaUsage(userId, raw);
+
+      let questions: any[] = [];
+      let weakPoints: string[] = [];
+      try {
+        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        const parsed = JSON.parse(cleaned);
+        questions = parsed.questions || [];
+        weakPoints = parsed.weakPoints || [];
+      } catch {
+        questions = [{ category: "Erreur", question: "Impossible de parser la réponse", suggestedAnswer: raw, difficulty: "moyenne" }];
+      }
+
+      res.json({ questions, weakPoints });
+    } catch (err: any) {
+      console.error("Jury Questions Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération des questions" });
+    }
+  });
+
+  // === MODULE 16: AUDIT DE MÉMOIRE ===
+  app.post(api.sections.auditMemoire.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint."
+          : "Quota d'actions IA mensuel atteint.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, memoireContent, guideContent, tutorInstructions, extraContext } = api.sections.auditMemoire.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+
+      const systemPrompt = `Tu es un auditeur académique expert. Tu analyses des mémoires, TFE et rapports de stage pour identifier les forces, faiblesses et proposer des améliorations concrètes. Tu es rigoureux, constructif et bienveillant. Réponds UNIQUEMENT en JSON valide.`;
+
+      let userPrompt = `Effectue un audit complet du mémoire suivant selon 3 axes : structurel, méthodologique, et théorique/bibliographique.
+
+=== MÉMOIRE À AUDITER ===
+${memoireContent.substring(0, 15000)}
+`;
+
+      if (guideContent) {
+        userPrompt += `\n=== GUIDE MÉTHODOLOGIQUE DE RÉFÉRENCE ===\n${guideContent.substring(0, 3000)}\n`;
+      }
+      if (tutorInstructions) {
+        userPrompt += `\n=== CONSIGNES DU TUTEUR ===\n${tutorInstructions}\n`;
+      }
+      if (extraContext) {
+        userPrompt += `\n${extraContext}\n`;
+      }
+
+      userPrompt += `
+Analyse selon ces axes:
+
+1. AUDIT STRUCTUREL:
+- Respect du plan académique attendu
+- Cohérence globale et enchaînement logique des parties
+- Qualité des transitions et de l'argumentation
+
+2. AUDIT MÉTHODOLOGIQUE:
+- Adéquation entre méthode choisie et problématique
+- Cohérence des outils de collecte et d'analyse
+- Rigueur dans la validation des hypothèses
+
+3. AUDIT THÉORIQUE & BIBLIOGRAPHIQUE:
+- Qualité et pertinence des sources
+- Respect des normes bibliographiques
+- Cohérence entre citations dans le texte et bibliographie
+
+Réponds en JSON:
+{
+  "structural": { "strengths": ["..."], "weaknesses": ["..."], "recommendations": ["..."] },
+  "methodological": { "strengths": ["..."], "weaknesses": ["..."], "recommendations": ["..."] },
+  "theoretical": { "strengths": ["..."], "weaknesses": ["..."], "recommendations": ["..."] },
+  "priorities": ["correction prioritaire 1", "correction prioritaire 2", ...],
+  "score": 0-100
+}`;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const response = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
+        max_tokens: 6000,
+        temperature: 0.4,
+      });
+
+      const raw = response.choices[0].message.content || "{}";
+      await recordQuotaUsage(userId, raw);
+
+      const defaultAuditAxis = { strengths: [], weaknesses: [], recommendations: [] };
+      let result: any;
+      try {
+        const cleaned = raw.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        result = JSON.parse(cleaned);
+      } catch {
+        result = {
+          structural: { ...defaultAuditAxis, weaknesses: ["Erreur lors de l'analyse. Contenu brut: " + raw.substring(0, 500)] },
+          methodological: defaultAuditAxis,
+          theoretical: defaultAuditAxis,
+          priorities: [],
+        };
+      }
+
+      res.json({
+        structural: result.structural || defaultAuditAxis,
+        methodological: result.methodological || defaultAuditAxis,
+        theoretical: result.theoretical || defaultAuditAxis,
+        priorities: result.priorities || [],
+        score: result.score,
+      });
+    } catch (err: any) {
+      console.error("Audit Memoire Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'audit du mémoire" });
+    }
+  });
+
   // === MODULE 13: EXPORT DOCUMENT ===
   app.post(api.sections.exportDocument.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });

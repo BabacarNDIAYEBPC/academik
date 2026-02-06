@@ -32,7 +32,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { exportToWord } from "@/lib/export-utils";
-import VariablesPanel from "@/components/VariablesPanel";
+
 
 interface SourceArticle {
   lastName: string;
@@ -528,8 +528,6 @@ export default function ConceptualFrameworkModule({
           </p>
         </CardHeader>
       </Card>
-
-      <VariablesPanel variables={variables} readOnly />
 
       <Card>
         <CardHeader className="pb-2">

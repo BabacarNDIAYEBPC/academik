@@ -51,4 +51,7 @@ export const SECTION_TO_ENTITLEMENT: Record<string, string> = {
   theoretical_framework: "conceptual",
   literature_review: "literature",
   methodology: "methodology",
+  soutenance_ppt: "soutenance",
+  soutenance_simulation: "soutenance",
+  memoire_audit: "audit",
 };

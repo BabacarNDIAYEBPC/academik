@@ -239,6 +239,9 @@ export const SECTION_KEYS = {
   ASSISTED_WRITING: 'assisted_writing',
   BIBLIOGRAPHY: 'bibliography',
   EXPORTS: 'exports',
+  SOUTENANCE_PPT: 'soutenance_ppt',
+  SOUTENANCE_SIMULATION: 'soutenance_simulation',
+  MEMOIRE_AUDIT: 'memoire_audit',
 } as const;
 
 export const SECTION_ORDER = [
@@ -247,6 +250,7 @@ export const SECTION_ORDER = [
   'literature_review', 'methodology',
   'data_collection', 'interview_simulation', 'data_analysis',
   'assisted_writing', 'bibliography', 'exports',
+  'soutenance_ppt', 'soutenance_simulation', 'memoire_audit',
 ];
 
 export const SECTION_LABELS: Record<string, string> = {
@@ -266,6 +270,9 @@ export const SECTION_LABELS: Record<string, string> = {
   assisted_writing: "Rédaction assistée",
   bibliography: "Bibliographie",
   exports: "Exports",
+  soutenance_ppt: "PowerPoint de soutenance",
+  soutenance_simulation: "Simulation de soutenance",
+  memoire_audit: "Audit de mémoire",
 };
 
 // === SCHEMAS ===

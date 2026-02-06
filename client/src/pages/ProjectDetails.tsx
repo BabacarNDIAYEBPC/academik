@@ -15,7 +15,11 @@ import DataAnalysisModule from "@/components/DataAnalysisModule";
 import AssistedWritingModule from "@/components/AssistedWritingModule";
 import BibliographyModule from "@/components/BibliographyModule";
 import ExportsModule from "@/components/ExportsModule";
+import SoutenancePPTModule from "@/components/SoutenancePPTModule";
+import SoutenanceSimulationModule from "@/components/SoutenanceSimulationModule";
+import AuditMemoireModule from "@/components/AuditMemoireModule";
 import MemoirImportField from "@/components/MemoirImportField";
+import VariablesPanel from "@/components/VariablesPanel";
 import { useSaveSectionConfig } from "@/hooks/use-sections";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +34,8 @@ import {
   FileText, Sparkles, Trash2, Plus, File, Loader2, Lock,
   BookOpen, ClipboardList, Award, Briefcase,
   Map, Lightbulb, BookMarked, FlaskConical, Check,
-  MessageSquare, BarChart3, PenTool, Library, Download
+  MessageSquare, BarChart3, PenTool, Library, Download,
+  Presentation, Mic, ShieldCheck,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -71,15 +76,15 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
-      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports"];
+      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
-      return ["vae_competencies", "plan", "assisted_writing", "exports"];
+      return ["vae_competencies", "plan", "assisted_writing", "exports", "memoire_audit"];
     case "rapport_stage":
-      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports"];
+      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     default:
-      return ["subject", "plan", "methodology", "assisted_writing", "exports"];
+      return ["subject", "plan", "methodology", "assisted_writing", "exports", "memoire_audit"];
   }
 }
 
@@ -131,6 +136,18 @@ function getModuleTabs(projectType: string) {
 
   if (sections.includes("exports")) {
     tabs.push({ key: "exports", label: "Export", icon: Download, sectionKeys: ["exports"] });
+  }
+
+  if (sections.includes("soutenance_ppt")) {
+    tabs.push({ key: "soutenance_ppt", label: "PPT Soutenance", icon: Presentation, sectionKeys: ["soutenance_ppt"] });
+  }
+
+  if (sections.includes("soutenance_simulation")) {
+    tabs.push({ key: "soutenance_simulation", label: "Oral", icon: Mic, sectionKeys: ["soutenance_simulation"] });
+  }
+
+  if (sections.includes("memoire_audit")) {
+    tabs.push({ key: "memoire_audit", label: "Audit", icon: ShieldCheck, sectionKeys: ["memoire_audit"] });
   }
 
   return tabs;
@@ -655,10 +672,15 @@ function SingleSectionWrapper({
     <MemoirImportField value={importedMemoir} onChange={setImportedMemoir} />
   );
 
+  const variablesField = (
+    <VariablesPanel variables={variables} readOnly />
+  );
+
   if (sectionKey === "literature_review" && literatureConfig && onLiteratureConfigChange) {
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <LiteratureReviewModule
           projectId={projectId}
           projectType={projectType}
@@ -676,6 +698,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <ConceptualFrameworkModule
           projectId={projectId}
           projectType={projectType}
@@ -691,6 +714,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <MethodologyModule
           projectId={projectId}
           projectType={projectType}
@@ -706,6 +730,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <DataCollectionModule
           projectId={projectId}
           projectType={projectType}
@@ -721,6 +746,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <InterviewSimulationModule
           projectId={projectId}
           projectType={projectType}
@@ -736,6 +762,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <DataAnalysisModule
           projectId={projectId}
           projectType={projectType}
@@ -751,6 +778,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <AssistedWritingModule
           projectId={projectId}
           projectType={projectType}
@@ -766,7 +794,56 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <BibliographyModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "soutenance_ppt") {
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <SoutenancePPTModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "soutenance_simulation") {
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <SoutenanceSimulationModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "memoire_audit") {
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <AuditMemoireModule
           projectId={projectId}
           projectType={projectType}
           variables={variables}
@@ -781,6 +858,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
+        {variablesField}
         <ExportsModule
           projectId={projectId}
           projectType={projectType}
@@ -795,6 +873,7 @@ function SingleSectionWrapper({
   return (
     <div className="space-y-4">
       {memoirField}
+      {variablesField}
       <SectionEditor
         projectId={projectId}
         sectionKey={sectionKey}

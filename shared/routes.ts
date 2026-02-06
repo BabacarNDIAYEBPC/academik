@@ -452,6 +452,40 @@ export const api = {
       }),
       responses: { 200: z.object({ alerts: z.array(z.object({ type: z.string(), message: z.string() })), suggestions: z.array(z.string()) }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
     },
+    generateSoutenancePPT: {
+      method: 'POST' as const,
+      path: '/api/sections/soutenance-ppt',
+      input: z.object({
+        projectId: z.number(),
+        slideCount: z.number().default(12),
+        theme: z.string().default('academique'),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ slides: z.array(z.object({ title: z.string(), content: z.string(), notes: z.string().optional() })) }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    generateJuryQuestions: {
+      method: 'POST' as const,
+      path: '/api/sections/jury-questions',
+      input: z.object({
+        projectId: z.number(),
+        juryType: z.enum(['academique', 'professionnel', 'mixte']).default('academique'),
+        questionCount: z.number().default(10),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ questions: z.array(z.object({ category: z.string(), question: z.string(), suggestedAnswer: z.string(), difficulty: z.string() })), weakPoints: z.array(z.string()) }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
+    auditMemoire: {
+      method: 'POST' as const,
+      path: '/api/sections/audit-memoire',
+      input: z.object({
+        projectId: z.number(),
+        memoireContent: z.string(),
+        guideContent: z.string().optional(),
+        tutorInstructions: z.string().optional(),
+        extraContext: z.string().optional(),
+      }),
+      responses: { 200: z.object({ structural: z.object({ strengths: z.array(z.string()), weaknesses: z.array(z.string()), recommendations: z.array(z.string()) }), methodological: z.object({ strengths: z.array(z.string()), weaknesses: z.array(z.string()), recommendations: z.array(z.string()) }), theoretical: z.object({ strengths: z.array(z.string()), weaknesses: z.array(z.string()), recommendations: z.array(z.string()) }), priorities: z.array(z.string()), score: z.number().optional() }), 401: errorSchemas.unauthorized, 500: errorSchemas.internal },
+    },
     exportDocument: {
       method: 'POST' as const,
       path: '/api/projects/:projectId/export',
