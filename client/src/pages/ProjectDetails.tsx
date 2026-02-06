@@ -637,8 +637,17 @@ function SingleSectionWrapper({
     conceptual: "Cadre conceptuel & théorique",
     literature: "Revue de littérature",
     methodology: "Méthodologie de recherche",
-    soutenance: "Soutenance (PPT + Simulation orale)",
+    soutenance_ppt: "PowerPoint de soutenance",
+    soutenance_simulation: "Simulation de soutenance",
     audit: "Audit de mémoire",
+    questionnaire: "Questionnaires avancés",
+    guide_entretien: "Guides d'entretien",
+    simulation_entretien: "Simulation d'entretien IA",
+    analyse_qualitative: "Analyse qualitative",
+    analyse_quantitative: "Analyse quantitative",
+    article_analysis: "Analyse d'articles",
+    article_confrontation: "Confrontation d'articles",
+    biblio_multinormes: "Bibliographie multi-normes",
   };
 
   if (isLocked) {
@@ -653,17 +662,26 @@ function SingleSectionWrapper({
           <div>
             <h3 className="text-lg font-semibold">{SECTION_LABELS[sectionKey] || sectionKey}</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Cette section fait partie du module «{ENTITLEMENT_LABELS[entitlementKey] || entitlementKey}».
-              Activez-le pour accéder à la génération IA et à l'édition.
+              {["foundation", "plan", "conceptual", "literature", "methodology"].includes(entitlementKey)
+                ? "Cette section est incluse dans le Pack Fondations (179 €). Activez-le pour accéder à toutes les fonctionnalités de base."
+                : `Cette section fait partie du module « ${ENTITLEMENT_LABELS[entitlementKey] || entitlementKey} ». Activez-le pour y accéder.`}
             </p>
           </div>
           <Button
-            onClick={() => checkout.mutate({ items: [entitlementKey] })}
+            onClick={() => {
+              if (["foundation", "plan", "conceptual", "literature", "methodology"].includes(entitlementKey)) {
+                checkout.mutate({ pack: "core_pack" });
+              } else {
+                checkout.mutate({ items: [entitlementKey] });
+              }
+            }}
             disabled={checkout.isPending}
             data-testid={`button-unlock-${sectionKey}`}
           >
             {checkout.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
-            Activer ce module
+            {["foundation", "plan", "conceptual", "literature", "methodology"].includes(entitlementKey)
+              ? "Activer le Pack Fondations (179 €)"
+              : "Activer ce module"}
           </Button>
         </CardContent>
       </Card>

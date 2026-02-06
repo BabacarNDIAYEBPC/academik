@@ -357,7 +357,24 @@ export class DatabaseStorage implements IStorage {
 
   async getUserEntitlements(userId: string): Promise<string[]> {
     const purchases = await this.getUserPurchases(userId);
-    return purchases.map(p => p.itemKey);
+    const rawKeys = purchases.map(p => p.itemKey);
+    const expanded = new Set<string>(rawKeys);
+    if (expanded.has("core_pack")) {
+      ["foundation", "plan", "conceptual", "literature", "methodology"].forEach(k => expanded.add(k));
+    }
+    if (expanded.has("pack_collecte")) {
+      ["questionnaire", "guide_entretien"].forEach(k => expanded.add(k));
+    }
+    if (expanded.has("pack_analyse")) {
+      ["analyse_qualitative", "analyse_quantitative"].forEach(k => expanded.add(k));
+    }
+    if (expanded.has("pack_revue")) {
+      ["article_analysis", "article_confrontation", "biblio_multinormes"].forEach(k => expanded.add(k));
+    }
+    if (expanded.has("pack_soutenance")) {
+      ["soutenance_ppt", "soutenance_simulation", "audit"].forEach(k => expanded.add(k));
+    }
+    return Array.from(expanded);
   }
 
   async getQuota(userId: string): Promise<UserQuota> {

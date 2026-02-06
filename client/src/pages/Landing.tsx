@@ -11,27 +11,49 @@ import {
   ArrowRight, BookOpen, GraduationCap, Sparkles, BrainCircuit,
   FileText, Search, FlaskConical, CheckCircle2, Lightbulb, Map,
   BookMarked, Award, Briefcase, ClipboardList, ChevronDown, ChevronUp,
-  Loader2,
+  Loader2, Mic, BarChart3, FileCheck, Presentation, ShieldCheck, Package,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
-const SECTION_PRICES = {
-  foundation: 29,
-  plan: 19,
-  conceptual: 19,
-  literature: 39,
-  methodology: 29,
+const CORE_PACK_PRICE = 179;
+
+const OPTION_CATALOG = {
+  collecte: [
+    { key: "questionnaire", price: 29, fr: "Questionnaires avancés", en: "Advanced Questionnaires" },
+    { key: "guide_entretien", price: 29, fr: "Guides d'entretien complets", en: "Complete Interview Guides" },
+    { key: "simulation_entretien", price: 19, fr: "Simulation d'entretien IA", en: "AI Interview Simulation" },
+  ],
+  analyse: [
+    { key: "analyse_qualitative", price: 39, fr: "Analyse qualitative (verbatims, codage, synthèse)", en: "Qualitative Analysis (verbatims, coding, synthesis)" },
+    { key: "analyse_quantitative", price: 39, fr: "Analyse quantitative (tableaux + graphiques)", en: "Quantitative Analysis (tables + charts)" },
+  ],
+  revue: [
+    { key: "article_analysis", price: 29, fr: "Résumé & analyse d'articles", en: "Article Summary & Analysis" },
+    { key: "article_confrontation", price: 29, fr: "Confrontation d'articles", en: "Article Confrontation" },
+    { key: "biblio_multinormes", price: 25, fr: "Bibliographie multi-normes (APA, Vancouver, MLA, Chicago)", en: "Multi-standard Bibliography (APA, Vancouver, MLA, Chicago)" },
+  ],
+  soutenance: [
+    { key: "soutenance_ppt", price: 29, fr: "PowerPoint de soutenance structuré", en: "Structured Defense PowerPoint" },
+    { key: "soutenance_simulation", price: 29, fr: "Simulation de soutenance (questions jury)", en: "Defense Simulation (jury questions)" },
+    { key: "audit", price: 49, fr: "Audit complet du mémoire", en: "Complete Dissertation Audit" },
+  ],
+  confort: [
+    { key: "export_illimite", price: 19, fr: "Export illimité Word / PPT", en: "Unlimited Word / PPT Export" },
+    { key: "fusion_memoire", price: 19, fr: "Fusion mémoire en un document", en: "Merge Dissertation into One Document" },
+  ],
+  ia: [
+    { key: "words_20k", price: 19, fr: "+20 000 mots IA", en: "+20,000 AI Words" },
+    { key: "words_50k", price: 39, fr: "+50 000 mots IA", en: "+50,000 AI Words" },
+    { key: "extra_project", price: 29, fr: "Projet supplémentaire", en: "Additional Project" },
+  ],
 };
 
-const OPTION_PRICES = {
-  unlimitedRegen: 9,
-  articleAnalysis: 15,
-  multilingualEq: 9,
-  advancedHistory: 9,
-  multiExport: 9,
+const PACK_OPTIONS: Record<string, { keys: string[]; price: number; fr: string; en: string }> = {
+  pack_collecte: { keys: ["questionnaire", "guide_entretien"], price: 49, fr: "Pack Collecte", en: "Collection Pack" },
+  pack_analyse: { keys: ["analyse_qualitative", "analyse_quantitative"], price: 69, fr: "Pack Analyse", en: "Analysis Pack" },
+  pack_revue: { keys: ["article_analysis", "article_confrontation", "biblio_multinormes"], price: 59, fr: "Pack Revue avancée", en: "Advanced Review Pack" },
+  pack_soutenance: { keys: ["soutenance_ppt", "soutenance_simulation", "audit"], price: 79, fr: "Pack Soutenance & Audit", en: "Defense & Audit Pack" },
 };
-
-const BASE_PRICE = 19;
 
 export default function Landing() {
   const { t, tArray, lang } = useI18n();
@@ -168,48 +190,23 @@ function ProjectTypesBar() {
 function FeaturesSection() {
   const { t, tArray } = useI18n();
 
-  const modules = [
-    {
-      icon: BookOpen,
-      titleKey: "features.module1Title",
-      descKey: "features.module1Desc",
-      detailsKey: "features.module1Details",
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
-    },
-    {
-      icon: Map,
-      titleKey: "features.module2Title",
-      descKey: "features.module2Desc",
-      detailsKey: "features.module2Details",
-      color: "text-emerald-500",
-      bgColor: "bg-emerald-500/10",
-    },
-    {
-      icon: Lightbulb,
-      titleKey: "features.module3Title",
-      descKey: "features.module3Desc",
-      detailsKey: "features.module3Details",
-      color: "text-amber-500",
-      bgColor: "bg-amber-500/10",
-    },
-    {
-      icon: BookMarked,
-      titleKey: "features.module4Title",
-      descKey: "features.module4Desc",
-      detailsKey: "features.module4Details",
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
-    },
-    {
-      icon: FlaskConical,
-      titleKey: "features.module5Title",
-      descKey: "features.module5Desc",
-      detailsKey: "features.module5Details",
-      color: "text-rose-500",
-      bgColor: "bg-rose-500/10",
-    },
+  const coreModules = [
+    { icon: BookOpen, titleKey: "features.module1Title", descKey: "features.module1Desc", detailsKey: "features.module1Details", color: "text-blue-500", bgColor: "bg-blue-500/10" },
+    { icon: Map, titleKey: "features.module2Title", descKey: "features.module2Desc", detailsKey: "features.module2Details", color: "text-emerald-500", bgColor: "bg-emerald-500/10" },
+    { icon: Lightbulb, titleKey: "features.module3Title", descKey: "features.module3Desc", detailsKey: "features.module3Details", color: "text-amber-500", bgColor: "bg-amber-500/10" },
+    { icon: BookMarked, titleKey: "features.module4Title", descKey: "features.module4Desc", detailsKey: "features.module4Details", color: "text-purple-500", bgColor: "bg-purple-500/10" },
+    { icon: FlaskConical, titleKey: "features.module5Title", descKey: "features.module5Desc", detailsKey: "features.module5Details", color: "text-rose-500", bgColor: "bg-rose-500/10" },
   ];
+
+  const extraCategories = [
+    { icon: Mic, titleKey: "features.cat1Title", descKey: "features.cat1Desc", detailsKey: "features.cat1Details", color: "text-cyan-500", bgColor: "bg-cyan-500/10" },
+    { icon: Search, titleKey: "features.cat2Title", descKey: "features.cat2Desc", detailsKey: "features.cat2Details", color: "text-indigo-500", bgColor: "bg-indigo-500/10" },
+    { icon: Presentation, titleKey: "features.cat3Title", descKey: "features.cat3Desc", detailsKey: "features.cat3Details", color: "text-orange-500", bgColor: "bg-orange-500/10" },
+    { icon: ShieldCheck, titleKey: "features.cat4Title", descKey: "features.cat4Desc", detailsKey: "features.cat4Details", color: "text-teal-500", bgColor: "bg-teal-500/10" },
+  ];
+
+  const allModules = [...coreModules, ...extraCategories];
+  const totalCount = allModules.length;
 
   return (
     <section id="features" className="py-20 scroll-mt-20">
@@ -220,8 +217,8 @@ function FeaturesSection() {
         </div>
 
         <div className="space-y-8">
-          {modules.map((mod, index) => (
-            <FeatureModule key={index} mod={mod} index={index} t={t} tArray={tArray} />
+          {allModules.map((mod, index) => (
+            <FeatureModule key={index} mod={mod} index={index} total={totalCount} t={t} tArray={tArray} />
           ))}
         </div>
       </div>
@@ -229,7 +226,7 @@ function FeaturesSection() {
   );
 }
 
-function FeatureModule({ mod, index, t, tArray }: { mod: any; index: number; t: (k: string) => string; tArray: (k: string) => string[] }) {
+function FeatureModule({ mod, index, total, t, tArray }: { mod: any; index: number; total: number; t: (k: string) => string; tArray: (k: string) => string[] }) {
   const [expanded, setExpanded] = useState(false);
   const details = tArray(mod.detailsKey);
   const Icon = mod.icon;
@@ -248,7 +245,7 @@ function FeatureModule({ mod, index, t, tArray }: { mod: any; index: number; t: 
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <Badge variant="secondary" className="mb-2 text-xs">
-                  {index + 1}/5
+                  {index + 1}/{total}
                 </Badge>
                 <h3 className="text-xl font-bold mb-2">{t(mod.titleKey)}</h3>
               </div>
@@ -261,7 +258,7 @@ function FeatureModule({ mod, index, t, tArray }: { mod: any; index: number; t: 
               data-testid={`button-expand-feature-${index}`}
             >
               {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              {expanded ? (t("common.close")) : "Voir le détail"}
+              {expanded ? (t("common.close")) : "Voir le d\u00e9tail"}
             </button>
 
             {expanded && (
@@ -286,14 +283,14 @@ function FeatureModule({ mod, index, t, tArray }: { mod: any; index: number; t: 
 }
 
 function PricingSection() {
-  const { t } = useI18n();
+  const { t, tArray, lang } = useI18n();
   const { user } = useAuth();
   const checkout = useCheckout();
   const confirmPayment = useConfirmPayment();
   const { toast } = useToast();
-  const [selectedSections, setSelectedSections] = useState<Record<string, boolean>>({});
+  const [coreSelected, setCoreSelected] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, boolean>>({});
-  const [selectedPack, setSelectedPack] = useState<string | null>(null);
+  const [selectedPacks, setSelectedPacks] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -302,7 +299,7 @@ function PricingSection() {
     if (payment === "success" && sessionId) {
       confirmPayment.mutate(sessionId, {
         onSuccess: () => {
-          toast({ title: "Paiement confirmé", description: "Vos modules ont été activés avec succès." });
+          toast({ title: "Paiement confirm\u00e9", description: "Vos modules ont \u00e9t\u00e9 activ\u00e9s avec succ\u00e8s." });
           window.history.replaceState({}, "", window.location.pathname);
         },
         onError: () => {
@@ -310,103 +307,74 @@ function PricingSection() {
         },
       });
     } else if (payment === "cancelled") {
-      toast({ title: "Paiement annulé", description: "Votre paiement a été annulé." });
+      toast({ title: "Paiement annul\u00e9", description: "Votre paiement a \u00e9t\u00e9 annul\u00e9." });
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  const handleOptionToggle = (key: string) => {
+    setSelectedOptions(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handlePackToggle = (packKey: string) => {
+    const packDef = PACK_OPTIONS[packKey];
+    if (!packDef) return;
+    const isActive = !selectedPacks[packKey];
+    setSelectedPacks(prev => ({ ...prev, [packKey]: isActive }));
+    if (isActive) {
+      const newOpts = { ...selectedOptions };
+      packDef.keys.forEach(k => { newOpts[k] = false; });
+      setSelectedOptions(newOpts);
+    }
+  };
 
   const handleCheckout = () => {
     if (!user) {
       window.location.href = "/api/login";
       return;
     }
-    if (selectedPack) {
-      checkout.mutate({ pack: selectedPack });
-    } else {
-      const items = [
-        ...Object.entries(selectedSections).filter(([, v]) => v).map(([k]) => k),
-        ...Object.entries(selectedOptions).filter(([, v]) => v).map(([k]) => k),
-      ];
-      if (items.length > 0) {
-        checkout.mutate({ items });
-      }
+    const items: string[] = [];
+    if (coreSelected) items.push("core_pack");
+    Object.entries(selectedPacks).filter(([, v]) => v).forEach(([packKey]) => {
+      items.push(packKey);
+    });
+    Object.entries(selectedOptions).filter(([, v]) => v).forEach(([key]) => {
+      const isInPack = Object.entries(selectedPacks).some(([pk, active]) => active && PACK_OPTIONS[pk]?.keys.includes(key));
+      if (!isInPack) items.push(key);
+    });
+    if (items.length > 0) {
+      checkout.mutate({ items });
     }
   };
-
-  const sections = [
-    { key: "foundation", price: SECTION_PRICES.foundation },
-    { key: "plan", price: SECTION_PRICES.plan },
-    { key: "conceptual", price: SECTION_PRICES.conceptual },
-    { key: "literature", price: SECTION_PRICES.literature },
-    { key: "methodology", price: SECTION_PRICES.methodology },
-  ];
-
-  const options = [
-    { key: "unlimitedRegen", price: OPTION_PRICES.unlimitedRegen },
-    { key: "articleAnalysis", price: OPTION_PRICES.articleAnalysis },
-    { key: "multilingualEq", price: OPTION_PRICES.multilingualEq },
-    { key: "advancedHistory", price: OPTION_PRICES.advancedHistory },
-    { key: "multiExport", price: OPTION_PRICES.multiExport },
-  ];
-
-  const sectionLabelMap: Record<string, string> = {
-    foundation: t("pricing.foundation"),
-    plan: t("pricing.plan"),
-    conceptual: t("pricing.conceptual"),
-    literature: t("pricing.literature"),
-    methodology: t("pricing.methodology"),
-  };
-
-  const optionLabelMap: Record<string, string> = {
-    unlimitedRegen: t("pricing.optUnlimitedRegen"),
-    articleAnalysis: t("pricing.optArticleAnalysis"),
-    multilingualEq: t("pricing.optMultilingualEq"),
-    advancedHistory: t("pricing.optAdvancedHistory"),
-    multiExport: t("pricing.optMultiExport"),
-  };
-
-  const handlePackSelect = (packKey: string) => {
-    setSelectedPack(packKey);
-    if (packKey === "essential") {
-      setSelectedSections({ foundation: true, plan: true });
-      setSelectedOptions({});
-    } else if (packKey === "research") {
-      setSelectedSections({ foundation: true, plan: true, literature: true, methodology: true });
-      setSelectedOptions({});
-    } else if (packKey === "complete") {
-      setSelectedSections({ foundation: true, plan: true, conceptual: true, literature: true, methodology: true });
-      setSelectedOptions({ unlimitedRegen: true, advancedHistory: true, multiExport: true });
-    }
-  };
-
-  const handleSectionToggle = (key: string) => {
-    setSelectedPack(null);
-    setSelectedSections(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleOptionToggle = (key: string) => {
-    setSelectedPack(null);
-    setSelectedOptions(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const sectionsTotal = Object.entries(selectedSections)
-    .filter(([, v]) => v)
-    .reduce((sum, [key]) => sum + (SECTION_PRICES[key as keyof typeof SECTION_PRICES] || 0), 0);
 
   const optionsTotal = Object.entries(selectedOptions)
+    .filter(([key, v]) => {
+      if (!v) return false;
+      const isInPack = Object.entries(selectedPacks).some(([pk, active]) => active && PACK_OPTIONS[pk]?.keys.includes(key));
+      return !isInPack;
+    })
+    .reduce((sum, [key]) => {
+      const allItems = Object.values(OPTION_CATALOG).flat();
+      const item = allItems.find(i => i.key === key);
+      return sum + (item?.price || 0);
+    }, 0);
+
+  const packsTotal = Object.entries(selectedPacks)
     .filter(([, v]) => v)
-    .reduce((sum, [key]) => sum + (OPTION_PRICES[key as keyof typeof OPTION_PRICES] || 0), 0);
+    .reduce((sum, [key]) => sum + (PACK_OPTIONS[key]?.price || 0), 0);
 
-  const hasSections = Object.values(selectedSections).some(Boolean);
-  const total = (hasSections ? BASE_PRICE : 0) + sectionsTotal + optionsTotal;
+  const total = (coreSelected ? CORE_PACK_PRICE : 0) + optionsTotal + packsTotal;
 
-  const packPrices: Record<string, number> = {
-    essential: 59,
-    research: 99,
-    complete: 129,
-  };
+  const categories: { catKey: string; titleKey: string; icon: any; items: typeof OPTION_CATALOG.collecte; packKey?: string }[] = [
+    { catKey: "collecte", titleKey: "pricing.catCollecte", icon: Mic, items: OPTION_CATALOG.collecte, packKey: "pack_collecte" },
+    { catKey: "analyse", titleKey: "pricing.catAnalyse", icon: BarChart3, items: OPTION_CATALOG.analyse, packKey: "pack_analyse" },
+    { catKey: "revue", titleKey: "pricing.catRevue", icon: Search, items: OPTION_CATALOG.revue, packKey: "pack_revue" },
+    { catKey: "soutenance", titleKey: "pricing.catSoutenance", icon: Presentation, items: OPTION_CATALOG.soutenance, packKey: "pack_soutenance" },
+    { catKey: "confort", titleKey: "pricing.catConfort", icon: FileCheck, items: OPTION_CATALOG.confort },
+    { catKey: "ia", titleKey: "pricing.catIA", icon: BrainCircuit, items: OPTION_CATALOG.ia },
+  ];
 
-  const displayTotal = selectedPack ? packPrices[selectedPack] : total;
+  const coreIncludes = tArray("pricing.corePackIncludes");
 
   return (
     <section id="pricing" className="py-20 bg-muted/20 scroll-mt-20">
@@ -418,122 +386,137 @@ function PricingSection() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card
+              className={`cursor-pointer transition-all border-2 ${coreSelected ? "border-primary bg-primary/5" : "border-border/50"}`}
+              onClick={() => setCoreSelected(!coreSelected)}
+              data-testid="pricing-core-pack"
+            >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <CardTitle className="text-lg">{t("pricing.baseAccess")}</CardTitle>
-                  <Badge variant="outline" className="text-base font-bold">{BASE_PRICE} &euro;</Badge>
+                  <div className="flex items-center gap-3">
+                    <Checkbox checked={coreSelected} onCheckedChange={() => setCoreSelected(!coreSelected)} data-testid="checkbox-core-pack" />
+                    <div>
+                      <CardTitle className="text-lg">{t("pricing.corePackTitle")}</CardTitle>
+                      <p className="text-sm text-muted-foreground">{t("pricing.corePackSubtitle")}</p>
+                    </div>
+                  </div>
+                  <Badge className="text-lg font-extrabold px-4 py-1">{CORE_PACK_PRICE} &euro;</Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">{t("pricing.baseDesc")}</p>
               </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{t("pricing.sections")}</CardTitle>
-                <p className="text-sm text-muted-foreground">{t("pricing.sectionsDesc")}</p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {sections.map(({ key, price }) => (
-                  <label
-                    key={key}
-                    className="flex items-center justify-between gap-4 p-3 rounded-lg border border-border/50 cursor-pointer hover-elevate transition-all"
-                    data-testid={`pricing-section-${key}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={!!selectedSections[key]}
-                        onCheckedChange={() => handleSectionToggle(key)}
-                        data-testid={`checkbox-section-${key}`}
-                      />
-                      <span className="text-sm font-medium">{sectionLabelMap[key]}</span>
+              <CardContent className="pt-0">
+                <p className="text-sm text-muted-foreground mb-3">{t("pricing.corePackDesc")}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {coreIncludes.map((item, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 mt-0.5 flex-shrink-0 text-primary" />
+                      <span>{item}</span>
                     </div>
-                    <span className="text-sm font-bold text-primary">{price} &euro;</span>
-                  </label>
-                ))}
+                  ))}
+                </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">{t("pricing.options")}</CardTitle>
-                <p className="text-sm text-muted-foreground">{t("pricing.optionsDesc")}</p>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {options.map(({ key, price }) => (
-                  <label
-                    key={key}
-                    className="flex items-center justify-between gap-4 p-3 rounded-lg border border-border/50 cursor-pointer hover-elevate transition-all"
-                    data-testid={`pricing-option-${key}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Checkbox
-                        checked={!!selectedOptions[key]}
-                        onCheckedChange={() => handleOptionToggle(key)}
-                        data-testid={`checkbox-option-${key}`}
-                      />
-                      <span className="text-sm font-medium">{optionLabelMap[key]}</span>
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-1">{t("pricing.optionsTitle")}</h3>
+              <p className="text-sm text-muted-foreground">{t("pricing.optionsSubtitle")}</p>
+            </div>
+
+            {categories.map(({ catKey, titleKey, icon: CatIcon, items, packKey }) => {
+              const packDef = packKey ? PACK_OPTIONS[packKey] : null;
+              const packActive = packKey ? !!selectedPacks[packKey] : false;
+
+              return (
+                <Card key={catKey}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <CatIcon className="w-5 h-5 text-primary" />
+                      <CardTitle className="text-base">{t(titleKey)}</CardTitle>
                     </div>
-                    <span className="text-sm font-bold text-muted-foreground">+{price} &euro;</span>
-                  </label>
-                ))}
-              </CardContent>
-            </Card>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {items.map((item) => {
+                      const isInActivePack = packActive && packDef?.keys.includes(item.key);
+                      return (
+                        <label
+                          key={item.key}
+                          className={`flex items-center justify-between gap-4 p-3 rounded-lg border border-border/50 cursor-pointer hover-elevate transition-all ${isInActivePack ? "opacity-50" : ""}`}
+                          data-testid={`pricing-option-${item.key}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={isInActivePack || !!selectedOptions[item.key]}
+                              disabled={isInActivePack}
+                              onCheckedChange={() => handleOptionToggle(item.key)}
+                              data-testid={`checkbox-option-${item.key}`}
+                            />
+                            <span className="text-sm font-medium">{lang === "fr" ? item.fr : item.en}</span>
+                          </div>
+                          <span className="text-sm font-bold text-muted-foreground whitespace-nowrap">{item.price} &euro;</span>
+                        </label>
+                      );
+                    })}
+                    {packDef && (
+                      <div
+                        onClick={() => handlePackToggle(packKey!)}
+                        className={`flex items-center justify-between gap-4 p-3 rounded-lg border-2 cursor-pointer transition-all mt-2 ${
+                          packActive ? "border-primary bg-primary/5" : "border-dashed border-primary/30 hover-elevate"
+                        }`}
+                        data-testid={`pricing-pack-${packKey}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Checkbox checked={packActive} onCheckedChange={() => handlePackToggle(packKey!)} />
+                          <div>
+                            <span className="text-sm font-bold flex items-center gap-2">
+                              <Package className="w-4 h-4 text-primary" />
+                              {lang === "fr" ? packDef.fr : packDef.en}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {lang === "fr" ? "Tout inclus, \u00e9conomisez !" : "All included, save!"}
+                            </span>
+                          </div>
+                        </div>
+                        <Badge className="font-extrabold">{packDef.price} &euro;</Badge>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           <div className="space-y-6">
-            <div className="sticky top-20 space-y-6">
-              <Card className="border-primary/30">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">{t("pricing.packs")}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <PackCard
-                    label={t("pricing.packEssential")}
-                    desc={t("pricing.packEssentialDesc")}
-                    price={59}
-                    selected={selectedPack === "essential"}
-                    onClick={() => handlePackSelect("essential")}
-                    testId="pack-essential"
-                  />
-                  <PackCard
-                    label={t("pricing.packResearch")}
-                    desc={t("pricing.packResearchDesc")}
-                    price={99}
-                    badge={t("pricing.mostPopular")}
-                    selected={selectedPack === "research"}
-                    onClick={() => handlePackSelect("research")}
-                    testId="pack-research"
-                  />
-                  <PackCard
-                    label={t("pricing.packComplete")}
-                    desc={t("pricing.packCompleteDesc")}
-                    price={129}
-                    badge={t("pricing.bestValue")}
-                    selected={selectedPack === "complete"}
-                    onClick={() => handlePackSelect("complete")}
-                    testId="pack-complete"
-                  />
-                </CardContent>
-              </Card>
-
+            <div className="sticky top-20">
               <Card className="bg-primary text-primary-foreground">
                 <CardContent className="p-6">
                   <div className="text-center space-y-4">
                     <p className="text-sm opacity-80 uppercase tracking-wider">{t("pricing.total")}</p>
                     <p className="text-4xl font-extrabold" data-testid="text-pricing-total">
-                      {displayTotal} &euro;
+                      {total} &euro;
                     </p>
-                    {selectedPack && (
+                    {coreSelected && (
                       <Badge variant="secondary" className="bg-white/20 text-white border-0">
-                        {t("pricing.packs")}
+                        Pack Fondations
                       </Badge>
                     )}
+                    <div className="text-left text-sm space-y-1 opacity-90">
+                      {coreSelected && <div className="flex justify-between gap-2"><span>{t("pricing.corePackTitle")}</span><span>{CORE_PACK_PRICE} &euro;</span></div>}
+                      {Object.entries(selectedPacks).filter(([, v]) => v).map(([pk]) => (
+                        <div key={pk} className="flex justify-between gap-2"><span>{lang === "fr" ? PACK_OPTIONS[pk].fr : PACK_OPTIONS[pk].en}</span><span>{PACK_OPTIONS[pk].price} &euro;</span></div>
+                      ))}
+                      {Object.entries(selectedOptions).filter(([key, v]) => {
+                        if (!v) return false;
+                        return !Object.entries(selectedPacks).some(([pk, active]) => active && PACK_OPTIONS[pk]?.keys.includes(key));
+                      }).map(([key]) => {
+                        const item = Object.values(OPTION_CATALOG).flat().find(i => i.key === key);
+                        if (!item) return null;
+                        return <div key={key} className="flex justify-between gap-2"><span>{lang === "fr" ? item.fr : item.en}</span><span>{item.price} &euro;</span></div>;
+                      })}
+                    </div>
                     <Button
                       size="lg"
                       variant="secondary"
                       className="w-full mt-2"
-                      disabled={displayTotal === 0 || checkout.isPending}
+                      disabled={total === 0 || checkout.isPending}
                       onClick={handleCheckout}
                       data-testid="button-pay-activate"
                     >
@@ -549,31 +532,6 @@ function PricingSection() {
         </div>
       </div>
     </section>
-  );
-}
-
-function PackCard({ label, desc, price, badge, selected, onClick, testId }: {
-  label: string; desc: string; price: number; badge?: string; selected: boolean; onClick: () => void; testId: string;
-}) {
-  return (
-    <div
-      onClick={onClick}
-      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-        selected ? "border-primary bg-primary/5" : "border-border/50 hover-elevate"
-      }`}
-      data-testid={testId}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-sm">{label}</span>
-            {badge && <Badge variant="secondary" className="text-xs">{badge}</Badge>}
-          </div>
-          <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-        </div>
-        <span className="font-extrabold text-primary text-lg whitespace-nowrap">{price} &euro;</span>
-      </div>
-    </div>
   );
 }
 

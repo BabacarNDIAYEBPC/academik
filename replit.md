@@ -23,7 +23,7 @@ The application follows a client-server architecture.
     -   **Dynamic Plan Generation**: Contextual plan generation based on project type and validated content.
     -   **Export Functionality**: Supports per-section and batch export to Word (.docx) and PDF formats.
     -   **Quota System**: Manages user quotas for words, AI actions, projects, and documents with options for purchasing surplus.
-    -   **Payment System**: Integrated with Stripe for managing purchases of sections, add-ons, and packs.
+    -   **Payment System**: Integrated with Stripe. Single core pack at €179 (foundations through methodology) + à la carte options (collecte, analyse, revue avancée, soutenance, confort, IA quotas). Entitlement system: `core_pack` purchase expands to foundation/plan/conceptual/literature/methodology entitlements. Pack purchases (pack_collecte, pack_analyse, pack_revue, pack_soutenance) expand to their constituent items. SECTION_TO_ENTITLEMENT maps section keys to entitlement keys. getUserEntitlements in storage.ts expands pack purchases into individual entitlements.
 
     -   **Super Admin Console**: Full administration dashboard for managing users, plans, AI settings, payments, and audit logs.
 

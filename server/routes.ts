@@ -2639,25 +2639,35 @@ IMPORTANT:
 
   // === STRIPE CHECKOUT ===
   const PRICING: Record<string, { price: number; label: string }> = {
-    base: { price: 1900, label: "Accès plateforme" },
-    foundation: { price: 2900, label: "Fondement méthodologique" },
-    plan: { price: 1900, label: "Plan du travail" },
-    conceptual: { price: 1900, label: "Cadre conceptuel" },
-    literature: { price: 3900, label: "Revue de littérature" },
-    methodology: { price: 2900, label: "Méthodologie de recherche" },
-    unlimitedRegen: { price: 900, label: "Régénération illimitée" },
-    articleAnalysis: { price: 1500, label: "Analyse d'articles" },
-    multilingualEq: { price: 900, label: "Équations multilingues" },
-    advancedHistory: { price: 900, label: "Historique avancé" },
-    multiExport: { price: 900, label: "Export multi-normes" },
-    soutenance: { price: 1900, label: "Soutenance (PPT + Simulation)" },
-    audit: { price: 1900, label: "Audit de mémoire" },
+    core_pack: { price: 17900, label: "Pack Mémoire / TFE / VAE – Fondations complètes" },
+    questionnaire: { price: 2900, label: "Génération de questionnaires avancés" },
+    guide_entretien: { price: 2900, label: "Guides d'entretien complets" },
+    pack_collecte: { price: 4900, label: "Pack Collecte (questionnaire + guide)" },
+    simulation_entretien: { price: 1900, label: "Simulation d'entretien IA" },
+    analyse_qualitative: { price: 3900, label: "Analyse qualitative" },
+    analyse_quantitative: { price: 3900, label: "Analyse quantitative" },
+    pack_analyse: { price: 6900, label: "Pack Analyse complet" },
+    article_analysis: { price: 2900, label: "Résumé & analyse d'articles" },
+    article_confrontation: { price: 2900, label: "Confrontation d'articles" },
+    biblio_multinormes: { price: 2500, label: "Bibliographie multi-normes" },
+    pack_revue: { price: 5900, label: "Pack Revue avancée" },
+    soutenance_ppt: { price: 2900, label: "PowerPoint de soutenance" },
+    soutenance_simulation: { price: 2900, label: "Simulation de soutenance" },
+    audit: { price: 4900, label: "Audit complet du mémoire" },
+    pack_soutenance: { price: 7900, label: "Pack Soutenance & Audit" },
+    export_illimite: { price: 1900, label: "Export illimité Word / PPT" },
+    fusion_memoire: { price: 1900, label: "Fusion mémoire en un document" },
+    words_20k: { price: 1900, label: "+20 000 mots IA" },
+    words_50k: { price: 3900, label: "+50 000 mots IA" },
+    extra_project: { price: 2900, label: "Projet supplémentaire" },
   };
 
   const PACK_PRICES: Record<string, { price: number; items: string[] }> = {
-    essential: { price: 5900, items: ["base", "foundation", "plan"] },
-    research: { price: 9900, items: ["base", "foundation", "plan", "literature", "methodology"] },
-    complete: { price: 12900, items: ["base", "foundation", "plan", "conceptual", "literature", "methodology", "unlimitedRegen", "advancedHistory", "multiExport"] },
+    core_pack: { price: 17900, items: ["core_pack"] },
+    pack_collecte: { price: 4900, items: ["questionnaire", "guide_entretien"] },
+    pack_analyse: { price: 6900, items: ["analyse_qualitative", "analyse_quantitative"] },
+    pack_revue: { price: 5900, items: ["article_analysis", "article_confrontation", "biblio_multinormes"] },
+    pack_soutenance: { price: 7900, items: ["soutenance_ppt", "soutenance_simulation", "audit"] },
   };
 
   app.post("/api/checkout", async (req, res) => {
@@ -2678,10 +2688,6 @@ IMPORTANT:
           label: PRICING[key]?.label || key,
         }));
       } else if (items?.length) {
-        const alwaysInclude = items.some(i => Object.keys(PRICING).includes(i) && i !== "base");
-        if (alwaysInclude && !items.includes("base")) {
-          items.unshift("base");
-        }
         lineItems = items.filter(key => PRICING[key]).map(key => ({
           key,
           price: PRICING[key].price,
@@ -2706,7 +2712,7 @@ IMPORTANT:
         for (const item of lineItems) {
           await storage.createPurchase({
             userId,
-            itemType: pack ? "pack" : (["foundation", "plan", "conceptual", "literature", "methodology"].includes(item.key) ? "section" : item.key === "base" ? "base" : "option"),
+            itemType: pack ? "pack" : (item.key === "core_pack" ? "pack" : "option"),
             itemKey: item.key,
             price: item.price,
             currency: "eur",
