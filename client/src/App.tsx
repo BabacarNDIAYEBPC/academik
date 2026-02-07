@@ -21,12 +21,18 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
   const { user, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
+  const { data: adminCheck } = useQuery<{ isAdmin: boolean }>({
+    queryKey: ["/api/admin/check"],
+    enabled: !!user,
+  });
+
   const { data: purchases, isLoading: purchasesLoading } = useQuery<any[]>({
     queryKey: ["/api/purchases"],
     enabled: !!user && !skipPricingRedirect,
   });
 
   useEffect(() => {
+    if (adminCheck?.isAdmin) return;
     if (!skipPricingRedirect && user && !purchasesLoading && purchases !== undefined) {
       const params = new URLSearchParams(window.location.search);
       const hasPaymentParams = params.has("payment") || params.has("surplus");
@@ -35,7 +41,7 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
         setLocation(`/billing${queryString}`);
       }
     }
-  }, [user, purchasesLoading, purchases, skipPricingRedirect, location, setLocation]);
+  }, [user, purchasesLoading, purchases, skipPricingRedirect, location, setLocation, adminCheck]);
 
   if (isLoading) {
     return (
