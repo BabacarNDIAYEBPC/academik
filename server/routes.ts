@@ -41,7 +41,9 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   questionnaire: "questionnaire",
   guide_entretien: "guide_entretien",
   interview_simulation: "simulation_entretien",
-  data_analysis: ["analyse_qualitative", "analyse_quantitative"],
+  data_analysis: "data_visualization",
+  financial_simulation: "financial_simulation",
+  questionnaire_analysis: "questionnaire_analysis",
   assisted_writing: "redaction",
   bibliography: "biblio_multinormes",
   exports: "export_illimite",
@@ -2781,6 +2783,204 @@ IMPORTANT:
     }
   });
 
+  // === MODULE: FINANCIAL SIMULATION ===
+  app.post(api.sections.generateFinancialSimulation.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "financial_simulation");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const parsed = api.sections.generateFinancialSimulation.input.parse(req.body);
+      const { simulationType, timeHorizon, currency, customInstructions, extraContext: userExtraContext } = parsed;
+      const projectId = parsed.projectId;
+      if (!projectId) return res.status(400).json({ message: "projectId is required" });
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const typeLabels: Record<string, string> = {
+        budget_previsionnel: "Budget prévisionnel",
+        plan_financement: "Plan de financement",
+        compte_resultat: "Compte de résultat prévisionnel",
+        seuil_rentabilite: "Seuil de rentabilité",
+        plan_tresorerie: "Plan de trésorerie",
+      };
+
+      const systemPrompt = `Tu es un expert en finance d'entreprise et en analyse financière académique. Tu produis des simulations financières rigoureuses, chiffrées et professionnelles adaptées au contexte académique (mémoire, TFE, rapport de stage, VAE). Tu maîtrises les tableaux financiers, les calculs de rentabilité et les projections.`;
+
+      const taskPrompt = `=== TÂCHE: SIMULATION FINANCIÈRE ===
+
+Type de simulation: ${typeLabels[simulationType] || simulationType}
+Horizon temporel: ${timeHorizon} an(s)
+Devise: ${currency}
+${customInstructions ? `Instructions spécifiques: ${customInstructions}` : ""}
+
+Produis une simulation financière complète et professionnelle:
+
+1. **Hypothèses de départ** : Liste les hypothèses retenues pour la simulation (chiffre d'affaires, charges, investissements, etc.)
+
+2. **Tableau(x) financier(s)** : Présente le/les tableau(x) en Markdown avec des colonnes par année/période sur ${timeHorizon} an(s) en ${currency}
+
+3. **Analyse et commentaires** : Commente les résultats, les tendances, les points de vigilance
+
+4. **Indicateurs clés** : Marge, ratio, seuil de rentabilité ou tout indicateur pertinent
+
+5. **Recommandations** : Préconisations basées sur les résultats
+
+IMPORTANT:
+- Utilise des chiffres réalistes et cohérents avec le contexte du projet
+- Présente les tableaux en format Markdown lisible
+- Structure en titres et sous-titres clairs
+- Adapte le vocabulaire au niveau académique`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (userExtraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${userExtraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 6000,
+        temperature: 0.6,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      res.json({ content: result.trim() });
+    } catch (err: any) {
+      console.error("Financial Simulation Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la génération de la simulation financière" });
+    }
+  });
+
+  // === MODULE: QUESTIONNAIRE ANALYSIS (DÉPOUILLEMENT) ===
+  app.post(api.sections.generateQuestionnaireAnalysis.path, async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "questionnaire_analysis");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
+    const quotaCheck = await checkAndConsumeQuota(userId);
+    if (!quotaCheck.allowed) {
+      return res.status(429).json({
+        message: quotaCheck.reason === "words"
+          ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
+          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+        quotaExceeded: quotaCheck.reason,
+        quota: quotaCheck.quota
+      });
+    }
+
+    try {
+      const { projectId, analysisType, respondentCount, responseData, customInstructions, questionnaireContent, extraContext: userExtraContext } = api.sections.generateQuestionnaireAnalysis.input.parse(req.body);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(401).json({ message: "Unauthorized" });
+
+      const profile = await storage.getProfile(userId);
+      const documents = await storage.getDocuments(projectId);
+      const projectContext = buildProjectContext(project, profile, documents);
+      const validatedContext = await storage.getValidatedSectionsContext(projectId);
+
+      const typeLabels: Record<string, string> = {
+        depouillement: "Dépouillement complet",
+        tri_plat: "Tri à plat",
+        tri_croise: "Tri croisé",
+        analyse_thematique: "Analyse thématique des réponses",
+      };
+
+      const systemPrompt = `Tu es un expert en méthodologie de recherche et en analyse de données d'enquête. Tu maîtrises le dépouillement de questionnaires, les tris à plat, les tris croisés et l'analyse thématique des réponses ouvertes. Tu produis des analyses rigoureuses, structurées et adaptées au contexte académique.`;
+
+      const taskPrompt = `=== TÂCHE: DÉPOUILLEMENT ET ANALYSE DU QUESTIONNAIRE ===
+
+Type d'analyse: ${typeLabels[analysisType] || analysisType}
+Nombre de répondants: ${respondentCount}
+${customInstructions ? `Instructions spécifiques: ${customInstructions}` : ""}
+${questionnaireContent ? `\n=== QUESTIONNAIRE UTILISÉ ===\n${questionnaireContent}\n` : ""}
+=== DONNÉES DES RÉPONSES ===
+${responseData}
+
+Produis une analyse complète et structurée:
+
+1. **Profil des répondants** : Synthèse du profil sociodémographique des ${respondentCount} répondants
+
+2. **Résultats par question** :
+   - Pour chaque question fermée: effectifs, pourcentages, tableau de fréquences
+   - Pour les échelles de Likert: moyenne, médiane, écart-type
+   - Pour les questions ouvertes: catégorisation thématique des réponses
+
+3. **Tableaux de synthèse** : Présente les résultats sous forme de tableaux Markdown clairs
+
+4. **Analyse et interprétation** : 
+   - Tendances principales
+   - Résultats significatifs
+   - Points de convergence et de divergence
+
+5. **Liens avec les hypothèses** : Si des hypothèses sont définies, relie les résultats aux hypothèses
+
+6. **Limites méthodologiques** : Taille de l'échantillon, biais potentiels, représentativité
+
+IMPORTANT:
+- Sois rigoureux dans les calculs et pourcentages
+- Utilise des tableaux Markdown lisibles
+- Structure en titres et sous-titres académiques
+- Adapte le vocabulaire au niveau académique`;
+
+      const userPrompt = projectContext + "\n" +
+        (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
+        (userExtraContext ? `\n=== INSTRUCTIONS UTILISATEUR ===\n${userExtraContext}\n` : "") +
+        taskPrompt;
+
+      const openai = getOpenAIClient((profile as any)?.openaiApiKey);
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4.1",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        max_tokens: 6000,
+        temperature: 0.5,
+      });
+
+      const result = completion.choices[0]?.message?.content || "";
+      await recordQuotaUsage(userId, result);
+
+      res.json({ content: result.trim() });
+    } catch (err: any) {
+      console.error("Questionnaire Analysis Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'analyse du questionnaire" });
+    }
+  });
+
   // === USER API KEY ===
   app.post("/api/settings/openai-key", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
@@ -2837,6 +3037,9 @@ IMPORTANT:
     guide_entretien: { price: 2500, label: "Guide d'entretien (collecte)" },
     pack_collecte: { price: 4500, label: "Pack Collecte (questionnaire + guide)" },
     simulation_entretien: { price: 1900, label: "Simulation d'entretien IA" },
+    data_visualization: { price: 2500, label: "Analyse et visualisation des données" },
+    financial_simulation: { price: 2900, label: "Simulation financière" },
+    questionnaire_analysis: { price: 2900, label: "Dépouillement du questionnaire" },
     analyse_qualitative: { price: 3900, label: "Analyse qualitative" },
     analyse_quantitative: { price: 3900, label: "Analyse quantitative" },
     pack_analyse: { price: 6900, label: "Pack Analyse complet" },

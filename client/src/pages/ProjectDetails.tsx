@@ -13,6 +13,8 @@ import QuestionnaireModule from "@/components/QuestionnaireModule";
 import GuideEntretienModule from "@/components/GuideEntretienModule";
 import InterviewSimulationModule from "@/components/InterviewSimulationModule";
 import DataAnalysisModule from "@/components/DataAnalysisModule";
+import FinancialSimulationModule from "@/components/FinancialSimulationModule";
+import QuestionnaireAnalysisModule from "@/components/QuestionnaireAnalysisModule";
 import AssistedWritingModule from "@/components/AssistedWritingModule";
 import BibliographyModule from "@/components/BibliographyModule";
 import ExportsModule from "@/components/ExportsModule";
@@ -78,13 +80,13 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
-      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
       return ["vae_competencies", "plan", "assisted_writing", "exports", "memoire_audit"];
     case "rapport_stage":
-      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     default:
       return ["subject", "plan", "methodology", "assisted_writing", "exports", "memoire_audit"];
   }
@@ -124,12 +126,20 @@ function getModuleTabs(projectType: string) {
     tabs.push({ key: "guide_entretien", label: "Guide d'entretien", icon: FileText, sectionKeys: ["guide_entretien"] });
   }
 
+  if (sections.includes("questionnaire_analysis")) {
+    tabs.push({ key: "questionnaire_analysis", label: "Dépouillement", icon: BarChart3, sectionKeys: ["questionnaire_analysis"] });
+  }
+
   if (sections.includes("interview_simulation")) {
     tabs.push({ key: "interview_simulation", label: "Simulation", icon: MessageSquare, sectionKeys: ["interview_simulation"] });
   }
 
   if (sections.includes("data_analysis")) {
-    tabs.push({ key: "data_analysis", label: "Analyse", icon: BarChart3, sectionKeys: ["data_analysis"] });
+    tabs.push({ key: "data_analysis", label: "Visualisation", icon: BarChart3, sectionKeys: ["data_analysis"] });
+  }
+
+  if (sections.includes("financial_simulation")) {
+    tabs.push({ key: "financial_simulation", label: "Finance", icon: BarChart3, sectionKeys: ["financial_simulation"] });
   }
 
   if (sections.includes("assisted_writing")) {
@@ -891,6 +901,9 @@ function SingleSectionWrapper({
     questionnaire: "Questionnaires avancés",
     guide_entretien: "Guides d'entretien",
     simulation_entretien: "Simulation d'entretien IA",
+    data_visualization: "Analyse et visualisation des données",
+    financial_simulation: "Simulation financière",
+    questionnaire_analysis: "Dépouillement du questionnaire",
     analyse_qualitative: "Analyse qualitative",
     analyse_quantitative: "Analyse quantitative",
     article_analysis: "Analyse d'articles",
@@ -902,10 +915,12 @@ function SingleSectionWrapper({
   const CORE_KEYS = ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"];
 
   const SECTION_PACK_INFO: Record<string, { packKey: string; label: string }> = {
-    questionnaire: { packKey: "questionnaire", label: "Questionnaire (29 €)" },
-    guide_entretien: { packKey: "guide_entretien", label: "Guide d'entretien (29 €)" },
-    interview_simulation: { packKey: "pack_collecte", label: "Pack Collecte (49 €)" },
-    data_analysis: { packKey: "pack_analyse", label: "Pack Analyse (69 €)" },
+    questionnaire: { packKey: "questionnaire", label: "Questionnaire (25 €)" },
+    guide_entretien: { packKey: "guide_entretien", label: "Guide d'entretien (25 €)" },
+    questionnaire_analysis: { packKey: "questionnaire_analysis", label: "Dépouillement du questionnaire (29 €)" },
+    interview_simulation: { packKey: "simulation_entretien", label: "Simulation d'entretien (19 €)" },
+    data_analysis: { packKey: "data_visualization", label: "Visualisation des données (25 €)" },
+    financial_simulation: { packKey: "financial_simulation", label: "Simulation financière (29 €)" },
     bibliography: { packKey: "pack_revue", label: "Pack Revue avancée (59 €)" },
   };
 
@@ -1131,6 +1146,40 @@ function SingleSectionWrapper({
           variables={variables}
           extraContext={buildExtraContext()}
           section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "financial_simulation") {
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <FinancialSimulationModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "questionnaire_analysis") {
+    const questionnaireSection = sections.find(s => s.key === "questionnaire");
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <QuestionnaireAnalysisModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+          questionnaireSection={questionnaireSection}
         />
       </div>
     );

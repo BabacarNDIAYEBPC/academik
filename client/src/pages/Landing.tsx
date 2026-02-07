@@ -19,11 +19,14 @@ const CORE_PACK_PRICE = 179;
 
 const OPTION_CATALOG = {
   collecte: [
-    { key: "questionnaire", price: 29, fr: "Questionnaires avancés", en: "Advanced Questionnaires" },
-    { key: "guide_entretien", price: 29, fr: "Guides d'entretien complets", en: "Complete Interview Guides" },
+    { key: "questionnaire", price: 25, fr: "Questionnaire (collecte)", en: "Questionnaire (Collection)" },
+    { key: "guide_entretien", price: 25, fr: "Guide d'entretien (collecte)", en: "Interview Guide (Collection)" },
     { key: "simulation_entretien", price: 19, fr: "Simulation d'entretien IA", en: "AI Interview Simulation" },
+    { key: "questionnaire_analysis", price: 29, fr: "Dépouillement du questionnaire", en: "Questionnaire Analysis" },
   ],
   analyse: [
+    { key: "data_visualization", price: 25, fr: "Analyse et visualisation des données", en: "Data Analysis & Visualization" },
+    { key: "financial_simulation", price: 29, fr: "Simulation financière", en: "Financial Simulation" },
     { key: "analyse_qualitative", price: 39, fr: "Analyse qualitative (verbatims, codage, synthèse)", en: "Qualitative Analysis (verbatims, coding, synthesis)" },
     { key: "analyse_quantitative", price: 39, fr: "Analyse quantitative (tableaux + graphiques)", en: "Quantitative Analysis (tables + charts)" },
   ],

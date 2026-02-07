@@ -45,8 +45,11 @@ const OPTION_CATALOG = {
     { key: "questionnaire", price: 25, label: "Questionnaire (collecte)", description: "Questionnaire structuré, questions uniquement, prêt pour Word" },
     { key: "guide_entretien", price: 25, label: "Guide d'entretien (collecte)", description: "Guide d'entretien qualitatif, questions uniquement" },
     { key: "simulation_entretien", price: 19, label: "Simulation d'entretien IA", description: "Préparez vos entretiens avec simulation IA" },
+    { key: "questionnaire_analysis", price: 29, label: "Dépouillement du questionnaire", description: "Exploitation et analyse des réponses au questionnaire" },
   ],
   analyse: [
+    { key: "data_visualization", price: 25, label: "Analyse et visualisation des données", description: "Tableaux croisés dynamiques, graphiques et exploitation visuelle" },
+    { key: "financial_simulation", price: 29, label: "Simulation financière", description: "Tableaux financiers, simulations chiffrées et calculs dynamiques" },
     { key: "analyse_qualitative", price: 39, label: "Analyse qualitative", description: "Verbatims, codage thématique et synthèse" },
     { key: "analyse_quantitative", price: 39, label: "Analyse quantitative", description: "Tableaux croisés et graphiques" },
   ],

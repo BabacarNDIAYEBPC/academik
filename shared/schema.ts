@@ -332,7 +332,9 @@ export const SECTION_LABELS: Record<string, string> = {
   questionnaire: "Questionnaire",
   guide_entretien: "Guide d'entretien",
   interview_simulation: "Simulation d'entretien",
-  data_analysis: "Analyse des données",
+  data_analysis: "Analyse et visualisation des données",
+  financial_simulation: "Simulation financière",
+  questionnaire_analysis: "Dépouillement du questionnaire",
   assisted_writing: "Rédaction assistée",
   bibliography: "Bibliographie",
   exports: "Exports",
@@ -345,10 +347,10 @@ export const SECTION_LABELS: Record<string, string> = {
 export const FOUNDATIONAL_SECTIONS = ['subject', 'problematic', 'hypotheses', 'plan'] as const;
 
 export const SECTION_DEPENDENCIES: Record<string, string[]> = {
-  subject: ['problematic', 'hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
-  problematic: ['hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
-  hypotheses: ['plan', 'conceptual_framework', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
-  plan: ['conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'assisted_writing', 'soutenance_ppt', 'memoire_audit'],
+  subject: ['problematic', 'hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'financial_simulation', 'questionnaire_analysis', 'soutenance_ppt', 'memoire_audit'],
+  problematic: ['hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'financial_simulation', 'questionnaire_analysis', 'soutenance_ppt', 'memoire_audit'],
+  hypotheses: ['plan', 'conceptual_framework', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'financial_simulation', 'questionnaire_analysis', 'soutenance_ppt', 'memoire_audit'],
+  plan: ['conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'financial_simulation', 'questionnaire_analysis', 'assisted_writing', 'soutenance_ppt', 'memoire_audit'],
 };
 
 // === SCHEMAS ===
