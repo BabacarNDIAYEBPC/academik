@@ -72,7 +72,7 @@ export default function Landing() {
 }
 
 function Navbar() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <nav className="fixed w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
@@ -80,7 +80,7 @@ function Navbar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold shadow-lg">
             A
           </div>
-          <span className="font-bold text-xl tracking-tight">Academic</span>
+          <span className="font-bold text-xl tracking-tight">ASSISTANT Méthodologie</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <a href="#features">
@@ -91,7 +91,12 @@ function Navbar() {
           </a>
           <LanguageSelector />
           <a href="/api/login">
-            <Button data-testid="button-login">{t("nav.signIn")}</Button>
+            <Button variant="outline" data-testid="button-login">{t("nav.signIn")}</Button>
+          </a>
+          <a href="/api/login">
+            <Button data-testid="button-signup">
+              {lang === "fr" ? "S'inscrire" : "Sign Up"}
+            </Button>
           </a>
         </div>
       </div>
@@ -100,7 +105,7 @@ function Navbar() {
 }
 
 function HeroSection() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   return (
     <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="text-center space-y-8 max-w-3xl mx-auto">
@@ -124,6 +129,11 @@ function HeroSection() {
               <Button size="lg" className="shadow-xl shadow-primary/20" data-testid="button-hero-cta">
                 {t("hero.cta")}
                 <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </a>
+            <a href="/api/login">
+              <Button size="lg" variant="outline" data-testid="button-hero-signup">
+                {lang === "fr" ? "S'inscrire sur la plateforme" : "Sign up on the platform"}
               </Button>
             </a>
           </div>
@@ -606,18 +616,33 @@ function Footer() {
   return (
     <footer className="py-12 border-t border-border/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold shadow-lg">
-              A
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold shadow-lg">
+                A
+              </div>
+              <span className="font-bold text-lg">ASSISTANT Méthodologie</span>
             </div>
-            <span className="font-bold text-lg">Academic Writing Assistant</span>
+            <p className="text-sm text-muted-foreground text-center sm:text-right">
+              {lang === "fr"
+                ? "Un assistant méthodologique intelligent. Pas de rédaction clé en main, pas de triche académique."
+                : "An intelligent methodological assistant. No turnkey writing, no academic cheating."}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {lang === "fr"
-              ? "Un assistant méthodologique intelligent. Pas de rédaction clé en main, pas de triche académique."
-              : "An intelligent methodological assistant. No turnkey writing, no academic cheating."}
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <a href="/api/login">
+              <Button variant="outline" data-testid="button-footer-login">
+                {lang === "fr" ? "Se connecter" : "Sign In"}
+              </Button>
+            </a>
+            <a href="/api/login">
+              <Button data-testid="button-footer-signup">
+                {lang === "fr" ? "S'inscrire sur la plateforme" : "Sign up on the platform"}
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </a>
+          </div>
         </div>
       </div>
     </footer>

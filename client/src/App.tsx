@@ -1,11 +1,12 @@
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { I18nProvider } from "@/lib/i18n";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 import Landing from "@/pages/Landing";
 import Dashboard from "@/pages/Dashboard";
@@ -16,9 +17,22 @@ import Billing from "@/pages/Billing";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 
-function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
+function ProtectedRoute({ component: Component, skipPricingRedirect }: { component: React.ComponentType; skipPricingRedirect?: boolean }) {
   const { user, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+
+  const { data: purchases, isLoading: purchasesLoading } = useQuery<any[]>({
+    queryKey: ["/api/purchases"],
+    enabled: !!user && !skipPricingRedirect,
+  });
+
+  useEffect(() => {
+    if (!skipPricingRedirect && user && !purchasesLoading && purchases !== undefined) {
+      if (purchases.length === 0 && location !== "/billing") {
+        setLocation("/billing");
+      }
+    }
+  }, [user, purchasesLoading, purchases, skipPricingRedirect, location, setLocation]);
 
   if (isLoading) {
     return (
@@ -32,6 +46,14 @@ function ProtectedRoute({ component: Component }: { component: React.ComponentTy
     return <Landing />;
   }
 
+  if (!skipPricingRedirect && purchasesLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return <Component />;
 }
 
@@ -41,9 +63,9 @@ function Router() {
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/projects/new" component={() => <ProtectedRoute component={NewProject} />} />
       <Route path="/projects/:id" component={() => <ProtectedRoute component={ProjectDetails} />} />
-      <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
-      <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
-      <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
+      <Route path="/settings" component={() => <ProtectedRoute component={Settings} skipPricingRedirect />} />
+      <Route path="/billing" component={() => <ProtectedRoute component={Billing} skipPricingRedirect />} />
+      <Route path="/admin" component={() => <ProtectedRoute component={Admin} skipPricingRedirect />} />
       <Route component={NotFound} />
     </Switch>
   );

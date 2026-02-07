@@ -48,8 +48,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             A
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">Academic</h1>
-            <p className="text-xs text-muted-foreground">Writing Assistant</p>
+            <h1 className="font-bold text-lg leading-tight">ASSISTANT</h1>
+            <p className="text-xs text-muted-foreground">Méthodologie</p>
           </div>
         </div>
         

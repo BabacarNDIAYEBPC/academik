@@ -31,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  FileText, Sparkles, Trash2, Plus, File, Loader2, Lock,
+  FileText, Sparkles, Trash2, Plus, File, Loader2, Lock, Upload,
   BookOpen, ClipboardList, Award, Briefcase,
   Map, Lightbulb, BookMarked, FlaskConical, Check,
   MessageSquare, BarChart3, PenTool, Library, Download,
@@ -195,7 +195,7 @@ export default function ProjectDetails() {
         <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1">
           <TabsTrigger value="assistant" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-5 rounded-lg transition-all gap-2" data-testid="tab-assistant">
             <Sparkles className="w-4 h-4" />
-            Assistant IA
+            ASSISTANT Méthodologie
           </TabsTrigger>
           <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-5 rounded-lg transition-all" data-testid="tab-documents">
             Documents
@@ -1125,10 +1125,12 @@ function DocumentsTab({ project }: { project: any }) {
   const { data: documents, isLoading } = useDocuments(project.id);
   const { mutate: createDoc } = useCreateDocument();
   const { mutate: deleteDoc } = useDeleteDocument();
+  const { toast } = useToast();
   const [newDocName, setNewDocName] = useState("");
   const [newDocContent, setNewDocContent] = useState("");
   const [newDocType, setNewDocType] = useState("guide");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const docTypes = project.type === "vae"
     ? [
@@ -1147,6 +1149,62 @@ function DocumentsTab({ project }: { project: any }) {
         { value: "referentiel", label: "Référentiel de compétences" },
         { value: "autre", label: "Autre document" },
       ];
+
+  const handleFileImport = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".txt,.csv,.bib,.md,.rtf,.docx,.pdf,.doc";
+    input.onchange = async (ev) => {
+      const file = (ev.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const ext = file.name.toLowerCase().split(".").pop();
+      const binaryFormats = ["docx", "pdf", "doc"];
+      try {
+        setUploading(true);
+        let text = "";
+        if (binaryFormats.includes(ext || "")) {
+          const formData = new FormData();
+          formData.append("file", file);
+          const res = await fetch("/api/parse-file", {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ message: "Erreur serveur" }));
+            throw new Error(err.message || "Erreur lors du traitement du fichier");
+          }
+          const data = await res.json();
+          text = data.text;
+        } else {
+          text = await file.text();
+        }
+        const docName = file.name.replace(/\.[^.]+$/, "");
+        createDoc(
+          {
+            projectId: project.id,
+            name: docName,
+            type: "import",
+            content: text,
+          },
+          {
+            onSuccess: () => {
+              toast({ title: "Fichier importé", description: `"${file.name}" ajouté aux documents du projet.` });
+              setUploading(false);
+            },
+            onError: (error: any) => {
+              toast({ title: "Erreur", description: error.message || "Impossible de sauvegarder le document.", variant: "destructive" });
+              setUploading(false);
+            },
+          }
+        );
+      } catch (err: any) {
+        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+        setUploading(false);
+      }
+    };
+    input.click();
+  };
 
   const handleCreate = () => {
     if (!newDocName.trim()) return;
@@ -1168,13 +1226,18 @@ function DocumentsTab({ project }: { project: any }) {
           <h3 className="text-lg font-semibold">Documents du projet</h3>
           <p className="text-sm text-muted-foreground">Les documents sont analysés par l'IA pour améliorer les propositions.</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-document">
-              <Plus className="mr-2 w-4 h-4" />
-              Ajouter
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={handleFileImport} disabled={uploading} data-testid="button-import-file">
+            {uploading ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : <Upload className="mr-2 w-4 h-4" />}
+            {uploading ? "Traitement..." : "Importer un fichier"}
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-document">
+                <Plus className="mr-2 w-4 h-4" />
+                Ajouter manuellement
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>Ajouter un document</DialogTitle>
@@ -1207,19 +1270,25 @@ function DocumentsTab({ project }: { project: any }) {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {isLoading ? (
         <Skeleton className="h-48 w-full" />
       ) : documents?.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
-          <File className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+          <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
           <p className="text-muted-foreground">Aucun document ajouté.</p>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground mt-1 mb-4">
             {project.type === "vae"
               ? "Ajoutez votre CV et votre référentiel de compétences."
               : "Ajoutez vos guides et consignes pour de meilleures suggestions."}
           </p>
+          <p className="text-xs text-muted-foreground mb-3">Formats supportés : Word (.docx), PDF (.pdf), texte (.txt), CSV, BibTeX (.bib), Markdown (.md), RTF</p>
+          <Button variant="outline" onClick={handleFileImport} disabled={uploading} data-testid="button-import-file-empty">
+            {uploading ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : <Upload className="mr-2 w-4 h-4" />}
+            {uploading ? "Traitement..." : "Importer un fichier"}
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
