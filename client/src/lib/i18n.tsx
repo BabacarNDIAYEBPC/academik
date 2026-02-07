@@ -13,7 +13,7 @@ const translations = {
     settings: { fr: "Paramètres", en: "Settings" },
   },
   hero: {
-    badge: { fr: "Votre assistant académique intelligent", en: "Your Intelligent Academic Assistant" },
+    badge: { fr: "De A à Z dans la rédaction académique", en: "From A to Z in Academic Writing" },
     title1: { fr: "Maîtrisez votre", en: "Master Your Academic" },
     title2: { fr: "parcours académique", en: "Writing Journey" },
     subtitle: {

@@ -48,7 +48,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             A
           </div>
           <div>
-            <h1 className="font-bold text-lg leading-tight">AlphaScholar</h1>
+            <h1 className="font-bold text-lg leading-tight">Academik</h1>
           </div>
         </div>
         

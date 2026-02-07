@@ -83,7 +83,7 @@ function Navbar() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold shadow-lg">
             A
           </div>
-          <span className="font-bold text-xl tracking-tight">AlphaScholar</span>
+          <span className="font-bold text-xl tracking-tight">Academik</span>
         </div>
         <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
           <a href="#features">
@@ -629,7 +629,7 @@ function Footer() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold shadow-lg">
                 A
               </div>
-              <span className="font-bold text-lg">AlphaScholar</span>
+              <span className="font-bold text-lg">Academik</span>
             </div>
             <p className="text-sm text-muted-foreground text-center sm:text-right">
               {lang === "fr"

@@ -22,12 +22,12 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
   switch (stage) {
     case "24h":
       return {
-        subject: "AlphaScholar – Paiement en attente",
+        subject: "Academik – Paiement en attente",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #4F46E5; margin: 0;">AlphaScholar</h1>
-              <p style="color: #6B7280; margin: 5px 0;">Votre assistant académique intelligent</p>
+              <h1 style="color: #4F46E5; margin: 0;">Academik</h1>
+              <p style="color: #6B7280; margin: 5px 0;">De A à Z dans la rédaction académique</p>
             </div>
             <h2 style="color: #1F2937;">Bonjour ${firstName},</h2>
             <p style="color: #374151; line-height: 1.6;">
@@ -35,7 +35,7 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
               Cela peut être dû à un problème temporaire avec votre moyen de paiement.
             </p>
             <p style="color: #374151; line-height: 1.6;">
-              Pour continuer à profiter de vos fonctionnalités AlphaScholar, nous vous invitons à mettre à jour
+              Pour continuer à profiter de vos fonctionnalités Academik, nous vous invitons à mettre à jour
               vos informations de paiement ou à réessayer.
             </p>
             <div style="text-align: center; margin: 30px 0;">
@@ -45,7 +45,7 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
             </div>
             <p style="color: #6B7280; font-size: 13px;">
               Si vous avez des questions, n'hésitez pas à nous contacter.<br>
-              L'équipe AlphaScholar
+              L'équipe Academik
             </p>
           </div>
         `,
@@ -53,11 +53,11 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
 
     case "72h":
       return {
-        subject: "AlphaScholar – Rappel : votre paiement est toujours en attente",
+        subject: "Academik – Rappel : votre paiement est toujours en attente",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #4F46E5; margin: 0;">AlphaScholar</h1>
+              <h1 style="color: #4F46E5; margin: 0;">Academik</h1>
             </div>
             <h2 style="color: #1F2937;">Bonjour ${firstName},</h2>
             <p style="color: #374151; line-height: 1.6;">
@@ -82,11 +82,11 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
 
     case "7d":
       return {
-        subject: "AlphaScholar – Action requise : paiement en retard de 7 jours",
+        subject: "Academik – Action requise : paiement en retard de 7 jours",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #4F46E5; margin: 0;">AlphaScholar</h1>
+              <h1 style="color: #4F46E5; margin: 0;">Academik</h1>
             </div>
             <h2 style="color: #1F2937;">Bonjour ${firstName},</h2>
             <p style="color: #374151; line-height: 1.6;">
@@ -116,11 +116,11 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
 
     case "14d":
       return {
-        subject: "AlphaScholar – Dernier rappel avant suspension de compte",
+        subject: "Academik – Dernier rappel avant suspension de compte",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #4F46E5; margin: 0;">AlphaScholar</h1>
+              <h1 style="color: #4F46E5; margin: 0;">Academik</h1>
             </div>
             <h2 style="color: #1F2937;">Bonjour ${firstName},</h2>
             <p style="color: #374151; line-height: 1.6;">
@@ -155,11 +155,11 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
 
     case "30d":
       return {
-        subject: "AlphaScholar – Compte suspendu pour impayé",
+        subject: "Academik – Compte suspendu pour impayé",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="color: #4F46E5; margin: 0;">AlphaScholar</h1>
+              <h1 style="color: #4F46E5; margin: 0;">Academik</h1>
             </div>
             <h2 style="color: #1F2937;">Bonjour ${firstName},</h2>
             <p style="color: #374151; line-height: 1.6;">
@@ -199,7 +199,7 @@ function getDunningEmailContent(stage: string, name: string, amount: number): { 
 
     default:
       return {
-        subject: "AlphaScholar – Paiement en attente",
+        subject: "Academik – Paiement en attente",
         html: `<p>Bonjour ${firstName}, votre paiement de ${formattedAmount} est en attente.</p>`,
       };
   }
@@ -225,7 +225,7 @@ async function getSenderEmail(): Promise<string> {
     const cleaned = typeof setting === "string" ? setting.replace(/^"+|"+$/g, "").trim() : String(setting);
     if (cleaned && cleaned.includes("@")) return cleaned;
   }
-  return "noreply@alphascholar.app";
+  return "noreply@academik.fr";
 }
 
 async function getAppUrl(): Promise<string> {
@@ -236,7 +236,7 @@ async function getAppUrl(): Promise<string> {
   }
   return process.env.REPLIT_DEV_DOMAIN
     ? `https://${process.env.REPLIT_DEV_DOMAIN}`
-    : "https://alphascholar.replit.app";
+    : "https://academik.fr";
 }
 
 async function sendEmail(to: string, subject: string, html: string, from: string): Promise<boolean> {
@@ -253,7 +253,7 @@ async function sendEmail(to: string, subject: string, html: string, from: string
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: to }] }],
-          from: { email: from, name: "AlphaScholar" },
+          from: { email: from, name: "Academik" },
           subject,
           content: [{ type: "text/html", value: html }],
         }),
@@ -269,7 +269,7 @@ async function sendEmail(to: string, subject: string, html: string, from: string
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: `AlphaScholar <${from}>`,
+          from: `Academik <${from}>`,
           to: [to],
           subject,
           html,

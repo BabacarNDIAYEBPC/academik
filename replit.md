@@ -1,13 +1,14 @@
-# AlphaScholar
+# Academik
 
 ## Overview
-AlphaScholar is an AI-powered academic writing assistant designed to support students and professionals in structuring, analyzing, and writing academic papers such as Mémoire, TFE, VAE, and Rapport de Stage. It provides section-based content generation with contextual memory, version history, and controlled regeneration capabilities. The project aims to streamline the academic writing process, offering a comprehensive tool for various academic document types.
+Academik (academik.fr) is an AI-powered academic writing assistant designed to support students and professionals in structuring, analyzing, and writing academic papers such as Mémoire, TFE, VAE, and Rapport de Stage. It provides section-based content generation with contextual memory, version history, and controlled regeneration capabilities. The project aims to streamline the academic writing process, offering a comprehensive tool for various academic document types.
 
 ## Branding
-- App name: **AlphaScholar**
+- App name: **Academik**
+- Domain: **academik.fr** (hosted on Hostinger DNS)
 - Logo: Purple/blue gradient squircle with white "A" letter
-- Tagline FR: "Votre assistant académique intelligent"
-- Tagline EN: "Your Intelligent Academic Assistant"
+- Tagline FR: "De A à Z dans la rédaction académique"
+- Tagline EN: "From A to Z in Academic Writing"
 
 ## User Preferences
 - Language: French (UI and AI responses)

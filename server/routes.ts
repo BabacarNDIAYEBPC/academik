@@ -3722,7 +3722,7 @@ IMPORTANT:
     try {
       const senderEmail = await storage.getAdminSetting("dunning_sender_email");
       const cleaned = typeof senderEmail === "string" ? senderEmail.replace(/^"+|"+$/g, "").trim() : "";
-      res.json({ senderEmail: cleaned || "noreply@alphascholar.app" });
+      res.json({ senderEmail: cleaned || "noreply@academik.fr" });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
