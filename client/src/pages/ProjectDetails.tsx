@@ -309,10 +309,10 @@ function AssistantTab({ project }: { project: any }) {
             const hasContent = tabSections.some(s => s.activeVersionId);
             const isWorkflow = tab.key === "workflow";
 
-            let dotColor = "bg-amber-800 dark:bg-amber-700";
+            let dotColor = "bg-yellow-400 dark:bg-yellow-500";
             if (isWorkflow) dotColor = "bg-blue-500";
             else if (allValidated) dotColor = "bg-green-500";
-            else if (hasContent) dotColor = "bg-yellow-500";
+            else if (hasContent) dotColor = "bg-yellow-400 dark:bg-yellow-500";
 
             return (
               <TabsTrigger

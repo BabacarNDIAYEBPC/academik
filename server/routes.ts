@@ -2409,7 +2409,8 @@ IMPORTANT:
       const systemPrompt = `Tu es un expert en analyse quantitative de données de recherche. Tu maîtrises l'analyse statistique descriptive, les tableaux croisés, l'interprétation des tendances et la mise en relation des résultats avec les hypothèses de recherche. Tu produis des analyses rigoureuses et académiques.`;
 
       const analysisLabels: Record<string, string> = {
-        cross_tab: "Tableaux croisés — analyse des relations entre variables",
+        cross_tab: "Tableaux croisés dynamiques — analyse des relations entre variables",
+        cross_chart: "Graphiques croisés dynamiques — représentation visuelle des croisements",
         trends: "Analyse des tendances — identification des patterns et distributions",
         interpretation: "Interprétation globale — synthèse et mise en perspective des résultats",
       };
@@ -2431,6 +2432,17 @@ ${analysisType === "cross_tab" ? `
    - Interprétation du tableau: que révèle-t-il ?
    - Lien avec les hypothèses de recherche
 2. **Synthèse des croisements** : tendances principales observées
+` : ""}
+
+${analysisType === "cross_chart" ? `
+**Graphiques croisés dynamiques:**
+1. Pour chaque croisement pertinent de variables:
+   - Décris en détail le graphique recommandé (barres groupées, empilées, camembert, radar, aires, courbes)
+   - Fournis les données sous forme de tableau Markdown pour la visualisation
+   - Interprétation visuelle : que montre le graphique ?
+2. **Types de graphiques recommandés** : pour chaque croisement, recommande le type de graphique le plus adapté
+3. **Synthèse visuelle** : présente les patterns et tendances identifiés visuellement
+4. **Données tabulaires** : fournis les données en format structuré pour permettre la génération automatique des graphiques
 ` : ""}
 
 ${analysisType === "trends" ? `

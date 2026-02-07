@@ -360,7 +360,7 @@ export const api = {
       input: z.object({
         projectId: z.number(),
         data: z.string(),
-        analysisType: z.enum(['cross_tab', 'trends', 'interpretation']),
+        analysisType: z.enum(['cross_tab', 'cross_chart', 'trends', 'interpretation']),
         filters: z.record(z.any()).optional(),
         extraContext: z.string().optional(),
       }),
