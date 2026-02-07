@@ -28,8 +28,11 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
 
   useEffect(() => {
     if (!skipPricingRedirect && user && !purchasesLoading && purchases !== undefined) {
-      if (purchases.length === 0 && location !== "/billing") {
-        setLocation("/billing");
+      const params = new URLSearchParams(window.location.search);
+      const hasPaymentParams = params.has("payment") || params.has("surplus");
+      if ((purchases.length === 0 || hasPaymentParams) && location !== "/billing") {
+        const queryString = window.location.search;
+        setLocation(`/billing${queryString}`);
       }
     }
   }, [user, purchasesLoading, purchases, skipPricingRedirect, location, setLocation]);

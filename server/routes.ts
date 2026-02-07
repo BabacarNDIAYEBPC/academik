@@ -2858,8 +2858,8 @@ IMPORTANT:
           quantity: 1,
         })),
         mode: "payment",
-        success_url: `${req.headers.origin || ""}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.headers.origin || ""}/?payment=cancelled`,
+        success_url: `${req.headers.origin || ""}/billing?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.origin || ""}/billing?payment=cancelled`,
         metadata: {
           userId,
           items: JSON.stringify(lineItems.map(i => i.key)),
@@ -3002,8 +3002,8 @@ IMPORTANT:
           quantity: 1,
         }],
         mode: "payment",
-        success_url: `${req.headers.origin || ""}/?surplus=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${req.headers.origin || ""}/?surplus=cancelled`,
+        success_url: `${req.headers.origin || ""}/billing?surplus=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${req.headers.origin || ""}/billing?surplus=cancelled`,
         metadata: { userId, surplusKey, surplusType: surplus.type, surplusAmount: String(surplus.amount) },
       });
 
@@ -3353,6 +3353,78 @@ IMPORTANT:
       });
       res.json({ success: true });
     } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/recover-payment", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { sessionId } = req.body;
+      if (!sessionId) return res.status(400).json({ message: "Session ID requis" });
+
+      const stripeKey = await ensureStripeKey();
+      if (!stripeKey) return res.status(503).json({ message: "Stripe non configuré" });
+
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(stripeKey);
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status !== "paid") {
+        return res.status(400).json({ message: `Paiement non effectué (statut: ${session.payment_status})` });
+      }
+
+      const targetUserId = session.metadata?.userId;
+      if (!targetUserId) return res.status(400).json({ message: "userId non trouvé dans les métadonnées de la session" });
+
+      const items = JSON.parse(session.metadata?.items || "[]") as string[];
+      const pack = session.metadata?.pack || "";
+
+      let created = 0;
+      for (const key of items) {
+        const existing = await storage.getUserEntitlements(targetUserId);
+        if (!existing.includes(key)) {
+          await storage.createPurchase({
+            userId: targetUserId,
+            itemType: pack ? "pack" : "option",
+            itemKey: key,
+            price: PRICING[key]?.price || 0,
+            currency: "eur",
+            stripeSessionId: sessionId,
+            stripePaymentIntentId: session.payment_intent as string,
+            status: "active",
+          });
+          created++;
+        }
+      }
+
+      const profile = await storage.getProfile(targetUserId);
+      const totalAmount = items.reduce((s: number, key: string) => s + (PRICING[key]?.price || 0), 0);
+      const invoiceNumber = await storage.getNextInvoiceNumber();
+      await storage.createInvoice({
+        userId: targetUserId,
+        invoiceNumber,
+        amount: totalAmount,
+        currency: "eur",
+        status: "paid",
+        items: items.map((key: string) => ({ key, label: PRICING[key]?.label || key, price: PRICING[key]?.price || 0 })),
+        clientName: profile ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() : undefined,
+        clientEmail: profile?.email || undefined,
+        paymentMethod: "card",
+        stripePaymentIntentId: session.payment_intent as string,
+      });
+
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "recover_payment",
+        targetType: "payment",
+        targetId: sessionId,
+        details: { items, pack, userId: targetUserId, created },
+      });
+
+      res.json({ success: true, items, created, userId: targetUserId });
+    } catch (err: any) {
+      console.error("Recovery error:", err);
       res.status(500).json({ message: err.message });
     }
   });

@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useQuota, useSurplusPurchase, getQuotaPercentage, isQuotaExceeded } from "@/hooks/use-quota";
-import { useEntitlements, useCheckout, hasEntitlement } from "@/hooks/use-entitlements";
+import { useQuota, useSurplusPurchase, useConfirmSurplus, getQuotaPercentage, isQuotaExceeded } from "@/hooks/use-quota";
+import { useEntitlements, useCheckout, useConfirmPayment, hasEntitlement } from "@/hooks/use-entitlements";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -592,11 +592,57 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
 export default function Billing() {
   const { data: quota, isLoading } = useQuota();
   const surplusMutation = useSurplusPurchase();
+  const confirmPayment = useConfirmPayment();
+  const confirmSurplus = useConfirmSurplus();
   const { toast } = useToast();
   const { data: entData, isLoading: entLoading } = useEntitlements();
   const { data: invoicesData, isLoading: invoicesLoading } = useQuery<any[]>({
     queryKey: ["/api/invoices"],
   });
+  const confirmAttempted = useRef(false);
+
+  useEffect(() => {
+    if (confirmAttempted.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    const surplus = params.get("surplus");
+    const sessionId = params.get("session_id");
+
+    if (payment === "success" && sessionId) {
+      confirmAttempted.current = true;
+      confirmPayment.mutate(sessionId, {
+        onSuccess: () => {
+          toast({ title: "Paiement confirmé", description: "Vos modules ont été activés avec succès." });
+          queryClient.invalidateQueries({ queryKey: ["/api/entitlements"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/quota"] });
+          window.history.replaceState({}, "", window.location.pathname);
+        },
+        onError: () => {
+          toast({ title: "Erreur", description: "Impossible de confirmer le paiement. Contactez le support.", variant: "destructive" });
+          window.history.replaceState({}, "", window.location.pathname);
+        },
+      });
+    } else if (surplus === "success" && sessionId) {
+      confirmAttempted.current = true;
+      confirmSurplus.mutate(sessionId, {
+        onSuccess: () => {
+          toast({ title: "Surplus activé", description: "Votre quota a été augmenté avec succès." });
+          queryClient.invalidateQueries({ queryKey: ["/api/quota"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+          window.history.replaceState({}, "", window.location.pathname);
+        },
+        onError: () => {
+          toast({ title: "Erreur", description: "Impossible de confirmer le surplus. Contactez le support.", variant: "destructive" });
+          window.history.replaceState({}, "", window.location.pathname);
+        },
+      });
+    } else if (payment === "cancelled" || surplus === "cancelled") {
+      toast({ title: "Paiement annulé", description: "Votre paiement a été annulé." });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
 
   const handleBuySurplus = async (key: string) => {
     try {
