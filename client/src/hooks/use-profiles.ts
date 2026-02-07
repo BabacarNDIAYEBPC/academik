@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, type CreateProfileRequest } from "@shared/routes";
 import { getQueryFn, apiRequest } from "@/lib/queryClient";
+import type { Profile } from "@shared/schema";
 
 export function useProfile() {
-  return useQuery({
+  return useQuery<Profile | null>({
     queryKey: [api.profiles.get.path],
     queryFn: getQueryFn({ on401: "returnNull" }),
   });

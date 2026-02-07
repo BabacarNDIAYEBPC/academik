@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl, type CreateProjectRequest, type UpdateProjectRequest } from "@shared/routes";
 import { getQueryFn, apiRequest } from "@/lib/queryClient";
+import type { Project } from "@shared/schema";
 
 export function useProjects() {
-  return useQuery({
+  return useQuery<Project[]>({
     queryKey: [api.projects.list.path],
     queryFn: getQueryFn({ on401: "throw" }),
   });

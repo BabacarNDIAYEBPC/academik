@@ -157,7 +157,7 @@ export default function NewProject() {
   };
 
   const onStep4 = async (data: Step4Data) => {
-    const all = { ...collected, ...data };
+    const all: Record<string, any> = { ...collected, ...data };
     try {
       await upsertProfile({
         domain: all.mainDomain,
