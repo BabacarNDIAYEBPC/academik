@@ -44,6 +44,7 @@ export const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   problematic: "foundation",
   hypotheses: "foundation",
   situation_appel: "foundation",
+  construction_sujet: "foundation",
   vae_competencies: "foundation",
   plan: "plan",
   conceptual_framework: "conceptual",

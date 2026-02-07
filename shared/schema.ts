@@ -291,6 +291,7 @@ export const SECTION_KEYS = {
   PROBLEMATIC: 'problematic',
   HYPOTHESES: 'hypotheses',
   SITUATION_APPEL: 'situation_appel',
+  CONSTRUCTION_SUJET: 'construction_sujet',
   VAE_COMPETENCIES: 'vae_competencies',
   PLAN: 'plan',
   CONCEPTUAL_FRAMEWORK: 'conceptual_framework',
@@ -310,7 +311,7 @@ export const SECTION_KEYS = {
 } as const;
 
 export const SECTION_ORDER = [
-  'subject', 'problematic', 'hypotheses', 'situation_appel', 'vae_competencies',
+  'subject', 'problematic', 'hypotheses', 'situation_appel', 'construction_sujet', 'vae_competencies',
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
   'questionnaire', 'guide_entretien', 'interview_simulation', 'data_analysis',
@@ -323,6 +324,7 @@ export const SECTION_LABELS: Record<string, string> = {
   problematic: "Problématique",
   hypotheses: "Hypothèses",
   situation_appel: "Situation d'appel",
+  construction_sujet: "Construction du sujet",
   vae_competencies: "Blocs de compétences",
   plan: "Plan du travail",
   conceptual_framework: "Cadre conceptuel",

@@ -32,6 +32,7 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   problematic: "foundation",
   hypotheses: "foundation",
   situation_appel: "foundation",
+  construction_sujet: "foundation",
   vae_competencies: "foundation",
   plan: "plan",
   conceptual_framework: "conceptual",
@@ -255,12 +256,57 @@ Propose 3 hypothèses de recherche:
 Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodologique.`;
 
     case "situation_appel":
-      return `=== TÂCHE: ANALYSE DE LA SITUATION D'APPEL ===
-À partir de la situation d'appel:
-1. **Reformulation** : reformule de manière structurée et professionnelle
-2. **Enjeux professionnels** : pour le patient, le professionnel, l'institution
-3. **Concepts clés** : concepts professionnels et théoriques en jeu
-4. **Problème central** : synthèse du problème principal`;
+      return `=== TÂCHE: RÉDACTION DE LA SITUATION D'APPEL INFIRMIÈRE ===
+Tu es expert en TFE infirmier (France / Belgique / Suisse).
+
+À partir des informations fournies par l'étudiant(e), rédige une situation d'appel complète et académiquement correcte.
+
+RÈGLES:
+- Style académique infirmier, clair, structuré, fluide
+- Conforme aux attentes d'un TFE infirmier (IFSI / écoles de soins infirmiers)
+- PAS d'analyse théorique, PAS de cadre conceptuel, PAS de méthodologie
+- La situation d'appel doit décrire un vécu professionnel réel et les questionnements qu'il suscite
+- Reformule si nécessaire pour rendre le texte académiquement correct et professionnel
+
+STRUCTURE ATTENDUE:
+1. **Contexte** : service, contexte de soins, rôle de l'étudiant(e)
+2. **Description de la situation** : faits précis, déroulement
+3. **Questionnements** : ce qui a interpellé l'étudiant(e), ressentis
+4. **Enjeux identifiés** : problème professionnel, éthique, relationnel ou organisationnel
+5. **Justification** : pourquoi cette situation mérite une réflexion approfondie
+
+Rédige un texte continu et cohérent, pas une simple liste de points.`;
+
+    case "construction_sujet":
+      return `=== TÂCHE: CONSTRUCTION DU SUJET DE TFE INFIRMIER ===
+Tu es expert en TFE infirmier (France / Belgique / Suisse).
+
+À partir EXCLUSIVEMENT de la situation d'appel validée fournie en contexte, génère les éléments suivants:
+
+## Sujet du TFE
+Propose un sujet de TFE infirmier clair, ciblé et professionnel. Le sujet doit être formulé comme un titre académique.
+
+## Question de départ
+Formule la question centrale infirmière qui découle de la situation d'appel. Elle doit être:
+- Ouverte (pas de réponse oui/non)
+- Centrée sur la pratique infirmière
+- Suffisamment précise pour guider la recherche
+
+## Hypothèses de recherche
+Propose 3 hypothèses de recherche adaptées au niveau TFE:
+- Formulées comme des leviers d'amélioration de la pratique
+- Orientées vers la pratique professionnelle infirmière
+- Testables sur le terrain
+Pour chaque hypothèse: énoncé clair et justification.
+
+## Questionnements secondaires
+Propose 3 à 5 questionnements infirmiers secondaires qui complètent la question de départ et permettent d'explorer d'autres dimensions de la problématique.
+
+RÈGLES:
+- Tous les éléments doivent être cohérents avec la situation d'appel
+- Langage infirmier académique
+- NE PAS générer de cadre théorique, revue de littérature ou méthodologie
+- Cette section sert uniquement à passer du vécu à la problématique infirmière`;
 
     case "vae_competencies":
       return `=== TÂCHE: ANALYSE DES COMPÉTENCES VAE ===

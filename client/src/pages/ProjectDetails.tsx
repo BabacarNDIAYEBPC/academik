@@ -23,6 +23,7 @@ import ExportsModule from "@/components/ExportsModule";
 import SoutenancePPTModule from "@/components/SoutenancePPTModule";
 import SoutenanceSimulationModule from "@/components/SoutenanceSimulationModule";
 import AuditMemoireModule from "@/components/AuditMemoireModule";
+import TfeFoundationsModule from "@/components/TfeFoundationsModule";
 import MemoirImportField from "@/components/MemoirImportField";
 import VariablesPanel from "@/components/VariablesPanel";
 import { useSaveSectionConfig } from "@/hooks/use-sections";
@@ -58,7 +59,7 @@ function getSectionsForProjectType(projectType: string): string[] {
     case "these":
       return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
-      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
       return ["vae_competencies", "plan", "assisted_writing", "exports", "memoire_audit"];
     case "rapport_stage":
@@ -72,7 +73,7 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
   const sections = getSectionsForProjectType(projectType);
   const tabs: { key: string; label: string; icon: any; sectionKeys: string[] }[] = [];
 
-  const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "vae_competencies"].includes(s));
+  const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "construction_sujet", "vae_competencies"].includes(s));
   if (foundationKeys.length > 0) {
     const icon = projectType === "tfe" ? ClipboardList : projectType === "vae" ? Award : projectType === "rapport_stage" ? Briefcase : BookOpen;
     tabs.push({ key: "foundations", label: t("project.foundations"), icon, sectionKeys: foundationKeys });
@@ -374,6 +375,8 @@ function AssistantTab({ project }: { project: any }) {
                 <WorkflowOverview project={project} sections={sections || []} />
               ) : sectionsLoading ? (
                 <Skeleton className="h-48 w-full" />
+              ) : tab.key === "foundations" && project.type === "tfe" ? (
+                <TfeFoundationsModule project={project} sections={sections || []} />
               ) : (
                 <ModuleSections
                   project={project}

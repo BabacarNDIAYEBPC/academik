@@ -172,6 +172,9 @@ function getVariableKeysForSection(sectionKey: string): string[] {
     case "situation_appel":
       addIfMissing(["degreeLevel"]);
       break;
+    case "construction_sujet":
+      addIfMissing(["degreeLevel"]);
+      break;
     case "vae_competencies":
       addIfMissing(["degreeLevel"]);
       break;
