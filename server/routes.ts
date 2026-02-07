@@ -14,10 +14,15 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 
 
 async function ensureStripeKey(): Promise<string | null> {
   if (process.env.STRIPE_SECRET_KEY) return process.env.STRIPE_SECRET_KEY;
-  const dbKey = await storage.getAdminSetting("stripe_secret_key");
+  let dbKey = await storage.getAdminSetting("stripe_secret_key");
   if (dbKey) {
-    process.env.STRIPE_SECRET_KEY = dbKey;
-    return dbKey;
+    if (typeof dbKey === "string") {
+      dbKey = dbKey.replace(/^"+|"+$/g, "").trim();
+    }
+    if (typeof dbKey === "string" && dbKey.startsWith("sk_")) {
+      process.env.STRIPE_SECRET_KEY = dbKey;
+      return dbKey;
+    }
   }
   return null;
 }
@@ -3290,6 +3295,135 @@ IMPORTANT:
     try {
       const stats = await storage.getAiLogStats();
       res.json(stats);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // === ADMIN: DUNNING & PAYMENT REMINDERS ===
+
+  app.get("/api/admin/dunning/stats", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { getDunningStats } = await import("./dunning");
+      const stats = await getDunningStats();
+      res.json(stats);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/admin/dunning/reminders", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { getPaymentReminders } = await import("./dunning");
+      const limit = Number(req.query.limit) || 50;
+      const reminders = await getPaymentReminders(limit);
+      res.json(reminders);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/admin/dunning/emails/:reminderId", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { getDunningEmailHistory } = await import("./dunning");
+      const emails = await getDunningEmailHistory(Number(req.params.reminderId));
+      res.json(emails);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/dunning/process", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { processDunningQueue } = await import("./dunning");
+      const result = await processDunningQueue();
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "manual_dunning_process",
+        targetType: "dunning",
+        details: result,
+      });
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/dunning/test-reminder", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { createPaymentReminder } = await import("./dunning");
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Unauthorized" });
+      const profile = await storage.getProfile(userId);
+      await createPaymentReminder({
+        userId,
+        type: "test",
+        amount: 17900,
+        recipientEmail: profile?.email || undefined,
+        recipientName: profile ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() : undefined,
+        failureReason: "Test reminder",
+      });
+      res.json({ success: true, message: "Test reminder created" });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/dunning/resolve/:id", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { db } = await import("./db");
+      const { paymentReminders } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      await db.update(paymentReminders)
+        .set({ resolved: true, resolvedAt: new Date(), updatedAt: new Date() })
+        .where(eq(paymentReminders.id, Number(req.params.id)));
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "resolve_dunning",
+        targetType: "dunning",
+        targetId: req.params.id,
+      });
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/dunning/settings", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { senderEmail } = req.body;
+      if (senderEmail) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(senderEmail)) {
+          return res.status(400).json({ message: "Format d'email invalide" });
+        }
+        await storage.setAdminSetting("dunning_sender_email", senderEmail);
+      }
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "update_dunning_settings",
+        targetType: "setting",
+        details: { senderEmail },
+      });
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.get("/api/admin/dunning/settings", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const senderEmail = await storage.getAdminSetting("dunning_sender_email");
+      const cleaned = typeof senderEmail === "string" ? senderEmail.replace(/^"+|"+$/g, "").trim() : "";
+      res.json({ senderEmail: cleaned || "noreply@alphascholar.app" });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }

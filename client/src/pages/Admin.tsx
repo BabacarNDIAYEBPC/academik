@@ -3,19 +3,21 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useAdminCheck } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Users, Package, CreditCard, Settings2, FileText, BarChart3 } from "lucide-react";
+import { Loader2, ArrowLeft, Users, Package, CreditCard, Settings2, FileText, BarChart3, Bell } from "lucide-react";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminPlans from "@/components/admin/AdminPlans";
 import AdminPayments from "@/components/admin/AdminPayments";
 import AdminAISettings from "@/components/admin/AdminAISettings";
 import AdminLogs from "@/components/admin/AdminLogs";
 import AdminDashboard from "@/components/admin/AdminDashboard";
+import AdminDunning from "@/components/admin/AdminDunning";
 
 const TABS = [
   { key: "dashboard", label: "Tableau de bord", icon: BarChart3 },
   { key: "users", label: "Utilisateurs", icon: Users },
   { key: "plans", label: "Offres", icon: Package },
   { key: "payments", label: "Paiements", icon: CreditCard },
+  { key: "dunning", label: "Relances", icon: Bell },
   { key: "ai", label: "Paramétrage IA", icon: Settings2 },
   { key: "logs", label: "Logs & Audit", icon: FileText },
 ] as const;
@@ -125,6 +127,7 @@ export default function Admin() {
           {activeTab === "users" && <AdminUsers />}
           {activeTab === "plans" && <AdminPlans />}
           {activeTab === "payments" && <AdminPayments />}
+          {activeTab === "dunning" && <AdminDunning />}
           {activeTab === "ai" && <AdminAISettings />}
           {activeTab === "logs" && <AdminLogs />}
         </div>

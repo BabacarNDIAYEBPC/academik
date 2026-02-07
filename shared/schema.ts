@@ -218,6 +218,48 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true,
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Invoice = typeof invoices.$inferSelect;
 
+// === PAYMENT REMINDERS (DUNNING) ===
+export const paymentReminders = pgTable("payment_reminders", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  type: text("type").notNull(),
+  relatedPurchaseId: integer("related_purchase_id"),
+  stage: text("stage").notNull().default("pending"),
+  lastReminderSentAt: timestamp("last_reminder_sent_at"),
+  reminderCount: integer("reminder_count").notNull().default(0),
+  nextReminderAt: timestamp("next_reminder_at"),
+  recipientEmail: text("recipient_email"),
+  recipientName: text("recipient_name"),
+  amount: integer("amount").notNull().default(0),
+  currency: text("currency").notNull().default("eur"),
+  failureReason: text("failure_reason"),
+  resolved: boolean("resolved").notNull().default(false),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPaymentReminderSchema = createInsertSchema(paymentReminders).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertPaymentReminder = z.infer<typeof insertPaymentReminderSchema>;
+export type PaymentReminder = typeof paymentReminders.$inferSelect;
+
+// === DUNNING EMAIL LOG ===
+export const dunningEmailLogs = pgTable("dunning_email_logs", {
+  id: serial("id").primaryKey(),
+  reminderId: integer("reminder_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  stage: text("stage").notNull(),
+  emailTo: text("email_to").notNull(),
+  emailSubject: text("email_subject").notNull(),
+  status: text("status").notNull().default("sent"),
+  errorMessage: text("error_message"),
+  sentAt: timestamp("sent_at").defaultNow(),
+});
+
+export const insertDunningEmailLogSchema = createInsertSchema(dunningEmailLogs).omit({ id: true, sentAt: true });
+export type InsertDunningEmailLog = z.infer<typeof insertDunningEmailLogSchema>;
+export type DunningEmailLog = typeof dunningEmailLogs.$inferSelect;
+
 // === SECTION STATUSES ===
 export const SECTION_STATUSES = {
   DRAFT: 'draft',
