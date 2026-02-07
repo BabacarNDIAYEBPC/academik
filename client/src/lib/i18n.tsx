@@ -1029,6 +1029,7 @@ const translations = {
       documentImported: { fr: "Document importé", en: "Document imported" },
       remove: { fr: "Retirer", en: "Remove" },
       documentRemoved: { fr: "Document retiré", en: "Document removed" },
+      diagramRenderError: { fr: "Erreur de rendu du diagramme", en: "Diagram rendering error" },
     },
     dataCollection: {
       title: { fr: "Recueil de données", en: "Data Collection" },

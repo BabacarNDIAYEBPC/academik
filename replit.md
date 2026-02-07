@@ -13,7 +13,20 @@ Academik (academik.fr) is an AI-powered academic writing assistant designed to s
 ## User Preferences
 - Language: French (UI and AI responses)
 - The app targets French-speaking academic users
-- Bilingual support (FR/EN) for landing page and in-app navigation
+- Full bilingual support (FR/EN) across all pages, components, and modules via i18n system
+
+## Internationalization (i18n)
+- **System**: Custom React context-based i18n (`client/src/lib/i18n.tsx`) with `useI18n()` hook providing `t()`, `tArray()`, `lang`, `setLang`
+- **Languages**: French (fr) and English (en), stored in localStorage as `app_lang`
+- **Translation file**: `client/src/lib/i18n.tsx` contains 1800+ translation keys organized hierarchically
+- **Key structure**: `t("section.key")` e.g. `t("billing.title")`, `t("modules.literatureReview.search")`
+- **Language selector**: `LanguageSelector` component in header/landing page
+- **SEO**: `client/src/components/SEO.tsx` dynamically sets document title, meta description, keywords, Open Graph tags, and html lang attribute per page
+- **Patterns used**:
+  - `labelKey` pattern for static arrays (constants that need translation at render time)
+  - `language === "fr" ? "fr-FR" : "en-US"` for locale-aware date/number formatting
+  - Iterator variable renaming (`t` → `dt`, `tp`, `st`) to avoid shadowing the i18n `t` function
+- **Exclusions**: Invoice HTML (legal document, stays French), AI prompt context strings (internal), admin panel (stays French)
 
 ## System Architecture
 The application follows a client-server architecture.
