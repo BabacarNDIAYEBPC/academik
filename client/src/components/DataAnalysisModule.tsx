@@ -21,7 +21,7 @@ import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, BarChart3, Save, Check, X, FileDown,
   Plus, Trash2, BookOpen, FlaskConical, Upload,
-  FileText,
+  FileText, PenTool, Eye,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 import {
@@ -32,10 +32,132 @@ import {
 } from "recharts";
 
 const CHART_COLORS = [
-  "#4F46E5", "#0EA5E9", "#10B981", "#F59E0B", "#EF4444",
-  "#8B5CF6", "#EC4899", "#14B8A6", "#F97316", "#6366F1",
-  "#06B6D4", "#84CC16",
+  "#2563EB", "#F97316", "#10B981", "#EF4444", "#8B5CF6",
+  "#EC4899", "#14B8A6", "#F59E0B", "#6366F1", "#06B6D4",
+  "#84CC16", "#0EA5E9",
 ];
+
+function RichTextDisplay({ content, className }: { content: string; className?: string }) {
+  const rendered = useMemo(() => {
+    if (!content) return [];
+    const lines = content.split("\n");
+    const blocks: { type: string; content: string; level?: number; items?: string[]; headerCells?: string[]; rows?: string[][] }[] = [];
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      const h1 = line.match(/^#\s+(.+)$/);
+      const h2 = line.match(/^##\s+(.+)$/);
+      const h3 = line.match(/^###\s+(.+)$/);
+      const h4 = line.match(/^####\s+(.+)$/);
+      if (h4) { blocks.push({ type: "heading", content: h4[1], level: 4 }); i++; continue; }
+      if (h3) { blocks.push({ type: "heading", content: h3[1], level: 3 }); i++; continue; }
+      if (h2) { blocks.push({ type: "heading", content: h2[1], level: 2 }); i++; continue; }
+      if (h1) { blocks.push({ type: "heading", content: h1[1], level: 1 }); i++; continue; }
+      if (line.startsWith("|") && i + 1 < lines.length && /^\|[\s:|-]+\|$/.test(lines[i + 1].trim())) {
+        const headerCells = line.split("|").filter(Boolean).map(c => c.trim());
+        i += 2;
+        const rows: string[][] = [];
+        while (i < lines.length && lines[i].startsWith("|")) {
+          rows.push(lines[i].split("|").filter(Boolean).map(c => c.trim()));
+          i++;
+        }
+        blocks.push({ type: "table", content: "", headerCells, rows });
+        continue;
+      }
+      if (/^[-*]\s/.test(line) || /^\d+\.\s/.test(line)) {
+        const items: string[] = [];
+        while (i < lines.length && (/^[-*]\s/.test(lines[i]) || /^\d+\.\s/.test(lines[i]))) {
+          items.push(lines[i].replace(/^[-*]\s+/, "").replace(/^\d+\.\s+/, ""));
+          i++;
+        }
+        blocks.push({ type: "list", content: "", items });
+        continue;
+      }
+      if (line.trim() === "") { i++; continue; }
+      let paragraph = line;
+      i++;
+      while (i < lines.length && lines[i].trim() !== "" && !lines[i].startsWith("#") && !lines[i].startsWith("|") && !/^[-*]\s/.test(lines[i]) && !/^\d+\.\s/.test(lines[i])) {
+        paragraph += " " + lines[i];
+        i++;
+      }
+      blocks.push({ type: "paragraph", content: paragraph });
+    }
+    return blocks;
+  }, [content]);
+
+  const formatInline = (text: string) => {
+    const parts: (string | JSX.Element)[] = [];
+    const regex = /(\*\*\*(.+?)\*\*\*|\*\*(.+?)\*\*|\*(.+?)\*|`(.+?)`)/g;
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
+      if (match[2]) parts.push(<strong key={key} className="italic font-bold">{match[2]}</strong>);
+      else if (match[3]) parts.push(<strong key={key} className="font-semibold">{match[3]}</strong>);
+      else if (match[4]) parts.push(<em key={key} className="italic text-muted-foreground">{match[4]}</em>);
+      else if (match[5]) parts.push(<code key={key} className="px-1.5 py-0.5 rounded bg-muted text-sm font-mono">{match[5]}</code>);
+      key++;
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+    return parts;
+  };
+
+  return (
+    <div className={`space-y-3 ${className || ""}`}>
+      {rendered.map((block, idx) => {
+        if (block.type === "heading") {
+          if (block.level === 1) return <h3 key={idx} className="text-lg font-bold text-foreground border-b pb-2">{formatInline(block.content)}</h3>;
+          if (block.level === 2) return <h4 key={idx} className="text-base font-bold text-foreground mt-4">{formatInline(block.content)}</h4>;
+          if (block.level === 3) return <h5 key={idx} className="text-sm font-bold text-foreground mt-3">{formatInline(block.content)}</h5>;
+          return <h6 key={idx} className="text-sm font-semibold text-muted-foreground mt-2">{formatInline(block.content)}</h6>;
+        }
+        if (block.type === "table" && block.headerCells && block.rows) {
+          return (
+            <div key={idx} className="overflow-x-auto my-3">
+              <table className="w-full text-sm border-collapse" data-testid={`rich-table-${idx}`}>
+                <thead>
+                  <tr>
+                    {block.headerCells.map((cell, ci) => (
+                      <th key={ci} className="text-left px-3 py-2 text-xs font-bold text-white whitespace-nowrap bg-[#00BCD4] border border-[#00ACC1]">
+                        {cell}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {block.rows.map((row, ri) => (
+                    <tr key={ri} className={ri % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50 dark:bg-slate-800/40"}>
+                      {row.map((cell, ci) => (
+                        <td key={ci} className={`px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                          {formatInline(cell)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+        if (block.type === "list" && block.items) {
+          return (
+            <ul key={idx} className="space-y-1.5 pl-1">
+              {block.items.map((item, li) => (
+                <li key={li} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/60 flex-shrink-0" />
+                  <span>{formatInline(item)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return <p key={idx} className="text-sm text-foreground leading-relaxed">{formatInline(block.content)}</p>;
+      })}
+    </div>
+  );
+}
 
 interface DataAnalysisModuleProps {
   projectId: number;
@@ -97,6 +219,37 @@ function parseNumericValue(val: string): number {
   const cleaned = val.replace(/[%\s]/g, "").replace(",", ".");
   const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
+}
+
+function ResultDisplay({ label, value, onChange, testId }: { label: string; value: string; onChange: (v: string) => void; testId: string }) {
+  const [editing, setEditing] = useState(false);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <Label className="text-base font-bold">{label}</Label>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setEditing(!editing)}
+          data-testid={`button-toggle-edit-${testId}`}
+        >
+          {editing ? <><Eye className="w-4 h-4 mr-1" />Aperçu</> : <><PenTool className="w-4 h-4 mr-1" />Modifier</>}
+        </Button>
+      </div>
+      {editing ? (
+        <Textarea
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          className="min-h-[400px] text-sm font-mono"
+          data-testid={`textarea-${testId}`}
+        />
+      ) : (
+        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 min-h-[200px]" data-testid={`display-${testId}`}>
+          <RichTextDisplay content={value} />
+        </div>
+      )}
+    </div>
+  );
 }
 
 function getValueColor(value: number, min: number, max: number): string {
@@ -621,15 +774,12 @@ export default function DataAnalysisModule({
             </div>
 
             {qualitativeResult && (
-              <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Résultat de l'analyse qualitative</Label>
-                <Textarea
-                  value={qualitativeResult}
-                  onChange={e => setQualitativeResult(e.target.value)}
-                  className="min-h-[400px] text-sm font-mono"
-                  data-testid="textarea-qualitative-result"
-                />
-              </div>
+              <ResultDisplay
+                label="Résultat de l'analyse qualitative"
+                value={qualitativeResult}
+                onChange={setQualitativeResult}
+                testId="qualitative-result"
+              />
             )}
           </TabsContent>
 
@@ -709,225 +859,272 @@ export default function DataAnalysisModule({
             </div>
 
             {quantitativeResult && (
-              <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Résultat de l'analyse quantitative</Label>
-                <Textarea
-                  value={quantitativeResult}
-                  onChange={e => setQuantitativeResult(e.target.value)}
-                  className="min-h-[400px] text-sm font-mono"
-                  data-testid="textarea-quantitative-result"
-                />
-              </div>
+              <ResultDisplay
+                label="Résultat de l'analyse quantitative"
+                value={quantitativeResult}
+                onChange={setQuantitativeResult}
+                testId="quantitative-result"
+              />
             )}
 
             {parsedData && parsedData.headers.length >= 2 && (
-              <div className="space-y-4">
-                <Label className="text-base font-semibold">Visualisation des données</Label>
-
-                <div className="overflow-x-auto rounded-md border shadow-sm">
-                  <table className="w-full text-sm" data-testid="table-cross-tab">
-                    <thead>
-                      <tr className="bg-indigo-600 dark:bg-indigo-700">
-                        {parsedData.headers.map((h, i) => (
-                          <th key={i} className="text-left p-2.5 font-semibold text-xs whitespace-nowrap text-white">
-                            {h}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {parsedData.rows.map((row, ri) => (
-                        <tr
-                          key={ri}
-                          className={ri % 2 === 0 ? "bg-slate-50 dark:bg-slate-800/50" : "bg-indigo-50 dark:bg-indigo-950/30"}
-                          data-testid={`table-row-${ri}`}
-                        >
-                          {parsedData.headers.map((h, ci) => {
-                            const val = row[h] || "";
-                            const numVal = parseNumericValue(val);
-                            const isNumeric = ci > 0 && val.trim() !== "" && !isNaN(numVal);
-                            return (
-                              <td
-                                key={ci}
-                                className={`p-2.5 text-xs whitespace-nowrap border-b border-indigo-100 dark:border-indigo-900/30 ${
-                                  ci === 0
-                                    ? "font-semibold text-foreground"
-                                    : "text-muted-foreground"
-                                }`}
-                                style={isNumeric ? {
-                                  backgroundColor: getValueColor(numVal, numericStats.min, numericStats.max),
-                                  color: "#1E293B",
-                                  fontVariantNumeric: "tabular-nums",
-                                } : { fontVariantNumeric: ci > 0 ? "tabular-nums" : undefined }}
-                              >
-                                {val}
-                              </td>
-                            );
-                          })}
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-[#00BCD4]" />
+                    <Label className="text-base font-bold">Tableau croisé dynamique</Label>
+                  </div>
+                  <div className="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-700">
+                    <table className="w-full text-sm border-collapse" data-testid="table-cross-tab">
+                      <thead>
+                        <tr>
+                          {parsedData.headers.map((h, i) => (
+                            <th key={i} className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider whitespace-nowrap text-white bg-[#00BCD4] border-r border-[#00ACC1] last:border-r-0">
+                              {h}
+                            </th>
+                          ))}
                         </tr>
-                      ))}
-                      {(() => {
-                        const hasNumericColumns = parsedData.headers.slice(1).some(h =>
-                          parsedData.rows.some(row => {
-                            const val = row[h] || "";
-                            return val.trim() !== "" && !isNaN(parseNumericValue(val));
-                          })
-                        );
-                        if (!hasNumericColumns || parsedData.rows.length < 2) return null;
-                        return (
-                          <tr className="bg-indigo-900 dark:bg-indigo-800" data-testid="table-totals-row">
-                            <td className="p-2.5 text-xs whitespace-nowrap font-bold text-white">
-                              Total / Moyenne
-                            </td>
-                            {parsedData.headers.slice(1).map((h, ci) => {
-                              const values = parsedData.rows.map(row => parseNumericValue(row[h] || "0"));
-                              const sum = values.reduce((a, b) => a + b, 0);
-                              const isPercent = parsedData.rows.some(row => (row[h] || "").includes("%"));
-                              const avg = values.length > 0 ? sum / values.length : 0;
+                      </thead>
+                      <tbody>
+                        {parsedData.rows.map((row, ri) => (
+                          <tr
+                            key={ri}
+                            className={`border-b border-slate-200 dark:border-slate-700 ${ri % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50/80 dark:bg-slate-800/30"}`}
+                            data-testid={`table-row-${ri}`}
+                          >
+                            {parsedData.headers.map((h, ci) => {
+                              const val = row[h] || "";
+                              const numVal = parseNumericValue(val);
+                              const isNumeric = ci > 0 && val.trim() !== "" && !isNaN(numVal);
                               return (
-                                <td key={ci} className="p-2.5 text-xs whitespace-nowrap font-bold text-indigo-200" style={{ fontVariantNumeric: "tabular-nums" }}>
-                                  {isPercent ? `${avg.toFixed(1)}%` : sum % 1 === 0 ? sum.toString() : sum.toFixed(1)}
+                                <td
+                                  key={ci}
+                                  className={`px-4 py-2.5 text-xs whitespace-nowrap border-r border-slate-100 dark:border-slate-800 last:border-r-0 ${
+                                    ci === 0 ? "font-semibold text-foreground" : "text-foreground"
+                                  }`}
+                                  style={isNumeric ? {
+                                    backgroundColor: getValueColor(numVal, numericStats.min, numericStats.max),
+                                    color: "#1E293B",
+                                    fontVariantNumeric: "tabular-nums",
+                                    textAlign: "right",
+                                  } : { fontVariantNumeric: ci > 0 ? "tabular-nums" : undefined, textAlign: ci > 0 ? "right" : undefined }}
+                                >
+                                  {val}
                                 </td>
                               );
                             })}
                           </tr>
-                        );
-                      })()}
-                    </tbody>
-                  </table>
+                        ))}
+                        {(() => {
+                          const hasNumericColumns = parsedData.headers.slice(1).some(h =>
+                            parsedData.rows.some(row => {
+                              const val = row[h] || "";
+                              return val.trim() !== "" && !isNaN(parseNumericValue(val));
+                            })
+                          );
+                          if (!hasNumericColumns || parsedData.rows.length < 2) return null;
+                          return (
+                            <tr className="bg-[#00BCD4]/10 dark:bg-[#00BCD4]/20 border-t-2 border-[#00BCD4]" data-testid="table-totals-row">
+                              <td className="px-4 py-3 text-xs whitespace-nowrap font-bold text-foreground">
+                                Total
+                              </td>
+                              {parsedData.headers.slice(1).map((h, ci) => {
+                                const values = parsedData.rows.map(row => parseNumericValue(row[h] || "0"));
+                                const sum = values.reduce((a, b) => a + b, 0);
+                                const isPercent = parsedData.rows.some(row => (row[h] || "").includes("%"));
+                                const avg = values.length > 0 ? sum / values.length : 0;
+                                return (
+                                  <td key={ci} className="px-4 py-3 text-xs whitespace-nowrap font-bold text-foreground text-right border-r border-slate-100 dark:border-slate-800 last:border-r-0" style={{ fontVariantNumeric: "tabular-nums" }}>
+                                    {isPercent ? `${avg.toFixed(1)}%` : sum % 1 === 0 ? sum.toString() : sum.toFixed(1)}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <div className="space-y-1.5">
-                      <Label className="font-semibold">Graphique croisé dynamique</Label>
-                      <Select value={chartType} onValueChange={setChartType}>
-                        <SelectTrigger className="w-[280px]" data-testid="select-chart-type"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bar">Barres groupées</SelectItem>
-                          <SelectItem value="stacked">Barres empilées</SelectItem>
-                          <SelectItem value="pie">Camembert</SelectItem>
-                          <SelectItem value="line">Courbes</SelectItem>
-                          <SelectItem value="area">Aires empilées</SelectItem>
-                          <SelectItem value="radar">Radar</SelectItem>
-                        </SelectContent>
-                      </Select>
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-[#2563EB]" />
+                      <Label className="text-base font-bold">Graphique croisé dynamique</Label>
                     </div>
+                    <Select value={chartType} onValueChange={setChartType}>
+                      <SelectTrigger className="w-[240px]" data-testid="select-chart-type"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bar">Barres groupées</SelectItem>
+                        <SelectItem value="stacked">Barres empilées</SelectItem>
+                        <SelectItem value="pie">Camembert</SelectItem>
+                        <SelectItem value="line">Courbes</SelectItem>
+                        <SelectItem value="area">Aires empilées</SelectItem>
+                        <SelectItem value="radar">Radar</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div className="w-full h-[400px] p-4 rounded-lg border bg-background shadow-sm" data-testid="chart-container">
-                    {chartType === "pie" ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={pieData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={{ stroke: "#94A3B8" }}
-                            label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                            outerRadius={130}
-                            innerRadius={50}
-                            dataKey="value"
-                            strokeWidth={2}
-                            stroke="#fff"
-                          >
-                            {pieData.map((_, index) => (
-                              <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                  <div className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden" data-testid="chart-container">
+                    <div className="h-[420px] p-5 pb-2">
+                      {chartType === "pie" ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={pieData}
+                              cx="50%"
+                              cy="45%"
+                              labelLine={{ stroke: "#94A3B8" }}
+                              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                              outerRadius={130}
+                              innerRadius={50}
+                              dataKey="value"
+                              strokeWidth={2}
+                              stroke="#fff"
+                            >
+                              {pieData.map((_, index) => (
+                                <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }}
+                              formatter={(value: number) => [value.toFixed(1), ""]}
+                            />
+                            <Legend
+                              layout="vertical"
+                              align="right"
+                              verticalAlign="middle"
+                              iconType="square"
+                              iconSize={10}
+                              wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : chartType === "radar" ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
+                            <PolarGrid stroke="#CBD5E1" />
+                            <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} />
+                            <PolarRadiusAxis tick={{ fontSize: 10, fill: "#94A3B8" }} />
+                            {parsedData.headers.slice(1).map((header, i) => (
+                              <Radar
+                                key={header}
+                                name={header}
+                                dataKey={header}
+                                stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                                fill={CHART_COLORS[i % CHART_COLORS.length]}
+                                fillOpacity={0.15}
+                                strokeWidth={2}
+                              />
                             ))}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{ borderRadius: "8px", border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                            formatter={(value: number) => [value.toFixed(1), ""]}
-                          />
-                          <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : chartType === "radar" ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
-                          <PolarGrid stroke="#CBD5E1" />
-                          <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} />
-                          <PolarRadiusAxis tick={{ fontSize: 10, fill: "#94A3B8" }} />
-                          {parsedData.headers.slice(1).map((header, i) => (
-                            <Radar
-                              key={header}
-                              name={header}
-                              dataKey={header}
-                              stroke={CHART_COLORS[i % CHART_COLORS.length]}
-                              fill={CHART_COLORS[i % CHART_COLORS.length]}
-                              fillOpacity={0.15}
-                              strokeWidth={2}
+                            <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} />
+                            <Legend
+                              layout="vertical"
+                              align="right"
+                              verticalAlign="middle"
+                              iconType="square"
+                              iconSize={10}
+                              wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }}
                             />
-                          ))}
-                          <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} />
-                          <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-                        </RadarChart>
-                      </ResponsiveContainer>
-                    ) : chartType === "line" ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                          <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} />
-                          <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} />
-                          <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} />
-                          <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-                          {parsedData.headers.slice(1).map((header, i) => (
-                            <Line
-                              key={header}
-                              type="monotone"
-                              dataKey={header}
-                              stroke={CHART_COLORS[i % CHART_COLORS.length]}
-                              strokeWidth={2.5}
-                              dot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
-                              activeDot={{ r: 6, strokeWidth: 2 }}
+                          </RadarChart>
+                        </ResponsiveContainer>
+                      ) : chartType === "line" ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
+                            <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
+                            <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} />
+                            <Legend
+                              layout="vertical"
+                              align="right"
+                              verticalAlign="middle"
+                              iconType="square"
+                              iconSize={10}
+                              wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }}
                             />
-                          ))}
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : chartType === "area" ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                          <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} />
-                          <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} />
-                          <Tooltip contentStyle={{ borderRadius: "8px", border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }} />
-                          <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-                          {parsedData.headers.slice(1).map((header, i) => (
-                            <Area
-                              key={header}
-                              type="monotone"
-                              dataKey={header}
-                              stroke={CHART_COLORS[i % CHART_COLORS.length]}
-                              fill={CHART_COLORS[i % CHART_COLORS.length]}
-                              fillOpacity={0.2}
-                              strokeWidth={2}
-                              stackId="1"
+                            {parsedData.headers.slice(1).map((header, i) => (
+                              <Line
+                                key={header}
+                                type="monotone"
+                                dataKey={header}
+                                stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                                strokeWidth={2.5}
+                                dot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
+                                activeDot={{ r: 6, strokeWidth: 2 }}
+                              />
+                            ))}
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : chartType === "area" ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
+                            <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
+                            <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} />
+                            <Legend
+                              layout="vertical"
+                              align="right"
+                              verticalAlign="middle"
+                              iconType="square"
+                              iconSize={10}
+                              wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }}
                             />
-                          ))}
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                          <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} />
-                          <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} />
-                          <Tooltip
-                            contentStyle={{ borderRadius: "8px", border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}
-                            cursor={{ fill: "rgba(79, 70, 229, 0.06)" }}
-                          />
-                          <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }} />
-                          {parsedData.headers.slice(1).map((header, i) => (
-                            <Bar
-                              key={header}
-                              dataKey={header}
-                              fill={CHART_COLORS[i % CHART_COLORS.length]}
-                              stackId={chartType === "stacked" ? "stack" : undefined}
-                              radius={chartType === "stacked" ? undefined : [4, 4, 0, 0]}
+                            {parsedData.headers.slice(1).map((header, i) => (
+                              <Area
+                                key={header}
+                                type="monotone"
+                                dataKey={header}
+                                stroke={CHART_COLORS[i % CHART_COLORS.length]}
+                                fill={CHART_COLORS[i % CHART_COLORS.length]}
+                                fillOpacity={0.2}
+                                strokeWidth={2}
+                                stackId="1"
+                              />
+                            ))}
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }} barCategoryGap="20%">
+                            <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                            <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={false} />
+                            <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={false} allowDecimals={false} />
+                            <Tooltip
+                              contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }}
+                              cursor={{ fill: "rgba(0,0,0,0.03)" }}
                             />
-                          ))}
-                        </BarChart>
-                      </ResponsiveContainer>
+                            <Legend
+                              layout="vertical"
+                              align="right"
+                              verticalAlign="middle"
+                              iconType="square"
+                              iconSize={10}
+                              wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }}
+                            />
+                            {parsedData.headers.slice(1).map((header, i) => (
+                              <Bar
+                                key={header}
+                                dataKey={header}
+                                fill={CHART_COLORS[i % CHART_COLORS.length]}
+                                stackId={chartType === "stacked" ? "stack" : undefined}
+                                radius={chartType === "stacked" ? undefined : [2, 2, 0, 0]}
+                                maxBarSize={60}
+                              />
+                            ))}
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </div>
+                    {parsedData.headers.length >= 2 && (
+                      <div className="px-5 pb-4 pt-1 text-center">
+                        <p className="text-xs font-medium text-muted-foreground" data-testid="text-chart-title">
+                          {parsedData.headers[0]}
+                          {parsedData.headers.length === 3 && ` et ${parsedData.headers[1]}`}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1002,15 +1199,12 @@ export default function DataAnalysisModule({
             </Button>
 
             {confrontResult && (
-              <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Confrontation des résultats</Label>
-                <Textarea
-                  value={confrontResult}
-                  onChange={e => setConfrontResult(e.target.value)}
-                  className="min-h-[400px] text-sm font-mono"
-                  data-testid="textarea-confront-result"
-                />
-              </div>
+              <ResultDisplay
+                label="Confrontation des résultats"
+                value={confrontResult}
+                onChange={setConfrontResult}
+                testId="confront-result"
+              />
             )}
           </TabsContent>
 
@@ -1072,15 +1266,12 @@ export default function DataAnalysisModule({
             </Button>
 
             {validationResult && (
-              <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Validation des hypothèses</Label>
-                <Textarea
-                  value={validationResult}
-                  onChange={e => setValidationResult(e.target.value)}
-                  className="min-h-[400px] text-sm font-mono"
-                  data-testid="textarea-validation-result"
-                />
-              </div>
+              <ResultDisplay
+                label="Validation des hypothèses"
+                value={validationResult}
+                onChange={setValidationResult}
+                testId="validation-result"
+              />
             )}
           </TabsContent>
         </Tabs>
