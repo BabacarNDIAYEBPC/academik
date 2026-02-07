@@ -38,7 +38,7 @@ export function hasEntitlement(entitlements: string[] | undefined, key: string):
   return entitlements.includes(key);
 }
 
-export const SECTION_TO_ENTITLEMENT: Record<string, string> = {
+export const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   subject: "foundation",
   problematic: "foundation",
   hypotheses: "foundation",
@@ -49,7 +49,26 @@ export const SECTION_TO_ENTITLEMENT: Record<string, string> = {
   theoretical_framework: "conceptual",
   literature_review: "literature",
   methodology: "methodology",
+  data_collection: ["questionnaire", "guide_entretien"],
+  interview_simulation: "simulation_entretien",
+  data_analysis: ["analyse_qualitative", "analyse_quantitative"],
+  assisted_writing: "redaction",
+  bibliography: "biblio_multinormes",
+  exports: "export_illimite",
   soutenance_ppt: "soutenance_ppt",
   soutenance_simulation: "soutenance_simulation",
   memoire_audit: "audit",
 };
+
+export function isSectionLocked(entitlements: string[] | undefined, sectionKey: string): boolean {
+  const requirement = SECTION_TO_ENTITLEMENT[sectionKey];
+  if (!requirement) return false;
+  if (Array.isArray(requirement)) {
+    return !requirement.some(key => hasEntitlement(entitlements, key));
+  }
+  return !hasEntitlement(entitlements, requirement);
+}
+
+export function getSectionEntitlementKey(sectionKey: string): string | string[] | undefined {
+  return SECTION_TO_ENTITLEMENT[sectionKey];
+}

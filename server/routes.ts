@@ -27,7 +27,7 @@ async function ensureStripeKey(): Promise<string | null> {
   return null;
 }
 
-const SECTION_TO_ENTITLEMENT: Record<string, string> = {
+const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   subject: "foundation",
   problematic: "foundation",
   hypotheses: "foundation",
@@ -38,16 +38,25 @@ const SECTION_TO_ENTITLEMENT: Record<string, string> = {
   theoretical_framework: "conceptual",
   literature_review: "literature",
   methodology: "methodology",
+  data_collection: ["questionnaire", "guide_entretien"],
+  interview_simulation: "simulation_entretien",
+  data_analysis: ["analyse_qualitative", "analyse_quantitative"],
+  assisted_writing: "redaction",
+  bibliography: "biblio_multinormes",
+  exports: "export_illimite",
   soutenance_ppt: "soutenance_ppt",
   soutenance_simulation: "soutenance_simulation",
   memoire_audit: "audit",
 };
 
 async function checkSectionEntitlement(userId: string, sectionKey: string): Promise<boolean> {
-  const entitlementKey = SECTION_TO_ENTITLEMENT[sectionKey];
-  if (!entitlementKey) return true;
+  const requirement = SECTION_TO_ENTITLEMENT[sectionKey];
+  if (!requirement) return true;
   const entitlements = await storage.getUserEntitlements(userId);
-  return entitlements.includes(entitlementKey);
+  if (Array.isArray(requirement)) {
+    return requirement.some(key => entitlements.includes(key));
+  }
+  return entitlements.includes(requirement);
 }
 
 function countWords(text: string): number {
@@ -1880,6 +1889,11 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const hasAccess = await checkSectionEntitlement(userId, "data_collection");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
       return res.status(429).json({
@@ -1995,6 +2009,11 @@ IMPORTANT:
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const hasAccess = await checkSectionEntitlement(userId, "data_collection");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
       return res.status(429).json({
@@ -2098,6 +2117,11 @@ RÈGLES:
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const hasAccess = await checkSectionEntitlement(userId, "interview_simulation");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
       return res.status(429).json({
@@ -2194,6 +2218,11 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "interview_simulation");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
 
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
@@ -2299,6 +2328,11 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "data_analysis");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
 
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
@@ -2410,6 +2444,11 @@ IMPORTANT:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "data_analysis");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
 
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
@@ -2531,6 +2570,11 @@ IMPORTANT:
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const hasAccess = await checkSectionEntitlement(userId, "data_analysis");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
       return res.status(429).json({
@@ -2630,6 +2674,11 @@ IMPORTANT:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "data_analysis");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
 
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
@@ -3630,6 +3679,11 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const hasAccess = await checkSectionEntitlement(userId, "interview_simulation");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
       return res.status(429).json({
@@ -3723,6 +3777,11 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "assisted_writing");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
 
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
@@ -3843,6 +3902,11 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
+    const hasAccess = await checkSectionEntitlement(userId, "bibliography");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
+
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
       return res.status(429).json({
@@ -3935,6 +3999,11 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "bibliography");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
 
     const quotaCheck = await checkAndConsumeQuota(userId);
     if (!quotaCheck.allowed) {
@@ -4302,6 +4371,11 @@ Réponds en JSON:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const hasAccess = await checkSectionEntitlement(userId, "exports");
+    if (!hasAccess) {
+      return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
+    }
 
     try {
       const projectId = Number(req.params.projectId);

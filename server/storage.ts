@@ -416,7 +416,7 @@ export class DatabaseStorage implements IStorage {
     const rawKeys = purchases.map(p => p.itemKey);
     const expanded = new Set<string>(rawKeys);
     if (expanded.has("core_pack")) {
-      ["foundation", "plan", "conceptual", "literature", "methodology"].forEach(k => expanded.add(k));
+      ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"].forEach(k => expanded.add(k));
     }
     if (expanded.has("pack_collecte")) {
       ["questionnaire", "guide_entretien"].forEach(k => expanded.add(k));

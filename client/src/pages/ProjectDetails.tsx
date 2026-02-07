@@ -3,7 +3,7 @@ import { useRoute } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
 import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined, useProjectStatusHistory } from "@/hooks/use-sections";
-import { useEntitlements, useCheckout, SECTION_TO_ENTITLEMENT, hasEntitlement } from "@/hooks/use-entitlements";
+import { useEntitlements, useCheckout, SECTION_TO_ENTITLEMENT, hasEntitlement, isSectionLocked, getSectionEntitlementKey } from "@/hooks/use-entitlements";
 import { useI18n } from "@/lib/i18n";
 import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
@@ -273,8 +273,14 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function AssistantTab({ project }: { project: any }) {
   const { data: sections, isLoading: sectionsLoading } = useSections(project.id);
+  const { data: entData } = useEntitlements();
   const moduleTabs = useMemo(() => getModuleTabs(project.type), [project.type]);
   const [activeModule, setActiveModule] = useState(moduleTabs[0]?.key || "foundations");
+
+  const isTabLocked = useCallback((tab: { sectionKeys: string[] }) => {
+    if (tab.sectionKeys.length === 0) return false;
+    return tab.sectionKeys.every(key => isSectionLocked(entData?.entitlements, key));
+  }, [entData?.entitlements]);
 
   const getSectionData = (key: string) => {
     if (!sections) return { section: undefined, activeVersion: undefined };
@@ -310,6 +316,7 @@ function AssistantTab({ project }: { project: any }) {
               const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
               const hasContent = tabSections.some(s => s.activeVersionId);
               const isWorkflow = tab.key === "workflow";
+              const tabLocked = isTabLocked(tab);
 
               let dotColor = "bg-yellow-400 dark:bg-yellow-500";
               if (isWorkflow) dotColor = "bg-blue-500";
@@ -320,12 +327,22 @@ function AssistantTab({ project }: { project: any }) {
                 <TabsTrigger
                   key={tab.key}
                   value={tab.key}
-                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+                  className={`py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap ${
+                    tabLocked
+                      ? "opacity-50 cursor-not-allowed"
+                      : "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                  }`}
                   data-testid={`tab-module-${tab.key}`}
                 >
-                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  {tabLocked ? (
+                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-muted-foreground" />
+                  ) : (
+                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  )}
                   {tab.label}
-                  {allValidated && !isWorkflow ? (
+                  {tabLocked ? (
+                    <span className="sr-only">Verrouillé</span>
+                  ) : allValidated && !isWorkflow ? (
                     <Check className="w-3 h-3 text-green-500 shrink-0" />
                   ) : (
                     <div className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
@@ -854,8 +871,7 @@ function SingleSectionWrapper({
 
   const { data: entData } = useEntitlements();
   const checkout = useCheckout();
-  const entitlementKey = SECTION_TO_ENTITLEMENT[sectionKey];
-  const isLocked = entitlementKey && !hasEntitlement(entData?.entitlements, entitlementKey);
+  const locked = isSectionLocked(entData?.entitlements, sectionKey);
 
   const ENTITLEMENT_LABELS: Record<string, string> = {
     foundation: "Fondement méthodologique",
@@ -863,6 +879,7 @@ function SingleSectionWrapper({
     conceptual: "Cadre conceptuel & théorique",
     literature: "Revue de littérature",
     methodology: "Méthodologie de recherche",
+    redaction: "Rédaction assistée",
     soutenance_ppt: "PowerPoint de soutenance",
     soutenance_simulation: "Simulation de soutenance",
     audit: "Audit de mémoire",
@@ -874,9 +891,64 @@ function SingleSectionWrapper({
     article_analysis: "Analyse d'articles",
     article_confrontation: "Confrontation d'articles",
     biblio_multinormes: "Bibliographie multi-normes",
+    export_illimite: "Export Word / PPT",
   };
 
-  if (isLocked) {
+  const CORE_KEYS = ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"];
+
+  const SECTION_PACK_INFO: Record<string, { packKey: string; label: string }> = {
+    data_collection: { packKey: "pack_collecte", label: "Pack Collecte (49 €)" },
+    interview_simulation: { packKey: "pack_collecte", label: "Pack Collecte (49 €)" },
+    data_analysis: { packKey: "pack_analyse", label: "Pack Analyse (69 €)" },
+    bibliography: { packKey: "pack_revue", label: "Pack Revue avancée (59 €)" },
+  };
+
+  const getLockedDescription = (): string => {
+    const requirement = getSectionEntitlementKey(sectionKey);
+    if (!requirement) return "";
+    const keys = Array.isArray(requirement) ? requirement : [requirement];
+    if (keys.some(k => CORE_KEYS.includes(k))) {
+      return "Cette section est incluse dans le Pack Fondations (179 €). Activez-le pour accéder à toutes les fonctionnalités de base.";
+    }
+    const packInfo = SECTION_PACK_INFO[sectionKey];
+    if (packInfo) {
+      return `Cette section fait partie du ${packInfo.label}. Activez-le pour y accéder.`;
+    }
+    const label = keys.map(k => ENTITLEMENT_LABELS[k] || k).join(" / ");
+    return `Cette section fait partie du module « ${label} ». Activez-le pour y accéder.`;
+  };
+
+  const handleUnlock = () => {
+    const requirement = getSectionEntitlementKey(sectionKey);
+    if (!requirement) return;
+    const keys = Array.isArray(requirement) ? requirement : [requirement];
+    if (keys.some(k => CORE_KEYS.includes(k))) {
+      checkout.mutate({ pack: "core_pack" });
+      return;
+    }
+    const packInfo = SECTION_PACK_INFO[sectionKey];
+    if (packInfo) {
+      checkout.mutate({ pack: packInfo.packKey });
+      return;
+    }
+    checkout.mutate({ items: [keys[0]] });
+  };
+
+  const getUnlockLabel = (): string => {
+    const requirement = getSectionEntitlementKey(sectionKey);
+    if (!requirement) return "Activer ce module";
+    const keys = Array.isArray(requirement) ? requirement : [requirement];
+    if (keys.some(k => CORE_KEYS.includes(k))) {
+      return "Activer le Pack Fondations (179 €)";
+    }
+    const packInfo = SECTION_PACK_INFO[sectionKey];
+    if (packInfo) {
+      return `Activer le ${packInfo.label}`;
+    }
+    return "Activer ce module";
+  };
+
+  if (locked) {
     return (
       <Card className="relative overflow-visible">
         <CardContent className="p-6 text-center space-y-4">
@@ -888,26 +960,16 @@ function SingleSectionWrapper({
           <div>
             <h3 className="text-lg font-semibold">{SECTION_LABELS[sectionKey] || sectionKey}</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              {["foundation", "plan", "conceptual", "literature", "methodology"].includes(entitlementKey)
-                ? "Cette section est incluse dans le Pack Fondations (179 €). Activez-le pour accéder à toutes les fonctionnalités de base."
-                : `Cette section fait partie du module « ${ENTITLEMENT_LABELS[entitlementKey] || entitlementKey} ». Activez-le pour y accéder.`}
+              {getLockedDescription()}
             </p>
           </div>
           <Button
-            onClick={() => {
-              if (["foundation", "plan", "conceptual", "literature", "methodology"].includes(entitlementKey)) {
-                checkout.mutate({ pack: "core_pack" });
-              } else {
-                checkout.mutate({ items: [entitlementKey] });
-              }
-            }}
+            onClick={handleUnlock}
             disabled={checkout.isPending}
             data-testid={`button-unlock-${sectionKey}`}
           >
             {checkout.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
-            {["foundation", "plan", "conceptual", "literature", "methodology"].includes(entitlementKey)
-              ? "Activer le Pack Fondations (179 €)"
-              : "Activer ce module"}
+            {getUnlockLabel()}
           </Button>
         </CardContent>
       </Card>
