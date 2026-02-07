@@ -2,12 +2,10 @@ import Layout from "@/components/Layout";
 import { SEO } from "@/components/SEO";
 import { useProjects, useDeleteProject } from "@/hooks/use-projects";
 import { useI18n } from "@/lib/i18n";
-import { useAdminCheck } from "@/hooks/use-admin";
-import { useHasAnyAccess } from "@/hooks/use-entitlements";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link, useLocation } from "wouter";
-import { Plus, MoreVertical, Trash2, FolderOpen, Calendar, Lock } from "lucide-react";
+import { Link } from "wouter";
+import { Plus, MoreVertical, Trash2, FolderOpen, Calendar } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +20,6 @@ export default function Dashboard() {
   const { data: projects, isLoading } = useProjects();
   const { mutate: deleteProject } = useDeleteProject();
   const { t } = useI18n();
-  const { data: adminCheck } = useAdminCheck();
-  const isAdmin = adminCheck?.isAdmin === true;
-  const hasAccess = useHasAnyAccess();
-  const [, setLocation] = useLocation();
-  const canCreateProject = isAdmin || hasAccess;
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -52,25 +45,12 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight" data-testid="text-dashboard-title">{t("dashboard.title")}</h1>
           <p className="text-muted-foreground">{t("dashboard.subtitle")}</p>
         </div>
-        {canCreateProject ? (
-          <Link href="/projects/new">
-            <Button size="lg" className="shadow-lg shadow-primary/20" data-testid="button-new-project">
-              <Plus className="mr-2 w-5 h-5" />
-              {t("dashboard.newProject")}
-            </Button>
-          </Link>
-        ) : (
-          <Button
-            size="lg"
-            variant="outline"
-            className="opacity-50 cursor-not-allowed"
-            onClick={() => setLocation("/billing")}
-            data-testid="button-new-project-locked"
-          >
-            <Lock className="mr-2 w-5 h-5" />
+        <Link href="/projects/new">
+          <Button size="lg" className="shadow-lg shadow-primary/20" data-testid="button-new-project">
+            <Plus className="mr-2 w-5 h-5" />
             {t("dashboard.newProject")}
           </Button>
-        )}
+        </Link>
       </div>
 
       {isLoading ? (
@@ -143,21 +123,9 @@ export default function Dashboard() {
           <p className="text-muted-foreground mb-6 max-w-sm">
             {t("dashboard.noProjectsDesc")}
           </p>
-          {canCreateProject ? (
-            <Link href="/projects/new">
-              <Button data-testid="button-create-first">{t("dashboard.createProject")}</Button>
-            </Link>
-          ) : (
-            <Button
-              variant="outline"
-              className="opacity-50 cursor-not-allowed"
-              onClick={() => setLocation("/billing")}
-              data-testid="button-create-first-locked"
-            >
-              <Lock className="mr-2 w-4 h-4" />
-              {t("dashboard.createProject")}
-            </Button>
-          )}
+          <Link href="/projects/new">
+            <Button data-testid="button-create-first">{t("dashboard.createProject")}</Button>
+          </Link>
         </div>
       )}
     </Layout>

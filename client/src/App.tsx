@@ -1,6 +1,6 @@
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
@@ -17,48 +17,20 @@ import Billing from "@/pages/Billing";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 
-function ProtectedRoute({ component: Component, skipPricingRedirect }: { component: React.ComponentType; skipPricingRedirect?: boolean }) {
+function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
-  const { data: adminCheck, isLoading: adminLoading } = useQuery<{ isAdmin: boolean }>({
-    queryKey: ["/api/admin/check"],
-    enabled: !!user,
-  });
-
-  const isAdmin = adminCheck?.isAdmin === true;
-
-  const { data: entitlementsData, isLoading: entitlementsLoading } = useQuery<{ entitlements: string[] }>({
-    queryKey: ["/api/entitlements"],
-    enabled: !!user && !skipPricingRedirect && !isAdmin,
-  });
-
-  const { data: moduleVisibility, isLoading: visibilityLoading } = useQuery<Record<string, boolean>>({
-    queryKey: ["/api/modules/visibility"],
-    enabled: !!user && !skipPricingRedirect && !isAdmin,
-  });
-
-  const hasAccess = (() => {
-    if (isAdmin) return true;
-    if (entitlementsData?.entitlements && entitlementsData.entitlements.length > 0) return true;
-    if (moduleVisibility && Object.values(moduleVisibility).some(v => v === false)) return true;
-    return false;
-  })();
-
-  const allDataLoaded = isAdmin || (!entitlementsLoading && !visibilityLoading);
-
   useEffect(() => {
-    if (isAdmin) return;
-    if (adminLoading) return;
-    if (!skipPricingRedirect && user && allDataLoaded) {
+    if (user) {
       const params = new URLSearchParams(window.location.search);
       const hasPaymentParams = params.has("payment") || params.has("surplus");
-      if ((!hasAccess || hasPaymentParams) && location !== "/billing") {
+      if (hasPaymentParams && location !== "/billing") {
         const queryString = window.location.search;
         setLocation(`/billing${queryString}`);
       }
     }
-  }, [user, allDataLoaded, hasAccess, skipPricingRedirect, location, setLocation, isAdmin, adminLoading]);
+  }, [user, location, setLocation]);
 
   if (isLoading) {
     return (
@@ -72,14 +44,6 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
     return <Landing />;
   }
 
-  if (adminLoading || (!skipPricingRedirect && !isAdmin && !allDataLoaded)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return <Component />;
 }
 
@@ -89,9 +53,9 @@ function Router() {
       <Route path="/" component={() => <ProtectedRoute component={Dashboard} />} />
       <Route path="/projects/new" component={() => <ProtectedRoute component={NewProject} />} />
       <Route path="/projects/:id" component={() => <ProtectedRoute component={ProjectDetails} />} />
-      <Route path="/settings" component={() => <ProtectedRoute component={Settings} skipPricingRedirect />} />
-      <Route path="/billing" component={() => <ProtectedRoute component={Billing} skipPricingRedirect />} />
-      <Route path="/admin" component={() => <ProtectedRoute component={Admin} skipPricingRedirect />} />
+      <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
+      <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
+      <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
       <Route component={NotFound} />
     </Switch>
   );
