@@ -31,20 +31,40 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
     enabled: !!user && !skipPricingRedirect,
   });
 
+  const { data: entitlementsData, isLoading: entitlementsLoading } = useQuery<{ entitlements: string[] }>({
+    queryKey: ["/api/entitlements"],
+    enabled: !!user && !skipPricingRedirect,
+  });
+
+  const { data: moduleVisibility, isLoading: visibilityLoading } = useQuery<Record<string, boolean>>({
+    queryKey: ["/api/modules/visibility"],
+    enabled: !!user && !skipPricingRedirect,
+  });
+
   const isAdmin = adminCheck?.isAdmin === true;
+
+  const hasAccess = (() => {
+    if (purchases && purchases.length > 0) return true;
+    if (entitlementsData && entitlementsData.entitlements && entitlementsData.entitlements.length > 0) return true;
+    if (moduleVisibility && Object.values(moduleVisibility).some(v => v === false)) return true;
+    return false;
+  })();
+
+  const allDataLoaded = !purchasesLoading && !entitlementsLoading && !visibilityLoading
+    && purchases !== undefined;
 
   useEffect(() => {
     if (isAdmin) return;
     if (adminLoading) return;
-    if (!skipPricingRedirect && user && !purchasesLoading && purchases !== undefined) {
+    if (!skipPricingRedirect && user && allDataLoaded) {
       const params = new URLSearchParams(window.location.search);
       const hasPaymentParams = params.has("payment") || params.has("surplus");
-      if ((purchases.length === 0 || hasPaymentParams) && location !== "/billing") {
+      if ((!hasAccess || hasPaymentParams) && location !== "/billing") {
         const queryString = window.location.search;
         setLocation(`/billing${queryString}`);
       }
     }
-  }, [user, purchasesLoading, purchases, skipPricingRedirect, location, setLocation, isAdmin, adminLoading]);
+  }, [user, allDataLoaded, hasAccess, skipPricingRedirect, location, setLocation, isAdmin, adminLoading]);
 
   if (isLoading) {
     return (
@@ -58,7 +78,7 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
     return <Landing />;
   }
 
-  if (adminLoading || (!skipPricingRedirect && purchasesLoading)) {
+  if (adminLoading || (!skipPricingRedirect && !allDataLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
