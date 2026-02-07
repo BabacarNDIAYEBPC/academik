@@ -2828,9 +2828,14 @@ IMPORTANT:
   // === STRIPE CHECKOUT ===
   const PRICING: Record<string, { price: number; label: string }> = {
     core_pack: { price: 17900, label: "Pack Mémoire / TFE / VAE – Fondations complètes" },
-    questionnaire: { price: 2900, label: "Génération de questionnaires avancés" },
-    guide_entretien: { price: 2900, label: "Guides d'entretien complets" },
-    pack_collecte: { price: 4900, label: "Pack Collecte (questionnaire + guide)" },
+    foundation: { price: 2900, label: "Sujet / Problématique / Hypothèses" },
+    plan: { price: 2500, label: "Plan académique structuré" },
+    conceptual: { price: 3500, label: "Cadre conceptuel (concepts + schémas)" },
+    literature: { price: 4900, label: "Revue de littérature" },
+    methodology: { price: 3900, label: "Méthodologie complète" },
+    questionnaire: { price: 2500, label: "Questionnaire (collecte)" },
+    guide_entretien: { price: 2500, label: "Guide d'entretien (collecte)" },
+    pack_collecte: { price: 4500, label: "Pack Collecte (questionnaire + guide)" },
     simulation_entretien: { price: 1900, label: "Simulation d'entretien IA" },
     analyse_qualitative: { price: 3900, label: "Analyse qualitative" },
     analyse_quantitative: { price: 3900, label: "Analyse quantitative" },
@@ -2852,7 +2857,7 @@ IMPORTANT:
 
   const PACK_PRICES: Record<string, { price: number; items: string[] }> = {
     core_pack: { price: 17900, items: ["core_pack"] },
-    pack_collecte: { price: 4900, items: ["questionnaire", "guide_entretien"] },
+    pack_collecte: { price: 4500, items: ["questionnaire", "guide_entretien"] },
     pack_analyse: { price: 6900, items: ["analyse_qualitative", "analyse_quantitative"] },
     pack_revue: { price: 5900, items: ["article_analysis", "article_confrontation", "biblio_multinormes"] },
     pack_soutenance: { price: 7900, items: ["soutenance_ppt", "soutenance_simulation", "audit"] },

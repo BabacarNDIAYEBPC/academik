@@ -1062,7 +1062,7 @@ export default function LiteratureReviewModule({
             <DialogTitle>{analysisTitle}</DialogTitle>
             <DialogDescription>Résultat de l'analyse des articles sélectionnés.</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/30 rounded-lg p-4">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{analysisResult}</ReactMarkdown>
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">
@@ -1088,7 +1088,7 @@ export default function LiteratureReviewModule({
             </DialogTitle>
             <DialogDescription>Références formatées selon la norme choisie.</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/30 rounded-lg p-4">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{bibliographyResult}</ReactMarkdown>
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">
@@ -1176,7 +1176,7 @@ export default function LiteratureReviewModule({
             <DialogTitle>Équations de recherche</DialogTitle>
             <DialogDescription>Termes-clés, synonymes et équations booléennes pour la recherche documentaire.</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none bg-muted/30 rounded-lg p-4 whitespace-pre-wrap">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5 whitespace-pre-wrap">
             {equationsResult}
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">

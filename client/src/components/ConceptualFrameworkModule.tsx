@@ -901,7 +901,7 @@ export default function ConceptualFrameworkModule({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
               <ReactMarkdown>{conceptsContent}</ReactMarkdown>
             </div>
           </CardContent>
@@ -929,7 +929,7 @@ export default function ConceptualFrameworkModule({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
+            <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
               <ReactMarkdown>{bibliographyContent}</ReactMarkdown>
             </div>
           </CardContent>
@@ -940,7 +940,7 @@ export default function ConceptualFrameworkModule({
           <DialogHeader>
             <DialogTitle>Équations de recherche</DialogTitle>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{equationsContent}</ReactMarkdown>
           </div>
           <div className="flex justify-end gap-2 mt-4">
@@ -958,7 +958,7 @@ export default function ConceptualFrameworkModule({
           <DialogHeader>
             <DialogTitle>Analyse des articles</DialogTitle>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{analysisContent}</ReactMarkdown>
           </div>
           <div className="flex justify-end gap-2 mt-4">

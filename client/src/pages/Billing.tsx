@@ -30,54 +30,55 @@ const COMPANY_INFO = {
 
 const CORE_PACK_PRICE = 179;
 
+const CORE_MODULES = [
+  { key: "foundation", price: 29, label: "Sujet / Problématique / Hypothèses", description: "Formulation du sujet, problématique et hypothèses de recherche" },
+  { key: "plan", price: 25, label: "Plan académique structuré", description: "Plan logique adapté au niveau (Licence / Master / TFE / VAE)" },
+  { key: "conceptual", price: 35, label: "Cadre conceptuel (concepts + schémas)", description: "Concepts clés, relations et schémas explicatifs" },
+  { key: "literature", price: 49, label: "Revue de littérature", description: "Recherche bibliographique, sélection, filtrage et structuration" },
+  { key: "methodology", price: 39, label: "Méthodologie complète", description: "Type de recherche, population, outils de collecte et méthodes d'analyse" },
+];
+
+const CORE_MODULES_TOTAL = CORE_MODULES.reduce((sum, m) => sum + m.price, 0);
+
 const OPTION_CATALOG = {
   collecte: [
-    { key: "questionnaire", price: 29, label: "Questionnaires avancés" },
-    { key: "guide_entretien", price: 29, label: "Guides d'entretien complets" },
-    { key: "simulation_entretien", price: 19, label: "Simulation d'entretien IA" },
+    { key: "questionnaire", price: 25, label: "Questionnaire (collecte)", description: "Questionnaire structuré, questions uniquement, prêt pour Word" },
+    { key: "guide_entretien", price: 25, label: "Guide d'entretien (collecte)", description: "Guide d'entretien qualitatif, questions uniquement" },
+    { key: "simulation_entretien", price: 19, label: "Simulation d'entretien IA", description: "Préparez vos entretiens avec simulation IA" },
   ],
   analyse: [
-    { key: "analyse_qualitative", price: 39, label: "Analyse qualitative (verbatims, codage, synthèse)" },
-    { key: "analyse_quantitative", price: 39, label: "Analyse quantitative (tableaux + graphiques)" },
+    { key: "analyse_qualitative", price: 39, label: "Analyse qualitative", description: "Verbatims, codage thématique et synthèse" },
+    { key: "analyse_quantitative", price: 39, label: "Analyse quantitative", description: "Tableaux croisés et graphiques" },
   ],
   revue: [
-    { key: "article_analysis", price: 29, label: "Résumé & analyse d'articles" },
-    { key: "article_confrontation", price: 29, label: "Confrontation d'articles" },
-    { key: "biblio_multinormes", price: 25, label: "Bibliographie multi-normes (APA, Vancouver, MLA, Chicago)" },
+    { key: "article_analysis", price: 29, label: "Résumé & analyse d'articles", description: "Analyse structurée d'articles scientifiques" },
+    { key: "article_confrontation", price: 29, label: "Confrontation d'articles", description: "Comparaison critique entre articles" },
+    { key: "biblio_multinormes", price: 25, label: "Bibliographie multi-normes", description: "APA, Vancouver, MLA, Chicago" },
   ],
   soutenance: [
-    { key: "soutenance_ppt", price: 29, label: "PowerPoint de soutenance structuré" },
-    { key: "soutenance_simulation", price: 29, label: "Simulation de soutenance (questions jury)" },
-    { key: "audit", price: 49, label: "Audit complet du mémoire" },
+    { key: "soutenance_ppt", price: 29, label: "PowerPoint de soutenance", description: "Diaporama structuré pour la soutenance" },
+    { key: "soutenance_simulation", price: 29, label: "Simulation de soutenance", description: "Questions type jury et préparation" },
+    { key: "audit", price: 49, label: "Audit complet du mémoire", description: "Relecture critique et recommandations" },
   ],
   confort: [
-    { key: "export_illimite", price: 19, label: "Export illimité Word / PPT" },
-    { key: "fusion_memoire", price: 19, label: "Fusion mémoire en un document" },
+    { key: "export_illimite", price: 19, label: "Export illimité Word / PPT", description: "Export sans limites vers Word et PowerPoint" },
+    { key: "fusion_memoire", price: 19, label: "Fusion mémoire en un document", description: "Assemblage de toutes les sections" },
   ],
   ia: [
-    { key: "words_20k", price: 19, label: "+20 000 mots IA" },
-    { key: "words_50k", price: 39, label: "+50 000 mots IA" },
-    { key: "extra_project", price: 29, label: "Projet supplémentaire" },
+    { key: "words_20k", price: 19, label: "+20 000 mots IA", description: "Quota supplémentaire de génération" },
+    { key: "words_50k", price: 39, label: "+50 000 mots IA", description: "Quota supplémentaire étendu" },
+    { key: "extra_project", price: 29, label: "Projet supplémentaire", description: "Un projet actif additionnel" },
   ],
 };
 
 const PACK_OPTIONS: Record<string, { keys: string[]; price: number; label: string }> = {
-  pack_collecte: { keys: ["questionnaire", "guide_entretien"], price: 49, label: "Pack Collecte" },
+  pack_collecte: { keys: ["questionnaire", "guide_entretien"], price: 45, label: "Pack Collecte" },
   pack_analyse: { keys: ["analyse_qualitative", "analyse_quantitative"], price: 69, label: "Pack Analyse" },
   pack_revue: { keys: ["article_analysis", "article_confrontation", "biblio_multinormes"], price: 59, label: "Pack Revue avancée" },
   pack_soutenance: { keys: ["soutenance_ppt", "soutenance_simulation", "audit"], price: 79, label: "Pack Soutenance & Audit" },
 };
 
 const CORE_ENTITLEMENTS = ["foundation", "plan", "conceptual", "literature", "methodology"];
-
-const CORE_PACK_INCLUDES = [
-  "Sujet & problématique",
-  "Hypothèses de recherche",
-  "Plan détaillé",
-  "Cadre conceptuel & théorique",
-  "Revue de littérature",
-  "Méthodologie de recherche",
-];
 
 function SubscriptionProgressBar({ periodStart, periodEnd }: { periodStart?: string | null; periodEnd?: string | null }) {
   if (!periodStart || !periodEnd) {
@@ -309,7 +310,8 @@ function generateInvoiceHTML(invoice: any): string {
 function UpgradeSection({ entitlements }: { entitlements: string[] }) {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, boolean>>({});
   const [selectedPacks, setSelectedPacks] = useState<Record<string, boolean>>({});
-  const [coreSelected, setCoreSelected] = useState(false);
+  const [selectedCoreModules, setSelectedCoreModules] = useState<Record<string, boolean>>({});
+  const [corePackSelected, setCorePackSelected] = useState(false);
   const checkout = useCheckout();
   const { toast } = useToast();
 
@@ -323,6 +325,20 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
     const packDef = PACK_OPTIONS[packKey];
     if (!packDef) return false;
     return packDef.keys.every(k => hasEntitlement(entitlements, k));
+  };
+
+  const handleCoreModuleToggle = (key: string) => {
+    if (isItemOwned(key) || corePackSelected) return;
+    setSelectedCoreModules(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleCorePackSelect = () => {
+    if (coreOwned) return;
+    const next = !corePackSelected;
+    setCorePackSelected(next);
+    if (next) {
+      setSelectedCoreModules({});
+    }
   };
 
   const handleOptionToggle = (key: string) => {
@@ -343,9 +359,26 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
     }
   };
 
+  const selectedCoreModulesTotal = Object.entries(selectedCoreModules)
+    .filter(([, v]) => v)
+    .reduce((sum, [key]) => {
+      const mod = CORE_MODULES.find(m => m.key === key);
+      return sum + (mod?.price || 0);
+    }, 0);
+
+  const selectedCoreModuleCount = Object.values(selectedCoreModules).filter(Boolean).length;
+
+  const shouldSuggestPack = selectedCoreModulesTotal > CORE_PACK_PRICE && !corePackSelected;
+
   const handleCheckout = () => {
     const items: string[] = [];
-    if (coreSelected && !coreOwned) items.push("core_pack");
+    if (corePackSelected && !coreOwned) {
+      items.push("core_pack");
+    } else {
+      Object.entries(selectedCoreModules).filter(([, v]) => v).forEach(([key]) => {
+        if (!isItemOwned(key)) items.push(key);
+      });
+    }
     Object.entries(selectedPacks).filter(([, v]) => v).forEach(([packKey]) => {
       items.push(packKey);
     });
@@ -378,7 +411,8 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
     .filter(([, v]) => v)
     .reduce((sum, [key]) => sum + (PACK_OPTIONS[key]?.price || 0), 0);
 
-  const total = (coreSelected && !coreOwned ? CORE_PACK_PRICE : 0) + optionsTotal + packsTotal;
+  const coreTotal = corePackSelected && !coreOwned ? CORE_PACK_PRICE : selectedCoreModulesTotal;
+  const total = coreTotal + optionsTotal + packsTotal;
 
   const categories: { catKey: string; title: string; icon: any; items: typeof OPTION_CATALOG.collecte; packKey?: string }[] = [
     { catKey: "collecte", title: "Collecte de données", icon: Mic, items: OPTION_CATALOG.collecte, packKey: "pack_collecte" },
@@ -396,59 +430,133 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
           <Unlock className="w-5 h-5" />
           Modules & Fonctionnalités
         </CardTitle>
-        <CardDescription>Débloquez de nouvelles fonctionnalités. Les modules déjà acquis sont marqués comme activés.</CardDescription>
+        <CardDescription>Sélectionnez le pack complet ou achetez chaque module individuellement.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <Card
-          className={`cursor-pointer transition-all border-2 ${
-            coreOwned
-              ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/10 opacity-70"
-              : coreSelected
-                ? "border-primary bg-primary/5"
-                : "border-border/50"
-          }`}
-          onClick={() => !coreOwned && setCoreSelected(!coreSelected)}
-          data-testid="billing-core-pack"
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-3">
-                {coreOwned ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0" />
-                ) : (
-                  <Checkbox
-                    checked={coreSelected}
-                    disabled={coreOwned}
-                    onCheckedChange={() => setCoreSelected(!coreSelected)}
-                    data-testid="checkbox-billing-core"
-                  />
-                )}
+
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Package className="w-5 h-5 text-primary" />
+            <h3 className="text-base font-semibold">Fondations Mémoire / TFE / VAE</h3>
+          </div>
+
+          <Card
+            className={`cursor-pointer transition-all border-2 ${
+              coreOwned
+                ? "border-green-500/50 bg-green-50/50 dark:bg-green-900/10 opacity-70"
+                : corePackSelected
+                  ? "border-primary bg-primary/5"
+                  : "border-dashed border-primary/30"
+            }`}
+            onClick={handleCorePackSelect}
+            data-testid="billing-core-pack"
+          >
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  {coreOwned ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400 shrink-0" />
+                  ) : (
+                    <Checkbox
+                      checked={corePackSelected}
+                      disabled={coreOwned}
+                      onCheckedChange={handleCorePackSelect}
+                      data-testid="checkbox-billing-core"
+                    />
+                  )}
+                  <div>
+                    <span className="font-bold text-base">Pack Fondations complet</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">Tous les modules ci-dessous inclus + Workflow, sauvegarde, export Word, 20 000 mots IA</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {coreOwned && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                      Activé
+                    </Badge>
+                  )}
+                  <div className="text-right">
+                    <Badge className="text-lg font-extrabold px-3 py-1">{CORE_PACK_PRICE} &euro;</Badge>
+                    <p className="text-xs text-muted-foreground mt-1">au lieu de {CORE_MODULES_TOTAL} &euro;</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="relative">
+            <div className="absolute inset-x-0 top-0 flex justify-center -translate-y-1/2">
+              <span className="bg-background px-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">ou achetez à l'unité</span>
+            </div>
+            <div className="border rounded-lg p-4 pt-5 space-y-2">
+              {CORE_MODULES.map((mod) => {
+                const owned = isItemOwned(mod.key);
+                const inPack = corePackSelected;
+                return (
+                  <label
+                    key={mod.key}
+                    className={`flex items-center justify-between gap-4 p-3 rounded-lg border border-border/50 transition-all ${
+                      owned
+                        ? "opacity-60 bg-green-50/30 dark:bg-green-900/5"
+                        : inPack
+                          ? "opacity-40"
+                          : "cursor-pointer hover-elevate"
+                    }`}
+                    data-testid={`billing-module-${mod.key}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {owned ? (
+                        <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+                      ) : (
+                        <Checkbox
+                          checked={inPack || !!selectedCoreModules[mod.key]}
+                          disabled={owned || inPack}
+                          onCheckedChange={() => handleCoreModuleToggle(mod.key)}
+                          data-testid={`checkbox-billing-${mod.key}`}
+                        />
+                      )}
+                      <div>
+                        <span className="text-sm font-medium">{mod.label}</span>
+                        <p className="text-xs text-muted-foreground">{mod.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {owned && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
+                          Activé
+                        </Badge>
+                      )}
+                      <span className="text-sm font-bold text-muted-foreground whitespace-nowrap">{mod.price} &euro;</span>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {shouldSuggestPack && (
+            <div className="p-4 rounded-lg border-2 border-primary bg-primary/5 space-y-3" data-testid="alert-suggest-pack">
+              <div className="flex items-start gap-3">
+                <Package className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
-                  <CardTitle className="text-lg">Pack Fondations</CardTitle>
-                  <p className="text-sm text-muted-foreground">Mémoire / TFE / VAE</p>
+                  <p className="font-semibold text-sm">Le Pack Fondations est plus avantageux !</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Votre sélection ({selectedCoreModuleCount} modules) revient à {selectedCoreModulesTotal} &euro;.
+                    Le Pack complet avec TOUS les modules ne coûte que <strong>{CORE_PACK_PRICE} &euro;</strong> &mdash; vous économisez {selectedCoreModulesTotal - CORE_PACK_PRICE} &euro;.
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {coreOwned && (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                    Activé
-                  </Badge>
-                )}
-                <Badge className="text-lg font-extrabold px-4 py-1">{CORE_PACK_PRICE} &euro;</Badge>
-              </div>
+              <Button
+                size="sm"
+                onClick={() => { setCorePackSelected(true); setSelectedCoreModules({}); }}
+                data-testid="button-switch-to-pack"
+              >
+                <Package className="w-4 h-4 mr-2" />
+                Passer au Pack Fondations ({CORE_PACK_PRICE} &euro;)
+              </Button>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-              {CORE_PACK_INCLUDES.map((item, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm">
-                  <CheckCircle2 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${coreOwned ? "text-green-600 dark:text-green-400" : "text-primary"}`} />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
 
         {categories.map(({ catKey, title, icon: CatIcon, items, packKey }) => {
           const packDef = packKey ? PACK_OPTIONS[packKey] : null;
@@ -490,7 +598,10 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                             data-testid={`checkbox-billing-${item.key}`}
                           />
                         )}
-                        <span className="text-sm font-medium">{item.label}</span>
+                        <div>
+                          <span className="text-sm font-medium">{item.label}</span>
+                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {owned && (
@@ -555,9 +666,14 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                   {total} &euro;
                 </p>
                 <div className="text-left text-sm space-y-1 opacity-90">
-                  {coreSelected && !coreOwned && <div className="flex justify-between gap-2"><span>Pack Fondations</span><span>{CORE_PACK_PRICE} €</span></div>}
+                  {corePackSelected && !coreOwned && <div className="flex justify-between gap-2"><span>Pack Fondations complet</span><span>{CORE_PACK_PRICE} &euro;</span></div>}
+                  {!corePackSelected && Object.entries(selectedCoreModules).filter(([, v]) => v).map(([key]) => {
+                    const mod = CORE_MODULES.find(m => m.key === key);
+                    if (!mod) return null;
+                    return <div key={key} className="flex justify-between gap-2"><span>{mod.label}</span><span>{mod.price} &euro;</span></div>;
+                  })}
                   {Object.entries(selectedPacks).filter(([, v]) => v).map(([pk]) => (
-                    <div key={pk} className="flex justify-between gap-2"><span>{PACK_OPTIONS[pk].label}</span><span>{PACK_OPTIONS[pk].price} €</span></div>
+                    <div key={pk} className="flex justify-between gap-2"><span>{PACK_OPTIONS[pk].label}</span><span>{PACK_OPTIONS[pk].price} &euro;</span></div>
                   ))}
                   {Object.entries(selectedOptions).filter(([key, v]) => {
                     if (!v) return false;
@@ -565,7 +681,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                   }).map(([key]) => {
                     const item = Object.values(OPTION_CATALOG).flat().find(i => i.key === key);
                     if (!item) return null;
-                    return <div key={key} className="flex justify-between gap-2"><span>{item.label}</span><span>{item.price} €</span></div>;
+                    return <div key={key} className="flex justify-between gap-2"><span>{item.label}</span><span>{item.price} &euro;</span></div>;
                   })}
                 </div>
                 <Button
