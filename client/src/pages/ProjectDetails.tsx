@@ -811,7 +811,15 @@ function SingleSectionWrapper({
       ctx += "\n=== INSTRUCTIONS DE L'UTILISATEUR (PRIORITAIRE) ===\n" + correctionPrompt.trim() + "\n";
     }
     if (importedMemoir.trim()) {
-      ctx += "\n=== CONTENU DU MÉMOIRE IMPORTÉ (ÉTAT D'AVANCEMENT) ===\n" + importedMemoir.trim() + "\n";
+      ctx += "\n=== CONTENU DU MÉMOIRE IMPORTÉ (DOCUMENT DE RÉFÉRENCE PRIORITAIRE) ===\n";
+      ctx += "RÈGLE IMPORTANTE : Ce document importé est le mémoire en cours de l'étudiant. ";
+      ctx += "Il fait foi et constitue la source de référence prioritaire. ";
+      ctx += "Si des informations du mémoire importé (sujet, problématique, hypothèses, plan, contexte, méthodologie...) ";
+      ctx += "divergent des données saisies dans le paramétrage du projet ci-dessus, ";
+      ctx += "c'est le contenu du mémoire importé qui prévaut. ";
+      ctx += "Lorsque les deux sources concordent, utilise les deux pour enrichir et approfondir le contenu généré. ";
+      ctx += "Adapte ton style, ta structure et ton vocabulaire au mémoire importé.\n\n";
+      ctx += importedMemoir.trim() + "\n";
     }
     return ctx;
   };
