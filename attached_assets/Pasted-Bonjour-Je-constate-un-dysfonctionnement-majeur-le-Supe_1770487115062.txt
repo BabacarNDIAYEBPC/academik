@@ -1,0 +1,78 @@
+Bonjour,
+
+Je constate un dysfonctionnement majeur : **le SuperAdmin et la gestion “gratuit / payant” ne fonctionnent pas correctement**, et cela bloque toute la logique d’accès.
+
+Je reprécise les règles attendues, de façon simple et non ambiguë.
+
+---
+
+## 1) Règle SuperAdmin (prioritaire)
+
+En tant que **SuperAdmin** :
+
+* je dois avoir **accès à 100 % des modules**, sans aucune restriction, **même si un module est payant**
+* je ne dois **jamais** être bloqué par un écran “payer pour accéder”
+* je dois pouvoir **activer/désactiver** les modules payants (les rendre gratuits ou payants) depuis le SuperAdmin
+
+Aujourd’hui, même sur le compte SuperAdmin :
+
+* “Nouveau dossier” bloque
+* il me demande de payer
+  ➡️ **C’est anormal. Le SuperAdmin doit toujours passer.**
+
+---
+
+## 2) Règle “Module rendu gratuit” (impact utilisateur)
+
+Si, depuis le SuperAdmin, je mets un module en **gratuit** :
+
+* alors **tous les utilisateurs** doivent pouvoir :
+
+  * créer un dossier
+  * accéder à **ce module gratuit**
+* et **tous les autres modules** doivent rester **grisées / inaccessibles** s’ils sont payants non achetés
+
+👉 Exemple :
+Si je rends **Questionnaire** gratuit, tous les utilisateurs peuvent créer un dossier et accéder à Questionnaire, mais **Analyse / Export / etc.** restent grisés si non payés.
+
+---
+
+## 3) Règle “Tout est payant” (blocage volontaire global)
+
+Si, depuis le SuperAdmin, j’exige que **tous les modules soient payants** tant qu’il n’y a pas de paiement :
+
+* alors pour un utilisateur non payant :
+
+  * **Dashboard** peut rester visible (au choix), mais les actions doivent être bloquées
+  * **Nouveau dossier** doit être **grisé/inaccessible**
+  * tous les modules doivent être **grisées**
+  * l’utilisateur doit être redirigé vers **Pricing** pour payer
+
+👉 Mais encore une fois : **ce blocage ne doit jamais s’appliquer au SuperAdmin.**
+
+---
+
+## 4) Ce qu’il faut corriger
+
+1. Corriger la règle d’accès SuperAdmin (override total) : jamais de paywall, jamais de blocage.
+2. Corriger la logique “gratuit/payant” : quand un module est rendu gratuit par le SuperAdmin, les utilisateurs doivent y accéder automatiquement.
+3. Corriger le “Nouveau dossier” :
+
+   * SuperAdmin : toujours accessible
+   * Utilisateur : accessible seulement si au moins un accès gratuit est autorisé (ou s’il a payé)
+4. Corriger l’état UI :
+
+   * modules gratuits = actifs
+   * modules non payés = grisées
+   * cohérence totale entre statut et interface
+
+---
+
+L’objectif est que le SuperAdmin puisse piloter le modèle économique :
+
+* soit en ouvrant certains modules en gratuit (pour acquisition)
+* soit en mettant tout payant (pour conversion)
+  tout en gardant une expérience utilisateur cohérente.
+
+Cordialement,
+Babacar Ndiaye

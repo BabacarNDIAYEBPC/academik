@@ -2,6 +2,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useI18n, LanguageSelector } from "@/lib/i18n";
 import { useAdminCheck } from "@/hooks/use-admin";
+import { useHasAnyAccess } from "@/hooks/use-entitlements";
 import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
@@ -11,6 +12,7 @@ import {
   Menu,
   CreditCard,
   ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -18,11 +20,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import QuotaBar from "@/components/QuotaBar";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const { data: adminCheck } = useAdminCheck();
+  const isAdmin = adminCheck?.isAdmin === true;
+  const hasAccess = useHasAnyAccess();
+  const canCreateProject = isAdmin || hasAccess;
 
   const NavLink = ({ href, icon: Icon, label }: { href: string; icon: any; label: string }) => {
     const isActive = location === href;
@@ -54,7 +59,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         
         <nav className="space-y-2">
           <NavLink href="/" icon={LayoutDashboard} label={t("nav.dashboard")} />
-          <NavLink href="/projects/new" icon={FolderPlus} label={t("nav.newProject")} />
+          {canCreateProject ? (
+            <NavLink href="/projects/new" icon={FolderPlus} label={t("nav.newProject")} />
+          ) : (
+            <div
+              className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-50 cursor-pointer text-muted-foreground"
+              onClick={() => setLocation("/billing")}
+              data-testid="nav-new-project-locked"
+            >
+              <Lock className="w-5 h-5" />
+              <span>{t("nav.newProject")}</span>
+            </div>
+          )}
           <NavLink href="/billing" icon={CreditCard} label={t("nav.billing")} />
           <NavLink href="/settings" icon={Settings2} label={t("nav.settings")} />
           {adminCheck?.isAdmin && (

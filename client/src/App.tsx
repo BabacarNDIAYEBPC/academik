@@ -26,32 +26,26 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
     enabled: !!user,
   });
 
-  const { data: purchases, isLoading: purchasesLoading } = useQuery<any[]>({
-    queryKey: ["/api/purchases"],
-    enabled: !!user && !skipPricingRedirect,
-  });
+  const isAdmin = adminCheck?.isAdmin === true;
 
   const { data: entitlementsData, isLoading: entitlementsLoading } = useQuery<{ entitlements: string[] }>({
     queryKey: ["/api/entitlements"],
-    enabled: !!user && !skipPricingRedirect,
+    enabled: !!user && !skipPricingRedirect && !isAdmin,
   });
 
   const { data: moduleVisibility, isLoading: visibilityLoading } = useQuery<Record<string, boolean>>({
     queryKey: ["/api/modules/visibility"],
-    enabled: !!user && !skipPricingRedirect,
+    enabled: !!user && !skipPricingRedirect && !isAdmin,
   });
 
-  const isAdmin = adminCheck?.isAdmin === true;
-
   const hasAccess = (() => {
-    if (purchases && purchases.length > 0) return true;
-    if (entitlementsData && entitlementsData.entitlements && entitlementsData.entitlements.length > 0) return true;
+    if (isAdmin) return true;
+    if (entitlementsData?.entitlements && entitlementsData.entitlements.length > 0) return true;
     if (moduleVisibility && Object.values(moduleVisibility).some(v => v === false)) return true;
     return false;
   })();
 
-  const allDataLoaded = !purchasesLoading && !entitlementsLoading && !visibilityLoading
-    && purchases !== undefined;
+  const allDataLoaded = isAdmin || (!entitlementsLoading && !visibilityLoading);
 
   useEffect(() => {
     if (isAdmin) return;
@@ -78,7 +72,7 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
     return <Landing />;
   }
 
-  if (adminLoading || (!skipPricingRedirect && !allDataLoaded)) {
+  if (adminLoading || (!skipPricingRedirect && !isAdmin && !allDataLoaded)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />

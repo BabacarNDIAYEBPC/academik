@@ -5,7 +5,7 @@ import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
 import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined, useProjectStatusHistory } from "@/hooks/use-sections";
 import { useEntitlements, useCheckout, SECTION_TO_ENTITLEMENT, hasEntitlement, isSectionLocked, getSectionEntitlementKey } from "@/hooks/use-entitlements";
-import { useModuleVisibility } from "@/hooks/use-admin";
+import { useModuleVisibility, useAdminCheck } from "@/hooks/use-admin";
 import { useI18n } from "@/lib/i18n";
 import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
@@ -271,13 +271,16 @@ function AssistantTab({ project }: { project: any }) {
   const { data: sections, isLoading: sectionsLoading } = useSections(project.id);
   const { data: entData } = useEntitlements();
   const { data: moduleVis } = useModuleVisibility();
+  const { data: adminCheck } = useAdminCheck();
+  const isAdmin = adminCheck?.isAdmin === true;
   const moduleTabs = useMemo(() => getModuleTabs(project.type, t), [project.type, t]);
   const [activeModule, setActiveModule] = useState(moduleTabs[0]?.key || "foundations");
 
   const isTabLocked = useCallback((tab: { sectionKeys: string[] }) => {
+    if (isAdmin) return false;
     if (tab.sectionKeys.length === 0) return false;
-    return tab.sectionKeys.every(key => isSectionLocked(entData?.entitlements, key, moduleVis));
-  }, [entData?.entitlements, moduleVis]);
+    return tab.sectionKeys.every(key => isSectionLocked(entData?.entitlements, key, moduleVis, isAdmin));
+  }, [entData?.entitlements, moduleVis, isAdmin]);
 
   const getSectionData = (key: string) => {
     if (!sections) return { section: undefined, activeVersion: undefined };
@@ -861,8 +864,10 @@ function SingleSectionWrapper({
 
   const { data: entData } = useEntitlements();
   const { data: moduleVis } = useModuleVisibility();
+  const { data: adminCheckData } = useAdminCheck();
+  const isSuperAdmin = adminCheckData?.isAdmin === true;
   const checkout = useCheckout();
-  const locked = isSectionLocked(entData?.entitlements, sectionKey, moduleVis);
+  const locked = isSectionLocked(entData?.entitlements, sectionKey, moduleVis, isSuperAdmin);
 
   const CORE_KEYS = ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"];
 
