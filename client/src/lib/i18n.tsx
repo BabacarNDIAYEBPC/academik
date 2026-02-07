@@ -13,7 +13,7 @@ const translations = {
     settings: { fr: "Paramètres", en: "Settings" },
   },
   hero: {
-    badge: { fr: "Propulsé par l'IA avancée", en: "Powered by Advanced AI" },
+    badge: { fr: "Votre assistant méthodologique", en: "Your Methodological Assistant" },
     title1: { fr: "Maîtrisez votre", en: "Master Your Academic" },
     title2: { fr: "parcours académique", en: "Writing Journey" },
     subtitle: {

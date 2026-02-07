@@ -65,6 +65,7 @@ export default function Landing() {
       <ProjectTypesBar />
       <FeaturesSection />
       <PricingSection />
+      <TestimonialsSection />
       <Footer />
     </div>
   );
@@ -123,11 +124,6 @@ function HeroSection() {
               <Button size="lg" className="shadow-xl shadow-primary/20" data-testid="button-hero-cta">
                 {t("hero.cta")}
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </a>
-            <a href="#features">
-              <Button size="lg" variant="outline" data-testid="button-hero-demo">
-                {t("hero.demo")}
               </Button>
             </a>
           </div>
@@ -520,6 +516,85 @@ function PricingSection() {
               </Card>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TestimonialsSection() {
+  const { lang } = useI18n();
+
+  const testimonials = [
+    {
+      name: "Aminata Diallo",
+      role: lang === "fr" ? "Master 2 en Sciences de l'Éducation" : "Master's in Education Sciences",
+      image: "/images/testimonial-1.png",
+      quote: lang === "fr"
+        ? "J'étais complètement perdue dans la rédaction de mon mémoire. La problématique, les hypothèses, le cadre théorique... tout me semblait flou. Cet outil m'a permis de structurer ma pensée étape par étape. Mon directeur de mémoire a été impressionné par la qualité de mon plan. Je n'aurais jamais pu y arriver seule en si peu de temps."
+        : "I was completely lost writing my dissertation. The research question, hypotheses, theoretical framework... everything seemed unclear. This tool helped me structure my thinking step by step. My supervisor was impressed by the quality of my outline. I could never have achieved this alone in such a short time.",
+    },
+    {
+      name: "Thomas Mercier",
+      role: lang === "fr" ? "Doctorant en Sociologie, Université de Lyon" : "PhD Candidate in Sociology, University of Lyon",
+      image: "/images/testimonial-2.png",
+      quote: lang === "fr"
+        ? "Après trois ans de terrain et des centaines de pages de verbatims, je n'arrivais pas à prendre du recul pour construire mon cadre conceptuel. L'assistant m'a aidé à identifier les tensions théoriques dans mes données et à articuler ma revue de littérature avec ma méthodologie. C'est devenu un vrai compagnon de réflexion académique."
+        : "After three years of fieldwork and hundreds of pages of verbatims, I couldn't step back to build my conceptual framework. The assistant helped me identify theoretical tensions in my data and articulate my literature review with my methodology. It became a true companion for academic reflection.",
+    },
+    {
+      name: "Ousmane Kaboré",
+      role: lang === "fr" ? "TFE en Gestion des Ressources Humaines" : "Final Year Project in HR Management",
+      image: "/images/testimonial-3.png",
+      quote: lang === "fr"
+        ? "Je travaille à temps plein et je devais rédiger mon TFE en parallèle. Le temps me manquait cruellement. Grâce à la génération de plan et la simulation d'entretien, j'ai gagné des semaines de travail. La qualité méthodologique de mon travail a été saluée par le jury. Je recommande sans hésiter."
+        : "I work full-time and had to write my final year project simultaneously. Time was desperately short. Thanks to the plan generation and interview simulation, I saved weeks of work. The methodological quality of my work was praised by the jury. I recommend without hesitation.",
+    },
+    {
+      name: "Claire Fontaine",
+      role: lang === "fr" ? "VAE en Management, 15 ans d'expérience" : "Prior Learning Assessment in Management, 15 years experience",
+      image: "/images/testimonial-4.png",
+      quote: lang === "fr"
+        ? "Reprendre des études après 15 ans dans le monde professionnel, c'est un défi énorme. Je ne savais plus comment rédiger un travail académique. L'outil m'a guidée pour transformer mon expérience terrain en analyse structurée. Mon rapport de VAE a été validé du premier coup. Une aide précieuse pour les professionnels en reconversion."
+        : "Going back to school after 15 years in the professional world is a huge challenge. I no longer knew how to write academic work. The tool guided me to transform my field experience into structured analysis. My VAE report was validated on the first attempt. Invaluable help for professionals in career transition.",
+    },
+  ];
+
+  return (
+    <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/20">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4">
+            {lang === "fr" ? "Ils ont réussi avec notre accompagnement" : "They succeeded with our support"}
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            {lang === "fr"
+              ? "Découvrez les témoignages d'étudiants et professionnels qui ont transformé leur parcours académique."
+              : "Discover testimonials from students and professionals who transformed their academic journey."}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {testimonials.map((t, i) => (
+            <Card key={i} className="overflow-visible" data-testid={`testimonial-card-${i}`}>
+              <CardContent className="p-6 sm:p-8">
+                <div className="flex items-start gap-4 mb-4">
+                  <img
+                    src={t.image}
+                    alt={t.name}
+                    className="w-14 h-14 rounded-full object-cover ring-2 ring-primary/20 flex-shrink-0"
+                  />
+                  <div>
+                    <p className="font-semibold text-base">{t.name}</p>
+                    <p className="text-sm text-muted-foreground">{t.role}</p>
+                  </div>
+                </div>
+                <blockquote className="text-sm leading-relaxed text-muted-foreground italic">
+                  "{t.quote}"
+                </blockquote>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </section>

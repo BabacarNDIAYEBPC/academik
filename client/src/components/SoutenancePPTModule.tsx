@@ -19,6 +19,7 @@ import {
   Save, Check, X, FileDown, Sparkles,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import PptxGenJS from "pptxgenjs";
 
 interface SoutenancePPTModuleProps {
   projectId: number;
@@ -151,7 +152,7 @@ export default function SoutenancePPTModule({
     );
   };
 
-  const handleExport = () => {
+  const handleExportWord = () => {
     if (slides.length === 0) {
       toast({ title: "Rien à exporter", description: "Générez d'abord une présentation.", variant: "destructive" });
       return;
@@ -161,6 +162,76 @@ export default function SoutenancePPTModule({
       content: slide.content + (slide.notes ? `\n\n**Notes :** ${slide.notes}` : ""),
     }));
     exportToWord("PowerPoint de soutenance", sections, "soutenance_ppt");
+  };
+
+  const handleExportPPT = async () => {
+    if (slides.length === 0) {
+      toast({ title: "Rien à exporter", description: "Générez d'abord une présentation.", variant: "destructive" });
+      return;
+    }
+    try {
+      const pptx = new PptxGenJS();
+      pptx.layout = "LAYOUT_WIDE";
+      pptx.author = "Academic Writing Assistant";
+      pptx.title = "Soutenance";
+
+      const THEME_COLORS: Record<string, { bg: string; title: string; body: string; accent: string }> = {
+        academique: { bg: "1a365d", title: "FFFFFF", body: "E2E8F0", accent: "3182CE" },
+        moderne: { bg: "2D3748", title: "FFFFFF", body: "CBD5E0", accent: "48BB78" },
+        minimaliste: { bg: "FFFFFF", title: "1A202C", body: "4A5568", accent: "3182CE" },
+      };
+      const colors = THEME_COLORS[theme] || THEME_COLORS.academique;
+
+      const titleSlide = pptx.addSlide();
+      titleSlide.background = { fill: colors.bg };
+      titleSlide.addText("Soutenance de recherche", {
+        x: 0.5, y: 1.5, w: 12, h: 1.5,
+        fontSize: 36, bold: true, color: colors.title,
+        align: "center",
+      });
+      titleSlide.addText(`${slides.length} diapositives`, {
+        x: 0.5, y: 3.5, w: 12, h: 0.5,
+        fontSize: 14, color: colors.body,
+        align: "center",
+      });
+
+      for (const slide of slides) {
+        const s = pptx.addSlide();
+        s.background = { fill: colors.bg };
+
+        s.addShape(pptx.ShapeType.rect, {
+          x: 0, y: 0, w: 13.33, h: 1.2,
+          fill: { color: colors.accent },
+        });
+
+        s.addText(slide.title, {
+          x: 0.5, y: 0.15, w: 12, h: 0.9,
+          fontSize: 24, bold: true, color: "FFFFFF",
+          align: "left", valign: "middle",
+        });
+
+        const contentLines = slide.content.split("\n").filter(l => l.trim());
+        const formattedContent = contentLines.map(line => {
+          const isBullet = line.trim().startsWith("-") || line.trim().startsWith("*") || line.trim().match(/^\d+\./);
+          const cleanLine = line.replace(/^[\s\-\*]+/, "").replace(/^\d+\.\s*/, "").trim();
+          return { text: (isBullet ? "  " : "") + cleanLine + "\n", options: { fontSize: 14, color: colors.body, bullet: isBullet ? { indent: 10 } : undefined } };
+        });
+
+        s.addText(formattedContent as any, {
+          x: 0.5, y: 1.5, w: 12, h: 4.5,
+          valign: "top",
+        });
+
+        if (slide.notes) {
+          s.addNotes(slide.notes);
+        }
+      }
+
+      await pptx.writeFile({ fileName: "soutenance_presentation.pptx" });
+      toast({ title: "Export réussi", description: "Le fichier PowerPoint a été téléchargé." });
+    } catch (err: any) {
+      toast({ title: "Erreur d'export", description: err.message || "Erreur lors de l'export PPT", variant: "destructive" });
+    }
   };
 
   const updateSlide = (index: number, field: keyof Slide, value: string) => {
@@ -229,9 +300,18 @@ export default function SoutenancePPTModule({
           <Button
             variant="outline"
             size="sm"
-            onClick={handleExport}
+            onClick={handleExportPPT}
             disabled={slides.length === 0}
-            data-testid="button-export-soutenance"
+            data-testid="button-export-ppt-soutenance"
+          >
+            <Presentation className="w-4 h-4 mr-1" />PPT
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportWord}
+            disabled={slides.length === 0}
+            data-testid="button-export-word-soutenance"
           >
             <FileDown className="w-4 h-4 mr-1" />Word
           </Button>

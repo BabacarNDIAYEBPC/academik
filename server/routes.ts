@@ -7,6 +7,10 @@ import { z } from "zod";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerChatRoutes } from "./replit_integrations/chat";
 import OpenAI from "openai";
+import multer from "multer";
+import mammoth from "mammoth";
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const SECTION_TO_ENTITLEMENT: Record<string, string> = {
   subject: "foundation",
@@ -638,6 +642,37 @@ export async function registerRoutes(
   await setupAuth(app);
   registerAuthRoutes(app);
   registerChatRoutes(app);
+
+  // === FILE UPLOAD (PARSE WORD/PDF) ===
+  app.post("/api/parse-file", upload.single("file"), async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    try {
+      const file = req.file;
+      if (!file) return res.status(400).json({ message: "Aucun fichier fourni" });
+
+      const ext = file.originalname.toLowerCase().split(".").pop();
+      let text = "";
+
+      if (ext === "docx") {
+        const result = await mammoth.extractRawText({ buffer: file.buffer });
+        text = result.value;
+      } else if (ext === "pdf") {
+        const pdfParse = await import("pdf-parse");
+        const parseFn = (pdfParse as any).default || pdfParse;
+        const data = await parseFn(file.buffer);
+        text = data.text;
+      } else if (["txt", "csv", "bib", "md", "rtf"].includes(ext || "")) {
+        text = file.buffer.toString("utf-8");
+      } else {
+        return res.status(400).json({ message: "Format non supporté. Formats acceptés : .docx, .pdf, .txt, .csv, .bib, .md, .rtf" });
+      }
+
+      res.json({ text, fileName: file.originalname });
+    } catch (err: any) {
+      console.error("File parse error:", err);
+      res.status(500).json({ message: "Erreur lors de la lecture du fichier: " + (err.message || "Erreur inconnue") });
+    }
+  });
 
   // === PROFILES ===
   app.get(api.profiles.get.path, async (req, res) => {
@@ -3091,6 +3126,33 @@ IMPORTANT:
         details: { value },
       });
       res.json(setting);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/api-key", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { type, key } = req.body;
+      if (!type || !key) return res.status(400).json({ message: "Type et clé requis" });
+      if (type === "openai") {
+        process.env.AI_INTEGRATIONS_OPENAI_API_KEY = key;
+        await storage.setAdminSetting("openai_key_configured", "true");
+      } else if (type === "stripe") {
+        process.env.STRIPE_SECRET_KEY = key;
+        await storage.setAdminSetting("stripe_key_configured", "true");
+      } else {
+        return res.status(400).json({ message: "Type invalide" });
+      }
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        action: "configure_api_key",
+        targetType: "setting",
+        targetId: type,
+        details: { type, configured: true },
+      });
+      res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }

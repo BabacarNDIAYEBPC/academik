@@ -309,7 +309,7 @@ function AssistantTab({ project }: { project: any }) {
             const hasContent = tabSections.some(s => s.activeVersionId);
             const isWorkflow = tab.key === "workflow";
 
-            let dotColor = "bg-muted-foreground/40";
+            let dotColor = "bg-amber-800 dark:bg-amber-700";
             if (isWorkflow) dotColor = "bg-blue-500";
             else if (allValidated) dotColor = "bg-green-500";
             else if (hasContent) dotColor = "bg-yellow-500";
@@ -382,7 +382,7 @@ function WorkflowOverview({ project, sections }: { project: any; sections: Proje
   const { data: history, isLoading: historyLoading } = useProjectStatusHistory(project.id);
 
   const sectionsByKey = useMemo(() => {
-    const map = new Map<string, ProjectSection>();
+    const map: globalThis.Map<string, ProjectSection> = new globalThis.Map();
     sections.forEach(s => map.set(s.key, s));
     return map;
   }, [sections]);

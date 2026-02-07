@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAdminSettings, useUpdateAdminSetting } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Settings2, Key, Brain, Shield } from "lucide-react";
+import { Loader2, Settings2, Key, Brain, Shield, Save, CheckCircle2, AlertCircle } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function AdminAISettings() {
   const { data: settings, isLoading } = useAdminSettings();
@@ -20,6 +21,10 @@ export default function AdminAISettings() {
   const [maxTokens, setMaxTokens] = useState(4000);
   const [allowUserKeys, setAllowUserKeys] = useState(true);
   const [systemPromptOverride, setSystemPromptOverride] = useState("");
+  const [openaiKey, setOpenaiKey] = useState("");
+  const [stripeKey, setStripeKey] = useState("");
+  const [savingOpenai, setSavingOpenai] = useState(false);
+  const [savingStripe, setSavingStripe] = useState(false);
 
   useEffect(() => {
     if (settings) {
@@ -36,6 +41,29 @@ export default function AdminAISettings() {
       toast({ title: "Paramètre sauvegardé" });
     } catch (err: any) {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleSaveApiKey = async (type: "openai" | "stripe") => {
+    const key = type === "openai" ? openaiKey : stripeKey;
+    const setter = type === "openai" ? setSavingOpenai : setSavingStripe;
+
+    if (!key.trim()) {
+      toast({ title: "Clé requise", description: "Veuillez saisir une clé API.", variant: "destructive" });
+      return;
+    }
+
+    setter(true);
+    try {
+      await apiRequest("POST", "/api/admin/api-key", { type, key: key.trim() });
+      toast({ title: "Clé API enregistrée", description: `La clé ${type === "openai" ? "OpenAI" : "Stripe"} a été mise à jour.` });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/settings"] });
+      if (type === "openai") setOpenaiKey("");
+      else setStripeKey("");
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message || "Impossible d'enregistrer la clé.", variant: "destructive" });
+    } finally {
+      setter(false);
     }
   };
 
@@ -57,24 +85,63 @@ export default function AdminAISettings() {
             <Key className="w-5 h-5 text-primary" />
             <CardTitle>Clés API</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium">Clé OpenAI plateforme</p>
-                <p className="text-sm text-muted-foreground">Clé globale pour tous les utilisateurs</p>
+          <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="font-medium">Clé OpenAI plateforme</p>
+                  <p className="text-sm text-muted-foreground">Clé globale pour tous les utilisateurs</p>
+                </div>
+                <Badge variant={settings?.hasGlobalOpenAIKey ? "default" : "outline"} className="gap-1">
+                  {settings?.hasGlobalOpenAIKey ? <><CheckCircle2 className="w-3 h-3" /> Configurée</> : <><AlertCircle className="w-3 h-3" /> Non configurée</>}
+                </Badge>
               </div>
-              <Badge variant={settings?.hasGlobalOpenAIKey ? "default" : "outline"}>
-                {settings?.hasGlobalOpenAIKey ? "Configurée" : "Non configurée"}
-              </Badge>
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  value={openaiKey}
+                  onChange={e => setOpenaiKey(e.target.value)}
+                  placeholder="sk-..."
+                  className="flex-1"
+                  data-testid="input-openai-key"
+                />
+                <Button
+                  onClick={() => handleSaveApiKey("openai")}
+                  disabled={savingOpenai || !openaiKey.trim()}
+                  data-testid="button-save-openai-key"
+                >
+                  {savingOpenai ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="font-medium">Clé Stripe</p>
-                <p className="text-sm text-muted-foreground">Pour les paiements</p>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="font-medium">Clé Stripe</p>
+                  <p className="text-sm text-muted-foreground">Pour les paiements</p>
+                </div>
+                <Badge variant={settings?.hasStripeKey ? "default" : "outline"} className="gap-1">
+                  {settings?.hasStripeKey ? <><CheckCircle2 className="w-3 h-3" /> Configurée</> : <><AlertCircle className="w-3 h-3" /> Non configurée</>}
+                </Badge>
               </div>
-              <Badge variant={settings?.hasStripeKey ? "default" : "outline"}>
-                {settings?.hasStripeKey ? "Configurée" : "Non configurée"}
-              </Badge>
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  value={stripeKey}
+                  onChange={e => setStripeKey(e.target.value)}
+                  placeholder="sk_..."
+                  className="flex-1"
+                  data-testid="input-stripe-key"
+                />
+                <Button
+                  onClick={() => handleSaveApiKey("stripe")}
+                  disabled={savingStripe || !stripeKey.trim()}
+                  data-testid="button-save-stripe-key"
+                >
+                  {savingStripe ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
