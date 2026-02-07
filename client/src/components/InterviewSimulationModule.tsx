@@ -237,8 +237,11 @@ export default function InterviewSimulationModule({
         if (needsServerParse) {
           const formData = new FormData();
           formData.append("file", file);
-          const resp = await fetch("/api/parse-file", { method: "POST", body: formData });
-          if (!resp.ok) throw new Error("Impossible de lire ce fichier.");
+          const resp = await fetch("/api/parse-file", { method: "POST", body: formData, credentials: "include" });
+          if (!resp.ok) {
+            const errData = await resp.json().catch(() => ({ message: "Erreur serveur" }));
+            throw new Error(errData.message || "Impossible de lire ce fichier.");
+          }
           const data = await resp.json();
           text = data.text;
         } else {

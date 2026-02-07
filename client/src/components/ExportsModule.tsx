@@ -144,28 +144,37 @@ export default function ExportsModule({
       },
       {
         onSuccess: async (data) => {
-          const contentSections = data.content.split("\n---\n\n").filter(Boolean);
-          const exportSections: { label: string; content: string }[] = [];
+          try {
+            const contentSections = data.content.split("\n---\n\n").filter(Boolean);
+            const exportSections: { label: string; content: string }[] = [];
 
-          for (const part of contentSections) {
-            const match = part.match(/^# (.+)\n\n([\s\S]*)$/);
-            if (match) {
-              exportSections.push({ label: match[1], content: match[2].trim() });
-            } else {
-              exportSections.push({ label: "", content: part.trim() });
+            for (const part of contentSections) {
+              const match = part.match(/^# (.+)\n\n([\s\S]*)$/);
+              if (match) {
+                exportSections.push({ label: match[1], content: match[2].trim() });
+              } else {
+                exportSections.push({ label: "", content: part.trim() });
+              }
             }
+
+            if (exportSections.length === 0) {
+              exportSections.push({ label: "Document", content: data.content || "Aucun contenu à exporter." });
+            }
+
+            const title = variables.subject || "Document académique";
+            const filename = data.fileName.replace(/\.(docx|pdf)$/, "");
+
+            if (format === "pdf") {
+              await exportToPdf(title, exportSections, filename);
+            } else {
+              await exportToWord(title, exportSections, filename);
+            }
+
+            toast({ title: "Export réussi", description: `Le document a été exporté en ${format.toUpperCase()}.` });
+          } catch (err: any) {
+            console.error("Export generation error:", err);
+            toast({ title: "Erreur d'export", description: err.message || "Erreur lors de la génération du fichier.", variant: "destructive" });
           }
-
-          const title = variables.subject || "Document académique";
-          const filename = data.fileName.replace(/\.(docx|pdf)$/, "");
-
-          if (format === "pdf") {
-            await exportToPdf(title, exportSections, filename);
-          } else {
-            await exportToWord(title, exportSections, filename);
-          }
-
-          toast({ title: "Export réussi", description: `Le document a été exporté en ${format.toUpperCase()}.` });
         },
         onError: (error: any) => {
           toast({ title: "Erreur", description: error.message || "Erreur lors de l'export", variant: "destructive" });

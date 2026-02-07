@@ -657,10 +657,28 @@ export async function registerRoutes(
         const result = await mammoth.extractRawText({ buffer: file.buffer });
         text = result.value;
       } else if (ext === "pdf") {
-        const pdfParse = await import("pdf-parse");
-        const parseFn = (pdfParse as any).default || pdfParse;
-        const data = await parseFn(file.buffer);
-        text = data.text;
+        const pdfMod = await import("pdf-parse");
+        const PDFParse = (pdfMod as any).PDFParse || (pdfMod as any).default;
+        if (PDFParse && typeof PDFParse === "function") {
+          try {
+            const parser = new PDFParse({ verbosity: 0 });
+            await parser.load(file.buffer);
+            text = await parser.getText();
+          } catch {
+            const parseFn = (pdfMod as any).default || pdfMod;
+            if (typeof parseFn === "function") {
+              const data = await parseFn(file.buffer);
+              text = data.text;
+            } else {
+              throw new Error("Impossible de parser le PDF avec cette version de pdf-parse");
+            }
+          }
+        } else if (typeof PDFParse === "function") {
+          const data = await PDFParse(file.buffer);
+          text = data.text;
+        } else {
+          throw new Error("Module pdf-parse non compatible");
+        }
       } else if (["txt", "csv", "bib", "md", "rtf"].includes(ext || "")) {
         text = file.buffer.toString("utf-8");
       } else {
