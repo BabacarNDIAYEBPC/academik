@@ -13,6 +13,7 @@ import {
   FileText, Search, FlaskConical, CheckCircle2, Lightbulb, Map,
   BookMarked, Award, Briefcase, ClipboardList, ChevronDown, ChevronUp,
   Loader2, Mic, BarChart3, FileCheck, Presentation, ShieldCheck, Package,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -108,8 +109,37 @@ function Navbar() {
   );
 }
 
+const HERO_IMAGES = [
+  { src: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80", alt: "Academic Library" },
+  { src: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80", alt: "Writing Workspace" },
+  { src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80", alt: "Student Collaboration" },
+];
+
 function HeroSection() {
   const { t, lang } = useI18n();
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const touchStartX = useState<number | null>(null);
+
+  const goTo = (idx: number) => {
+    if (idx < 0) setCarouselIndex(HERO_IMAGES.length - 1);
+    else if (idx >= HERO_IMAGES.length) setCarouselIndex(0);
+    else setCarouselIndex(idx);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX[1](e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const startX = touchStartX[0];
+    if (startX === null) return;
+    const diff = startX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) {
+      goTo(diff > 0 ? carouselIndex + 1 : carouselIndex - 1);
+    }
+    touchStartX[1](null);
+  };
+
   return (
     <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="text-center space-y-8 max-w-3xl mx-auto">
@@ -146,22 +176,80 @@ function HeroSection() {
 
       <div className="mt-16 relative">
         <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent z-10 h-full w-full pointer-events-none" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-80">
+
+        <div className="hidden md:grid grid-cols-3 gap-6 opacity-80">
           <img
-            src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80"
-            alt="Academic Library"
+            src={HERO_IMAGES[0].src}
+            alt={HERO_IMAGES[0].alt}
             className="rounded-2xl shadow-2xl transform rotate-[-2deg] hover:rotate-0 transition-transform duration-500 h-56 w-full object-cover"
           />
           <img
-            src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80"
-            alt="Writing Workspace"
+            src={HERO_IMAGES[1].src}
+            alt={HERO_IMAGES[1].alt}
             className="rounded-2xl shadow-2xl transform translate-y-8 hover:translate-y-4 transition-transform duration-500 h-56 w-full object-cover"
           />
           <img
-            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80"
-            alt="Student Collaboration"
+            src={HERO_IMAGES[2].src}
+            alt={HERO_IMAGES[2].alt}
             className="rounded-2xl shadow-2xl transform rotate-[2deg] hover:rotate-0 transition-transform duration-500 h-56 w-full object-cover"
           />
+        </div>
+
+        <div
+          className="md:hidden relative opacity-80"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          data-testid="hero-carousel"
+        >
+          <div className="overflow-hidden rounded-2xl shadow-2xl">
+            <div
+              className="flex transition-transform duration-300 ease-in-out"
+              style={{ transform: `translateX(-${carouselIndex * 100}%)` }}
+            >
+              {HERO_IMAGES.map((img, i) => (
+                <img
+                  key={i}
+                  src={img.src}
+                  alt={img.alt}
+                  className="w-full flex-shrink-0 h-48 object-cover"
+                  data-testid={`hero-image-${i}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => goTo(carouselIndex - 1)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-20 bg-background/80 backdrop-blur-sm shadow-md"
+            aria-label="Image précédente"
+            data-testid="button-carousel-prev"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => goTo(carouselIndex + 1)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-20 bg-background/80 backdrop-blur-sm shadow-md"
+            aria-label="Image suivante"
+            data-testid="button-carousel-next"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+
+          <div className="flex justify-center gap-2 mt-3">
+            {HERO_IMAGES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCarouselIndex(i)}
+                className={`w-2 h-2 rounded-full transition-all ${i === carouselIndex ? "bg-primary w-4" : "bg-muted-foreground/30"}`}
+                aria-label={`Image ${i + 1}`}
+                data-testid={`button-carousel-dot-${i}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -293,6 +381,7 @@ function PricingSection() {
   const [coreSelected, setCoreSelected] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, boolean>>({});
   const [selectedPacks, setSelectedPacks] = useState<Record<string, boolean>>({});
+  const [selectionsRestored, setSelectionsRestored] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -301,6 +390,7 @@ function PricingSection() {
     if (payment === "success" && sessionId) {
       confirmPayment.mutate(sessionId, {
         onSuccess: () => {
+          localStorage.removeItem("academik_pricing_selection");
           toast({ title: "Paiement confirmé", description: "Vos modules ont été activés avec succès." });
           window.history.replaceState({}, "", window.location.pathname);
         },
@@ -313,6 +403,32 @@ function PricingSection() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  useEffect(() => {
+    if (selectionsRestored) return;
+    try {
+      const saved = localStorage.getItem("academik_pricing_selection");
+      if (saved) {
+        const data = JSON.parse(saved);
+        const maxAge = 30 * 60 * 1000;
+        if (data.timestamp && Date.now() - data.timestamp < maxAge) {
+          if (data.coreSelected) setCoreSelected(true);
+          if (data.selectedOptions) setSelectedOptions(data.selectedOptions);
+          if (data.selectedPacks) setSelectedPacks(data.selectedPacks);
+          if (user) {
+            localStorage.removeItem("academik_pricing_selection");
+            setTimeout(() => {
+              const pricingEl = document.getElementById("pricing");
+              if (pricingEl) pricingEl.scrollIntoView({ behavior: "smooth" });
+            }, 500);
+          }
+        } else {
+          localStorage.removeItem("academik_pricing_selection");
+        }
+      }
+    } catch {}
+    setSelectionsRestored(true);
+  }, [user, selectionsRestored]);
 
   const handleOptionToggle = (key: string) => {
     setSelectedOptions(prev => ({ ...prev, [key]: !prev[key] }));
@@ -332,6 +448,12 @@ function PricingSection() {
 
   const handleCheckout = () => {
     if (!user) {
+      localStorage.setItem("academik_pricing_selection", JSON.stringify({
+        coreSelected,
+        selectedOptions,
+        selectedPacks,
+        timestamp: Date.now(),
+      }));
       window.location.href = "/api/login";
       return;
     }

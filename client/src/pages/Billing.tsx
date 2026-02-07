@@ -320,6 +320,22 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
   const { toast } = useToast();
   const { data: moduleVis } = useModuleVisibility();
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("academik_pricing_selection");
+      if (saved) {
+        const data = JSON.parse(saved);
+        const maxAge = 30 * 60 * 1000;
+        if (data.timestamp && Date.now() - data.timestamp < maxAge) {
+          if (data.coreSelected) setCorePackSelected(true);
+          if (data.selectedOptions) setSelectedOptions(data.selectedOptions);
+          if (data.selectedPacks) setSelectedPacks(data.selectedPacks);
+        }
+        localStorage.removeItem("academik_pricing_selection");
+      }
+    } catch {}
+  }, []);
+
   const visibleCoreModules = CORE_MODULES.filter(m => isModuleVisible(moduleVis, m.key));
   const coreOwned = CORE_ENTITLEMENTS.every(e => hasEntitlement(entitlements, e));
 
