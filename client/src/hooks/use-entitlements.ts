@@ -63,13 +63,15 @@ export const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   memoire_audit: "audit",
 };
 
-export function isSectionLocked(entitlements: string[] | undefined, sectionKey: string): boolean {
+export function isSectionLocked(entitlements: string[] | undefined, sectionKey: string, moduleVisibility?: Record<string, boolean>): boolean {
   const requirement = SECTION_TO_ENTITLEMENT[sectionKey];
   if (!requirement) return false;
-  if (Array.isArray(requirement)) {
-    return !requirement.some(key => hasEntitlement(entitlements, key));
+  const keys = Array.isArray(requirement) ? requirement : [requirement];
+  if (moduleVisibility && Object.keys(moduleVisibility).length > 0) {
+    const allFree = keys.every(k => moduleVisibility[k] === false);
+    if (allFree) return false;
   }
-  return !hasEntitlement(entitlements, requirement);
+  return !keys.some(key => hasEntitlement(entitlements, key));
 }
 
 export function getSectionEntitlementKey(sectionKey: string): string | string[] | undefined {

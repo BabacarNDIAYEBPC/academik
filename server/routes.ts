@@ -52,14 +52,25 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   memoire_audit: "audit",
 };
 
+async function getModuleVisibility(): Promise<Record<string, boolean>> {
+  try {
+    const setting = await storage.getAdminSetting("module_visibility");
+    if (setting && typeof setting === "object") return setting as Record<string, boolean>;
+  } catch {}
+  return {};
+}
+
 async function checkSectionEntitlement(userId: string, sectionKey: string): Promise<boolean> {
   const requirement = SECTION_TO_ENTITLEMENT[sectionKey];
   if (!requirement) return true;
-  const entitlements = await storage.getUserEntitlements(userId);
-  if (Array.isArray(requirement)) {
-    return requirement.some(key => entitlements.includes(key));
+  const keys = Array.isArray(requirement) ? requirement : [requirement];
+  const moduleVis = await getModuleVisibility();
+  if (Object.keys(moduleVis).length > 0) {
+    const allFree = keys.every(k => moduleVis[k] === false);
+    if (allFree) return true;
   }
-  return entitlements.includes(requirement);
+  const entitlements = await storage.getUserEntitlements(userId);
+  return keys.some(key => entitlements.includes(key));
 }
 
 function countWords(text: string): number {

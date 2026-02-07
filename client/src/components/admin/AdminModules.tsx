@@ -146,12 +146,12 @@ export default function AdminModules() {
         <div>
           <h2 className="text-2xl font-bold">Gestion des modules</h2>
           <p className="text-muted-foreground text-sm mt-1">
-            Activez ou désactivez les modules visibles par les utilisateurs. Utile pour les campagnes marketing et le lancement progressif.
+            Activé = payant (visible dans la boutique). Désactivé = gratuit (accès libre, masqué de la boutique).
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge variant="outline" data-testid="badge-module-count">
-            {enabledCount}/{totalCount} actifs
+            {enabledCount}/{totalCount} payants
           </Badge>
         </div>
       </div>
@@ -197,14 +197,18 @@ export default function AdminModules() {
                   className={`flex items-center justify-between gap-4 p-3 rounded-lg border transition-colors ${
                     visibility[mod.key]
                       ? "bg-background border-border"
-                      : "bg-muted/50 border-border/50 opacity-60"
+                      : "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800"
                   }`}
                   data-testid={`module-row-${mod.key}`}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{mod.label}</span>
-                      <Badge variant="outline" className="text-xs">{mod.price}</Badge>
+                      {visibility[mod.key] ? (
+                        <Badge variant="outline" className="text-xs">{mod.price}</Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Gratuit</Badge>
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">{mod.description}</p>
                   </div>

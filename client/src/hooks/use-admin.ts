@@ -166,3 +166,13 @@ export function isModuleVisible(visibility: Record<string, boolean> | undefined,
   if (!visibility || Object.keys(visibility).length === 0) return true;
   return visibility[moduleKey] !== false;
 }
+
+export function isModuleActivated(visibility: Record<string, boolean> | undefined, moduleKey: string): boolean {
+  if (!visibility || Object.keys(visibility).length === 0) return true;
+  return visibility[moduleKey] !== false;
+}
+
+export function isModuleFree(visibility: Record<string, boolean> | undefined, moduleKey: string): boolean {
+  if (!visibility || Object.keys(visibility).length === 0) return false;
+  return visibility[moduleKey] === false;
+}
