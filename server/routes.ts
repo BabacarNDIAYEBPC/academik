@@ -3330,6 +3330,9 @@ IMPORTANT:
   // Admin status check
   app.get("/api/admin/check", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ isAdmin: false });
+    const userId = getUserId(req);
+    const adminIds = (process.env.SUPER_ADMIN_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
+    console.log("[ADMIN_CHECK] userId:", JSON.stringify(userId), "type:", typeof userId, "adminIds:", JSON.stringify(adminIds), "match:", adminIds.includes(userId));
     res.json({ isAdmin: isSuperAdmin(req) });
   });
 
