@@ -355,18 +355,8 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
     });
     if (items.length > 0) {
       checkout.mutate({ items }, {
-        onSuccess: (data: any) => {
-          if (data.success && !data.url) {
-            toast({ title: "Modules activés", description: "Vos fonctionnalités ont été débloquées." });
-            queryClient.invalidateQueries({ queryKey: ["/api/entitlements"] });
-            queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
-            setSelectedOptions({});
-            setSelectedPacks({});
-            setCoreSelected(false);
-          }
-        },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "Impossible de procéder au paiement", variant: "destructive" });
+          toast({ title: "Erreur de paiement", description: err.message || "Impossible de procéder au paiement. Veuillez réessayer.", variant: "destructive" });
         },
       });
     }

@@ -340,7 +340,11 @@ function PricingSection() {
       if (!isInPack) items.push(key);
     });
     if (items.length > 0) {
-      checkout.mutate({ items });
+      checkout.mutate({ items }, {
+        onError: (err: any) => {
+          toast({ title: "Erreur de paiement", description: err.message || "Impossible de procéder au paiement. Veuillez réessayer.", variant: "destructive" });
+        },
+      });
     }
   };
 

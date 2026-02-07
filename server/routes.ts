@@ -2841,30 +2841,7 @@ IMPORTANT:
 
       const stripeSecretKey = await ensureStripeKey();
       if (!stripeSecretKey) {
-        for (const item of lineItems) {
-          await storage.createPurchase({
-            userId,
-            itemType: pack ? "pack" : (item.key === "core_pack" ? "pack" : "option"),
-            itemKey: item.key,
-            price: item.price,
-            currency: "eur",
-            status: "active",
-          });
-        }
-        const demoProfile = await storage.getProfile(userId);
-        const demoInvoiceNum = await storage.getNextInvoiceNumber();
-        await storage.createInvoice({
-          userId,
-          invoiceNumber: demoInvoiceNum,
-          amount: totalCents,
-          currency: "eur",
-          status: "paid",
-          items: lineItems.map(i => ({ key: i.key, label: i.label, price: i.price })),
-          clientName: demoProfile ? `${demoProfile.firstName || ""} ${demoProfile.lastName || ""}`.trim() : undefined,
-          clientEmail: demoProfile?.email || undefined,
-          paymentMethod: "demo",
-        });
-        return res.json({ success: true, mode: "demo", message: "Fonctionnalités activées (mode démo)" });
+        return res.status(503).json({ message: "Le système de paiement n'est pas configuré. Veuillez contacter l'administrateur." });
       }
 
       const Stripe = (await import("stripe")).default;
@@ -2908,7 +2885,7 @@ IMPORTANT:
 
       const stripeKeyConfirm = await ensureStripeKey();
       if (!stripeKeyConfirm) {
-        return res.json({ success: true, message: "Mode démo" });
+        return res.status(503).json({ message: "Le système de paiement n'est pas configuré." });
       }
 
       const Stripe = (await import("stripe")).default;
@@ -3008,22 +2985,7 @@ IMPORTANT:
 
       const stripeKeySurplusCheckout = await ensureStripeKey();
       if (!stripeKeySurplusCheckout) {
-        await storage.addQuotaSurplus(userId, surplus.type, surplus.amount, surplus.price);
-        const surplusProfile = await storage.getProfile(userId);
-        const surplusInvNum = await storage.getNextInvoiceNumber();
-        await storage.createInvoice({
-          userId,
-          invoiceNumber: surplusInvNum,
-          amount: surplus.price,
-          currency: "eur",
-          status: "paid",
-          items: [{ key: surplusKey, label: surplus.label, price: surplus.price }],
-          clientName: surplusProfile ? `${surplusProfile.firstName || ""} ${surplusProfile.lastName || ""}`.trim() : undefined,
-          clientEmail: surplusProfile?.email || undefined,
-          paymentMethod: "demo",
-        });
-        const updatedQuota = await storage.getQuota(userId);
-        return res.json({ success: true, mode: "demo", quota: updatedQuota, message: "Surplus activé (mode démo)" });
+        return res.status(503).json({ message: "Le système de paiement n'est pas configuré. Veuillez contacter l'administrateur." });
       }
 
       const Stripe = (await import("stripe")).default;
@@ -3472,7 +3434,7 @@ IMPORTANT:
 
       const stripeKeySurplus = await ensureStripeKey();
       if (!stripeKeySurplus) {
-        return res.json({ success: true, message: "Mode démo" });
+        return res.status(503).json({ message: "Le système de paiement n'est pas configuré." });
       }
 
       const Stripe = (await import("stripe")).default;

@@ -16,8 +16,6 @@ export function useCheckout() {
     onSuccess: (data) => {
       if (data.url) {
         window.location.href = data.url;
-      } else if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["/api/entitlements"] });
       }
     },
   });
