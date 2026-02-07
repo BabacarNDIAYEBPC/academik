@@ -192,15 +192,16 @@ export default function ProjectDetails() {
       </div>
 
       <Tabs defaultValue="assistant" className="space-y-8">
-        <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1">
-          <TabsTrigger value="assistant" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-5 rounded-lg transition-all gap-2" data-testid="tab-assistant">
-            <Sparkles className="w-4 h-4" />
-            ASSISTANT Méthodologie
+        <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-full">
+          <TabsTrigger value="assistant" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-assistant">
+            <Sparkles className="w-4 h-4 shrink-0" />
+            <span className="hidden sm:inline">ASSISTANT Méthodologie</span>
+            <span className="sm:hidden">Assistant</span>
           </TabsTrigger>
-          <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-5 rounded-lg transition-all" data-testid="tab-documents">
+          <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-documents">
             Documents
           </TabsTrigger>
-          <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2.5 px-5 rounded-lg transition-all" data-testid="tab-overview">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-overview">
             Paramétrage
           </TabsTrigger>
         </TabsList>
@@ -301,37 +302,39 @@ function AssistantTab({ project }: { project: any }) {
       </div>
 
       <Tabs value={activeModule} onValueChange={setActiveModule}>
-        <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1">
-          {moduleTabs.map(tab => {
-            const Icon = tab.icon;
-            const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
-            const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
-            const hasContent = tabSections.some(s => s.activeVersionId);
-            const isWorkflow = tab.key === "workflow";
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0">
+          <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-max sm:w-auto">
+            {moduleTabs.map(tab => {
+              const Icon = tab.icon;
+              const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
+              const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
+              const hasContent = tabSections.some(s => s.activeVersionId);
+              const isWorkflow = tab.key === "workflow";
 
-            let dotColor = "bg-yellow-400 dark:bg-yellow-500";
-            if (isWorkflow) dotColor = "bg-blue-500";
-            else if (allValidated) dotColor = "bg-green-500";
-            else if (hasContent) dotColor = "bg-yellow-400 dark:bg-yellow-500";
+              let dotColor = "bg-yellow-400 dark:bg-yellow-500";
+              if (isWorkflow) dotColor = "bg-blue-500";
+              else if (allValidated) dotColor = "bg-green-500";
+              else if (hasContent) dotColor = "bg-yellow-400 dark:bg-yellow-500";
 
-            return (
-              <TabsTrigger
-                key={tab.key}
-                value={tab.key}
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 px-4 rounded-lg transition-all gap-2"
-                data-testid={`tab-module-${tab.key}`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-                {allValidated && !isWorkflow ? (
-                  <Check className="w-3 h-3 text-green-500" />
-                ) : (
-                  <div className={`w-2 h-2 rounded-full ${dotColor}`} />
-                )}
-              </TabsTrigger>
-            );
-          })}
-        </TabsList>
+              return (
+                <TabsTrigger
+                  key={tab.key}
+                  value={tab.key}
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+                  data-testid={`tab-module-${tab.key}`}
+                >
+                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                  {tab.label}
+                  {allValidated && !isWorkflow ? (
+                    <Check className="w-3 h-3 text-green-500 shrink-0" />
+                  ) : (
+                    <div className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
+                  )}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </div>
 
         {moduleTabs.map(tab => (
           <TabsContent key={tab.key} value={tab.key} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6">

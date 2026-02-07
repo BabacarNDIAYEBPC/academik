@@ -929,11 +929,11 @@ export default function DataAnalysisModule({
               ))}
             </div>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="space-y-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+              <div className="space-y-1.5 w-full sm:w-auto">
                 <Label>Mode d'analyse</Label>
                 <Select value={analysisMode} onValueChange={setAnalysisMode}>
-                  <SelectTrigger className="w-[250px]" data-testid="select-analysis-mode"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full sm:w-[250px]" data-testid="select-analysis-mode"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="per_interview">Par entretien (puis synthèse)</SelectItem>
                     <SelectItem value="global">Transversale globale</SelectItem>
@@ -1013,11 +1013,11 @@ export default function DataAnalysisModule({
               />
             </div>
 
-            <div className="flex items-center gap-4 flex-wrap">
-              <div className="space-y-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+              <div className="space-y-1.5 w-full sm:w-auto">
                 <Label>Type d'analyse</Label>
                 <Select value={quantitativeType} onValueChange={setQuantitativeType}>
-                  <SelectTrigger className="w-[320px]" data-testid="select-quantitative-type"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-full sm:w-[320px]" data-testid="select-quantitative-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cross_tab">Tableaux croisés dynamiques</SelectItem>
                     <SelectItem value="cross_chart">Graphiques croisés dynamiques</SelectItem>
@@ -1130,7 +1130,7 @@ export default function DataAnalysisModule({
                             value={currentChartType}
                             onValueChange={(val) => setChartTypeOverrides(prev => ({ ...prev, [group.id]: val }))}
                           >
-                            <SelectTrigger className="w-[200px]" data-testid={`select-chart-type-${group.id}`}><SelectValue /></SelectTrigger>
+                            <SelectTrigger className="w-full sm:w-[200px]" data-testid={`select-chart-type-${group.id}`}><SelectValue /></SelectTrigger>
                             <SelectContent>
                               <SelectItem value="bar">Barres groupées</SelectItem>
                               <SelectItem value="stacked">Barres empilées</SelectItem>

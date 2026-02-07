@@ -205,7 +205,7 @@ export default function SectionEditor({
                   {SECTION_STATUS_LABELS[currentStatus] || currentStatus}
                 </Badge>
                 <Select value={currentStatus} onValueChange={handleStatusChange} data-testid={`select-status-${sectionKey}`}>
-                  <SelectTrigger className="w-[200px] h-8 text-xs" data-testid={`trigger-status-${sectionKey}`}>
+                  <SelectTrigger className="w-full sm:w-[200px] h-8 text-xs" data-testid={`trigger-status-${sectionKey}`}>
                     <SelectValue placeholder="Changer le statut" />
                   </SelectTrigger>
                   <SelectContent>
