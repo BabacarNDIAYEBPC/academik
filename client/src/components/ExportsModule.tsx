@@ -145,7 +145,7 @@ export default function ExportsModule({
       {
         onSuccess: async (data) => {
           try {
-            const contentSections = data.content.split("\n---\n\n").filter(Boolean);
+            const contentSections = data.content.split("\n<!--SECTION_BREAK-->\n").filter(Boolean);
             const exportSections: { label: string; content: string }[] = [];
 
             for (const part of contentSections) {

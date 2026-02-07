@@ -646,6 +646,19 @@ function ModuleSections({
         const section = sections.find(s => s.key === key);
         const mergedVars = { ...defaultVars, ...variableOverrides[key] };
 
+        const allSectionKeys = getSectionsForProjectType(project.type);
+        const currentGlobalIndex = allSectionKeys.indexOf(key);
+        const earlierMemoirSection = currentGlobalIndex > 0
+          ? allSectionKeys.slice(0, currentGlobalIndex).find(prevKey => {
+              const prevSec = sections.find(s => s.key === prevKey);
+              const cfg = prevSec?.config as Record<string, any> | undefined;
+              return cfg?.importedMemoir && cfg.importedMemoir.trim().length > 0;
+            })
+          : undefined;
+        const earlierMemoirContent = earlierMemoirSection
+          ? ((sections.find(s => s.key === earlierMemoirSection)?.config as any)?.importedMemoir || "")
+          : "";
+
         return (
           <SingleSectionWrapper
             key={key}
@@ -654,7 +667,7 @@ function ModuleSections({
             projectType={project.type}
             section={section}
             sections={sections}
-            sectionKeys={sectionKeys}
+            sectionKeys={allSectionKeys}
             variables={mergedVars}
             onVariablesChange={(vars) => setVariableOverrides(prev => ({ ...prev, [key]: vars }))}
             filters={filterStates[key] || {}}
@@ -663,6 +676,8 @@ function ModuleSections({
             onCorrectionPromptChange={(v) => setCorrectionPrompts(prev => ({ ...prev, [key]: v }))}
             literatureConfig={key === "literature_review" ? (litConfigs[key] || DEFAULT_LIT_CONFIG) : undefined}
             onLiteratureConfigChange={key === "literature_review" ? (c) => setLitConfigs(prev => ({ ...prev, [key]: c })) : undefined}
+            earlierMemoirSection={earlierMemoirSection}
+            earlierMemoirContent={earlierMemoirContent}
           />
         );
       })}
@@ -685,6 +700,8 @@ function SingleSectionWrapper({
   onCorrectionPromptChange,
   literatureConfig,
   onLiteratureConfigChange,
+  earlierMemoirSection,
+  earlierMemoirContent,
 }: {
   sectionKey: string;
   projectId: number;
@@ -700,6 +717,8 @@ function SingleSectionWrapper({
   onCorrectionPromptChange: (v: string) => void;
   literatureConfig?: LiteratureConfig;
   onLiteratureConfigChange?: (c: LiteratureConfig) => void;
+  earlierMemoirSection?: string;
+  earlierMemoirContent?: string;
 }) {
   const [importedMemoir, setImportedMemoir] = useState("");
   const [memoirLoaded, setMemoirLoaded] = useState(false);
@@ -810,7 +829,7 @@ function SingleSectionWrapper({
     if (correctionPrompt.trim()) {
       ctx += "\n=== INSTRUCTIONS DE L'UTILISATEUR (PRIORITAIRE) ===\n" + correctionPrompt.trim() + "\n";
     }
-    if (importedMemoir.trim()) {
+    if (effectiveMemoir.trim()) {
       ctx += "\n=== CONTENU DU MÉMOIRE IMPORTÉ (DOCUMENT DE RÉFÉRENCE PRIORITAIRE) ===\n";
       ctx += "RÈGLE IMPORTANTE : Ce document importé est le mémoire en cours de l'étudiant. ";
       ctx += "Il fait foi et constitue la source de référence prioritaire. ";
@@ -819,7 +838,7 @@ function SingleSectionWrapper({
       ctx += "c'est le contenu du mémoire importé qui prévaut. ";
       ctx += "Lorsque les deux sources concordent, utilise les deux pour enrichir et approfondir le contenu généré. ";
       ctx += "Adapte ton style, ta structure et ton vocabulaire au mémoire importé.\n\n";
-      ctx += importedMemoir.trim() + "\n";
+      ctx += effectiveMemoir.trim() + "\n";
     }
     return ctx;
   };
@@ -898,7 +917,26 @@ function SingleSectionWrapper({
     return s && (s.status === "validated" || s.status === "generated");
   });
 
-  const memoirField = (
+  const hasEarlierMemoir = !!earlierMemoirSection && !!earlierMemoirContent?.trim();
+
+  const effectiveMemoir = hasEarlierMemoir ? earlierMemoirContent! : importedMemoir;
+
+  const memoirField = hasEarlierMemoir ? (
+    <div className="space-y-2 rounded-md border border-dashed p-4 opacity-70">
+      <div className="flex items-center gap-2 flex-wrap">
+        <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
+        <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+          Mémoire déjà importé
+        </span>
+        <Badge variant="secondary" className="text-xs no-default-hover-elevate no-default-active-elevate">
+          via {SECTION_LABELS[earlierMemoirSection!] || earlierMemoirSection}
+        </Badge>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Votre mémoire a été importé dans une section précédente. L'IA l'utilise automatiquement comme référence pour toutes les sections suivantes. Pour le modifier, retournez à la section « {SECTION_LABELS[earlierMemoirSection!] || earlierMemoirSection} ».
+      </p>
+    </div>
+  ) : (
     <MemoirImportField
       value={importedMemoir}
       onChange={setImportedMemoir}

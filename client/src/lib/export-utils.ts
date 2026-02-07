@@ -1,13 +1,47 @@
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table as DocxTable, TableRow, TableCell, WidthType, BorderStyle } from "docx";
 import { saveAs } from "file-saver";
 
-function markdownToPlainBlocks(markdown: string): { type: "heading1" | "heading2" | "heading3" | "paragraph" | "bullet"; text: string }[] {
-  const lines = markdown.split("\n");
-  const blocks: { type: "heading1" | "heading2" | "heading3" | "paragraph" | "bullet"; text: string }[] = [];
+type BlockType = "heading1" | "heading2" | "heading3" | "paragraph" | "bullet" | "table" | "separator";
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+interface Block {
+  type: BlockType;
+  text: string;
+  tableRows?: string[][];
+}
+
+function isTableSeparatorRow(line: string): boolean {
+  return /^\|[\s-:|]+\|$/.test(line.trim());
+}
+
+function parseTableRow(line: string): string[] {
+  return line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim().replace(/\*\*/g, ""));
+}
+
+function markdownToPlainBlocks(markdown: string): Block[] {
+  const lines = markdown.split("\n");
+  const blocks: Block[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+    if (!trimmed) { i++; continue; }
+
+    if (trimmed.startsWith("|") && i + 1 < lines.length && isTableSeparatorRow(lines[i + 1]?.trim() || "")) {
+      const headerCells = parseTableRow(trimmed);
+      i += 2;
+      const dataRows: string[][] = [headerCells];
+      while (i < lines.length && lines[i].trim().startsWith("|") && !isTableSeparatorRow(lines[i].trim())) {
+        dataRows.push(parseTableRow(lines[i]));
+        i++;
+      }
+      blocks.push({ type: "table", text: "", tableRows: dataRows });
+      continue;
+    }
+
+    if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
+      i++;
+      continue;
+    }
 
     if (trimmed.startsWith("### ")) {
       blocks.push({ type: "heading3", text: trimmed.replace(/^### /, "").replace(/\*\*/g, "") });
@@ -18,15 +52,59 @@ function markdownToPlainBlocks(markdown: string): { type: "heading1" | "heading2
     } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ") || /^\d+\.\s/.test(trimmed)) {
       const bulletText = trimmed.replace(/^[-*]\s/, "").replace(/^\d+\.\s/, "");
       blocks.push({ type: "bullet", text: bulletText.replace(/\*\*/g, "") });
+    } else if (trimmed.startsWith("|")) {
+      const cells = parseTableRow(trimmed);
+      blocks.push({ type: "paragraph", text: cells.join(" | ") });
     } else {
       blocks.push({ type: "paragraph", text: trimmed.replace(/\*\*/g, "") });
     }
+    i++;
   }
 
   return blocks;
 }
 
-function createDocxParagraphs(blocks: { type: string; text: string }[]): Paragraph[] {
+function createDocxTable(rows: string[][]): DocxTable {
+  const isHeader = (idx: number) => idx === 0;
+  const tableBorder = {
+    style: BorderStyle.SINGLE,
+    size: 1,
+    color: "999999",
+  };
+
+  return new DocxTable({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: rows.map((cells, rowIdx) =>
+      new TableRow({
+        children: cells.map(cell =>
+          new TableCell({
+            width: { size: Math.floor(100 / cells.length), type: WidthType.PERCENTAGE },
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: cell,
+                    bold: isHeader(rowIdx),
+                    size: isHeader(rowIdx) ? 20 : 18,
+                  }),
+                ],
+                spacing: { before: 40, after: 40 },
+              }),
+            ],
+            borders: {
+              top: tableBorder,
+              bottom: tableBorder,
+              left: tableBorder,
+              right: tableBorder,
+            },
+          })
+        ),
+      })
+    ),
+  });
+}
+
+function createDocxElements(blocks: Block[]): (Paragraph | DocxTable)[] {
   return blocks.map(block => {
     switch (block.type) {
       case "heading1":
@@ -53,6 +131,14 @@ function createDocxParagraphs(blocks: { type: string; text: string }[]): Paragra
           children: [new TextRun({ text: block.text, size: 22 })],
           spacing: { before: 60, after: 60 },
         });
+      case "table":
+        if (block.tableRows && block.tableRows.length > 0) {
+          return createDocxTable(block.tableRows);
+        }
+        return new Paragraph({
+          children: [new TextRun({ text: block.text, size: 22 })],
+          spacing: { before: 100, after: 100 },
+        });
       default:
         return new Paragraph({
           children: [new TextRun({ text: block.text, size: 22 })],
@@ -68,7 +154,7 @@ export async function exportToWord(
   sections: { label: string; content: string }[],
   filename: string
 ) {
-  const children: Paragraph[] = [
+  const children: (Paragraph | DocxTable)[] = [
     new Paragraph({
       heading: HeadingLevel.TITLE,
       children: [new TextRun({ text: title, bold: true, size: 36 })],
@@ -87,7 +173,7 @@ export async function exportToWord(
     );
 
     const blocks = markdownToPlainBlocks(section.content);
-    children.push(...createDocxParagraphs(blocks));
+    children.push(...createDocxElements(blocks));
   }
 
   const doc = new Document({
@@ -167,40 +253,85 @@ function markdownToHtml(markdown: string): string {
   const lines = markdown.split("\n");
   let html = "";
   let listType: "ul" | "ol" | null = null;
+  let inTable = false;
+  let i = 0;
 
   const closeList = () => {
     if (listType) { html += `</${listType}>`; listType = null; }
   };
 
-  for (const line of lines) {
-    const trimmed = line.trim();
+  const closeTable = () => {
+    if (inTable) { html += `</tbody></table>`; inTable = false; }
+  };
+
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+
     if (!trimmed) {
       closeList();
+      closeTable();
+      i++;
+      continue;
+    }
+
+    if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
+      closeList();
+      closeTable();
+      html += `<hr style="border: none; border-top: 1px solid #ccc; margin: 16px 0;" />`;
+      i++;
+      continue;
+    }
+
+    if (trimmed.startsWith("|") && i + 1 < lines.length && isTableSeparatorRow(lines[i + 1]?.trim() || "")) {
+      closeList();
+      const headerCells = parseTableRow(trimmed);
+      i += 2;
+      html += `<table style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 11px;">`;
+      html += `<thead><tr>`;
+      for (const cell of headerCells) {
+        html += `<th style="border: 1px solid #ccc; padding: 6px 8px; background: #f5f5f5; text-align: left; font-weight: bold;">${formatInline(cell)}</th>`;
+      }
+      html += `</tr></thead><tbody>`;
+      inTable = true;
+      while (i < lines.length && lines[i].trim().startsWith("|") && !isTableSeparatorRow(lines[i].trim())) {
+        const cells = parseTableRow(lines[i]);
+        html += `<tr>`;
+        for (const cell of cells) {
+          html += `<td style="border: 1px solid #ccc; padding: 6px 8px;">${formatInline(cell)}</td>`;
+        }
+        html += `</tr>`;
+        i++;
+      }
+      closeTable();
       continue;
     }
 
     if (trimmed.startsWith("### ")) {
-      closeList();
+      closeList(); closeTable();
       html += `<h4 style="font-size: 14px; margin: 12px 0 6px;">${formatInline(trimmed.slice(4))}</h4>`;
     } else if (trimmed.startsWith("## ")) {
-      closeList();
+      closeList(); closeTable();
       html += `<h3 style="font-size: 15px; margin: 15px 0 8px;">${formatInline(trimmed.slice(3))}</h3>`;
     } else if (trimmed.startsWith("# ")) {
-      closeList();
+      closeList(); closeTable();
       html += `<h2 style="font-size: 16px; margin: 18px 0 10px;">${formatInline(trimmed.slice(2))}</h2>`;
     } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      closeTable();
       if (listType !== "ul") { closeList(); html += '<ul style="margin: 8px 0; padding-left: 20px;">'; listType = "ul"; }
       html += `<li style="font-size: 12px; margin: 4px 0;">${formatInline(trimmed.slice(2))}</li>`;
     } else if (/^\d+\.\s/.test(trimmed)) {
+      closeTable();
       if (listType !== "ol") { closeList(); html += '<ol style="margin: 8px 0; padding-left: 20px;">'; listType = "ol"; }
       html += `<li style="font-size: 12px; margin: 4px 0;">${formatInline(trimmed.replace(/^\d+\.\s/, ""))}</li>`;
     } else {
-      closeList();
+      closeList(); closeTable();
       html += `<p style="font-size: 12px; line-height: 1.6; margin: 6px 0; text-align: justify;">${formatInline(trimmed)}</p>`;
     }
+    i++;
   }
 
   closeList();
+  closeTable();
   return html;
 }
 

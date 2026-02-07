@@ -668,26 +668,19 @@ export async function registerRoutes(
         text = result.value;
       } else if (ext === "pdf") {
         const pdfMod = await import("pdf-parse");
-        const PDFParse = (pdfMod as any).PDFParse || (pdfMod as any).default;
+        const PDFParse = (pdfMod as any).PDFParse;
         if (PDFParse && typeof PDFParse === "function") {
-          try {
-            const parser = new PDFParse({ verbosity: 0 });
-            await parser.load(file.buffer);
-            text = await parser.getText();
-          } catch {
-            const parseFn = (pdfMod as any).default || pdfMod;
-            if (typeof parseFn === "function") {
-              const data = await parseFn(file.buffer);
-              text = data.text;
-            } else {
-              throw new Error("Impossible de parser le PDF avec cette version de pdf-parse");
-            }
-          }
-        } else if (typeof PDFParse === "function") {
-          const data = await PDFParse(file.buffer);
-          text = data.text;
+          const parser = new PDFParse({ data: new Uint8Array(file.buffer) });
+          await parser.load();
+          text = await parser.getText();
         } else {
-          throw new Error("Module pdf-parse non compatible");
+          const parseFn = (pdfMod as any).default || pdfMod;
+          if (typeof parseFn === "function") {
+            const data = await parseFn(file.buffer);
+            text = data.text;
+          } else {
+            throw new Error("Module pdf-parse non compatible");
+          }
         }
       } else if (["txt", "csv", "bib", "md", "rtf"].includes(ext || "")) {
         text = file.buffer.toString("utf-8");
@@ -4095,20 +4088,22 @@ Réponds en JSON:
 
       let exportContent = "";
 
+      const SECTION_SEPARATOR = "\n<!--SECTION_BREAK-->\n";
+
       if (input.includeTableOfContents) {
         exportContent += "# Table des matières\n\n";
         for (const section of sectionsToExport) {
           const label = SECTION_LABELS[section.key] || section.key;
           exportContent += `- ${label}\n`;
         }
-        exportContent += "\n---\n\n";
+        exportContent += SECTION_SEPARATOR;
       }
 
       for (const section of sectionsToExport) {
         const label = SECTION_LABELS[section.key] || section.key;
         const version = await storage.getActiveVersion(section.id);
         const content = version?.content || "_Section non rédigée_";
-        exportContent += `# ${label}\n\n${content}\n\n---\n\n`;
+        exportContent += `# ${label}\n\n${content}${SECTION_SEPARATOR}`;
       }
 
       if (input.includeBibliography) {
@@ -4116,7 +4111,7 @@ Réponds en JSON:
         if (bibSection) {
           const bibVersion = await storage.getActiveVersion(bibSection.id);
           if (bibVersion) {
-            exportContent += `# Bibliographie\n\n${bibVersion.content}\n\n---\n\n`;
+            exportContent += `# Bibliographie\n\n${bibVersion.content}${SECTION_SEPARATOR}`;
           }
         }
       }
