@@ -60,7 +60,15 @@ async function getModuleVisibility(): Promise<Record<string, boolean>> {
   return {};
 }
 
+const ALL_ENTITLEMENT_KEYS = Array.from(new Set(Object.values(SECTION_TO_ENTITLEMENT).flat()));
+
+function isSuperAdminById(userId: string): boolean {
+  const adminIds = (process.env.SUPER_ADMIN_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
+  return adminIds.includes(userId);
+}
+
 async function checkSectionEntitlement(userId: string, sectionKey: string): Promise<boolean> {
+  if (isSuperAdminById(userId)) return true;
   const requirement = SECTION_TO_ENTITLEMENT[sectionKey];
   if (!requirement) return true;
   const keys = Array.isArray(requirement) ? requirement : [requirement];
@@ -3038,6 +3046,9 @@ IMPORTANT:
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (isSuperAdminById(userId)) {
+      return res.json({ entitlements: ALL_ENTITLEMENT_KEYS });
+    }
     const entitlements = await storage.getUserEntitlements(userId);
     res.json({ entitlements });
   });
@@ -3307,8 +3318,7 @@ IMPORTANT:
   // === ADMIN CHECK ===
   function isSuperAdmin(req: any): boolean {
     const userId = getUserId(req);
-    const adminIds = (process.env.SUPER_ADMIN_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
-    return adminIds.includes(userId);
+    return isSuperAdminById(userId);
   }
 
   function requireAdmin(req: any, res: any): boolean {
