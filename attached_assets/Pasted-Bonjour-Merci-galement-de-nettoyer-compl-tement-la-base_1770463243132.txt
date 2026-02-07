@@ -1,0 +1,126 @@
+Bonjour,
+
+Merci également de **nettoyer complètement la base de données côté SuperAdmin** afin d’avoir des données fiables et exploitables.
+
+👉 L’objectif est le suivant :
+
+---
+
+### 1. Nettoyage de la base SuperAdmin
+
+* Supprimer ou exclure tous les comptes de test, comptes techniques, doublons ou données parasites
+* Ne conserver que les **utilisateurs réels**
+* Ne pas afficher d’utilisateurs qui n’ont effectué **aucun paiement valide**
+
+---
+
+### 2. Affichage des utilisateurs réellement payants
+
+Dans l’interface SuperAdmin, il faut :
+
+* Afficher **uniquement les utilisateurs ayant réellement payé**
+* Associer chaque utilisateur à ses **paiements effectifs**
+* Exclure les faux statuts « payé » ou les paiements incomplets
+
+👉 Par exemple :
+**Babacar** a effectué un paiement réel → il doit apparaître clairement comme **utilisateur payant** dans les statistiques.
+
+---
+
+### 3. Statistiques réelles et fiables
+
+Les statistiques doivent refléter **la réalité business**, notamment :
+
+* Nombre réel d’utilisateurs payants
+* Paiements effectivement encaissés
+* Modules réellement achetés par utilisateur
+* Correspondance claire entre paiement, accès et statut utilisateur
+
+Il est essentiel que :
+
+* Le SuperAdmin ne montre **que des données propres**
+* Les chiffres affichés correspondent aux **paiements réels**
+* Les décisions puissent être prises sur des statistiques fiables
+
+Merci de procéder à ce nettoyage afin que la partie SuperAdmin reflète la réalité des paiements et de l’usage de la plateforme.
+
+---
+
+Je souhaite également préciser un point **fondamental** concernant la section **Collecte**, qui nécessite une correction structurelle et fonctionnelle.
+
+---
+
+### 4. Scinder la section Collecte en deux modules distincts
+
+La section **Collecte** doit être **clairement scindée en deux sections indépendantes** :
+
+* **Questionnaire**
+* **Guide d’entretien**
+
+Chaque section doit :
+
+* Avoir son **propre statut (payé / non payé)**
+* Être **activée ou grisée indépendamment**, selon le paiement
+* Se comporter comme les autres modules payants de la plateforme
+
+---
+
+### 5. Problème actuel dans le module Questionnaire
+
+Actuellement, dans **Questionnaire**, le système :
+
+* Ne fournit pas le **formulaire de questionnaire**
+* Génère des **réponses inventées**
+* Produit un **résumé de questionnaire en tableau**, ce qui n’est pas attendu à ce stade
+
+👉 **Ce comportement est incorrect.**
+
+---
+
+### 6. Comportement attendu – Questionnaire
+
+Le module **Questionnaire** doit uniquement produire :
+
+* Le **questionnaire lui-même**
+* **Uniquement les questions**
+* En fonction des **types de questions sélectionnés** (ouverte, fermée, échelle, etc.)
+* Un **document Word**
+* **Bien designé, propre, clair et professionnel**
+
+Il ne doit y avoir :
+
+* ❌ Aucune réponse inventée
+* ❌ Aucun résumé
+* ❌ Aucun tableau d’analyse
+
+👉 À ce stade, on est dans la **collecte**, pas dans l’analyse.
+
+---
+
+### 7. Même logique pour le Guide d’entretien
+
+Le module **Guide d’entretien** doit suivre **exactement la même logique** :
+
+* Générer **uniquement le guide d’entretien**
+* Contenir **uniquement les questions**
+* Fournir un **document Word bien structuré et designé**
+* Ne générer **aucune réponse**, **aucune synthèse**, **aucune interprétation**
+
+---
+
+### 8. Logique globale à respecter
+
+* **Collecte = outils de recueil de données**
+* **Pas d’analyse**
+* **Pas de réponses générées**
+* **Pas de tableaux de synthèse**
+* Les réponses, analyses et résumés doivent intervenir **uniquement dans les modules Analyse / Rédaction**, lorsqu’ils sont payés
+
+Merci de corriger ces points afin que :
+
+* La structure des modules soit claire
+* Le parcours utilisateur soit cohérent
+* Les livrables correspondent à la logique académique réelle
+
+Cordialement,
+Babacar Ndiaye
