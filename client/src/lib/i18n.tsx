@@ -558,6 +558,8 @@ const translations = {
     contextualMemoryHint: { fr: "Les sections validées alimentent la mémoire contextuelle pour les générations suivantes.", en: "Validated sections feed the contextual memory for subsequent generations." },
     allSectionsValidated: { fr: "Toutes les sections sont validées", en: "All sections are validated" },
     lockedLabel: { fr: "Verrouillé", en: "Locked" },
+    moduleLockedMessage: { fr: "Ce module nécessite une activation. Rendez-vous dans l'espace facturation pour y accéder.", en: "This module requires activation. Go to the billing page to access it." },
+    goToBilling: { fr: "Voir les options", en: "View options" },
     workflowOverviewTitle: { fr: "Vue d'ensemble du workflow", en: "Workflow Overview" },
     workflowOverviewDesc: { fr: "Suivi global de l'avancement et historique consolidé de toutes les sections.", en: "Overall progress tracking and consolidated history of all sections." },
     sectionsWritten: { fr: "Sections rédigées", en: "Sections written" },

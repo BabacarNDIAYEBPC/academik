@@ -1,6 +1,6 @@
 import Layout from "@/components/Layout";
 import { SEO } from "@/components/SEO";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
 import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined, useProjectStatusHistory } from "@/hooks/use-sections";
@@ -268,6 +268,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 function AssistantTab({ project }: { project: any }) {
   const { t } = useI18n();
+  const [, navigate] = useLocation();
   const { data: sections, isLoading: sectionsLoading } = useSections(project.id);
   const { data: entData } = useEntitlements();
   const { data: moduleVis } = useModuleVisibility();
@@ -328,9 +329,10 @@ function AssistantTab({ project }: { project: any }) {
                 <TabsTrigger
                   key={tab.key}
                   value={tab.key}
+                  disabled={tabLocked}
                   className={`py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap ${
                     tabLocked
-                      ? "opacity-50 cursor-not-allowed"
+                      ? ""
                       : "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                   }`}
                   data-testid={`tab-module-${tab.key}`}
@@ -354,21 +356,34 @@ function AssistantTab({ project }: { project: any }) {
           </TabsList>
         </div>
 
-        {moduleTabs.map(tab => (
-          <TabsContent key={tab.key} value={tab.key} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6">
-            {tab.key === "workflow" ? (
-              <WorkflowOverview project={project} sections={sections || []} />
-            ) : sectionsLoading ? (
-              <Skeleton className="h-48 w-full" />
-            ) : (
-              <ModuleSections
-                project={project}
-                sectionKeys={tab.sectionKeys}
-                sections={sections || []}
-              />
-            )}
-          </TabsContent>
-        ))}
+        {moduleTabs.map(tab => {
+          const tabLocked = isTabLocked(tab);
+          return (
+            <TabsContent key={tab.key} value={tab.key} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6">
+              {tabLocked ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-12 text-center gap-4">
+                    <Lock className="w-10 h-10 text-muted-foreground" />
+                    <p className="text-muted-foreground max-w-md">{t("project.moduleLockedMessage")}</p>
+                    <Button variant="default" onClick={() => navigate("/billing")} data-testid="button-go-to-billing">
+                      {t("project.goToBilling")}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : tab.key === "workflow" ? (
+                <WorkflowOverview project={project} sections={sections || []} />
+              ) : sectionsLoading ? (
+                <Skeleton className="h-48 w-full" />
+              ) : (
+                <ModuleSections
+                  project={project}
+                  sectionKeys={tab.sectionKeys}
+                  sections={sections || []}
+                />
+              )}
+            </TabsContent>
+          );
+        })}
       </Tabs>
     </div>
   );
