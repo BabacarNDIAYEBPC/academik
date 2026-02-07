@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useAdminCheck } from "@/hooks/use-admin";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, Users, Package, CreditCard, Settings2, FileText, BarChart3, Bell } from "lucide-react";
+import { Loader2, ArrowLeft, Users, Package, CreditCard, Settings2, FileText, BarChart3, Bell, Blocks } from "lucide-react";
 import AdminUsers from "@/components/admin/AdminUsers";
 import AdminPlans from "@/components/admin/AdminPlans";
 import AdminPayments from "@/components/admin/AdminPayments";
@@ -11,10 +11,12 @@ import AdminAISettings from "@/components/admin/AdminAISettings";
 import AdminLogs from "@/components/admin/AdminLogs";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 import AdminDunning from "@/components/admin/AdminDunning";
+import AdminModules from "@/components/admin/AdminModules";
 
 const TABS = [
   { key: "dashboard", label: "Tableau de bord", icon: BarChart3 },
   { key: "users", label: "Utilisateurs", icon: Users },
+  { key: "modules", label: "Modules", icon: Blocks },
   { key: "plans", label: "Offres", icon: Package },
   { key: "payments", label: "Paiements", icon: CreditCard },
   { key: "dunning", label: "Relances", icon: Bell },
@@ -125,6 +127,7 @@ export default function Admin() {
 
           {activeTab === "dashboard" && <AdminDashboard />}
           {activeTab === "users" && <AdminUsers />}
+          {activeTab === "modules" && <AdminModules />}
           {activeTab === "plans" && <AdminPlans />}
           {activeTab === "payments" && <AdminPayments />}
           {activeTab === "dunning" && <AdminDunning />}

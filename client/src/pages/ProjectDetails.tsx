@@ -4,6 +4,7 @@ import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
 import { useSections, useSectionVersions, useValidatedContents, useGenerateCombined, useProjectStatusHistory } from "@/hooks/use-sections";
 import { useEntitlements, useCheckout, SECTION_TO_ENTITLEMENT, hasEntitlement, isSectionLocked, getSectionEntitlementKey } from "@/hooks/use-entitlements";
+import { useModuleVisibility, isModuleVisible } from "@/hooks/use-admin";
 import { useI18n } from "@/lib/i18n";
 import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
@@ -92,8 +93,17 @@ function getSectionsForProjectType(projectType: string): string[] {
   }
 }
 
-function getModuleTabs(projectType: string) {
-  const sections = getSectionsForProjectType(projectType);
+function isSectionVisibleByModule(sectionKey: string, moduleVis: Record<string, boolean> | undefined): boolean {
+  if (!moduleVis || Object.keys(moduleVis).length === 0) return true;
+  const entKey = SECTION_TO_ENTITLEMENT[sectionKey];
+  if (!entKey) return true;
+  const keys = Array.isArray(entKey) ? entKey : [entKey];
+  return keys.some(k => moduleVis[k] !== false);
+}
+
+function getModuleTabs(projectType: string, moduleVis?: Record<string, boolean>) {
+  const allSections = getSectionsForProjectType(projectType);
+  const sections = allSections.filter(s => isSectionVisibleByModule(s, moduleVis));
   const tabs: { key: string; label: string; icon: any; sectionKeys: string[] }[] = [];
 
   const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "vae_competencies"].includes(s));
@@ -289,7 +299,8 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 function AssistantTab({ project }: { project: any }) {
   const { data: sections, isLoading: sectionsLoading } = useSections(project.id);
   const { data: entData } = useEntitlements();
-  const moduleTabs = useMemo(() => getModuleTabs(project.type), [project.type]);
+  const { data: moduleVis } = useModuleVisibility();
+  const moduleTabs = useMemo(() => getModuleTabs(project.type, moduleVis), [project.type, moduleVis]);
   const [activeModule, setActiveModule] = useState(moduleTabs[0]?.key || "foundations");
 
   const isTabLocked = useCallback((tab: { sectionKeys: string[] }) => {
@@ -303,8 +314,9 @@ function AssistantTab({ project }: { project: any }) {
     return { section };
   };
 
-  const validatedCount = sections?.filter((s: ProjectSection) => s.status === "validated").length || 0;
-  const totalSections = getSectionsForProjectType(project.type).length;
+  const visibleSections = getSectionsForProjectType(project.type).filter(s => isSectionVisibleByModule(s, moduleVis));
+  const validatedCount = sections?.filter((s: ProjectSection) => s.status === "validated" && visibleSections.includes(s.key)).length || 0;
+  const totalSections = visibleSections.length;
 
   return (
     <div className="space-y-6">

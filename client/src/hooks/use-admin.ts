@@ -154,3 +154,15 @@ export function useAdminPayments() {
     queryKey: ["/api/admin/payments"],
   });
 }
+
+export function useModuleVisibility() {
+  return useQuery<Record<string, boolean>>({
+    queryKey: ["/api/modules/visibility"],
+    staleTime: 60 * 1000,
+  });
+}
+
+export function isModuleVisible(visibility: Record<string, boolean> | undefined, moduleKey: string): boolean {
+  if (!visibility || Object.keys(visibility).length === 0) return true;
+  return visibility[moduleKey] !== false;
+}

@@ -3008,6 +3008,20 @@ IMPORTANT:
     res.json({ hasKey: !!(profile as any)?.openaiApiKey });
   });
 
+  // === MODULE VISIBILITY (public) ===
+  app.get("/api/modules/visibility", async (req, res) => {
+    try {
+      const setting = await storage.getAdminSetting("module_visibility");
+      if (setting && typeof setting === "object") {
+        res.json(setting);
+      } else {
+        res.json({});
+      }
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // === ENTITLEMENTS ===
   app.get("/api/entitlements", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });

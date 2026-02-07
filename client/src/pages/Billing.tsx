@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuota, useSurplusPurchase, useConfirmSurplus, getQuotaPercentage, isQuotaExceeded } from "@/hooks/use-quota";
 import { useEntitlements, useCheckout, useConfirmPayment, hasEntitlement } from "@/hooks/use-entitlements";
+import { useModuleVisibility, isModuleVisible } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -317,7 +318,9 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
   const [corePackSelected, setCorePackSelected] = useState(false);
   const checkout = useCheckout();
   const { toast } = useToast();
+  const { data: moduleVis } = useModuleVisibility();
 
+  const visibleCoreModules = CORE_MODULES.filter(m => isModuleVisible(moduleVis, m.key));
   const coreOwned = CORE_ENTITLEMENTS.every(e => hasEntitlement(entitlements, e));
 
   const isItemOwned = (key: string): boolean => {
@@ -417,14 +420,17 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
   const coreTotal = corePackSelected && !coreOwned ? CORE_PACK_PRICE : selectedCoreModulesTotal;
   const total = coreTotal + optionsTotal + packsTotal;
 
+  const filterItems = (items: typeof OPTION_CATALOG.collecte) =>
+    items.filter(item => isModuleVisible(moduleVis, item.key));
+
   const categories: { catKey: string; title: string; icon: any; items: typeof OPTION_CATALOG.collecte; packKey?: string }[] = [
-    { catKey: "collecte", title: "Collecte de données", icon: Mic, items: OPTION_CATALOG.collecte, packKey: "pack_collecte" },
-    { catKey: "analyse", title: "Analyse de données", icon: BarChart3, items: OPTION_CATALOG.analyse, packKey: "pack_analyse" },
-    { catKey: "revue", title: "Revue & Bibliographie", icon: Search, items: OPTION_CATALOG.revue, packKey: "pack_revue" },
-    { catKey: "soutenance", title: "Soutenance & Audit", icon: Presentation, items: OPTION_CATALOG.soutenance, packKey: "pack_soutenance" },
-    { catKey: "confort", title: "Confort & Export", icon: FileCheck, items: OPTION_CATALOG.confort },
-    { catKey: "ia", title: "Quotas IA", icon: BrainCircuit, items: OPTION_CATALOG.ia },
-  ];
+    { catKey: "collecte", title: "Collecte de données", icon: Mic, items: filterItems(OPTION_CATALOG.collecte), packKey: "pack_collecte" },
+    { catKey: "analyse", title: "Analyse de données", icon: BarChart3, items: filterItems(OPTION_CATALOG.analyse), packKey: "pack_analyse" },
+    { catKey: "revue", title: "Revue & Bibliographie", icon: Search, items: filterItems(OPTION_CATALOG.revue), packKey: "pack_revue" },
+    { catKey: "soutenance", title: "Soutenance & Audit", icon: Presentation, items: filterItems(OPTION_CATALOG.soutenance), packKey: "pack_soutenance" },
+    { catKey: "confort", title: "Confort & Export", icon: FileCheck, items: filterItems(OPTION_CATALOG.confort) },
+    { catKey: "ia", title: "Quotas IA", icon: BrainCircuit, items: filterItems(OPTION_CATALOG.ia) },
+  ].filter(cat => cat.items.length > 0);
 
   return (
     <Card data-testid="card-upgrade-modules">
@@ -492,7 +498,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
               <span className="bg-background px-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">ou achetez à l'unité</span>
             </div>
             <div className="border rounded-lg p-4 pt-5 space-y-2">
-              {CORE_MODULES.map((mod) => {
+              {visibleCoreModules.map((mod) => {
                 const owned = isItemOwned(mod.key);
                 const inPack = corePackSelected;
                 return (

@@ -45,7 +45,8 @@ The application follows a client-server architecture.
 - DB tables: plans, admin_settings, audit_logs, ai_logs
 - API prefix: /api/admin/* (all protected by isSuperAdmin middleware)
 - Frontend: Admin.tsx with tabbed layout (Dashboard, Users, Plans, Payments, AI, Logs)
-- Components: client/src/components/admin/ (AdminDashboard, AdminUsers, AdminPlans, AdminPayments, AdminAISettings, AdminLogs)
+- Module Visibility: Admin can toggle visibility of 25 modules across 7 categories (core, collecte, analyse, revue, production, soutenance, ia). Disabled modules are hidden from ProjectDetails tabs, Billing page options, and Landing page pricing. Stored as JSON in admin_settings (key: "module_visibility"). Public API: GET /api/modules/visibility. Defaults to all visible when no settings exist.
+- Components: client/src/components/admin/ (AdminDashboard, AdminUsers, AdminPlans, AdminPayments, AdminAISettings, AdminLogs, AdminModules)
 
 ## External Dependencies
 -   **OpenAI**: Used for AI content generation.

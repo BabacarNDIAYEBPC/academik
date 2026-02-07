@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useI18n, LanguageSelector } from "@/lib/i18n";
 import { useCheckout, useConfirmPayment } from "@/hooks/use-entitlements";
+import { useModuleVisibility, isModuleVisible } from "@/hooks/use-admin";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -288,6 +289,7 @@ function PricingSection() {
   const checkout = useCheckout();
   const confirmPayment = useConfirmPayment();
   const { toast } = useToast();
+  const { data: moduleVis } = useModuleVisibility();
   const [coreSelected, setCoreSelected] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, boolean>>({});
   const [selectedPacks, setSelectedPacks] = useState<Record<string, boolean>>({});
@@ -369,14 +371,17 @@ function PricingSection() {
 
   const total = (coreSelected ? CORE_PACK_PRICE : 0) + optionsTotal + packsTotal;
 
+  const filterItems = (items: typeof OPTION_CATALOG.collecte) =>
+    items.filter(item => isModuleVisible(moduleVis, item.key));
+
   const categories: { catKey: string; titleKey: string; icon: any; items: typeof OPTION_CATALOG.collecte; packKey?: string }[] = [
-    { catKey: "collecte", titleKey: "pricing.catCollecte", icon: Mic, items: OPTION_CATALOG.collecte, packKey: "pack_collecte" },
-    { catKey: "analyse", titleKey: "pricing.catAnalyse", icon: BarChart3, items: OPTION_CATALOG.analyse, packKey: "pack_analyse" },
-    { catKey: "revue", titleKey: "pricing.catRevue", icon: Search, items: OPTION_CATALOG.revue, packKey: "pack_revue" },
-    { catKey: "soutenance", titleKey: "pricing.catSoutenance", icon: Presentation, items: OPTION_CATALOG.soutenance, packKey: "pack_soutenance" },
-    { catKey: "confort", titleKey: "pricing.catConfort", icon: FileCheck, items: OPTION_CATALOG.confort },
-    { catKey: "ia", titleKey: "pricing.catIA", icon: BrainCircuit, items: OPTION_CATALOG.ia },
-  ];
+    { catKey: "collecte", titleKey: "pricing.catCollecte", icon: Mic, items: filterItems(OPTION_CATALOG.collecte), packKey: "pack_collecte" },
+    { catKey: "analyse", titleKey: "pricing.catAnalyse", icon: BarChart3, items: filterItems(OPTION_CATALOG.analyse), packKey: "pack_analyse" },
+    { catKey: "revue", titleKey: "pricing.catRevue", icon: Search, items: filterItems(OPTION_CATALOG.revue), packKey: "pack_revue" },
+    { catKey: "soutenance", titleKey: "pricing.catSoutenance", icon: Presentation, items: filterItems(OPTION_CATALOG.soutenance), packKey: "pack_soutenance" },
+    { catKey: "confort", titleKey: "pricing.catConfort", icon: FileCheck, items: filterItems(OPTION_CATALOG.confort) },
+    { catKey: "ia", titleKey: "pricing.catIA", icon: BrainCircuit, items: filterItems(OPTION_CATALOG.ia) },
+  ].filter(cat => cat.items.length > 0);
 
   const coreIncludes = tArray("pricing.corePackIncludes");
 
