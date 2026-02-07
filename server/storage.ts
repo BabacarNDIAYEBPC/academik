@@ -543,13 +543,19 @@ export class DatabaseStorage implements IStorage {
       const quota = await this.getQuota(u.id);
       const projectCount = await this.getActiveProjectCount(u.id);
       const purchases = await this.getUserPurchases(u.id);
+      const activePurchases = purchases.filter((p: any) => p.status === "active");
+      const totalPaid = activePurchases.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
+      const purchaseItems = activePurchases.map((p: any) => p.itemKey);
       enriched.push({
         ...u,
         profile,
         quota,
         projectCount,
-        purchaseCount: purchases.length,
-        status: purchases.length > 0 ? "paid" : "trial",
+        purchases: activePurchases,
+        purchaseCount: activePurchases.length,
+        purchaseItems,
+        totalPaid,
+        status: activePurchases.length > 0 ? "paid" : "trial",
       });
     }
     return enriched;

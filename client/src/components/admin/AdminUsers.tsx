@@ -7,7 +7,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { useAdminUsers, useAddCredits, useUpdateUserQuota } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Download, Plus, Edit, Loader2, User } from "lucide-react";
+import { Search, Download, Plus, Edit, Loader2, User, ShieldCheck, CreditCard } from "lucide-react";
+
+const ITEM_LABELS: Record<string, string> = {
+  core_pack: "Pack Fondations",
+  pack_collecte: "Pack Collecte",
+  pack_analyse: "Pack Analyse",
+  pack_revue: "Pack Revue",
+  pack_soutenance: "Pack Soutenance",
+  questionnaire: "Questionnaire",
+  guide_entretien: "Guide d'entretien",
+  simulation_entretien: "Simulation",
+  analyse_qualitative: "Analyse Quali",
+  analyse_quantitative: "Analyse Quanti",
+  biblio_multinormes: "Bibliographie",
+  export_illimite: "Export illimité",
+  soutenance_ppt: "PPT Soutenance",
+  soutenance_simulation: "Simulation Soutenance",
+  audit: "Audit mémoire",
+};
 
 export default function AdminUsers() {
   const [search, setSearch] = useState("");
@@ -23,6 +41,8 @@ export default function AdminUsers() {
 
   const [quotaDialog, setQuotaDialog] = useState<any>(null);
   const [quotaForm, setQuotaForm] = useState<any>({});
+
+  const [detailDialog, setDetailDialog] = useState<any>(null);
 
   let searchTimeout: any;
   const handleSearch = (value: string) => {
@@ -105,54 +125,87 @@ export default function AdminUsers() {
                     <th className="text-left p-3 font-medium">Utilisateur</th>
                     <th className="text-left p-3 font-medium">Email</th>
                     <th className="text-left p-3 font-medium">Statut</th>
+                    <th className="text-left p-3 font-medium">Modules achetés</th>
+                    <th className="text-right p-3 font-medium">Montant payé</th>
                     <th className="text-left p-3 font-medium">Projets</th>
-                    <th className="text-left p-3 font-medium">Mots</th>
-                    <th className="text-left p-3 font-medium">Actions IA</th>
                     <th className="text-left p-3 font-medium">Inscription</th>
                     <th className="text-left p-3 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users?.map((u: any) => (
-                    <tr key={u.id} className="border-b hover-elevate" data-testid={`row-user-${u.id}`}>
-                      <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-muted-foreground" />
-                          <span>{u.firstName || ""} {u.lastName || ""}</span>
-                        </div>
-                      </td>
-                      <td className="p-3 text-muted-foreground">{u.email || "-"}</td>
-                      <td className="p-3">
-                        <Badge variant={u.status === "paid" ? "default" : "secondary"}>
-                          {u.status === "paid" ? "Payant" : "Essai"}
-                        </Badge>
-                      </td>
-                      <td className="p-3">{u.projectCount}</td>
-                      <td className="p-3">{u.quota?.wordsUsed || 0} / {u.quota?.wordsLimit || 0}</td>
-                      <td className="p-3">{u.quota?.actionsUsed || 0} / {u.quota?.actionsLimit || 0}</td>
-                      <td className="p-3 text-muted-foreground">{u.createdAt ? new Date(u.createdAt).toLocaleDateString("fr-FR") : "-"}</td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setCreditsDialog({ userId: u.id, name: `${u.firstName || ""} ${u.lastName || ""}` })}
-                            data-testid={`button-add-credits-${u.id}`}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => openQuotaDialog(u)}
-                            data-testid={`button-edit-quota-${u.id}`}
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {users?.map((u: any) => {
+                    const totalPaid = (u.totalPaid || 0);
+                    const purchaseItems = u.purchaseItems || [];
+                    return (
+                      <tr key={u.id} className="border-b hover-elevate" data-testid={`row-user-${u.id}`}>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-muted-foreground" />
+                            <span className="font-medium">{u.firstName || ""} {u.lastName || ""}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-muted-foreground">{u.email || "-"}</td>
+                        <td className="p-3">
+                          {u.status === "paid" ? (
+                            <Badge variant="default">
+                              <ShieldCheck className="w-3 h-3 mr-1" />
+                              Payant
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary">Essai</Badge>
+                          )}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex flex-wrap gap-1">
+                            {purchaseItems.length > 0 ? purchaseItems.map((item: string, i: number) => (
+                              <Badge key={i} variant="outline" className="text-xs">
+                                {ITEM_LABELS[item] || item}
+                              </Badge>
+                            )) : (
+                              <span className="text-muted-foreground text-xs">-</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-3 text-right font-medium">
+                          {totalPaid > 0 ? (
+                            <span className="text-green-600 dark:text-green-400">{(totalPaid / 100).toFixed(2)} &euro;</span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+                        <td className="p-3">{u.projectCount}</td>
+                        <td className="p-3 text-muted-foreground">{u.createdAt ? new Date(u.createdAt).toLocaleDateString("fr-FR") : "-"}</td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setDetailDialog(u)}
+                              data-testid={`button-details-${u.id}`}
+                            >
+                              <CreditCard className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setCreditsDialog({ userId: u.id, name: `${u.firstName || ""} ${u.lastName || ""}` })}
+                              data-testid={`button-add-credits-${u.id}`}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => openQuotaDialog(u)}
+                              data-testid={`button-edit-quota-${u.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {(!users || users.length === 0) && (
                     <tr><td colSpan={8} className="p-6 text-center text-muted-foreground">Aucun utilisateur</td></tr>
                   )}
@@ -162,6 +215,46 @@ export default function AdminUsers() {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={!!detailDialog} onOpenChange={() => setDetailDialog(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Détails — {detailDialog?.firstName} {detailDialog?.lastName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="text-muted-foreground">Email</div>
+              <div>{detailDialog?.email || "-"}</div>
+              <div className="text-muted-foreground">Inscription</div>
+              <div>{detailDialog?.createdAt ? new Date(detailDialog.createdAt).toLocaleDateString("fr-FR") : "-"}</div>
+              <div className="text-muted-foreground">Statut</div>
+              <div>{detailDialog?.status === "paid" ? "Payant" : "Essai"}</div>
+              <div className="text-muted-foreground">Projets actifs</div>
+              <div>{detailDialog?.projectCount || 0}</div>
+              <div className="text-muted-foreground">Mots utilisés</div>
+              <div>{detailDialog?.quota?.wordsUsed || 0} / {detailDialog?.quota?.wordsLimit || 0}</div>
+              <div className="text-muted-foreground">Actions IA</div>
+              <div>{detailDialog?.quota?.actionsUsed || 0} / {detailDialog?.quota?.actionsLimit || 0}</div>
+            </div>
+            {detailDialog?.purchases && detailDialog.purchases.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-base font-semibold">Achats effectués</Label>
+                <div className="space-y-1">
+                  {detailDialog.purchases.map((p: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-sm border rounded-md p-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">{ITEM_LABELS[p.itemKey] || p.itemKey}</Badge>
+                        <span className="text-muted-foreground">{p.createdAt ? new Date(p.createdAt).toLocaleDateString("fr-FR") : ""}</span>
+                      </div>
+                      <span className="font-medium">{(p.price / 100).toFixed(2)} &euro;</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!creditsDialog} onOpenChange={() => setCreditsDialog(null)}>
         <DialogContent>

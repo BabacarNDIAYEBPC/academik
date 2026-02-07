@@ -38,7 +38,8 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   theoretical_framework: "conceptual",
   literature_review: "literature",
   methodology: "methodology",
-  data_collection: ["questionnaire", "guide_entretien"],
+  questionnaire: "questionnaire",
+  guide_entretien: "guide_entretien",
   interview_simulation: "simulation_entretien",
   data_analysis: ["analyse_qualitative", "analyse_quantitative"],
   assisted_writing: "redaction",
@@ -1889,7 +1890,7 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const hasAccess = await checkSectionEntitlement(userId, "data_collection");
+    const hasAccess = await checkSectionEntitlement(userId, "questionnaire");
     if (!hasAccess) {
       return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
     }
@@ -1917,7 +1918,7 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
 
       const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
 
-      const taskPrompt = `=== TÂCHE: GÉNÉRATION D'UN QUESTIONNAIRE STRUCTURÉ ===
+      const taskPrompt = `=== TÂCHE: GÉNÉRATION D'UN QUESTIONNAIRE DE COLLECTE DE DONNÉES ===
 
 Configuration demandée:
 - Type de questionnaire: ${config.questionnaireType}
@@ -1927,51 +1928,54 @@ Configuration demandée:
 - Profil du répondant: ${config.respondentProfile}
 ${config.instructions ? `- Instructions spécifiques: ${config.instructions}` : ""}
 
-Génère un questionnaire complet et structuré en respectant les règles suivantes:
+OBJECTIF: Génère UNIQUEMENT un questionnaire prêt à être distribué aux répondants. Ce document doit être propre, professionnel et directement utilisable (imprimable ou envoyable).
 
-**PARTIE 1 — QUESTIONNAIRE**
+STRUCTURE DU QUESTIONNAIRE:
 
-Structure obligatoire:
-1. **Section A — Profil du répondant**
-   - Variables sociodémographiques pertinentes (âge, genre, ancienneté, fonction, structure, etc.)
-   - Adapte au profil cible: ${config.respondentProfile}
+**EN-TÊTE**
+- Titre du questionnaire (en lien avec le sujet de recherche)
+- Sous-titre: "Questionnaire à destination de : ${config.respondentProfile}"
+- Durée estimée: ${config.targetDuration}
+- Mention de confidentialité: "Les données recueillies sont strictement anonymes et confidentielles. Elles seront utilisées uniquement dans le cadre de cette recherche."
+- Consigne de remplissage claire et concise
 
-2. **Section B — Contexte et pratiques**
-   - Questions contextuelles liées au sujet de recherche
-   - Permettent de situer le répondant dans son environnement professionnel
+**SECTION 1 — Informations générales**
+- Questions sur le profil sociodémographique du répondant (âge, genre, ancienneté, fonction, structure, etc.)
+- Adaptées au profil cible: ${config.respondentProfile}
+- Utilise des formats adaptés (choix unique, choix multiples)
 
-3. **Section C — Items par hypothèse**
-   - Pour CHAQUE hypothèse (H1, H2, H3):
-     - Sous-section dédiée avec titre explicite
-     - Questions mesurant les indicateurs de l'hypothèse
-     - Variété de formats: ${config.questionFormats.join(", ")}
-     - Chaque question doit mesurer UN indicateur précis
+**SECTION 2 — Contexte professionnel**
+- Questions permettant de situer le répondant dans son environnement
+- En lien avec le sujet de recherche
 
-4. **Section D — Conclusion**
-   - Question ouverte finale
-   - Remerciements
+**SECTIONS SUIVANTES — Questions thématiques**
+- Organise les questions par thème ou axe de recherche
+- Pour chaque section thématique, donne un titre clair
+- Répartis ${config.questionCount} questions selon les formats demandés: ${config.questionFormats.join(", ")}
+- Chaque question doit être numérotée (Q1, Q2, Q3...)
 
-Pour CHAQUE question, indique:
-- **ID**: Q1, Q2, Q3... (numérotation continue)
-- **Type**: ${config.questionFormats.join(" / ")}
-- **Hypothèse liée**: H1, H2, H3 ou "Profil"
-- **Indicateur mesuré**: l'indicateur précis que cette question permet de mesurer
-- **Modalités de réponse**: les options proposées (échelle de Likert, choix multiples, texte libre, etc.)
+**SECTION FINALE — Question ouverte et remerciements**
+- Une question ouverte finale (ex: "Souhaitez-vous ajouter un commentaire ?")
+- Remerciements au répondant
 
-**PARTIE 2 — TABLEAU DE TRAÇABILITÉ**
+POUR CHAQUE QUESTION, FOURNIS UNIQUEMENT:
+- Le numéro (Q1, Q2, etc.)
+- L'énoncé de la question (clair, neutre, sans biais)
+- Les modalités de réponse (cases à cocher, échelle, espace de texte)
+  - Pour les échelles de Likert: écris toutes les options (ex: Pas du tout d'accord / Plutôt pas d'accord / Neutre / Plutôt d'accord / Tout à fait d'accord)
+  - Pour les choix multiples: liste toutes les options proposées
+  - Pour les questions ouvertes: indique "Réponse libre"
 
-Génère un tableau de traçabilité au format Markdown avec les colonnes suivantes:
-| Hypothèse | Indicateur | Questions | Type de données |
-
-Ce tableau doit permettre de vérifier que CHAQUE hypothèse est couverte par au moins 2-3 questions, et que chaque indicateur est mesuré.
-
-IMPORTANT:
-- Sépare clairement les deux parties avec le marqueur: <!-- TRACEABILITY_SEPARATOR -->
-- La première partie (questionnaire) précède le marqueur
-- La deuxième partie (tableau de traçabilité) suit le marqueur
-- Adapte le vocabulaire et la complexité au domaine et au niveau du diplôme
-- Les questions doivent être neutres, sans biais, claires et univoques
-- Respecte les principes méthodologiques de construction de questionnaires`;
+RÈGLES STRICTES:
+- NE GÉNÈRE AUCUNE RÉPONSE aux questions
+- NE GÉNÈRE AUCUN RÉSUMÉ ni tableau de synthèse
+- NE GÉNÈRE AUCUNE ANALYSE ni interprétation
+- NE GÉNÈRE AUCUN tableau de traçabilité
+- Le document doit contenir UNIQUEMENT les questions et leurs modalités de réponse
+- Le questionnaire doit être prêt à être exporté en Word, propre et professionnel
+- Adapte le vocabulaire au domaine et au niveau académique
+- Les questions doivent être neutres, claires et univoques
+- Utilise un format Markdown bien structuré avec des titres, sous-titres et listes`;
 
       const userPrompt = projectContext + "\n" +
         (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +
@@ -1992,11 +1996,7 @@ IMPORTANT:
       const result = completion.choices[0]?.message?.content || "";
       await recordQuotaUsage(userId, result);
 
-      const parts = result.split("<!-- TRACEABILITY_SEPARATOR -->");
-      const content = (parts[0] || result).trim();
-      const traceability = (parts[1] || "").trim();
-
-      res.json({ content, traceability });
+      res.json({ content: result.trim(), traceability: "" });
     } catch (err: any) {
       console.error("Generate Questionnaire Error:", err);
       res.status(500).json({ message: err.message || "Erreur lors de la génération du questionnaire" });
@@ -2009,7 +2009,7 @@ IMPORTANT:
     const userId = getUserId(req);
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
-    const hasAccess = await checkSectionEntitlement(userId, "data_collection");
+    const hasAccess = await checkSectionEntitlement(userId, "guide_entretien");
     if (!hasAccess) {
       return res.status(403).json({ error: "Accès non autorisé. Veuillez activer le module correspondant." });
     }
@@ -2037,7 +2037,7 @@ IMPORTANT:
 
       const systemPrompt = getSystemPrompt(project.type, project.language || "Français");
 
-      const taskPrompt = `=== TÂCHE: GÉNÉRATION D'UN GUIDE D'ENTRETIEN ===
+      const taskPrompt = `=== TÂCHE: GÉNÉRATION D'UN GUIDE D'ENTRETIEN (OUTIL DE COLLECTE) ===
 
 Configuration demandée:
 - Type d'entretien: ${config.interviewType}
@@ -2050,40 +2050,48 @@ ${config.intervieweeFunction ? `- Fonction de l'interviewé: ${config.interviewe
 ${config.structureType ? `- Type de structure: ${config.structureType}` : ""}
 ${config.instructions ? `- Instructions spécifiques: ${config.instructions}` : ""}
 
-Génère un guide d'entretien ${config.interviewType} complet et professionnel:
+OBJECTIF: Génère UNIQUEMENT un guide d'entretien prêt à être utilisé par le chercheur lors de ses entretiens. Ce document doit être propre, professionnel, structuré et directement utilisable (imprimable).
 
-**I. INTRODUCTION**
+STRUCTURE DU GUIDE D'ENTRETIEN:
+
+**EN-TÊTE**
+- Titre: "Guide d'entretien ${config.interviewType}"
+- Mention: "Entretien avec : ${config.intervieweeProfile || '[Profil du participant]'}"
+${config.intervieweeFunction ? `- Fonction: ${config.intervieweeFunction}` : ""}
+${config.structureType ? `- Structure: ${config.structureType}` : ""}
+- Durée estimée: ${config.targetDuration}
+
+**INTRODUCTION (texte à lire au participant)**
 - Présentation du chercheur et de l'objet de la recherche
-- Objectif de l'entretien (formulé clairement pour l'interviewé)
+- Objectif de l'entretien
 - Rappel de la confidentialité et du consentement éclairé
 - Demande d'autorisation d'enregistrement
-- Durée estimée: ${config.targetDuration}
-- Mise en confiance de l'interviewé
+- Mise en confiance
 
-**II. THÈMES ET QUESTIONS**
+**THÈMES ET QUESTIONS**
 Pour chaque thème (${config.themeCount} thèmes attendus):
-- **Titre du thème** : en lien avec une hypothèse ou un axe de recherche
-- **Hypothèse(s) associée(s)** : H1, H2 ou H3
+- **Titre du thème** clairement formulé
 - **Question principale** : ouverte, neutre, non-directive
 - **Questions de relance** (${config.questionsPerTheme} par thème) :
-  - Reformulations pour approfondir
   - Relances de clarification
   - Relances d'approfondissement
-  - Relances de confrontation (si pertinent)
-- **Indicateurs visés** : ce que la question permet d'explorer
 
-**III. CONCLUSION**
-- Question de synthèse ouverte ("Souhaitez-vous ajouter quelque chose ?")
+**CONCLUSION**
+- Question de synthèse ouverte (ex: "Souhaitez-vous ajouter quelque chose que nous n'aurions pas abordé ?")
 - Remerciements
-- Rappel de la suite du processus
 
-RÈGLES:
-- Adapte le vocabulaire et le niveau de langage au profil de l'interviewé${config.intervieweeProfile ? ` (${config.intervieweeProfile})` : ""}
+RÈGLES STRICTES:
+- NE GÉNÈRE AUCUNE RÉPONSE aux questions (ni attendues, ni fictives)
+- NE GÉNÈRE AUCUNE SYNTHÈSE ni résumé des réponses
+- NE GÉNÈRE AUCUNE ANALYSE ni interprétation
+- NE GÉNÈRE AUCUN tableau récapitulatif
+- Le guide doit contenir UNIQUEMENT les questions à poser et les consignes pour le chercheur
+- C'est un outil de COLLECTE, pas d'analyse
+- Adapte le vocabulaire et le ton (${config.tone}) au profil de l'interviewé
 - Questions ouvertes, neutres, sans biais
-- Ton ${config.tone}
 - Progression logique du général au spécifique
-- Chaque thème doit être clairement relié à au moins une hypothèse
-- Utilise le format Markdown structuré`;
+- Le document doit être prêt à être exporté en Word, propre et professionnel
+- Utilise un format Markdown bien structuré avec des titres, sous-titres et listes`;
 
       const userPrompt = projectContext + "\n" +
         (validatedContext ? `\n=== SECTIONS VALIDÉES ===\n${validatedContext}\n` : "") +

@@ -297,7 +297,8 @@ export const SECTION_KEYS = {
   THEORETICAL_FRAMEWORK: 'theoretical_framework',
   LITERATURE_REVIEW: 'literature_review',
   METHODOLOGY: 'methodology',
-  DATA_COLLECTION: 'data_collection',
+  QUESTIONNAIRE: 'questionnaire',
+  GUIDE_ENTRETIEN: 'guide_entretien',
   INTERVIEW_SIMULATION: 'interview_simulation',
   DATA_ANALYSIS: 'data_analysis',
   ASSISTED_WRITING: 'assisted_writing',
@@ -312,7 +313,7 @@ export const SECTION_ORDER = [
   'subject', 'problematic', 'hypotheses', 'situation_appel', 'vae_competencies',
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
-  'data_collection', 'interview_simulation', 'data_analysis',
+  'questionnaire', 'guide_entretien', 'interview_simulation', 'data_analysis',
   'assisted_writing', 'bibliography', 'exports',
   'soutenance_ppt', 'soutenance_simulation', 'memoire_audit',
 ];
@@ -328,7 +329,8 @@ export const SECTION_LABELS: Record<string, string> = {
   theoretical_framework: "Cadre théorique",
   literature_review: "Revue de littérature",
   methodology: "Méthodologie",
-  data_collection: "Outils de collecte",
+  questionnaire: "Questionnaire",
+  guide_entretien: "Guide d'entretien",
   interview_simulation: "Simulation d'entretien",
   data_analysis: "Analyse des données",
   assisted_writing: "Rédaction assistée",
@@ -343,10 +345,10 @@ export const SECTION_LABELS: Record<string, string> = {
 export const FOUNDATIONAL_SECTIONS = ['subject', 'problematic', 'hypotheses', 'plan'] as const;
 
 export const SECTION_DEPENDENCIES: Record<string, string[]> = {
-  subject: ['problematic', 'hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'data_collection', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
-  problematic: ['hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'data_collection', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
-  hypotheses: ['plan', 'conceptual_framework', 'methodology', 'data_collection', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
-  plan: ['conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'data_collection', 'data_analysis', 'assisted_writing', 'soutenance_ppt', 'memoire_audit'],
+  subject: ['problematic', 'hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
+  problematic: ['hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
+  hypotheses: ['plan', 'conceptual_framework', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'soutenance_ppt', 'memoire_audit'],
+  plan: ['conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'assisted_writing', 'soutenance_ppt', 'memoire_audit'],
 };
 
 // === SCHEMAS ===

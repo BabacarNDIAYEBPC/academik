@@ -9,7 +9,8 @@ import SectionEditor from "@/components/SectionEditor";
 import LiteratureReviewModule from "@/components/LiteratureReviewModule";
 import ConceptualFrameworkModule from "@/components/ConceptualFrameworkModule";
 import MethodologyModule from "@/components/MethodologyModule";
-import DataCollectionModule from "@/components/DataCollectionModule";
+import QuestionnaireModule from "@/components/QuestionnaireModule";
+import GuideEntretienModule from "@/components/GuideEntretienModule";
 import InterviewSimulationModule from "@/components/InterviewSimulationModule";
 import DataAnalysisModule from "@/components/DataAnalysisModule";
 import AssistedWritingModule from "@/components/AssistedWritingModule";
@@ -77,13 +78,13 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
-      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["situation_appel", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
       return ["vae_competencies", "plan", "assisted_writing", "exports", "memoire_audit"];
     case "rapport_stage":
-      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "data_collection", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "interview_simulation", "data_analysis", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     default:
       return ["subject", "plan", "methodology", "assisted_writing", "exports", "memoire_audit"];
   }
@@ -115,8 +116,12 @@ function getModuleTabs(projectType: string) {
     tabs.push({ key: "methodology", label: "Méthodo", icon: FlaskConical, sectionKeys: ["methodology"] });
   }
 
-  if (sections.includes("data_collection")) {
-    tabs.push({ key: "data_collection", label: "Collecte", icon: ClipboardList, sectionKeys: ["data_collection"] });
+  if (sections.includes("questionnaire")) {
+    tabs.push({ key: "questionnaire", label: "Questionnaire", icon: ClipboardList, sectionKeys: ["questionnaire"] });
+  }
+
+  if (sections.includes("guide_entretien")) {
+    tabs.push({ key: "guide_entretien", label: "Guide d'entretien", icon: FileText, sectionKeys: ["guide_entretien"] });
   }
 
   if (sections.includes("interview_simulation")) {
@@ -897,7 +902,8 @@ function SingleSectionWrapper({
   const CORE_KEYS = ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"];
 
   const SECTION_PACK_INFO: Record<string, { packKey: string; label: string }> = {
-    data_collection: { packKey: "pack_collecte", label: "Pack Collecte (49 €)" },
+    questionnaire: { packKey: "questionnaire", label: "Questionnaire (29 €)" },
+    guide_entretien: { packKey: "guide_entretien", label: "Guide d'entretien (29 €)" },
     interview_simulation: { packKey: "pack_collecte", label: "Pack Collecte (49 €)" },
     data_analysis: { packKey: "pack_analyse", label: "Pack Analyse (69 €)" },
     bibliography: { packKey: "pack_revue", label: "Pack Revue avancée (59 €)" },
@@ -1064,12 +1070,28 @@ function SingleSectionWrapper({
     );
   }
 
-  if (sectionKey === "data_collection") {
+  if (sectionKey === "questionnaire") {
     return (
       <div className="space-y-4">
         {memoirField}
         {variablesField}
-        <DataCollectionModule
+        <QuestionnaireModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "guide_entretien") {
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <GuideEntretienModule
           projectId={projectId}
           projectType={projectType}
           variables={variables}
@@ -1081,7 +1103,7 @@ function SingleSectionWrapper({
   }
 
   if (sectionKey === "interview_simulation") {
-    const dataCollectionSection = sections.find(s => s.key === "data_collection");
+    const questionnaireSection = sections.find(s => s.key === "questionnaire");
     return (
       <div className="space-y-4">
         {memoirField}
@@ -1092,7 +1114,7 @@ function SingleSectionWrapper({
           variables={variables}
           extraContext={buildExtraContext()}
           section={section}
-          dataCollectionSection={dataCollectionSection}
+          dataCollectionSection={questionnaireSection}
         />
       </div>
     );
