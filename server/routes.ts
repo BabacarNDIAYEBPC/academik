@@ -12,6 +12,16 @@ import mammoth from "mammoth";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
+async function ensureStripeKey(): Promise<string | null> {
+  if (process.env.STRIPE_SECRET_KEY) return process.env.STRIPE_SECRET_KEY;
+  const dbKey = await storage.getAdminSetting("stripe_secret_key");
+  if (dbKey) {
+    process.env.STRIPE_SECRET_KEY = dbKey;
+    return dbKey;
+  }
+  return null;
+}
+
 const SECTION_TO_ENTITLEMENT: Record<string, string> = {
   subject: "foundation",
   problematic: "foundation",
@@ -2831,7 +2841,8 @@ IMPORTANT:
 
       const totalCents = pack ? (PACK_PRICES[pack]?.price || 0) : lineItems.reduce((s, i) => s + i.price, 0);
 
-      if (!process.env.STRIPE_SECRET_KEY) {
+      const stripeSecretKey = await ensureStripeKey();
+      if (!stripeSecretKey) {
         for (const item of lineItems) {
           await storage.createPurchase({
             userId,
@@ -2846,7 +2857,7 @@ IMPORTANT:
       }
 
       const Stripe = (await import("stripe")).default;
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const stripe = new Stripe(stripeSecretKey);
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -2884,12 +2895,13 @@ IMPORTANT:
       const { sessionId } = req.body;
       if (!sessionId) return res.status(400).json({ message: "Session ID manquant" });
 
-      if (!process.env.STRIPE_SECRET_KEY) {
+      const stripeKeyConfirm = await ensureStripeKey();
+      if (!stripeKeyConfirm) {
         return res.json({ success: true, message: "Mode démo" });
       }
 
       const Stripe = (await import("stripe")).default;
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const stripe = new Stripe(stripeKeyConfirm);
       const session = await stripe.checkout.sessions.retrieve(sessionId);
 
       if (session.payment_status !== "paid") {
@@ -2949,14 +2961,15 @@ IMPORTANT:
       const surplus = SURPLUS_PRICING[surplusKey];
       if (!surplus) return res.status(400).json({ message: "Pack surplus invalide" });
 
-      if (!process.env.STRIPE_SECRET_KEY) {
+      const stripeKeySurplusCheckout = await ensureStripeKey();
+      if (!stripeKeySurplusCheckout) {
         await storage.addQuotaSurplus(userId, surplus.type, surplus.amount, surplus.price);
         const updatedQuota = await storage.getQuota(userId);
         return res.json({ success: true, mode: "demo", quota: updatedQuota, message: "Surplus activé (mode démo)" });
       }
 
       const Stripe = (await import("stripe")).default;
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const stripe = new Stripe(stripeKeySurplusCheckout);
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ["card"],
@@ -3131,11 +3144,15 @@ IMPORTANT:
     try {
       const allSettings = await storage.getAllAdminSettings();
       const settingsMap: Record<string, any> = {};
+      const sensitiveKeys = ["stripe_secret_key", "openai_api_key"];
       for (const s of allSettings) {
-        settingsMap[s.key] = s.value;
+        if (!sensitiveKeys.includes(s.key)) {
+          settingsMap[s.key] = s.value;
+        }
       }
       settingsMap.hasGlobalOpenAIKey = !!(process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
-      settingsMap.hasStripeKey = !!(process.env.STRIPE_SECRET_KEY);
+      const stripeKey = await ensureStripeKey();
+      settingsMap.hasStripeKey = !!stripeKey;
       res.json(settingsMap);
     } catch (err: any) {
       res.status(500).json({ message: err.message });
@@ -3171,6 +3188,7 @@ IMPORTANT:
         await storage.setAdminSetting("openai_key_configured", "true");
       } else if (type === "stripe") {
         process.env.STRIPE_SECRET_KEY = key;
+        await storage.setAdminSetting("stripe_secret_key", key);
         await storage.setAdminSetting("stripe_key_configured", "true");
       } else {
         return res.status(400).json({ message: "Type invalide" });
@@ -3265,12 +3283,13 @@ IMPORTANT:
       const { sessionId } = req.body;
       if (!sessionId) return res.status(400).json({ message: "Session ID manquant" });
 
-      if (!process.env.STRIPE_SECRET_KEY) {
+      const stripeKeySurplus = await ensureStripeKey();
+      if (!stripeKeySurplus) {
         return res.json({ success: true, message: "Mode démo" });
       }
 
       const Stripe = (await import("stripe")).default;
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+      const stripe = new Stripe(stripeKeySurplus);
       const session = await stripe.checkout.sessions.retrieve(sessionId);
 
       if (session.payment_status !== "paid") {
