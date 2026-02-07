@@ -21,7 +21,7 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
   const { user, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
 
-  const { data: adminCheck } = useQuery<{ isAdmin: boolean }>({
+  const { data: adminCheck, isLoading: adminLoading } = useQuery<{ isAdmin: boolean }>({
     queryKey: ["/api/admin/check"],
     enabled: !!user,
   });
@@ -31,8 +31,11 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
     enabled: !!user && !skipPricingRedirect,
   });
 
+  const isAdmin = adminCheck?.isAdmin === true;
+
   useEffect(() => {
-    if (adminCheck?.isAdmin) return;
+    if (isAdmin) return;
+    if (adminLoading) return;
     if (!skipPricingRedirect && user && !purchasesLoading && purchases !== undefined) {
       const params = new URLSearchParams(window.location.search);
       const hasPaymentParams = params.has("payment") || params.has("surplus");
@@ -41,7 +44,7 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
         setLocation(`/billing${queryString}`);
       }
     }
-  }, [user, purchasesLoading, purchases, skipPricingRedirect, location, setLocation, adminCheck]);
+  }, [user, purchasesLoading, purchases, skipPricingRedirect, location, setLocation, isAdmin, adminLoading]);
 
   if (isLoading) {
     return (
@@ -55,7 +58,7 @@ function ProtectedRoute({ component: Component, skipPricingRedirect }: { compone
     return <Landing />;
   }
 
-  if (!skipPricingRedirect && purchasesLoading) {
+  if (adminLoading || (!skipPricingRedirect && purchasesLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
