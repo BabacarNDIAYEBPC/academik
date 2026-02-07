@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, MessageSquare, Save, Check, X, FileDown,
-  Lightbulb, RefreshCw, Sparkles, Plus, Trash2, ListOrdered, Import,
+  Lightbulb, RefreshCw, Sparkles, Plus, Trash2, ListOrdered, Import, Upload,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 
@@ -84,6 +84,7 @@ export default function InterviewSimulationModule({
   const [simMode, setSimMode] = useState("single");
   const [contextInstructions, setContextInstructions] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
+  const [uploadingGuide, setUploadingGuide] = useState(false);
 
   const { toast } = useToast();
   const simulateMutation = useSimulateResponse();
@@ -220,6 +221,50 @@ export default function InterviewSimulationModule({
     }
     setBatchQuestions(parsed);
     toast({ title: "Questions importées", description: `${parsed.length} question(s) importée(s) depuis le guide d'entretien.` });
+  };
+
+  const handleImportGuideFile = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".docx,.pdf,.txt,.rtf,.md,.csv";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      setUploadingGuide(true);
+      try {
+        let text = "";
+        const needsServerParse = /\.(docx|pdf|rtf)$/i.test(file.name);
+        if (needsServerParse) {
+          const formData = new FormData();
+          formData.append("file", file);
+          const resp = await fetch("/api/parse-file", { method: "POST", body: formData });
+          if (!resp.ok) throw new Error("Impossible de lire ce fichier.");
+          const data = await resp.json();
+          text = data.text;
+        } else {
+          text = await file.text();
+        }
+        if (!text.trim()) {
+          toast({ title: "Fichier vide", description: "Le fichier ne contient pas de texte exploitable.", variant: "destructive" });
+          setUploadingGuide(false);
+          return;
+        }
+        const parsed = parseGuideQuestions(text);
+        if (parsed.length === 0) {
+          toast({ title: "Aucune question détectée", description: "Le fichier importé ne contient pas de questions identifiables. Vérifiez le format du guide.", variant: "destructive" });
+          setUploadingGuide(false);
+          return;
+        }
+        setBatchQuestions(parsed);
+        setSimMode("batch");
+        toast({ title: "Guide importé", description: `${parsed.length} question(s) extraite(s) depuis "${file.name}".` });
+      } catch (err: any) {
+        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+      } finally {
+        setUploadingGuide(false);
+      }
+    };
+    input.click();
   };
 
   const handleAddBatchQuestion = () => {
@@ -438,10 +483,22 @@ export default function InterviewSimulationModule({
           <TabsContent value="batch">
             <Card>
               <CardContent className="p-4 space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Préparez toutes vos questions à l'avance, puis simulez les réponses d'une traite.
-                  Vous pouvez ajouter des prérequis/contexte pour chaque question.
-                </p>
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <p className="text-sm text-muted-foreground flex-1 min-w-0">
+                    Préparez toutes vos questions à l'avance, puis simulez les réponses d'une traite.
+                    Vous pouvez ajouter des prérequis/contexte pour chaque question.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleImportGuideFile}
+                    disabled={uploadingGuide}
+                    data-testid="button-import-guide-file"
+                  >
+                    {uploadingGuide ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+                    Importer un guide d'entretien
+                  </Button>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -484,10 +541,17 @@ export default function InterviewSimulationModule({
                   </div>
 
                   {batchQuestions.length === 0 && (
-                    <div className="text-center py-6 text-muted-foreground text-sm border border-dashed rounded-md">
-                      {guideContent
-                        ? "Aucune question ajoutée. Importez les questions depuis votre guide d'entretien ou ajoutez-en manuellement."
-                        : "Aucune question ajoutée. Cliquez sur \"Ajouter une question\" pour commencer."}
+                    <div className="text-center py-6 text-muted-foreground text-sm border border-dashed rounded-md space-y-2">
+                      <Upload className="w-8 h-8 mx-auto text-muted-foreground/50" />
+                      <p>
+                        {guideContent
+                          ? "Importez les questions depuis votre guide, importez un fichier externe, ou ajoutez-en manuellement."
+                          : "Importez un guide d'entretien (Word, PDF, texte) ou ajoutez vos questions manuellement."}
+                      </p>
+                      <Button variant="outline" size="sm" onClick={handleImportGuideFile} disabled={uploadingGuide} data-testid="button-import-guide-file-empty">
+                        {uploadingGuide ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+                        Importer un fichier
+                      </Button>
                     </div>
                   )}
 
