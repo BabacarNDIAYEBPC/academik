@@ -44,9 +44,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-col h-full">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg">
-            A
-          </div>
+          <img src="/images/logo-original.png" alt="ASSISTANT Méthodologie" className="w-10 h-10 rounded-xl shadow-lg" />
           <div>
             <h1 className="font-bold text-lg leading-tight">ASSISTANT</h1>
             <p className="text-xs text-muted-foreground">Méthodologie</p>
