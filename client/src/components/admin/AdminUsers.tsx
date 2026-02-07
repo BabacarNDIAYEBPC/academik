@@ -5,9 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { useAdminUsers, useAddCredits, useUpdateUserQuota } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Download, Plus, Edit, Loader2, User, ShieldCheck, CreditCard } from "lucide-react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Search, Download, Plus, Edit, Loader2, User, ShieldCheck, CreditCard, Key } from "lucide-react";
 
 const ITEM_LABELS: Record<string, string> = {
   core_pack: "Pack Fondations",
@@ -15,17 +18,35 @@ const ITEM_LABELS: Record<string, string> = {
   pack_analyse: "Pack Analyse",
   pack_revue: "Pack Revue",
   pack_soutenance: "Pack Soutenance",
+  foundation: "Fondations",
+  plan: "Plan de travail",
+  conceptual: "Cadre conceptuel",
+  literature: "Revue de littérature",
+  methodology: "Méthodologie",
+  redaction: "Rédaction assistée",
   questionnaire: "Questionnaire",
   guide_entretien: "Guide d'entretien",
-  simulation_entretien: "Simulation",
-  analyse_qualitative: "Analyse Quali",
-  analyse_quantitative: "Analyse Quanti",
+  simulation_entretien: "Simulation d'entretien",
+  analyse_qualitative: "Analyse qualitative",
+  analyse_quantitative: "Analyse quantitative",
+  data_visualization: "Visualisation données",
+  financial_simulation: "Simulation financière",
+  questionnaire_analysis: "Analyse questionnaire",
   biblio_multinormes: "Bibliographie",
   export_illimite: "Export illimité",
   soutenance_ppt: "PPT Soutenance",
   soutenance_simulation: "Simulation Soutenance",
   audit: "Audit mémoire",
 };
+
+const ENTITLEMENT_GROUPS: { label: string; keys: string[] }[] = [
+  { label: "Packs", keys: ["core_pack", "pack_collecte", "pack_analyse", "pack_revue", "pack_soutenance"] },
+  { label: "Modules individuels", keys: ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"] },
+  { label: "Collecte", keys: ["questionnaire", "guide_entretien", "simulation_entretien"] },
+  { label: "Analyse", keys: ["analyse_qualitative", "analyse_quantitative", "data_visualization", "financial_simulation", "questionnaire_analysis"] },
+  { label: "Revue & Production", keys: ["biblio_multinormes", "export_illimite"] },
+  { label: "Soutenance", keys: ["soutenance_ppt", "soutenance_simulation", "audit"] },
+];
 
 export default function AdminUsers() {
   const [search, setSearch] = useState("");
@@ -43,6 +64,52 @@ export default function AdminUsers() {
   const [quotaForm, setQuotaForm] = useState<any>({});
 
   const [detailDialog, setDetailDialog] = useState<any>(null);
+
+  const [entitlementDialog, setEntitlementDialog] = useState<{ userId: string; name: string } | null>(null);
+
+  const { data: userEntitlements, isLoading: entitlementsLoading } = useQuery<{ items: string[] }>({
+    queryKey: ["/api/admin/users", entitlementDialog?.userId, "entitlements"],
+    enabled: !!entitlementDialog,
+  });
+
+  const grantEntitlement = useMutation({
+    mutationFn: async ({ userId, itemKey }: { userId: string; itemKey: string }) => {
+      await apiRequest("POST", `/api/admin/users/${userId}/entitlements`, { itemKey });
+    },
+    onSuccess: () => {
+      if (entitlementDialog) {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/users", entitlementDialog.userId, "entitlements"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      }
+    },
+  });
+
+  const revokeEntitlement = useMutation({
+    mutationFn: async ({ userId, itemKey }: { userId: string; itemKey: string }) => {
+      await apiRequest("DELETE", `/api/admin/users/${userId}/entitlements/${itemKey}`);
+    },
+    onSuccess: () => {
+      if (entitlementDialog) {
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/users", entitlementDialog.userId, "entitlements"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      }
+    },
+  });
+
+  const handleToggleEntitlement = async (itemKey: string, currentlyActive: boolean) => {
+    if (!entitlementDialog) return;
+    try {
+      if (currentlyActive) {
+        await revokeEntitlement.mutateAsync({ userId: entitlementDialog.userId, itemKey });
+        toast({ title: "Module retiré", description: `${ITEM_LABELS[itemKey] || itemKey} retiré pour ${entitlementDialog.name}` });
+      } else {
+        await grantEntitlement.mutateAsync({ userId: entitlementDialog.userId, itemKey });
+        toast({ title: "Module accordé", description: `${ITEM_LABELS[itemKey] || itemKey} accordé à ${entitlementDialog.name}` });
+      }
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    }
+  };
 
   let searchTimeout: any;
   const handleSearch = (value: string) => {
@@ -201,6 +268,14 @@ export default function AdminUsers() {
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              onClick={() => setEntitlementDialog({ userId: u.id, name: `${u.firstName || ""} ${u.lastName || ""}` })}
+                              data-testid={`button-entitlements-${u.id}`}
+                            >
+                              <Key className="w-4 h-4" />
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -310,6 +385,50 @@ export default function AdminUsers() {
               {updateQuotaMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Enregistrer
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!entitlementDialog} onOpenChange={() => setEntitlementDialog(null)}>
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Gérer les modules — {entitlementDialog?.name}</DialogTitle>
+          </DialogHeader>
+          {entitlementsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="space-y-6 py-2">
+              {ENTITLEMENT_GROUPS.map(group => (
+                <div key={group.label} className="space-y-3">
+                  <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{group.label}</Label>
+                  <div className="space-y-2">
+                    {group.keys.map(key => {
+                      const isActive = userEntitlements?.items?.includes(key) || false;
+                      const isMutating = grantEntitlement.isPending || revokeEntitlement.isPending;
+                      return (
+                        <div key={key} className="flex items-center justify-between gap-4 rounded-md border p-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{ITEM_LABELS[key] || key}</span>
+                            {isActive && <Badge variant="default" className="text-xs">Actif</Badge>}
+                          </div>
+                          <Switch
+                            checked={isActive}
+                            disabled={isMutating}
+                            onCheckedChange={() => handleToggleEntitlement(key, isActive)}
+                            data-testid={`switch-entitlement-${key}`}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEntitlementDialog(null)} data-testid="button-close-entitlements">Fermer</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

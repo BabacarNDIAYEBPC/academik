@@ -54,6 +54,7 @@ export interface IStorage {
 
   getUserPurchases(userId: string): Promise<UserPurchase[]>;
   createPurchase(purchase: InsertPurchase): Promise<UserPurchase>;
+  deletePurchaseByKey(userId: string, itemKey: string): Promise<void>;
   getUserEntitlements(userId: string): Promise<string[]>;
 
   getQuota(userId: string): Promise<UserQuota>;
@@ -409,6 +410,11 @@ export class DatabaseStorage implements IStorage {
   async createPurchase(purchase: InsertPurchase): Promise<UserPurchase> {
     const [newPurchase] = await db.insert(userPurchases).values(purchase).returning();
     return newPurchase;
+  }
+
+  async deletePurchaseByKey(userId: string, itemKey: string): Promise<void> {
+    await db.delete(userPurchases)
+      .where(and(eq(userPurchases.userId, userId), eq(userPurchases.itemKey, itemKey)));
   }
 
   async getUserEntitlements(userId: string): Promise<string[]> {

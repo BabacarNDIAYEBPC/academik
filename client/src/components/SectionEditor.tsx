@@ -291,7 +291,7 @@ export default function SectionEditor({
 
           {!isPending && hasContent && !isEditing && (
             <>
-              <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5" data-testid={`content-${sectionKey}`}>
+              <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5 overflow-x-hidden" data-testid={`content-${sectionKey}`}>
                 <ReactMarkdown>{activeVersion!.content}</ReactMarkdown>
               </div>
 

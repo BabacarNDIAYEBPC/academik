@@ -3330,9 +3330,6 @@ IMPORTANT:
   // Admin status check
   app.get("/api/admin/check", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).json({ isAdmin: false });
-    const userId = getUserId(req);
-    const adminIds = (process.env.SUPER_ADMIN_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
-    console.log("[ADMIN CHECK] userId:", userId, "adminIds:", adminIds, "isAdmin:", adminIds.includes(userId));
     res.json({ isAdmin: isSuperAdmin(req) });
   });
 
@@ -3393,6 +3390,71 @@ IMPORTANT:
         details: updates,
       });
       res.json(quota);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  // === ADMIN: ENTITLEMENTS GRANT/REVOKE ===
+
+  app.get("/api/admin/users/:userId/entitlements", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const purchases = await storage.getUserPurchases(req.params.userId);
+      const items = purchases.map(p => p.itemKey);
+      res.json({ items });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.post("/api/admin/users/:userId/entitlements", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { itemKey } = req.body;
+      if (!itemKey) return res.status(400).json({ message: "itemKey requis" });
+      const existing = await storage.getUserPurchases(req.params.userId);
+      if (existing.some(p => p.itemKey === itemKey)) {
+        return res.status(409).json({ message: "Module déjà activé" });
+      }
+      await storage.createPurchase({
+        userId: req.params.userId,
+        itemType: "admin_grant",
+        itemKey,
+        price: 0,
+        currency: "eur",
+        stripeSessionId: "admin_grant",
+        stripePaymentIntentId: "admin_grant",
+        status: "active",
+      });
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        actorEmail: (req.user as any)?.claims?.email,
+        action: "grant_entitlement",
+        targetType: "user",
+        targetId: req.params.userId,
+        details: { itemKey },
+      });
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
+  app.delete("/api/admin/users/:userId/entitlements/:itemKey", async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    try {
+      const { userId, itemKey } = req.params;
+      await storage.deletePurchaseByKey(userId, itemKey);
+      await storage.createAuditLog({
+        actorId: getUserId(req),
+        actorEmail: (req.user as any)?.claims?.email,
+        action: "revoke_entitlement",
+        targetType: "user",
+        targetId: userId,
+        details: { itemKey },
+      });
+      res.json({ success: true });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }
