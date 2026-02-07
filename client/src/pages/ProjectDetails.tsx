@@ -892,8 +892,19 @@ function SingleSectionWrapper({
     );
   }
 
+  const currentIndex = sectionKeys.indexOf(sectionKey);
+  const previousSectionsValidated = currentIndex <= 0 || sectionKeys.slice(0, currentIndex).some(key => {
+    const s = sections.find(sec => sec.key === key);
+    return s && (s.status === "validated" || s.status === "generated");
+  });
+
   const memoirField = (
-    <MemoirImportField value={importedMemoir} onChange={setImportedMemoir} />
+    <MemoirImportField
+      value={importedMemoir}
+      onChange={setImportedMemoir}
+      hasPreviousSections={previousSectionsValidated}
+      sectionKey={sectionKey}
+    />
   );
 
   const variablesField = (
