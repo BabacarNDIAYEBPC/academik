@@ -65,6 +65,7 @@ interface SavedState {
   quantitativeType: string;
   contextInstructions: string;
   confrontImportedData: string;
+  validationImportedDoc: string;
 }
 
 function detectDelimiter(firstLine: string): string {
@@ -123,6 +124,8 @@ export default function DataAnalysisModule({
   const [validationResult, setValidationResult] = useState("");
   const [contextInstructions, setContextInstructions] = useState("");
   const [confrontImportedData, setConfrontImportedData] = useState("");
+  const [validationImportedDoc, setValidationImportedDoc] = useState("");
+  const [uploadingValidationDoc, setUploadingValidationDoc] = useState(false);
   const [chartType, setChartType] = useState("bar");
   const [stateLoaded, setStateLoaded] = useState(false);
 
@@ -137,10 +140,10 @@ export default function DataAnalysisModule({
 
   const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
 
-  const stateRef = useRef({ verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData });
+  const stateRef = useRef({ verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc });
   useEffect(() => {
-    stateRef.current = { verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData };
-  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData]);
+    stateRef.current = { verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc };
+  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -156,6 +159,7 @@ export default function DataAnalysisModule({
       quantitativeType: s.quantitativeType,
       contextInstructions: s.contextInstructions,
       confrontImportedData: s.confrontImportedData,
+      validationImportedDoc: s.validationImportedDoc,
     };
     saveConfigMutation.mutate({
       sectionId: section.id,
@@ -179,6 +183,7 @@ export default function DataAnalysisModule({
       if (s.quantitativeType) setQuantitativeType(s.quantitativeType);
       if (s.contextInstructions) setContextInstructions(s.contextInstructions);
       if (s.confrontImportedData) setConfrontImportedData(s.confrontImportedData);
+      if (s.validationImportedDoc) setValidationImportedDoc(s.validationImportedDoc);
     }
     setStateLoaded(true);
   }, [section, stateLoaded]);
@@ -193,7 +198,7 @@ export default function DataAnalysisModule({
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
     return () => clearTimeout(timer);
-  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, stateLoaded, doSave]);
+  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc, stateLoaded, doSave]);
 
   const parsedData = useMemo(() => {
     if (!quantitativeData.trim()) return null;
@@ -317,10 +322,47 @@ export default function DataAnalysisModule({
     );
   };
 
+  const handleImportValidationDoc = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".docx,.pdf,.txt,.rtf,.md,.csv";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      setUploadingValidationDoc(true);
+      try {
+        let text = "";
+        const needsServerParse = /\.(docx|pdf|rtf)$/i.test(file.name);
+        if (needsServerParse) {
+          const formData = new FormData();
+          formData.append("file", file);
+          const resp = await fetch("/api/parse-file", { method: "POST", body: formData });
+          if (!resp.ok) throw new Error("Impossible de lire ce fichier.");
+          const data = await resp.json();
+          text = data.text;
+        } else {
+          text = await file.text();
+        }
+        if (!text.trim()) {
+          toast({ title: "Fichier vide", description: "Le fichier ne contient pas de texte exploitable.", variant: "destructive" });
+          setUploadingValidationDoc(false);
+          return;
+        }
+        setValidationImportedDoc(text);
+        toast({ title: "Document importé", description: `"${file.name}" sera utilisé pour la validation des hypothèses.` });
+      } catch (err: any) {
+        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+      } finally {
+        setUploadingValidationDoc(false);
+      }
+    };
+    input.click();
+  };
+
   const handleValidateHypotheses = () => {
-    const allResults = [qualitativeResult, quantitativeResult, confrontResult].filter(Boolean).join("\n\n---\n\n");
+    const allResults = [qualitativeResult, quantitativeResult, confrontResult, validationImportedDoc].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
-      toast({ title: "Résultats requis", description: "Réalisez d'abord les analyses.", variant: "destructive" });
+      toast({ title: "Résultats requis", description: "Importez un document d'analyse ou réalisez d'abord les analyses.", variant: "destructive" });
       return;
     }
     validateHypMutation.mutate(
@@ -971,18 +1013,55 @@ export default function DataAnalysisModule({
 
           <TabsContent value="validation" className="space-y-4 mt-4">
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Validez ou invalidez chaque hypothèse de recherche en vous appuyant sur l'ensemble des résultats (analyses qualitative/quantitative et confrontation avec la littérature).
-              </p>
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <p className="text-sm text-muted-foreground flex-1 min-w-0">
+                  Validez ou invalidez chaque hypothèse de recherche en vous appuyant sur l'ensemble des résultats (analyses qualitative/quantitative et confrontation avec la littérature).
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleImportValidationDoc}
+                  disabled={uploadingValidationDoc}
+                  data-testid="button-import-validation-doc"
+                >
+                  {uploadingValidationDoc ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
+                  Importer un document d'analyse
+                </Button>
+              </div>
               <div className="flex gap-2 flex-wrap">
                 {qualitativeResult && <Badge variant="outline" className="text-xs">Qualitative</Badge>}
                 {quantitativeResult && <Badge variant="outline" className="text-xs">Quantitative</Badge>}
                 {confrontResult && <Badge variant="outline" className="text-xs">Confrontation</Badge>}
+                {validationImportedDoc && (
+                  <Badge variant="secondary" className="text-xs">
+                    <FileText className="w-3 h-3 mr-1" />
+                    Document externe importé
+                  </Badge>
+                )}
               </div>
             </div>
+
+            {validationImportedDoc && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <Label className="text-sm font-medium">Document d'analyse importé</Label>
+                  <Button variant="ghost" size="sm" onClick={() => { setValidationImportedDoc(""); toast({ title: "Document retiré" }); }} data-testid="button-remove-validation-doc">
+                    <Trash2 className="w-4 h-4 mr-1" /> Retirer
+                  </Button>
+                </div>
+                <Textarea
+                  value={validationImportedDoc}
+                  onChange={e => setValidationImportedDoc(e.target.value)}
+                  className="min-h-[150px] text-sm"
+                  placeholder="Contenu du document importé..."
+                  data-testid="textarea-validation-imported-doc"
+                />
+              </div>
+            )}
+
             <Button
               onClick={handleValidateHypotheses}
-              disabled={validateHypMutation.isPending || (!qualitativeResult && !quantitativeResult)}
+              disabled={validateHypMutation.isPending || (!qualitativeResult && !quantitativeResult && !confrontResult && !validationImportedDoc)}
               data-testid="button-validate-hypotheses"
             >
               {validateHypMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
