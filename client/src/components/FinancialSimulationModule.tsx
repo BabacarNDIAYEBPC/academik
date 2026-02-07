@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 import ReactMarkdown from "react-markdown";
+import { useI18n } from "@/lib/i18n";
 
 interface FinancialSimulationModuleProps {
   projectId: number;
@@ -44,20 +45,20 @@ interface SavedState {
   history: HistoryEntry[];
 }
 
-const SIMULATION_TYPES = [
-  { value: "budget_previsionnel", label: "Budget prévisionnel" },
-  { value: "plan_financement", label: "Plan de financement" },
-  { value: "compte_resultat", label: "Compte de résultat prévisionnel" },
-  { value: "seuil_rentabilite", label: "Seuil de rentabilité" },
-  { value: "plan_tresorerie", label: "Plan de trésorerie" },
+const getSimulationTypes = (t: (key: string) => string) => [
+  { value: "budget_previsionnel", label: t("modules.financialSimulation.typeBudget") },
+  { value: "plan_financement", label: t("modules.financialSimulation.typeFinancingPlan") },
+  { value: "compte_resultat", label: t("modules.financialSimulation.typeIncomeStatement") },
+  { value: "seuil_rentabilite", label: t("modules.financialSimulation.typeBreakEven") },
+  { value: "plan_tresorerie", label: t("modules.financialSimulation.typeCashFlow") },
 ];
 
-const TIME_HORIZONS = [
-  { value: "1", label: "1 an" },
-  { value: "2", label: "2 ans" },
-  { value: "3", label: "3 ans" },
-  { value: "4", label: "4 ans" },
-  { value: "5", label: "5 ans" },
+const getTimeHorizons = (t: (key: string) => string) => [
+  { value: "1", label: t("modules.financialSimulation.year1") },
+  { value: "2", label: t("modules.financialSimulation.years2") },
+  { value: "3", label: t("modules.financialSimulation.years3") },
+  { value: "4", label: t("modules.financialSimulation.years4") },
+  { value: "5", label: t("modules.financialSimulation.years5") },
 ];
 
 const CURRENCIES = [
@@ -86,6 +87,7 @@ export default function FinancialSimulationModule({
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
@@ -164,7 +166,7 @@ export default function FinancialSimulationModule({
         onSuccess: (data) => {
           const content = data.content || data.result || "";
           setGeneratedResult(content);
-          const typeLabel = SIMULATION_TYPES.find(t => t.value === simulationType)?.label || simulationType;
+          const typeLabel = getSimulationTypes(t).find(st => st.value === simulationType)?.label || simulationType;
           const entry: HistoryEntry = {
             id: Date.now().toString(),
             type: typeLabel,
@@ -172,10 +174,10 @@ export default function FinancialSimulationModule({
             preview: content.substring(0, 150).replace(/[#*]/g, "").trim(),
           };
           setHistory(prev => [entry, ...prev]);
-          toast({ title: "Simulation générée", description: "La simulation financière a été générée avec succès." });
+          toast({ title: t("modules.financialSimulation.simulationGenerated"), description: t("modules.financialSimulation.simulationGeneratedDesc") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.financialSimulation.toastErrorGenerating"), variant: "destructive" });
         },
       }
     );
@@ -184,7 +186,7 @@ export default function FinancialSimulationModule({
   const handleRestoreHistory = (entry: HistoryEntry) => {
     const idx = history.findIndex(h => h.id === entry.id);
     if (idx >= 0) {
-      toast({ title: "Résultat restauré", description: `Simulation "${entry.type}" du ${new Date(entry.createdAt).toLocaleDateString("fr-FR")} restaurée.` });
+      toast({ title: t("modules.financialSimulation.resultRestored"), description: `${entry.type} - ${new Date(entry.createdAt).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")} ${t("modules.financialSimulation.resultRestoredDesc")}` });
     }
   };
 
@@ -193,8 +195,8 @@ export default function FinancialSimulationModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.sectionValidated") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
@@ -204,20 +206,20 @@ export default function FinancialSimulationModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.validationRemoved") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
 
   const handleExport = () => {
     if (!generatedResult) {
-      toast({ title: "Rien à exporter", description: "Générez d'abord une simulation financière.", variant: "destructive" });
+      toast({ title: t("modules.common.nothingToExport"), description: t("modules.financialSimulation.nothingToExportDesc"), variant: "destructive" });
       return;
     }
-    const typeLabel = SIMULATION_TYPES.find(t => t.value === simulationType)?.label || simulationType;
+    const typeLabel = getSimulationTypes(t).find(st => st.value === simulationType)?.label || simulationType;
     exportToWord(
-      "Simulation financière",
+      t("modules.financialSimulation.exportTitle"),
       [{ label: typeLabel, content: generatedResult }],
       "simulation_financiere.docx"
     );
@@ -230,24 +232,24 @@ export default function FinancialSimulationModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Simulation financière</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
+          <CardTitle className="text-lg">{t("modules.financialSimulation.title")}</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />{t("modules.common.validated")}</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-financial">
-            <Save className="w-4 h-4 mr-1" />Sauvegarder
+            <Save className="w-4 h-4 mr-1" />{t("modules.common.save")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} data-testid="button-export-financial">
-            <FileDown className="w-4 h-4 mr-1" />Exporter
+            <FileDown className="w-4 h-4 mr-1" />{t("modules.common.export")}
           </Button>
           {section && !isValidated && (
             <Button size="sm" onClick={handleValidate} data-testid="button-validate-financial">
-              <Check className="w-4 h-4 mr-1" />Valider
+              <Check className="w-4 h-4 mr-1" />{t("modules.common.validate")}
             </Button>
           )}
           {isValidated && (
             <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="button-unvalidate-financial">
-              <X className="w-4 h-4 mr-1" />Retirer validation
+              <X className="w-4 h-4 mr-1" />{t("modules.common.removeValidation")}
             </Button>
           )}
         </div>
@@ -255,29 +257,29 @@ export default function FinancialSimulationModule({
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <Label>Type de simulation</Label>
+            <Label>{t("modules.financialSimulation.simulationTypeLabel")}</Label>
             <Select value={simulationType} onValueChange={setSimulationType}>
               <SelectTrigger data-testid="select-simulation-type"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {SIMULATION_TYPES.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                {getSimulationTypes(t).map(st => (
+                  <SelectItem key={st.value} value={st.value}>{st.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Horizon temporel</Label>
+            <Label>{t("modules.financialSimulation.timeHorizonLabel")}</Label>
             <Select value={timeHorizon} onValueChange={setTimeHorizon}>
               <SelectTrigger data-testid="select-time-horizon"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {TIME_HORIZONS.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                {getTimeHorizons(t).map(th => (
+                  <SelectItem key={th.value} value={th.value}>{th.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Devise</Label>
+            <Label>{t("modules.financialSimulation.currencyLabel")}</Label>
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger data-testid="select-currency"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -290,12 +292,12 @@ export default function FinancialSimulationModule({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="custom-instructions-financial" className="text-base font-semibold">Instructions personnalisées</Label>
+          <Label htmlFor="custom-instructions-financial" className="text-base font-semibold">{t("modules.financialSimulation.customInstructionsLabel")}</Label>
           <Textarea
             id="custom-instructions-financial"
             value={customInstructions}
             onChange={e => setCustomInstructions(e.target.value)}
-            placeholder="Ex: Inclure les charges sociales, préciser le taux de TVA, ajouter des hypothèses de croissance..."
+            placeholder={t("modules.financialSimulation.customInstructionsPlaceholder")}
             className="min-h-[80px] text-sm"
             data-testid="textarea-custom-instructions-financial"
           />
@@ -307,12 +309,12 @@ export default function FinancialSimulationModule({
           data-testid="button-generate-financial"
         >
           {generateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Calculator className="w-4 h-4 mr-2" />}
-          Générer la simulation
+          {t("modules.financialSimulation.generateSimulation")}
         </Button>
 
         {generatedResult && (
           <div className="space-y-2">
-            <Label className="text-base font-semibold">Résultat</Label>
+            <Label className="text-base font-semibold">{t("modules.financialSimulation.resultLabel")}</Label>
             <div className="prose-academic border rounded-md p-4 max-h-[600px] overflow-y-auto">
               <ReactMarkdown>{generatedResult}</ReactMarkdown>
             </div>
@@ -328,7 +330,7 @@ export default function FinancialSimulationModule({
               data-testid="button-toggle-history-financial"
             >
               <History className="w-4 h-4 mr-1" />
-              Historique ({history.length})
+              {t("modules.financialSimulation.historyLabel")} ({history.length})
             </Button>
             {historyExpanded && (
               <div className="space-y-2">
@@ -344,7 +346,7 @@ export default function FinancialSimulationModule({
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary">{entry.type}</Badge>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(entry.createdAt).toLocaleDateString("fr-FR")} à {new Date(entry.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                            {new Date(entry.createdAt).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US")} à {new Date(entry.createdAt).toLocaleTimeString(lang === "fr" ? "fr-FR" : "en-US", { hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
                       </div>

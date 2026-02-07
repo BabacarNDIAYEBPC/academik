@@ -24,6 +24,7 @@ import {
   FileText, PenTool, Eye,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 import {
   BarChart, PieChart, Bar, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -387,6 +388,7 @@ function parseNumericValue(val: string): number {
 
 function ResultDisplay({ label, value, onChange, testId }: { label: string; value: string; onChange: (v: string) => void; testId: string }) {
   const [editing, setEditing] = useState(false);
+  const { t } = useI18n();
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -397,7 +399,7 @@ function ResultDisplay({ label, value, onChange, testId }: { label: string; valu
           onClick={() => setEditing(!editing)}
           data-testid={`button-toggle-edit-${testId}`}
         >
-          {editing ? <><Eye className="w-4 h-4 mr-1" />Aperçu</> : <><PenTool className="w-4 h-4 mr-1" />Modifier</>}
+          {editing ? <><Eye className="w-4 h-4 mr-1" />{t("modules.dataAnalysis.previewBtn")}</> : <><PenTool className="w-4 h-4 mr-1" />{t("modules.dataAnalysis.editBtn")}</>}
         </Button>
       </div>
       {editing ? (
@@ -447,6 +449,7 @@ export default function DataAnalysisModule({
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
+  const { t } = useI18n();
   const qualitativeMutation = useAnalyzeQualitative();
   const quantitativeMutation = useAnalyzeQuantitative();
   const confrontMutation = useConfrontResults();
@@ -598,7 +601,7 @@ export default function DataAnalysisModule({
 
   const handleQualitativeAnalysis = () => {
     if (verbatims.length === 0 || verbatims.every(v => !v.content.trim())) {
-      toast({ title: "Données requises", description: "Ajoutez au moins un verbatim d'entretien.", variant: "destructive" });
+      toast({ title: t("modules.dataAnalysis.dataRequired"), description: t("modules.dataAnalysis.addVerbatimError"), variant: "destructive" });
       return;
     }
     qualitativeMutation.mutate(
@@ -606,10 +609,10 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setQualitativeResult(data.content);
-          toast({ title: "Analyse terminée", description: "L'analyse qualitative a été générée." });
+          toast({ title: t("modules.dataAnalysis.analysisComplete"), description: t("modules.dataAnalysis.qualitativeGenerated") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de l'analyse", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataAnalysis.analysisError"), variant: "destructive" });
         },
       }
     );
@@ -617,7 +620,7 @@ export default function DataAnalysisModule({
 
   const handleQuantitativeAnalysis = () => {
     if (!quantitativeData.trim()) {
-      toast({ title: "Données requises", description: "Collez vos données quantitatives.", variant: "destructive" });
+      toast({ title: t("modules.dataAnalysis.dataRequired"), description: t("modules.dataAnalysis.pasteQuantitativeData"), variant: "destructive" });
       return;
     }
     quantitativeMutation.mutate(
@@ -625,10 +628,10 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setQuantitativeResult(data.content);
-          toast({ title: "Analyse terminée", description: "L'analyse quantitative a été générée." });
+          toast({ title: t("modules.dataAnalysis.analysisComplete"), description: t("modules.dataAnalysis.quantitativeGenerated") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de l'analyse", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataAnalysis.analysisError"), variant: "destructive" });
         },
       }
     );
@@ -637,7 +640,7 @@ export default function DataAnalysisModule({
   const handleConfront = () => {
     const allResults = [qualitativeResult, quantitativeResult, confrontImportedData].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
-      toast({ title: "Résultats requis", description: "Générez d'abord une analyse qualitative ou quantitative.", variant: "destructive" });
+      toast({ title: t("modules.dataAnalysis.resultsRequired"), description: t("modules.dataAnalysis.generateAnalysisFirst"), variant: "destructive" });
       return;
     }
     confrontMutation.mutate(
@@ -645,10 +648,10 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setConfrontResult(data.content);
-          toast({ title: "Confrontation terminée" });
+          toast({ title: t("modules.dataAnalysis.confrontComplete") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la confrontation", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataAnalysis.confrontError"), variant: "destructive" });
         },
       }
     );
@@ -670,8 +673,8 @@ export default function DataAnalysisModule({
           formData.append("file", file);
           const resp = await fetch("/api/parse-file", { method: "POST", body: formData, credentials: "include" });
           if (!resp.ok) {
-            const errData = await resp.json().catch(() => ({ message: "Erreur serveur" }));
-            throw new Error(errData.message || "Impossible de lire ce fichier.");
+            const errData = await resp.json().catch(() => ({ message: t("modules.common.serverError") }));
+            throw new Error(errData.message || t("modules.common.cannotReadFile"));
           }
           const data = await resp.json();
           text = data.text;
@@ -679,14 +682,14 @@ export default function DataAnalysisModule({
           text = await file.text();
         }
         if (!text.trim()) {
-          toast({ title: "Fichier vide", description: "Le fichier ne contient pas de texte exploitable.", variant: "destructive" });
+          toast({ title: t("modules.dataAnalysis.fileEmpty"), description: t("modules.dataAnalysis.fileEmptyDesc"), variant: "destructive" });
           setUploadingValidationDoc(false);
           return;
         }
         setValidationImportedDoc(text);
-        toast({ title: "Document importé", description: `"${file.name}" sera utilisé pour la validation des hypothèses.` });
+        toast({ title: t("modules.dataAnalysis.documentImported"), description: `"${file.name}" ${t("modules.dataAnalysis.docUsedForValidation")}` });
       } catch (err: any) {
-        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+        toast({ title: t("modules.dataAnalysis.importError"), description: err.message || t("modules.common.cannotReadFile"), variant: "destructive" });
       } finally {
         setUploadingValidationDoc(false);
       }
@@ -697,7 +700,7 @@ export default function DataAnalysisModule({
   const handleValidateHypotheses = () => {
     const allResults = [qualitativeResult, quantitativeResult, confrontResult, validationImportedDoc].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
-      toast({ title: "Résultats requis", description: "Importez un document d'analyse ou réalisez d'abord les analyses.", variant: "destructive" });
+      toast({ title: t("modules.dataAnalysis.resultsRequired"), description: t("modules.dataAnalysis.importOrAnalyzeFirst"), variant: "destructive" });
       return;
     }
     validateHypMutation.mutate(
@@ -705,10 +708,10 @@ export default function DataAnalysisModule({
       {
         onSuccess: (data) => {
           setValidationResult(data.content);
-          toast({ title: "Validation terminée" });
+          toast({ title: t("modules.dataAnalysis.validationComplete") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la validation", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataAnalysis.validationError"), variant: "destructive" });
         },
       }
     );
@@ -719,8 +722,8 @@ export default function DataAnalysisModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.sectionValidated") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
@@ -730,8 +733,8 @@ export default function DataAnalysisModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.validationRemoved") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
@@ -766,7 +769,7 @@ export default function DataAnalysisModule({
             importedParts.push(`--- ${file.name} ---\n${allSheets.join("\n\n")}`);
           }
         } catch (err: any) {
-          toast({ title: "Erreur d'import", description: `${file.name}: ${err.message || "Impossible de lire le fichier."}`, variant: "destructive" });
+          toast({ title: t("modules.dataAnalysis.importError"), description: `${file.name}: ${err.message || t("modules.common.cannotReadFile")}`, variant: "destructive" });
         }
       }
       if (importedParts.length > 0) {
@@ -774,7 +777,7 @@ export default function DataAnalysisModule({
           const combined = [prev, ...importedParts].filter(Boolean).join("\n\n");
           return combined;
         });
-        toast({ title: "Import réussi", description: `${importedParts.length} fichier(s) importé(s) pour la confrontation.` });
+        toast({ title: t("modules.dataAnalysis.importSuccess"), description: `${importedParts.length} ${t("modules.dataAnalysis.filesImportedForConfront")}` });
       }
     };
     input.click();
@@ -782,15 +785,15 @@ export default function DataAnalysisModule({
 
   const handleExport = () => {
     const sections = [];
-    if (qualitativeResult) sections.push({ label: "Analyse qualitative", content: qualitativeResult });
-    if (quantitativeResult) sections.push({ label: "Analyse quantitative", content: quantitativeResult });
-    if (confrontResult) sections.push({ label: "Confrontation des résultats", content: confrontResult });
-    if (validationResult) sections.push({ label: "Validation des hypothèses", content: validationResult });
+    if (qualitativeResult) sections.push({ label: t("modules.dataAnalysis.qualitativeExport"), content: qualitativeResult });
+    if (quantitativeResult) sections.push({ label: t("modules.dataAnalysis.quantitativeExport"), content: quantitativeResult });
+    if (confrontResult) sections.push({ label: t("modules.dataAnalysis.confrontExport"), content: confrontResult });
+    if (validationResult) sections.push({ label: t("modules.dataAnalysis.validationExport"), content: validationResult });
     if (sections.length === 0) {
-      toast({ title: "Rien à exporter", variant: "destructive" });
+      toast({ title: t("modules.common.nothingToExport"), variant: "destructive" });
       return;
     }
-    exportToWord("Analyse des données", sections, "analyse_donnees.docx");
+    exportToWord(t("modules.dataAnalysis.exportTitle"), sections, "analyse_donnees.docx");
   };
 
   const isValidated = section?.status === "validated";
@@ -800,36 +803,36 @@ export default function DataAnalysisModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Analyse des données</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
+          <CardTitle className="text-lg">{t("modules.dataAnalysis.title")}</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />{t("modules.common.validated")}</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-analysis">
-            <Save className="w-4 h-4 mr-1" />Sauvegarder
+            <Save className="w-4 h-4 mr-1" />{t("modules.common.save")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} data-testid="button-export-analysis">
-            <FileDown className="w-4 h-4 mr-1" />Exporter
+            <FileDown className="w-4 h-4 mr-1" />{t("modules.common.export")}
           </Button>
           {section && !isValidated && (
             <Button size="sm" onClick={handleSectionValidate} data-testid="button-validate-analysis">
-              <Check className="w-4 h-4 mr-1" />Valider
+              <Check className="w-4 h-4 mr-1" />{t("modules.common.validate")}
             </Button>
           )}
           {isValidated && (
             <Button variant="outline" size="sm" onClick={handleSectionUnvalidate} data-testid="button-unvalidate-analysis">
-              <X className="w-4 h-4 mr-1" />Retirer validation
+              <X className="w-4 h-4 mr-1" />{t("modules.common.removeValidation")}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-1.5">
-          <Label htmlFor="context-instructions" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
+          <Label htmlFor="context-instructions" className="text-base font-semibold">{t("modules.common.contextLabel")}</Label>
           <Textarea
             id="context-instructions"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
+            placeholder={t("modules.common.contextPlaceholder")}
             className="min-h-[80px] text-sm"
             data-testid="textarea-context-instructions"
           />
@@ -838,73 +841,73 @@ export default function DataAnalysisModule({
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-muted/50 h-auto flex-wrap gap-1 p-1">
             <TabsTrigger value="qualitative" className="gap-1" data-testid="tab-qualitative">
-              <BookOpen className="w-4 h-4" />Qualitative
+              <BookOpen className="w-4 h-4" />{t("modules.dataAnalysis.qualitativeTab")}
             </TabsTrigger>
             <TabsTrigger value="quantitative" className="gap-1" data-testid="tab-quantitative">
-              <BarChart3 className="w-4 h-4" />Quantitative
+              <BarChart3 className="w-4 h-4" />{t("modules.dataAnalysis.quantitativeTab")}
             </TabsTrigger>
             <TabsTrigger value="confront" className="gap-1" data-testid="tab-confront">
-              <FlaskConical className="w-4 h-4" />Confrontation
+              <FlaskConical className="w-4 h-4" />{t("modules.dataAnalysis.confrontTab")}
             </TabsTrigger>
             <TabsTrigger value="validation" className="gap-1" data-testid="tab-validation">
-              <Check className="w-4 h-4" />Hypothèses
+              <Check className="w-4 h-4" />{t("modules.dataAnalysis.hypothesesTab")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="qualitative" className="space-y-4 mt-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Label className="text-base font-semibold">Verbatims d'entretien</Label>
+                <Label className="text-base font-semibold">{t("modules.dataAnalysis.verbatimsLabel")}</Label>
                 <Button variant="outline" size="sm" onClick={addVerbatim} data-testid="button-add-verbatim">
-                  <Plus className="w-4 h-4 mr-1" />Ajouter un entretien
+                  <Plus className="w-4 h-4 mr-1" />{t("modules.dataAnalysis.addInterview")}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Collez le contenu retranscrit de chaque entretien pour l'analyse thématique.
+                {t("modules.dataAnalysis.verbatimsDesc")}
               </p>
 
               {verbatims.map((v, index) => (
                 <Card key={v.id}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <Badge variant="outline" className="text-xs">Entretien {index + 1}</Badge>
+                      <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.interviewBadge")} {index + 1}</Badge>
                       <Button variant="ghost" size="icon" onClick={() => removeVerbatim(v.id)} data-testid={`button-remove-verbatim-${v.id}`}>
                         <Trash2 className="w-4 h-4 text-muted-foreground" />
                       </Button>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       <div className="space-y-1">
-                        <Label className="text-xs">Initiales</Label>
+                        <Label className="text-xs">{t("modules.dataAnalysis.initialsLabel")}</Label>
                         <Input
                           value={v.initials}
                           onChange={e => updateVerbatim(v.id, "initials", e.target.value)}
-                          placeholder="Ex: M.D."
+                          placeholder={t("modules.dataAnalysis.initialsPlaceholder")}
                           className="text-sm"
                           data-testid={`input-verbatim-initials-${v.id}`}
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">Fonction</Label>
+                        <Label className="text-xs">{t("modules.dataAnalysis.functionLabel")}</Label>
                         <Input
                           value={v.function}
                           onChange={e => updateVerbatim(v.id, "function", e.target.value)}
-                          placeholder="Ex: IDE"
+                          placeholder={t("modules.dataAnalysis.functionPlaceholder")}
                           className="text-sm"
                           data-testid={`input-verbatim-function-${v.id}`}
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">Structure</Label>
+                        <Label className="text-xs">{t("modules.dataAnalysis.structureLabel")}</Label>
                         <Input
                           value={v.structureType}
                           onChange={e => updateVerbatim(v.id, "structureType", e.target.value)}
-                          placeholder="Ex: CHU"
+                          placeholder={t("modules.dataAnalysis.structurePlaceholder")}
                           className="text-sm"
                           data-testid={`input-verbatim-structure-${v.id}`}
                         />
                       </div>
                       <div className="space-y-1">
-                        <Label className="text-xs">Date</Label>
+                        <Label className="text-xs">{t("modules.dataAnalysis.dateLabel")}</Label>
                         <Input
                           type="date"
                           value={v.date}
@@ -915,11 +918,11 @@ export default function DataAnalysisModule({
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Verbatim (retranscription)</Label>
+                      <Label className="text-xs">{t("modules.dataAnalysis.verbatimLabel")}</Label>
                       <Textarea
                         value={v.content}
                         onChange={e => updateVerbatim(v.id, "content", e.target.value)}
-                        placeholder="Collez ici la retranscription intégrale de l'entretien..."
+                        placeholder={t("modules.dataAnalysis.verbatimPlaceholder")}
                         className="min-h-[120px] text-sm"
                         data-testid={`textarea-verbatim-content-${v.id}`}
                       />
@@ -931,13 +934,13 @@ export default function DataAnalysisModule({
 
             <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
               <div className="space-y-1.5 w-full sm:w-auto">
-                <Label>Mode d'analyse</Label>
+                <Label>{t("modules.dataAnalysis.analysisModeLabel")}</Label>
                 <Select value={analysisMode} onValueChange={setAnalysisMode}>
                   <SelectTrigger className="w-full sm:w-[250px]" data-testid="select-analysis-mode"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="per_interview">Par entretien (puis synthèse)</SelectItem>
-                    <SelectItem value="global">Transversale globale</SelectItem>
-                    <SelectItem value="per_hypothesis">Par hypothèse</SelectItem>
+                    <SelectItem value="per_interview">{t("modules.dataAnalysis.perInterview")}</SelectItem>
+                    <SelectItem value="global">{t("modules.dataAnalysis.globalMode")}</SelectItem>
+                    <SelectItem value="per_hypothesis">{t("modules.dataAnalysis.perHypothesis")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -948,13 +951,13 @@ export default function DataAnalysisModule({
                 data-testid="button-analyze-qualitative"
               >
                 {qualitativeMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BookOpen className="w-4 h-4 mr-2" />}
-                Analyser les verbatims
+                {t("modules.dataAnalysis.analyzeVerbatims")}
               </Button>
             </div>
 
             {qualitativeResult && (
               <ResultDisplay
-                label="Résultat de l'analyse qualitative"
+                label={t("modules.dataAnalysis.qualitativeResultLabel")}
                 value={qualitativeResult}
                 onChange={setQualitativeResult}
                 testId="qualitative-result"
@@ -964,9 +967,9 @@ export default function DataAnalysisModule({
 
           <TabsContent value="quantitative" className="space-y-4 mt-4">
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Données quantitatives</Label>
+              <Label className="text-base font-semibold">{t("modules.dataAnalysis.quantitativeDataLabel")}</Label>
               <p className="text-xs text-muted-foreground">
-                Collez vos données (format CSV ou tableau), ou importez un fichier Excel (.xlsx) pour l'analyse.
+                {t("modules.dataAnalysis.quantitativeDataDesc")}
               </p>
               <div className="flex gap-2 flex-wrap">
                 <Button
@@ -983,7 +986,7 @@ export default function DataAnalysisModule({
                         if (file.name.endsWith(".csv")) {
                           const text = await file.text();
                           setQuantitativeData(text);
-                          toast({ title: "CSV importé", description: `${file.name} a été chargé.` });
+                          toast({ title: t("modules.dataAnalysis.csvImported"), description: `${file.name}` });
                         } else {
                           const XLSX = await import("xlsx");
                           const buffer = await file.arrayBuffer();
@@ -991,17 +994,17 @@ export default function DataAnalysisModule({
                           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                           const csvData = XLSX.utils.sheet_to_csv(firstSheet, { FS: ";" });
                           setQuantitativeData(csvData);
-                          toast({ title: "Excel importé", description: `${file.name} converti en données tabulaires (${workbook.SheetNames[0]}).` });
+                          toast({ title: t("modules.dataAnalysis.excelImported"), description: `${file.name} (${workbook.SheetNames[0]})` });
                         }
                       } catch (err: any) {
-                        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+                        toast({ title: t("modules.dataAnalysis.importError"), description: err.message, variant: "destructive" });
                       }
                     };
                     input.click();
                   }}
                   data-testid="button-import-excel"
                 >
-                  <Upload className="w-4 h-4 mr-1" /> Importer Excel / CSV
+                  <Upload className="w-4 h-4 mr-1" /> {t("modules.dataAnalysis.importExcelCsv")}
                 </Button>
               </div>
               <Textarea
@@ -1015,14 +1018,14 @@ export default function DataAnalysisModule({
 
             <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
               <div className="space-y-1.5 w-full sm:w-auto">
-                <Label>Type d'analyse</Label>
+                <Label>{t("modules.dataAnalysis.analysisTypeLabel")}</Label>
                 <Select value={quantitativeType} onValueChange={setQuantitativeType}>
                   <SelectTrigger className="w-full sm:w-[320px]" data-testid="select-quantitative-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="cross_tab">Tableaux croisés dynamiques</SelectItem>
-                    <SelectItem value="cross_chart">Graphiques croisés dynamiques</SelectItem>
-                    <SelectItem value="trends">Analyse des tendances</SelectItem>
-                    <SelectItem value="interpretation">Interprétation globale</SelectItem>
+                    <SelectItem value="cross_tab">{t("modules.dataAnalysis.crossTab")}</SelectItem>
+                    <SelectItem value="cross_chart">{t("modules.dataAnalysis.crossChart")}</SelectItem>
+                    <SelectItem value="trends">{t("modules.dataAnalysis.trends")}</SelectItem>
+                    <SelectItem value="interpretation">{t("modules.dataAnalysis.interpretation")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1033,13 +1036,13 @@ export default function DataAnalysisModule({
                 data-testid="button-analyze-quantitative"
               >
                 {quantitativeMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                Analyser les données
+                {t("modules.dataAnalysis.analyzeData")}
               </Button>
             </div>
 
             {quantitativeResult && (
               <ResultDisplay
-                label="Résultat de l'analyse quantitative"
+                label={t("modules.dataAnalysis.quantitativeResultLabel")}
                 value={quantitativeResult}
                 onChange={setQuantitativeResult}
                 testId="quantitative-result"
@@ -1051,8 +1054,8 @@ export default function DataAnalysisModule({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-[#00BCD4]" />
-                    <Label className="text-base font-bold">Tableaux croisés dynamiques</Label>
-                    <Badge variant="outline" className="text-xs">{crossTabGroups.length} tableau{crossTabGroups.length > 1 ? "x" : ""}</Badge>
+                    <Label className="text-base font-bold">{t("modules.dataAnalysis.crossTabTitle")}</Label>
+                    <Badge variant="outline" className="text-xs">{crossTabGroups.length} {t("modules.dataAnalysis.tableCount")}</Badge>
                   </div>
                 </div>
 
@@ -1125,19 +1128,19 @@ export default function DataAnalysisModule({
                       {hasNumericData && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Graphique : {group.title}</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("modules.dataAnalysis.chartLabel")} : {group.title}</p>
                           <Select
                             value={currentChartType}
                             onValueChange={(val) => setChartTypeOverrides(prev => ({ ...prev, [group.id]: val }))}
                           >
                             <SelectTrigger className="w-full sm:w-[200px]" data-testid={`select-chart-type-${group.id}`}><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="bar">Barres groupées</SelectItem>
-                              <SelectItem value="stacked">Barres empilées</SelectItem>
-                              <SelectItem value="pie">Camembert</SelectItem>
-                              <SelectItem value="line">Courbes</SelectItem>
-                              <SelectItem value="area">Aires empilées</SelectItem>
-                              <SelectItem value="radar">Radar</SelectItem>
+                              <SelectItem value="bar">{t("modules.dataAnalysis.barChart")}</SelectItem>
+                              <SelectItem value="stacked">{t("modules.dataAnalysis.stackedBar")}</SelectItem>
+                              <SelectItem value="pie">{t("modules.dataAnalysis.pieChart")}</SelectItem>
+                              <SelectItem value="line">{t("modules.dataAnalysis.lineChart")}</SelectItem>
+                              <SelectItem value="area">{t("modules.dataAnalysis.areaChart")}</SelectItem>
+                              <SelectItem value="radar">{t("modules.dataAnalysis.radarChart")}</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -1230,7 +1233,7 @@ export default function DataAnalysisModule({
                       </div>
                       )}
                       {!hasNumericData && (
-                        <p className="text-xs text-muted-foreground italic py-2">Aucune donnée numérique disponible pour générer un graphique.</p>
+                        <p className="text-xs text-muted-foreground italic py-2">{t("modules.dataAnalysis.noNumericData")}</p>
                       )}
                     </div>
                   );
@@ -1242,21 +1245,21 @@ export default function DataAnalysisModule({
           <TabsContent value="confront" className="space-y-4 mt-4">
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Confrontez vos résultats de terrain (analyse qualitative et/ou quantitative) avec la revue de littérature et le cadre théorique pour identifier convergences, divergences et apports originaux.
+                {t("modules.dataAnalysis.confrontDesc")}
               </p>
               <div className="flex gap-2 flex-wrap">
-                {qualitativeResult && <Badge variant="default" className="bg-green-600/10 text-green-600 border-green-600/20">Analyse qualitative disponible</Badge>}
-                {quantitativeResult && <Badge variant="default" className="bg-blue-600/10 text-blue-600 border-blue-600/20">Analyse quantitative disponible</Badge>}
+                {qualitativeResult && <Badge variant="default" className="bg-green-600/10 text-green-600 border-green-600/20">{t("modules.dataAnalysis.qualitativeAvailable")}</Badge>}
+                {quantitativeResult && <Badge variant="default" className="bg-blue-600/10 text-blue-600 border-blue-600/20">{t("modules.dataAnalysis.quantitativeAvailable")}</Badge>}
                 {!qualitativeResult && !quantitativeResult && (
-                  <Badge variant="outline" className="text-muted-foreground">Aucune analyse disponible - réalisez d'abord une analyse</Badge>
+                  <Badge variant="outline" className="text-muted-foreground">{t("modules.dataAnalysis.noAnalysisAvailable")}</Badge>
                 )}
               </div>
             </div>
 
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Importer des données supplémentaires</Label>
+              <Label className="text-base font-semibold">{t("modules.dataAnalysis.importAdditionalData")}</Label>
               <p className="text-xs text-muted-foreground">
-                Importez des retranscriptions d'entretien (.txt), des fichiers Excel/CSV avec verbatims ou données de tableau croisé, ou collez directement du texte.
+                {t("modules.dataAnalysis.importAdditionalDataDesc")}
               </p>
               <div className="flex gap-2 flex-wrap">
                 <Button
@@ -1265,7 +1268,7 @@ export default function DataAnalysisModule({
                   onClick={handleConfrontFileImport}
                   data-testid="button-import-confront-file"
                 >
-                  <Upload className="w-4 h-4 mr-1" />Importer fichier(s)
+                  <Upload className="w-4 h-4 mr-1" />{t("modules.dataAnalysis.importFiles")}
                 </Button>
                 {confrontImportedData && (
                   <Button
@@ -1273,25 +1276,25 @@ export default function DataAnalysisModule({
                     size="sm"
                     onClick={() => {
                       setConfrontImportedData("");
-                      toast({ title: "Données importées effacées" });
+                      toast({ title: t("modules.dataAnalysis.importedDataCleared") });
                     }}
                     data-testid="button-clear-confront-import"
                   >
-                    <Trash2 className="w-4 h-4 mr-1" />Effacer import
+                    <Trash2 className="w-4 h-4 mr-1" />{t("modules.dataAnalysis.clearImport")}
                   </Button>
                 )}
               </div>
               <Textarea
                 value={confrontImportedData}
                 onChange={e => setConfrontImportedData(e.target.value)}
-                placeholder="Collez ici des verbatims, résultats ou données supplémentaires pour la confrontation..."
+                placeholder={t("modules.dataAnalysis.confrontImportPlaceholder")}
                 className="min-h-[120px] text-sm"
                 data-testid="textarea-confront-imported-data"
               />
               {confrontImportedData && (
                 <Badge variant="outline" className="text-xs">
                   <FileText className="w-3 h-3 mr-1" />
-                  Données importées: {confrontImportedData.length} caractères
+                  {t("modules.dataAnalysis.importedDataLabel")}: {confrontImportedData.length} {t("modules.dataAnalysis.characters")}
                 </Badge>
               )}
             </div>
@@ -1302,12 +1305,12 @@ export default function DataAnalysisModule({
               data-testid="button-confront"
             >
               {confrontMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FlaskConical className="w-4 h-4 mr-2" />}
-              Confronter avec la littérature
+              {t("modules.dataAnalysis.confrontWithLiterature")}
             </Button>
 
             {confrontResult && (
               <ResultDisplay
-                label="Confrontation des résultats"
+                label={t("modules.dataAnalysis.confrontResultLabel")}
                 value={confrontResult}
                 onChange={setConfrontResult}
                 testId="confront-result"
@@ -1319,7 +1322,7 @@ export default function DataAnalysisModule({
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <p className="text-sm text-muted-foreground flex-1 min-w-0">
-                  Validez ou invalidez chaque hypothèse de recherche en vous appuyant sur l'ensemble des résultats (analyses qualitative/quantitative et confrontation avec la littérature).
+                  {t("modules.dataAnalysis.validationDesc")}
                 </p>
                 <Button
                   variant="outline"
@@ -1329,17 +1332,17 @@ export default function DataAnalysisModule({
                   data-testid="button-import-validation-doc"
                 >
                   {uploadingValidationDoc ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
-                  Importer un document d'analyse
+                  {t("modules.dataAnalysis.importAnalysisDoc")}
                 </Button>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {qualitativeResult && <Badge variant="outline" className="text-xs">Qualitative</Badge>}
-                {quantitativeResult && <Badge variant="outline" className="text-xs">Quantitative</Badge>}
-                {confrontResult && <Badge variant="outline" className="text-xs">Confrontation</Badge>}
+                {qualitativeResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.qualitativeTab")}</Badge>}
+                {quantitativeResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.quantitativeTab")}</Badge>}
+                {confrontResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.confrontTab")}</Badge>}
                 {validationImportedDoc && (
                   <Badge variant="secondary" className="text-xs">
                     <FileText className="w-3 h-3 mr-1" />
-                    Document externe importé
+                    {t("modules.dataAnalysis.externalDocImported")}
                   </Badge>
                 )}
               </div>
@@ -1348,16 +1351,16 @@ export default function DataAnalysisModule({
             {validationImportedDoc && (
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <Label className="text-sm font-medium">Document d'analyse importé</Label>
-                  <Button variant="ghost" size="sm" onClick={() => { setValidationImportedDoc(""); toast({ title: "Document retiré" }); }} data-testid="button-remove-validation-doc">
-                    <Trash2 className="w-4 h-4 mr-1" /> Retirer
+                  <Label className="text-sm font-medium">{t("modules.dataAnalysis.importedAnalysisDoc")}</Label>
+                  <Button variant="ghost" size="sm" onClick={() => { setValidationImportedDoc(""); toast({ title: t("modules.dataAnalysis.documentRemoved") }); }} data-testid="button-remove-validation-doc">
+                    <Trash2 className="w-4 h-4 mr-1" /> {t("modules.dataAnalysis.removeDoc")}
                   </Button>
                 </div>
                 <Textarea
                   value={validationImportedDoc}
                   onChange={e => setValidationImportedDoc(e.target.value)}
                   className="min-h-[150px] text-sm"
-                  placeholder="Contenu du document importé..."
+                  placeholder={t("modules.dataAnalysis.importedDocContent")}
                   data-testid="textarea-validation-imported-doc"
                 />
               </div>
@@ -1369,12 +1372,12 @@ export default function DataAnalysisModule({
               data-testid="button-validate-hypotheses"
             >
               {validateHypMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Valider les hypothèses
+              {t("modules.dataAnalysis.validateHypotheses")}
             </Button>
 
             {validationResult && (
               <ResultDisplay
-                label="Validation des hypothèses"
+                label={t("modules.dataAnalysis.validationResultLabel")}
                 value={validationResult}
                 onChange={setValidationResult}
                 testId="validation-result"

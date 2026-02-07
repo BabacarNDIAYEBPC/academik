@@ -1,10 +1,12 @@
 import Layout from "@/components/Layout";
-import { useState, useEffect } from "react";
+import { SEO } from "@/components/SEO";
+import { useState } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Key, CheckCircle2, XCircle, Eye, EyeOff } from "lucide-react";
+import { Loader2, Key, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -14,6 +16,7 @@ export default function Settings() {
   const [showKey, setShowKey] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { t } = useI18n();
 
   const { data: keyStatus, isLoading } = useQuery({
     queryKey: ["/api/settings/openai-key"],
@@ -32,17 +35,17 @@ export default function Settings() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings/openai-key"] });
       toast({
-        title: data.hasKey ? "Clé API enregistrée" : "Clé API supprimée",
+        title: data.hasKey ? t("settings.keySaved") : t("settings.keyRemoved"),
         description: data.hasKey
-          ? "Votre clé OpenAI personnelle sera utilisée pour les générations."
-          : "Les générations utiliseront le service intégré.",
+          ? t("settings.keySavedDesc")
+          : t("settings.keyRemovedDesc"),
       });
       setApiKey("");
     },
     onError: (err: any) => {
       toast({
-        title: "Erreur",
-        description: err.message || "Clé API invalide.",
+        title: t("settings.keyError"),
+        description: err.message || t("settings.keyErrorDesc"),
         variant: "destructive",
       });
     },
@@ -50,33 +53,34 @@ export default function Settings() {
 
   return (
     <Layout>
+      <SEO titleKey="seo.settingsTitle" />
       <div className="max-w-2xl mx-auto py-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Paramètres</h1>
-        <p className="text-muted-foreground mb-8">Configurez votre assistant académique.</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-2" data-testid="text-settings-title">{t("settings.title")}</h1>
+        <p className="text-muted-foreground mb-8">{t("settings.subtitle")}</p>
 
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Key className="w-5 h-5" />
-              Clé API OpenAI
+              {t("settings.apiKeyTitle")}
             </CardTitle>
             <CardDescription>
-              Optionnel : connectez votre propre clé API OpenAI pour utiliser vos crédits personnels. Sans clé personnelle, le service intégré est utilisé.
+              {t("settings.apiKeyDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-sm text-muted-foreground">Statut :</span>
+              <span className="text-sm text-muted-foreground">{t("settings.status")} :</span>
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : keyStatus?.hasKey ? (
                 <Badge variant="outline" className="gap-1" data-testid="badge-key-active">
                   <CheckCircle2 className="w-3 h-3 text-green-500" />
-                  Clé personnelle active
+                  {t("settings.personalKeyActive")}
                 </Badge>
               ) : (
                 <Badge variant="secondary" className="gap-1" data-testid="badge-key-default">
-                  Service intégré (par défaut)
+                  {t("settings.integratedService")}
                 </Badge>
               )}
             </div>
@@ -106,7 +110,7 @@ export default function Settings() {
                 data-testid="button-save-key"
               >
                 {saveMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                Enregistrer
+                {t("settings.saveKey")}
               </Button>
             </div>
 
@@ -118,12 +122,12 @@ export default function Settings() {
                 disabled={saveMutation.isPending}
                 data-testid="button-remove-key"
               >
-                Supprimer ma clé et utiliser le service intégré
+                {t("settings.removeKey")}
               </Button>
             )}
 
             <p className="text-xs text-muted-foreground">
-              Votre clé est stockée de manière sécurisée et n'est jamais partagée. Elle est utilisée uniquement pour les appels IA de vos projets.
+              {t("settings.keySecurityNote")}
             </p>
           </CardContent>
         </Card>

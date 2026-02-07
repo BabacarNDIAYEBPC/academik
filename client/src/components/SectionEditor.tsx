@@ -18,6 +18,7 @@ import {
   useStatusHistory,
   useClearNeedsReview,
 } from "@/hooks/use-sections";
+import { useI18n } from "@/lib/i18n";
 import { SECTION_LABELS, SECTION_STATUS_LABELS } from "@shared/schema";
 import type { ProjectSection, SectionVersion } from "@shared/schema";
 import ReactMarkdown from "react-markdown";
@@ -91,6 +92,7 @@ export default function SectionEditor({
   const [showStatusTimeline, setShowStatusTimeline] = useState(false);
   const [showRegenerateChoice, setShowRegenerateChoice] = useState(false);
   const { toast } = useToast();
+  const { t, lang } = useI18n();
 
   const generateMutation = useGenerateSection();
   const saveMutation = useSaveManual();
@@ -109,6 +111,8 @@ export default function SectionEditor({
   const needsReview = !!sectionConfig.needsReview;
   const reviewReason = sectionConfig.reviewReason as string | undefined;
 
+  const statusLabel = (s: string) => t(`sectionStatus.${s}`) || SECTION_STATUS_LABELS[s] || s;
+
   const handleGenerate = (mode: "initial" | "similar" | "different") => {
     setShowRegenerateChoice(false);
     generateMutation.mutate(
@@ -121,10 +125,10 @@ export default function SectionEditor({
       },
       {
         onSuccess: () => {
-          toast({ title: "Contenu généré", description: `${label} a été généré avec succès.` });
+          toast({ title: t("section.contentGenerated"), description: `${label} ${t("section.generatedSuccess")}` });
         },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "La génération a échoué.", variant: "destructive" });
+          toast({ title: t("section.error"), description: err.message || t("section.generationFailed"), variant: "destructive" });
         },
       }
     );
@@ -137,7 +141,7 @@ export default function SectionEditor({
       {
         onSuccess: () => {
           setIsEditing(false);
-          toast({ title: "Sauvegardé", description: "Vos modifications ont été enregistrées." });
+          toast({ title: t("section.saved"), description: t("section.changesSaved") });
         },
       }
     );
@@ -149,7 +153,7 @@ export default function SectionEditor({
       { sectionId: section.id, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Validé", description: `${label} a été validé et sera utilisé dans les sections suivantes.` });
+          toast({ title: t("section.validated"), description: `${label} ${t("section.validatedDesc")}` });
         },
       }
     );
@@ -161,7 +165,7 @@ export default function SectionEditor({
       { sectionId: section.id, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Dévalidé", description: `${label} est de nouveau en brouillon.` });
+          toast({ title: t("section.unvalidated"), description: `${label} ${t("section.backToDraftDesc")}` });
         },
       }
     );
@@ -174,8 +178,8 @@ export default function SectionEditor({
       {
         onSuccess: () => {
           toast({
-            title: "Statut mis à jour",
-            description: `${label} : ${SECTION_STATUS_LABELS[newStatus] || newStatus}`,
+            title: t("section.statusUpdated"),
+            description: `${label} : ${statusLabel(newStatus)}`,
           });
         },
       }
@@ -202,16 +206,16 @@ export default function SectionEditor({
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <Badge className={`${STATUS_COLORS[currentStatus] || ""} no-default-hover-elevate no-default-active-elevate`} data-testid={`badge-status-${sectionKey}`}>
                   <StatusIcon className="w-3 h-3 mr-1" />
-                  {SECTION_STATUS_LABELS[currentStatus] || currentStatus}
+                  {statusLabel(currentStatus)}
                 </Badge>
                 <Select value={currentStatus} onValueChange={handleStatusChange} data-testid={`select-status-${sectionKey}`}>
                   <SelectTrigger className="w-full sm:w-[200px] h-8 text-xs" data-testid={`trigger-status-${sectionKey}`}>
-                    <SelectValue placeholder="Changer le statut" />
+                    <SelectValue placeholder={t("section.changeStatus")} />
                   </SelectTrigger>
                   <SelectContent>
                     {STATUS_WORKFLOW_ORDER.map((s) => (
                       <SelectItem key={s} value={s} data-testid={`status-option-${s}`}>
-                        {SECTION_STATUS_LABELS[s] || s}
+                        {statusLabel(s)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -227,7 +231,7 @@ export default function SectionEditor({
                 onClick={() => setShowStatusTimeline(true)}
                 data-testid={`button-status-timeline-${sectionKey}`}
               >
-                <Clock className="w-4 h-4 mr-1" /> Suivi
+                <Clock className="w-4 h-4 mr-1" /> {t("section.tracking")}
               </Button>
             )}
             {section && (
@@ -237,7 +241,7 @@ export default function SectionEditor({
                 onClick={() => setShowHistory(true)}
                 data-testid={`button-history-${sectionKey}`}
               >
-                <History className="w-4 h-4 mr-1" /> Historique
+                <History className="w-4 h-4 mr-1" /> {t("section.history")}
               </Button>
             )}
           </div>
@@ -248,9 +252,9 @@ export default function SectionEditor({
             <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800" data-testid={`alert-needs-review-${sectionKey}`}>
               <RefreshCw className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">Section à réévaluer</p>
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-300">{t("section.sectionNeedsReview")}</p>
                 <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
-                  La section « {reviewReason ? (SECTION_LABELS[reviewReason] || reviewReason) : "un élément fondamental"} » a été modifiée. Vérifiez si cette section nécessite une mise à jour.
+                  {lang === "fr" ? "La section « " : "The section \""}{reviewReason ? (SECTION_LABELS[reviewReason] || reviewReason) : t("section.fundamentalElement")}{lang === "fr" ? " » " : "\" "}{t("section.reviewDescription")}
                 </p>
               </div>
               <Button
@@ -271,16 +275,16 @@ export default function SectionEditor({
           {isPending && (
             <div className="flex items-center justify-center py-12 text-primary gap-3">
               <Loader2 className="w-6 h-6 animate-spin" />
-              <span className="text-sm font-medium">Génération en cours...</span>
+              <span className="text-sm font-medium">{t("section.generating")}</span>
             </div>
           )}
 
           {!isPending && !hasContent && !isEditing && (
             <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
               <Sparkles className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm mb-4">Aucun contenu généré pour cette section.</p>
+              <p className="text-muted-foreground text-sm mb-4">{t("section.noContentForSection")}</p>
               <Button onClick={() => handleGenerate("initial")} data-testid={`button-generate-${sectionKey}`}>
-                <Sparkles className="w-4 h-4 mr-2" /> Générer {label}
+                <Sparkles className="w-4 h-4 mr-2" /> {t("section.generate")} {label}
               </Button>
             </div>
           )}
@@ -293,25 +297,25 @@ export default function SectionEditor({
 
               {activeVersion && (
                 <p className="text-xs text-muted-foreground">
-                  Version {activeVersion.versionNumber} &middot; {activeVersion.source === "ai" ? "Généré par IA" : "Modifié manuellement"}
-                  {activeVersion.mode && activeVersion.mode !== "initial" && ` (${activeVersion.mode === "similar" ? "similaire" : "différent"})`}
+                  {t("section.version")} {activeVersion.versionNumber} &middot; {activeVersion.source === "ai" ? t("section.aiGenerated") : t("section.manuallyModified")}
+                  {activeVersion.mode && activeVersion.mode !== "initial" && ` (${activeVersion.mode === "similar" ? t("section.similar") : t("section.different")})`}
                 </p>
               )}
 
               <div className="flex flex-wrap gap-2 pt-2">
                 <Button variant="outline" size="sm" onClick={startEditing} data-testid={`button-edit-${sectionKey}`}>
-                  <Pencil className="w-4 h-4 mr-1" /> Modifier
+                  <Pencil className="w-4 h-4 mr-1" /> {t("section.edit")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => setShowRegenerateChoice(true)} data-testid={`button-regenerate-${sectionKey}`}>
-                  <RefreshCw className="w-4 h-4 mr-1" /> Changer
+                  <RefreshCw className="w-4 h-4 mr-1" /> {t("section.change")}
                 </Button>
                 {currentStatus !== "validated" && currentStatus !== "final_version" ? (
                   <Button size="sm" onClick={handleValidate} data-testid={`button-validate-${sectionKey}`}>
-                    <Check className="w-4 h-4 mr-1" /> Valider cette version
+                    <Check className="w-4 h-4 mr-1" /> {t("section.validateThisVersion")}
                   </Button>
                 ) : (
                   <Button variant="secondary" size="sm" onClick={handleUnvalidate} data-testid={`button-unvalidate-${sectionKey}`}>
-                    <RotateCcw className="w-4 h-4 mr-1" /> Remettre en brouillon
+                    <RotateCcw className="w-4 h-4 mr-1" /> {t("section.backToDraft")}
                   </Button>
                 )}
               </div>
@@ -328,10 +332,10 @@ export default function SectionEditor({
               />
               <div className="flex gap-2">
                 <Button size="sm" onClick={handleSaveManual} disabled={saveMutation.isPending} data-testid={`button-save-${sectionKey}`}>
-                  <Save className="w-4 h-4 mr-1" /> Enregistrer
+                  <Save className="w-4 h-4 mr-1" /> {t("section.save")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setIsEditing(false)} data-testid={`button-cancel-edit-${sectionKey}`}>
-                  <X className="w-4 h-4 mr-1" /> Annuler
+                  <X className="w-4 h-4 mr-1" /> {t("section.cancelEdit")}
                 </Button>
               </div>
             </div>
@@ -342,8 +346,8 @@ export default function SectionEditor({
       <Dialog open={showRegenerateChoice} onOpenChange={setShowRegenerateChoice}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Type de régénération</DialogTitle>
-            <DialogDescription>Choisissez le type de nouvelle proposition souhaitée.</DialogDescription>
+            <DialogTitle>{t("section.regenerationType")}</DialogTitle>
+            <DialogDescription>{t("section.regenerationDesc")}</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 gap-3 pt-2">
             <Button
@@ -352,8 +356,8 @@ export default function SectionEditor({
               onClick={() => handleGenerate("similar")}
               data-testid={`button-regenerate-similar-${sectionKey}`}
             >
-              <span className="font-semibold">Proposition similaire</span>
-              <span className="text-xs text-muted-foreground mt-1">Même axe, même logique, reformulation et amélioration stylistique</span>
+              <span className="font-semibold">{t("section.similarProposal")}</span>
+              <span className="text-xs text-muted-foreground mt-1">{t("section.similarProposalDesc")}</span>
             </Button>
             <Button
               variant="outline"
@@ -361,8 +365,8 @@ export default function SectionEditor({
               onClick={() => handleGenerate("different")}
               data-testid={`button-regenerate-different-${sectionKey}`}
             >
-              <span className="font-semibold">Proposition différente</span>
-              <span className="text-xs text-muted-foreground mt-1">Angle différent, logique alternative, nouvelle approche</span>
+              <span className="font-semibold">{t("section.differentProposal")}</span>
+              <span className="text-xs text-muted-foreground mt-1">{t("section.differentProposalDesc")}</span>
             </Button>
           </div>
         </DialogContent>
@@ -398,18 +402,22 @@ function StatusTimelineDialog({
   onOpenChange: (v: boolean) => void;
 }) {
   const { data: history, isLoading } = useStatusHistory(open ? sectionId : undefined);
+  const { t, lang } = useI18n();
+
+  const statusLabel = (s: string) => t(`sectionStatus.${s}`) || SECTION_STATUS_LABELS[s] || s;
+  const dateLocale = lang === "fr" ? "fr-FR" : "en-US";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Suivi du statut — {SECTION_LABELS[sectionKey] || sectionKey}</DialogTitle>
-          <DialogDescription>Historique complet des changements de statut avec horodatage.</DialogDescription>
+          <DialogTitle>{t("section.statusTrackingTitle")} — {SECTION_LABELS[sectionKey] || sectionKey}</DialogTitle>
+          <DialogDescription>{t("section.statusTrackingDesc")}</DialogDescription>
         </DialogHeader>
         {isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : !history || history.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-4">Aucun changement de statut enregistré.</p>
+          <p className="text-muted-foreground text-sm py-4">{t("section.noStatusChanges")}</p>
         ) : (
           <div className="relative pl-6 space-y-0 pt-2">
             <div className="absolute left-2 top-4 bottom-4 w-0.5 bg-border" />
@@ -424,10 +432,10 @@ function StatusTimelineDialog({
                   <div className="ml-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge className={`text-xs ${STATUS_COLORS[entry.status] || ""} no-default-hover-elevate no-default-active-elevate`}>
-                        {SECTION_STATUS_LABELS[entry.status] || entry.status}
+                        {statusLabel(entry.status)}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(entry.changedAt!).toLocaleDateString("fr-FR", {
+                        {new Date(entry.changedAt!).toLocaleDateString(dateLocale, {
                           day: "numeric", month: "short", year: "numeric",
                           hour: "2-digit", minute: "2-digit",
                         })}
@@ -490,10 +498,13 @@ function VersionHistoryDialog({
   const { data: versions, isLoading } = useSectionVersions(sectionId);
   const activateMutation = useActivateVersion();
   const { toast } = useToast();
+  const { t, lang } = useI18n();
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [compareMode, setCompareMode] = useState(false);
   const [compareA, setCompareA] = useState<number | null>(null);
   const [compareB, setCompareB] = useState<number | null>(null);
+
+  const dateLocale = lang === "fr" ? "fr-FR" : "en-US";
 
   const handleActivate = (versionId: number) => {
     if (!sectionId) return;
@@ -501,7 +512,7 @@ function VersionHistoryDialog({
       { sectionId, versionId, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Version restaurée", description: "Cette version est maintenant active." });
+          toast({ title: t("section.versionRestored"), description: t("section.versionRestoredDesc") });
           onOpenChange(false);
         },
       }
@@ -534,8 +545,8 @@ function VersionHistoryDialog({
         <DialogHeader>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <DialogTitle>Historique des versions — {SECTION_LABELS[sectionKey] || sectionKey}</DialogTitle>
-              <DialogDescription>Consultez, comparez et restaurez les versions précédentes.</DialogDescription>
+              <DialogTitle>{t("section.versionHistoryTitle")} — {SECTION_LABELS[sectionKey] || sectionKey}</DialogTitle>
+              <DialogDescription>{t("section.versionHistoryDesc")}</DialogDescription>
             </div>
             {versions && versions.length >= 2 && (
               <Button
@@ -545,7 +556,7 @@ function VersionHistoryDialog({
                 data-testid="button-toggle-compare"
               >
                 <GitCompareArrows className="w-4 h-4 mr-1" />
-                {compareMode ? "Quitter la comparaison" : "Comparer"}
+                {compareMode ? t("section.exitComparison") : t("section.compare")}
               </Button>
             )}
           </div>
@@ -554,14 +565,14 @@ function VersionHistoryDialog({
         {canCompare && (
           <div className="space-y-3" data-testid="version-diff-panel">
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="text-xs">Version {versionA.versionNumber}</Badge>
+              <Badge variant="outline" className="text-xs">{t("section.version")} {versionA.versionNumber}</Badge>
               <span className="text-xs text-muted-foreground">vs</span>
-              <Badge variant="outline" className="text-xs">Version {versionB.versionNumber}</Badge>
+              <Badge variant="outline" className="text-xs">{t("section.version")} {versionB.versionNumber}</Badge>
             </div>
             <div className="border rounded-lg overflow-hidden">
               <div className="grid grid-cols-2 border-b bg-muted/30 text-xs font-medium text-muted-foreground">
-                <div className="px-3 py-2 border-r">Version {versionA.versionNumber} (ancienne)</div>
-                <div className="px-3 py-2">Version {versionB.versionNumber} (récente)</div>
+                <div className="px-3 py-2 border-r">{t("section.version")} {versionA.versionNumber} ({t("section.oldVersion")})</div>
+                <div className="px-3 py-2">{t("section.version")} {versionB.versionNumber} ({t("section.recentVersion")})</div>
               </div>
               <div className="max-h-[40vh] overflow-y-auto">
                 {diffLines.map((line, i) => (
@@ -574,8 +585,8 @@ function VersionHistoryDialog({
                   >
                     {line.type === "same" && (
                       <>
-                        <div className="px-3 py-0.5 border-r border-border/30 whitespace-pre-wrap break-words">{line.text || " "}</div>
-                        <div className="px-3 py-0.5 whitespace-pre-wrap break-words">{line.text || " "}</div>
+                        <div className="px-3 py-0.5 border-r border-border/30 whitespace-pre-wrap break-words">{line.text}</div>
+                        <div className="px-3 py-0.5 whitespace-pre-wrap break-words">{line.text}</div>
                       </>
                     )}
                     {line.type === "removed" && (
@@ -599,15 +610,15 @@ function VersionHistoryDialog({
 
         {compareMode && !canCompare && (
           <div className="text-center py-4 text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">
-            Sélectionnez deux versions ci-dessous pour les comparer.
-            {compareA && !compareB && <span className="block mt-1 font-medium">1 version sélectionnée, choisissez la seconde.</span>}
+            {t("section.selectTwoVersions")}
+            {compareA && !compareB && <span className="block mt-1 font-medium">{t("section.oneVersionSelected")}</span>}
           </div>
         )}
 
         {isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : !versions || versions.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-4">Aucune version enregistrée.</p>
+          <p className="text-muted-foreground text-sm py-4">{t("section.noVersions")}</p>
         ) : (
           <div className="space-y-3 pt-2">
             {versions.map((v) => {
@@ -623,11 +634,11 @@ function VersionHistoryDialog({
                           data-testid={`checkbox-compare-${v.id}`}
                         />
                       )}
-                      <span className="font-medium text-sm">Version {v.versionNumber}</span>
-                      {v.isActive && <Badge variant="default" className="text-xs">Active</Badge>}
-                      <Badge variant="secondary" className="text-xs">{v.source === "ai" ? "IA" : "Manuel"}</Badge>
+                      <span className="font-medium text-sm">{t("section.version")} {v.versionNumber}</span>
+                      {v.isActive && <Badge variant="default" className="text-xs">{t("section.active")}</Badge>}
+                      <Badge variant="secondary" className="text-xs">{v.source === "ai" ? t("section.ai") : t("section.manual")}</Badge>
                       {v.mode && v.mode !== "initial" && (
-                        <Badge variant="outline" className="text-xs">{v.mode === "similar" ? "Similaire" : "Différent"}</Badge>
+                        <Badge variant="outline" className="text-xs">{v.mode === "similar" ? t("section.regenerateSimilar") : t("section.regenerateDifferent")}</Badge>
                       )}
                     </div>
                     <div className="flex gap-1">
@@ -646,7 +657,7 @@ function VersionHistoryDialog({
                           disabled={activateMutation.isPending}
                           data-testid={`button-restore-version-${v.id}`}
                         >
-                          <ArrowLeft className="w-3 h-3 mr-1" /> Restaurer
+                          <ArrowLeft className="w-3 h-3 mr-1" /> {t("section.restoreVersion")}
                         </Button>
                       )}
                     </div>
@@ -657,7 +668,7 @@ function VersionHistoryDialog({
                         <ReactMarkdown>{v.content}</ReactMarkdown>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
-                        Créé le {new Date(v.createdAt!).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        {t("section.createdOn")} {new Date(v.createdAt!).toLocaleDateString(dateLocale, { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </p>
                     </CardContent>
                   )}

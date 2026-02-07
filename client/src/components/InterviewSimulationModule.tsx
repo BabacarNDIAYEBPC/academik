@@ -22,6 +22,7 @@ import {
   Lightbulb, RefreshCw, Sparkles, Plus, Trash2, ListOrdered, Import, Upload,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 interface InterviewSimulationModuleProps {
   projectId: number;
@@ -58,12 +59,12 @@ interface SavedState {
   contextInstructions: string;
 }
 
-const IMPROVEMENT_TYPES = [
-  { value: "clarify", label: "Clarifier" },
-  { value: "remove_bias", label: "Supprimer les biais" },
-  { value: "make_open", label: "Rendre ouverte" },
-  { value: "make_targeted", label: "Rendre ciblée" },
-  { value: "suggest_relances", label: "Proposer des relances" },
+const getImprovementTypes = (t: (key: string) => string) => [
+  { value: "clarify", label: t("modules.interviewSimulation.improveClarify") },
+  { value: "remove_bias", label: t("modules.interviewSimulation.improveRemoveBias") },
+  { value: "make_open", label: t("modules.interviewSimulation.improveMakeOpen") },
+  { value: "make_targeted", label: t("modules.interviewSimulation.improveMakeTargeted") },
+  { value: "suggest_relances", label: t("modules.interviewSimulation.improveSuggestFollowUp") },
 ];
 
 export default function InterviewSimulationModule({
@@ -87,6 +88,7 @@ export default function InterviewSimulationModule({
   const [uploadingGuide, setUploadingGuide] = useState(false);
 
   const { toast } = useToast();
+  const { t } = useI18n();
   const simulateMutation = useSimulateResponse();
   const batchMutation = useSimulateBatch();
   const improveMutation = useImproveQuestion();
@@ -152,7 +154,7 @@ export default function InterviewSimulationModule({
 
   const handleSimulate = () => {
     if (!currentQuestion.trim() || !currentProfile.trim()) {
-      toast({ title: "Champs requis", description: "Renseignez la question et le profil de l'interviewé.", variant: "destructive" });
+      toast({ title: t("modules.interviewSimulation.fillRequired"), description: t("modules.interviewSimulation.questionRequired"), variant: "destructive" });
       return;
     }
     simulateMutation.mutate(
@@ -168,10 +170,10 @@ export default function InterviewSimulationModule({
             improvements: [],
           };
           setEntries(prev => [entry, ...prev]);
-          toast({ title: "Simulation terminée", description: "La réponse simulée a été générée." });
+          toast({ title: t("modules.interviewSimulation.simulationGenerated"), description: t("modules.interviewSimulation.simulationGeneratedDesc") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la simulation", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.interviewSimulation.simulationError"), variant: "destructive" });
         },
       }
     );
@@ -211,16 +213,16 @@ export default function InterviewSimulationModule({
 
   const handleImportFromGuide = () => {
     if (!guideContent.trim()) {
-      toast({ title: "Aucun guide disponible", description: "Générez d'abord un guide d'entretien dans le module Collecte de données.", variant: "destructive" });
+      toast({ title: t("modules.interviewSimulation.noGuideAvailable"), description: t("modules.interviewSimulation.noGuideAvailableDesc"), variant: "destructive" });
       return;
     }
     const parsed = parseGuideQuestions(guideContent);
     if (parsed.length === 0) {
-      toast({ title: "Aucune question détectée", description: "Le guide d'entretien ne contient pas de questions identifiables.", variant: "destructive" });
+      toast({ title: t("modules.interviewSimulation.noQuestionsDetected"), description: t("modules.interviewSimulation.noQuestionsDetectedDesc"), variant: "destructive" });
       return;
     }
     setBatchQuestions(parsed);
-    toast({ title: "Questions importées", description: `${parsed.length} question(s) importée(s) depuis le guide d'entretien.` });
+    toast({ title: t("modules.interviewSimulation.questionsImported"), description: `${parsed.length} ${t("modules.interviewSimulation.questionsImportedFromGuide")}` });
   };
 
   const handleImportGuideFile = () => {
@@ -239,8 +241,8 @@ export default function InterviewSimulationModule({
           formData.append("file", file);
           const resp = await fetch("/api/parse-file", { method: "POST", body: formData, credentials: "include" });
           if (!resp.ok) {
-            const errData = await resp.json().catch(() => ({ message: "Erreur serveur" }));
-            throw new Error(errData.message || "Impossible de lire ce fichier.");
+            const errData = await resp.json().catch(() => ({ message: t("modules.common.serverError") }));
+            throw new Error(errData.message || t("modules.common.cannotReadFile"));
           }
           const data = await resp.json();
           text = data.text;
@@ -248,21 +250,21 @@ export default function InterviewSimulationModule({
           text = await file.text();
         }
         if (!text.trim()) {
-          toast({ title: "Fichier vide", description: "Le fichier ne contient pas de texte exploitable.", variant: "destructive" });
+          toast({ title: t("modules.interviewSimulation.emptyFile"), description: t("modules.interviewSimulation.emptyFileDesc"), variant: "destructive" });
           setUploadingGuide(false);
           return;
         }
         const parsed = parseGuideQuestions(text);
         if (parsed.length === 0) {
-          toast({ title: "Aucune question détectée", description: "Le fichier importé ne contient pas de questions identifiables. Vérifiez le format du guide.", variant: "destructive" });
+          toast({ title: t("modules.interviewSimulation.noQuestionsDetected"), description: t("modules.interviewSimulation.noQuestionsInFile"), variant: "destructive" });
           setUploadingGuide(false);
           return;
         }
         setBatchQuestions(parsed);
         setSimMode("batch");
-        toast({ title: "Guide importé", description: `${parsed.length} question(s) extraite(s) depuis "${file.name}".` });
+        toast({ title: t("modules.interviewSimulation.guideImportedFile"), description: `${parsed.length} ${t("modules.interviewSimulation.questionsExtractedFromFile")} "${file.name}".` });
       } catch (err: any) {
-        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+        toast({ title: t("modules.interviewSimulation.importError"), description: err.message || t("modules.common.cannotReadFile"), variant: "destructive" });
       } finally {
         setUploadingGuide(false);
       }
@@ -285,11 +287,11 @@ export default function InterviewSimulationModule({
   const handleSimulateBatch = () => {
     const validQuestions = batchQuestions.filter(q => q.question.trim());
     if (validQuestions.length === 0) {
-      toast({ title: "Questions requises", description: "Ajoutez au moins une question à simuler.", variant: "destructive" });
+      toast({ title: t("modules.interviewSimulation.questionsRequired"), description: t("modules.interviewSimulation.questionsRequiredDesc"), variant: "destructive" });
       return;
     }
     if (!batchProfile.trim()) {
-      toast({ title: "Profil requis", description: "Renseignez le profil de l'interviewé.", variant: "destructive" });
+      toast({ title: t("modules.interviewSimulation.profileRequired"), description: t("modules.interviewSimulation.profileRequiredDesc"), variant: "destructive" });
       return;
     }
     batchMutation.mutate(
@@ -302,7 +304,7 @@ export default function InterviewSimulationModule({
       },
       {
         onSuccess: (data) => {
-          const newEntries: SimulationEntry[] = (data.responses || []).map((r, i) => ({
+          const newEntries: SimulationEntry[] = (data.responses || []).map((r: any, i: number) => ({
             id: `batch_${Date.now()}_${i}`,
             question: r.question,
             profile: batchProfile,
@@ -311,10 +313,10 @@ export default function InterviewSimulationModule({
             improvements: [],
           }));
           setEntries(prev => [...newEntries, ...prev]);
-          toast({ title: "Simulation batch terminée", description: `${newEntries.length} réponse(s) simulée(s) d'une traite.` });
+          toast({ title: t("modules.interviewSimulation.batchSimComplete"), description: `${newEntries.length} ${t("modules.interviewSimulation.batchSimulatedDesc")}` });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la simulation batch", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.interviewSimulation.batchSimError"), variant: "destructive" });
         },
       }
     );
@@ -332,10 +334,10 @@ export default function InterviewSimulationModule({
               ? { ...e, improvements: [...e.improvements, { type: improvementType, improved: data.improved, explanation: data.explanation }] }
               : e
           ));
-          toast({ title: "Amélioration générée" });
+          toast({ title: t("modules.interviewSimulation.improvementGenerated") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de l'amélioration", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.interviewSimulation.improveError"), variant: "destructive" });
         },
       }
     );
@@ -346,8 +348,8 @@ export default function InterviewSimulationModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.sectionValidated") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
@@ -357,22 +359,22 @@ export default function InterviewSimulationModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.validationRemoved") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
 
   const handleExport = () => {
     if (entries.length === 0) {
-      toast({ title: "Rien à exporter", variant: "destructive" });
+      toast({ title: t("modules.common.nothingToExport"), variant: "destructive" });
       return;
     }
     const sections = entries.map((e, i) => ({
-      label: `Simulation ${i + 1}: ${e.question.substring(0, 50)}...`,
-      content: `**Question:** ${e.question}\n\n**Profil:** ${e.profile}\n\n**Réponse simulée:**\n${e.response}\n\n${e.suggestions.length > 0 ? `**Suggestions de relance:**\n${e.suggestions.map((s, j) => `${j + 1}. ${s}`).join("\n")}\n\n` : ""}${e.improvements.length > 0 ? `**Améliorations:**\n${e.improvements.map(imp => `- ${IMPROVEMENT_TYPES.find(t => t.value === imp.type)?.label || imp.type}: ${imp.improved}\n  _${imp.explanation}_`).join("\n\n")}` : ""}`,
+      label: `${t("modules.interviewSimulation.simulationLabel")} ${i + 1}: ${e.question.substring(0, 50)}...`,
+      content: `**Question:** ${e.question}\n\n**Profil:** ${e.profile}\n\n**${t("modules.interviewSimulation.simulatedResponse")}:**\n${e.response}\n\n${e.suggestions.length > 0 ? `**${t("modules.interviewSimulation.followUpSuggestions")}:**\n${e.suggestions.map((s, j) => `${j + 1}. ${s}`).join("\n")}\n\n` : ""}${e.improvements.length > 0 ? `**${t("modules.interviewSimulation.proposedImprovements")}:**\n${e.improvements.map(imp => `- ${getImprovementTypes(t).find(it => it.value === imp.type)?.label || imp.type}: ${imp.improved}\n  _${imp.explanation}_`).join("\n\n")}` : ""}`,
     }));
-    exportToWord("Simulation d'entretiens", sections, "simulation_entretiens.docx");
+    exportToWord(t("modules.interviewSimulation.exportTitle"), sections, "simulation_entretiens.docx");
   };
 
   const isValidated = section?.status === "validated";
@@ -382,36 +384,36 @@ export default function InterviewSimulationModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <MessageSquare className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Simulation d'entretien</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
+          <CardTitle className="text-lg">{t("modules.interviewSimulation.title")}</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />{t("modules.common.validated")}</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-simulation">
-            <Save className="w-4 h-4 mr-1" />Sauvegarder
+            <Save className="w-4 h-4 mr-1" />{t("modules.common.save")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} data-testid="button-export-simulation">
-            <FileDown className="w-4 h-4 mr-1" />Exporter
+            <FileDown className="w-4 h-4 mr-1" />{t("modules.common.export")}
           </Button>
           {section && !isValidated && (
             <Button size="sm" onClick={handleValidate} data-testid="button-validate-simulation">
-              <Check className="w-4 h-4 mr-1" />Valider
+              <Check className="w-4 h-4 mr-1" />{t("modules.common.validate")}
             </Button>
           )}
           {isValidated && (
             <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="button-unvalidate-simulation">
-              <X className="w-4 h-4 mr-1" />Retirer validation
+              <X className="w-4 h-4 mr-1" />{t("modules.common.removeValidation")}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-1.5">
-          <Label htmlFor="context-instructions-simulation" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
+          <Label htmlFor="context-instructions-simulation" className="text-base font-semibold">{t("modules.common.contextLabel")}</Label>
           <Textarea
             id="context-instructions-simulation"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
+            placeholder={t("modules.common.contextPlaceholder")}
             className="min-h-[80px] text-sm"
             data-testid="textarea-context-instructions-simulation"
           />
@@ -420,10 +422,10 @@ export default function InterviewSimulationModule({
         <Tabs value={simMode} onValueChange={setSimMode}>
           <TabsList className="mb-4">
             <TabsTrigger value="single" data-testid="tab-sim-single">
-              <MessageSquare className="w-4 h-4 mr-1" /> Question unique
+              <MessageSquare className="w-4 h-4 mr-1" /> {t("modules.interviewSimulation.singleTab")}
             </TabsTrigger>
             <TabsTrigger value="batch" data-testid="tab-sim-batch">
-              <ListOrdered className="w-4 h-4 mr-1" /> Batch (d'une traite)
+              <ListOrdered className="w-4 h-4 mr-1" /> {t("modules.interviewSimulation.batchTab")}
             </TabsTrigger>
           </TabsList>
 
@@ -431,16 +433,16 @@ export default function InterviewSimulationModule({
             <Card>
               <CardContent className="p-4 space-y-4">
                 <p className="text-sm text-muted-foreground">
-                  Simulez une réponse d'interviewé pour tester et améliorer vos questions d'entretien.
+                  {t("modules.interviewSimulation.singleDesc")}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <Label>Question à tester</Label>
+                      <Label>{t("modules.interviewSimulation.questionLabel")}</Label>
                       <Textarea
                         value={currentQuestion}
                         onChange={e => setCurrentQuestion(e.target.value)}
-                        placeholder="Ex: Comment percevez-vous l'évolution de votre pratique professionnelle au cours des 5 dernières années ?"
+                        placeholder={t("modules.interviewSimulation.questionPlaceholder")}
                         className="h-24 text-sm"
                         data-testid="textarea-sim-question"
                       />
@@ -448,24 +450,24 @@ export default function InterviewSimulationModule({
                   </div>
                   <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <Label>Profil de l'interviewé</Label>
+                      <Label>{t("modules.interviewSimulation.profileLabel")}</Label>
                       <Input
                         value={currentProfile}
                         onChange={e => setCurrentProfile(e.target.value)}
-                        placeholder="Ex: IDE en gériatrie, 15 ans d'expérience, CHU"
+                        placeholder={t("modules.interviewSimulation.profilePlaceholder")}
                         data-testid="input-sim-profile"
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Ton de la réponse</Label>
+                      <Label>{t("modules.interviewSimulation.toneLabel")}</Label>
                       <Select value={currentTone} onValueChange={setCurrentTone}>
                         <SelectTrigger data-testid="select-sim-tone"><SelectValue /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="professionnel">Professionnel</SelectItem>
-                          <SelectItem value="enthousiaste">Enthousiaste</SelectItem>
-                          <SelectItem value="reserve">Réservé / Prudent</SelectItem>
-                          <SelectItem value="critique">Critique</SelectItem>
-                          <SelectItem value="neutre">Neutre</SelectItem>
+                          <SelectItem value="professionnel">{t("modules.interviewSimulation.toneProfessionnel")}</SelectItem>
+                          <SelectItem value="enthousiaste">{t("modules.interviewSimulation.toneEnthousiaste")}</SelectItem>
+                          <SelectItem value="reserve">{t("modules.interviewSimulation.toneReserve")}</SelectItem>
+                          <SelectItem value="critique">{t("modules.interviewSimulation.toneCritique")}</SelectItem>
+                          <SelectItem value="neutre">{t("modules.interviewSimulation.toneNeutre")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -477,7 +479,7 @@ export default function InterviewSimulationModule({
                   data-testid="button-simulate"
                 >
                   {simulateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                  Simuler la réponse
+                  {t("modules.interviewSimulation.simulateResponse")}
                 </Button>
               </CardContent>
             </Card>
@@ -488,8 +490,8 @@ export default function InterviewSimulationModule({
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <p className="text-sm text-muted-foreground flex-1 min-w-0">
-                    Préparez toutes vos questions à l'avance, puis simulez les réponses d'une traite.
-                    Vous pouvez ajouter des prérequis/contexte pour chaque question.
+                    {t("modules.interviewSimulation.batchDesc")}
+                    {" "}{t("modules.interviewSimulation.batchDescSub")}
                   </p>
                   <Button
                     variant="outline"
@@ -499,30 +501,30 @@ export default function InterviewSimulationModule({
                     data-testid="button-import-guide-file"
                   >
                     {uploadingGuide ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
-                    Importer un guide d'entretien
+                    {t("modules.interviewSimulation.importGuideBtn")}
                   </Button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <Label>Profil de l'interviewé</Label>
+                    <Label>{t("modules.interviewSimulation.batchProfileLabel")}</Label>
                     <Input
                       value={batchProfile}
                       onChange={e => setBatchProfile(e.target.value)}
-                      placeholder="Ex: Cadre de santé, 20 ans d'expérience, clinique privée"
+                      placeholder={t("modules.interviewSimulation.batchProfilePlaceholder")}
                       data-testid="input-batch-profile"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label>Ton des réponses</Label>
+                    <Label>{t("modules.interviewSimulation.batchToneLabel")}</Label>
                     <Select value={batchTone} onValueChange={setBatchTone}>
                       <SelectTrigger data-testid="select-batch-tone"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="professionnel">Professionnel</SelectItem>
-                        <SelectItem value="enthousiaste">Enthousiaste</SelectItem>
-                        <SelectItem value="reserve">Réservé / Prudent</SelectItem>
-                        <SelectItem value="critique">Critique</SelectItem>
-                        <SelectItem value="neutre">Neutre</SelectItem>
+                        <SelectItem value="professionnel">{t("modules.interviewSimulation.toneProfessionnel")}</SelectItem>
+                        <SelectItem value="enthousiaste">{t("modules.interviewSimulation.toneEnthousiaste")}</SelectItem>
+                        <SelectItem value="reserve">{t("modules.interviewSimulation.toneReserve")}</SelectItem>
+                        <SelectItem value="critique">{t("modules.interviewSimulation.toneCritique")}</SelectItem>
+                        <SelectItem value="neutre">{t("modules.interviewSimulation.toneNeutre")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -530,15 +532,15 @@ export default function InterviewSimulationModule({
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <Label>Questions ({batchQuestions.length})</Label>
+                    <Label>{t("modules.interviewSimulation.questionsLabel")} ({batchQuestions.length})</Label>
                     <div className="flex items-center gap-2 flex-wrap">
                       {guideContent && (
                         <Button variant="outline" size="sm" onClick={handleImportFromGuide} data-testid="button-import-guide">
-                          <Import className="w-4 h-4 mr-1" /> Importer du guide
+                          <Import className="w-4 h-4 mr-1" /> {t("modules.interviewSimulation.importFromGuide")}
                         </Button>
                       )}
                       <Button variant="outline" size="sm" onClick={handleAddBatchQuestion} data-testid="button-add-batch-question">
-                        <Plus className="w-4 h-4 mr-1" /> Ajouter une question
+                        <Plus className="w-4 h-4 mr-1" /> {t("modules.interviewSimulation.addQuestion")}
                       </Button>
                     </div>
                   </div>
@@ -548,12 +550,12 @@ export default function InterviewSimulationModule({
                       <Upload className="w-8 h-8 mx-auto text-muted-foreground/50" />
                       <p>
                         {guideContent
-                          ? "Importez les questions depuis votre guide, importez un fichier externe, ou ajoutez-en manuellement."
-                          : "Importez un guide d'entretien (Word, PDF, texte) ou ajoutez vos questions manuellement."}
+                          ? t("modules.interviewSimulation.emptyWithGuide")
+                          : t("modules.interviewSimulation.emptyWithoutGuide")}
                       </p>
                       <Button variant="outline" size="sm" onClick={handleImportGuideFile} disabled={uploadingGuide} data-testid="button-import-guide-file-empty">
                         {uploadingGuide ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
-                        Importer un fichier
+                        {t("modules.interviewSimulation.importFileBtn")}
                       </Button>
                     </div>
                   )}
@@ -574,14 +576,14 @@ export default function InterviewSimulationModule({
                       <Textarea
                         value={q.question}
                         onChange={e => handleUpdateBatchQuestion(q.id, "question", e.target.value)}
-                        placeholder="Votre question d'entretien..."
+                        placeholder={t("modules.interviewSimulation.questionPlaceholderBatch")}
                         className="h-16 text-sm"
                         data-testid={`textarea-batch-q-${idx}`}
                       />
                       <Input
                         value={q.prerequisites}
                         onChange={e => handleUpdateBatchQuestion(q.id, "prerequisites", e.target.value)}
-                        placeholder="Prérequis / contexte (optionnel)"
+                        placeholder={t("modules.interviewSimulation.prerequisitesPlaceholder")}
                         className="text-sm"
                         data-testid={`input-batch-prereq-${idx}`}
                       />
@@ -595,7 +597,7 @@ export default function InterviewSimulationModule({
                   data-testid="button-simulate-batch"
                 >
                   {batchMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                  Simuler toutes les réponses d'une traite
+                  {t("modules.interviewSimulation.simulateAllBtn")}
                 </Button>
               </CardContent>
             </Card>
@@ -604,7 +606,7 @@ export default function InterviewSimulationModule({
 
         {entries.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-muted-foreground">Simulations ({entries.length})</h3>
+            <h3 className="text-sm font-semibold text-muted-foreground">{t("modules.interviewSimulation.simulationsCount")} ({entries.length})</h3>
             {entries.map((entry) => (
               <Card key={entry.id}>
                 <CardContent className="p-4 space-y-3">
@@ -616,13 +618,13 @@ export default function InterviewSimulationModule({
                   </div>
 
                   <div className="bg-muted/30 rounded-md p-3">
-                    <p className="text-xs font-semibold text-muted-foreground mb-1">Réponse simulée</p>
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">{t("modules.interviewSimulation.simulatedResponse")}</p>
                     <p className="text-sm whitespace-pre-wrap">{entry.response}</p>
                   </div>
 
                   {entry.suggestions.length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs font-semibold text-muted-foreground">Suggestions de relance</p>
+                      <p className="text-xs font-semibold text-muted-foreground">{t("modules.interviewSimulation.followUpSuggestions")}</p>
                       <ul className="space-y-1">
                         {entry.suggestions.map((s, i) => (
                           <li key={i} className="text-xs text-muted-foreground flex items-start gap-1.5">
@@ -635,7 +637,7 @@ export default function InterviewSimulationModule({
                   )}
 
                   <div className="flex gap-1.5 flex-wrap">
-                    {IMPROVEMENT_TYPES.map(imp => (
+                    {getImprovementTypes(t).map(imp => (
                       <Button
                         key={imp.value}
                         variant="outline"
@@ -652,10 +654,10 @@ export default function InterviewSimulationModule({
 
                   {entry.improvements.length > 0 && (
                     <div className="space-y-2 border-t pt-3">
-                      <p className="text-xs font-semibold text-muted-foreground">Améliorations proposées</p>
+                      <p className="text-xs font-semibold text-muted-foreground">{t("modules.interviewSimulation.proposedImprovements")}</p>
                       {entry.improvements.map((imp, i) => (
                         <div key={i} className="bg-muted/20 rounded-md p-3 space-y-1">
-                          <Badge variant="secondary" className="text-xs">{IMPROVEMENT_TYPES.find(t => t.value === imp.type)?.label || imp.type}</Badge>
+                          <Badge variant="secondary" className="text-xs">{getImprovementTypes(t).find(it => it.value === imp.type)?.label || imp.type}</Badge>
                           <p className="text-sm font-medium mt-1">{imp.improved}</p>
                           <p className="text-xs text-muted-foreground italic">{imp.explanation}</p>
                         </div>

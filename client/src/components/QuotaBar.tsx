@@ -5,10 +5,11 @@ import { Zap, FileText, FolderOpen } from "lucide-react";
 
 export default function QuotaBar() {
   const { data: quota, isLoading } = useQuota();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   if (isLoading || !quota) return null;
 
+  const locale = language === "fr" ? "fr-FR" : "en-US";
   const wordsPct = getQuotaPercentage(quota.wordsUsed, quota.wordsLimit);
   const actionsPct = getQuotaPercentage(quota.actionsUsed, quota.actionsLimit);
   const projectsPct = getQuotaPercentage(quota.activeProjects, quota.activeProjectsLimit);
@@ -17,13 +18,13 @@ export default function QuotaBar() {
 
   return (
     <div className="space-y-3 px-2" data-testid="quota-bar">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Quotas</p>
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("quota.title")}</p>
       
       <QuotaItem
         icon={<FileText className="w-3.5 h-3.5" />}
-        label="Mots"
-        used={quota.wordsUsed.toLocaleString("fr-FR")}
-        limit={quota.wordsLimit.toLocaleString("fr-FR")}
+        label={t("quota.words")}
+        used={quota.wordsUsed.toLocaleString(locale)}
+        limit={quota.wordsLimit.toLocaleString(locale)}
         percentage={wordsPct}
         exceeded={wordsExceeded}
         testId="quota-words"
@@ -31,7 +32,7 @@ export default function QuotaBar() {
       
       <QuotaItem
         icon={<Zap className="w-3.5 h-3.5" />}
-        label="Actions IA"
+        label={t("quota.aiActions")}
         used={String(quota.actionsUsed)}
         limit={String(quota.actionsLimit)}
         percentage={actionsPct}
@@ -41,7 +42,7 @@ export default function QuotaBar() {
       
       <QuotaItem
         icon={<FolderOpen className="w-3.5 h-3.5" />}
-        label="Projets"
+        label={t("quota.projects")}
         used={String(quota.activeProjects)}
         limit={String(quota.activeProjectsLimit)}
         percentage={projectsPct}
@@ -51,7 +52,7 @@ export default function QuotaBar() {
 
       {quota.periodEnd && (
         <p className="text-xs text-muted-foreground text-center mt-1" data-testid="quota-renewal">
-          Renouvellement : {new Date(quota.periodEnd).toLocaleDateString("fr-FR")}
+          {t("quota.renewal")} : {new Date(quota.periodEnd).toLocaleDateString(locale)}
         </p>
       )}
     </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import { Upload, Trash2, FileText, ChevronDown, ChevronRight, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface MemoirImportFieldProps {
@@ -11,19 +12,9 @@ interface MemoirImportFieldProps {
   sectionKey?: string;
 }
 
-const SECTION_CONTEXT_HINTS: Record<string, string> = {
-  subject: "Importez votre mémoire pour que l'IA propose un sujet adapté à votre travail existant.",
-  problematic: "Importez votre mémoire pour que la problématique soit cohérente avec votre avancement.",
-  hypotheses: "Importez votre mémoire pour que les hypothèses s'appuient sur votre contenu existant.",
-  plan: "Importez votre mémoire pour que le plan reflète votre structure et votre progression.",
-  conceptual_framework: "Importez votre mémoire pour que le cadre conceptuel s'articule avec vos travaux.",
-  theoretical_framework: "Importez votre mémoire pour ancrer le cadre théorique dans votre contexte.",
-  literature_review: "Importez votre mémoire pour que la revue de littérature complète vos recherches.",
-  methodology: "Importez votre mémoire pour une méthodologie alignée avec votre approche.",
-};
-
 export default function MemoirImportField({ value, onChange, hasPreviousSections = true, sectionKey }: MemoirImportFieldProps) {
   const { toast } = useToast();
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(!!value || !hasPreviousSections);
   const [uploading, setUploading] = useState(false);
 
@@ -53,8 +44,8 @@ export default function MemoirImportField({ value, onChange, hasPreviousSections
             credentials: "include",
           });
           if (!res.ok) {
-            const err = await res.json().catch(() => ({ message: "Erreur serveur" }));
-            throw new Error(err.message || "Erreur lors du traitement du fichier");
+            const err = await res.json().catch(() => ({ message: t("memoirImport.serverError") }));
+            throw new Error(err.message || t("memoirImport.fileProcessingError"));
           }
           const data = await res.json();
           text = data.text;
@@ -66,16 +57,33 @@ export default function MemoirImportField({ value, onChange, hasPreviousSections
         const labeled = `--- ${file.name} ---\n${text}`;
         onChange(value ? `${value}\n\n${labeled}` : labeled);
         setExpanded(true);
-        toast({ title: "Mémoire importé", description: `"${file.name}" importé avec succès. L'IA utilisera ce contenu comme référence pour cette section et toutes les suivantes.` });
+        toast({ 
+          title: t("memoirImport.importSuccessTitle"), 
+          description: t("memoirImport.importSuccessDesc").replace("{fileName}", file.name)
+        });
       } catch (err: any) {
         setUploading(false);
-        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+        toast({ 
+          title: t("memoirImport.importErrorTitle"), 
+          description: err.message || t("memoirImport.importErrorDesc"), 
+          variant: "destructive" 
+        });
       }
     };
     input.click();
   };
 
-  const contextHint = sectionKey ? SECTION_CONTEXT_HINTS[sectionKey] : undefined;
+  const contextHintMap: Record<string, string> = {
+    subject: "memoirImport.contextHintSubject",
+    problematic: "memoirImport.contextHintProblematic",
+    hypotheses: "memoirImport.contextHintHypotheses",
+    plan: "memoirImport.contextHintPlan",
+    conceptual_framework: "memoirImport.contextHintConceptualFramework",
+    theoretical_framework: "memoirImport.contextHintTheoreticalFramework",
+    literature_review: "memoirImport.contextHintLiteratureReview",
+    methodology: "memoirImport.contextHintMethodology",
+  };
+  const contextHint = sectionKey && contextHintMap[sectionKey] ? t(contextHintMap[sectionKey]) : undefined;
 
   const borderClass = isMandatory
     ? "border-destructive bg-destructive/5"
@@ -102,16 +110,16 @@ export default function MemoirImportField({ value, onChange, hasPreviousSections
           )}
           <span className={`text-sm font-semibold ${isMandatory ? "text-destructive" : ""}`}>
             {isMandatory
-              ? "Importez votre mémoire ou son état d'avancement (obligatoire)"
+              ? t("memoirImport.importRequired")
               : isImported
-                ? "Mémoire importé"
-                : "Importer votre mémoire (optionnel)"}
+                ? t("memoirImport.memoirImported")
+                : t("memoirImport.importOptional")}
           </span>
         </button>
         <div className="flex gap-2 flex-wrap">
           <Button variant={isMandatory ? "default" : "outline"} size="sm" onClick={handleImport} disabled={uploading} data-testid="button-import-memoir">
             {uploading ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
-            {uploading ? "Traitement..." : isImported ? "Remplacer" : "Importer mon mémoire"}
+            {uploading ? t("memoirImport.processing") : isImported ? t("memoirImport.replace") : t("memoirImport.importButton")}
           </Button>
           {isImported && (
             <Button
@@ -119,11 +127,11 @@ export default function MemoirImportField({ value, onChange, hasPreviousSections
               size="sm"
               onClick={() => {
                 onChange("");
-                toast({ title: "Import supprimé" });
+                toast({ title: t("memoirImport.importRemoved") });
               }}
               data-testid="button-clear-memoir"
             >
-              <Trash2 className="w-4 h-4 mr-1" />Effacer
+              <Trash2 className="w-4 h-4 mr-1" />{t("memoirImport.clear")}
             </Button>
           )}
         </div>
@@ -132,39 +140,36 @@ export default function MemoirImportField({ value, onChange, hasPreviousSections
       {isMandatory && (
         <div className="flex items-start gap-2 text-xs text-destructive bg-destructive/5 rounded-md p-2.5">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>
-            Les sections précédentes n'ont pas encore été remplies. <strong>Importez votre mémoire ou son état d'avancement</strong> (Word ou PDF) pour que l'IA puisse générer un contenu cohérent avec votre travail. Une seule importation suffit : le mémoire sera automatiquement utilisé pour toutes les sections suivantes.
-          </span>
+          <span>{t("memoirImport.mandatoryWarning")}</span>
         </div>
       )}
 
       {!isMandatory && hasPreviousSections && !isImported && !expanded && (
         <p className="text-xs text-muted-foreground">
-          Les sections précédentes sont remplies. L'import de votre mémoire n'est pas obligatoire mais peut enrichir le contenu généré.
-          Une seule importation suffit pour toutes les sections suivantes.
+          {t("memoirImport.optionalInfo")}
         </p>
       )}
 
       {isImported && !expanded && (
         <p className="text-xs text-green-700 dark:text-green-400">
-          Mémoire chargé. L'IA l'utilise comme référence. Cliquez pour voir/modifier le contenu. Les sections suivantes utiliseront automatiquement ce mémoire.
+          {t("memoirImport.importedInfo")}
         </p>
       )}
 
       {expanded && (
         <>
           <p className="text-xs text-muted-foreground">
-            {contextHint || "Importez votre mémoire en cours (Word, PDF, texte) pour que l'IA s'adapte à votre contexte et génère un contenu cohérent avec votre travail."}
-            {" "}En cas de divergence avec le paramétrage du projet, c'est le contenu importé qui fera référence.
+            {contextHint || t("memoirImport.defaultContextHint")}
+            {" "}{t("memoirImport.conflictNote")}
           </p>
           <p className="text-xs text-muted-foreground italic">
-            Formats acceptés : Word (.docx), PDF (.pdf), texte (.txt), Markdown (.md), RTF, BibTeX (.bib)
+            {t("memoirImport.acceptedFormats")}
           </p>
           <Textarea
             value={value}
             onChange={e => onChange(e.target.value)}
             className="min-h-[120px] text-xs font-mono"
-            placeholder="Collez ici le contenu de votre mémoire ou importez un fichier Word/PDF..."
+            placeholder={t("memoirImport.textareaPlaceholder")}
             data-testid="textarea-imported-memoir"
           />
         </>

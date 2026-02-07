@@ -18,6 +18,7 @@ import {
   RefreshCw, Lightbulb, Copy,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 interface AssistedWritingModuleProps {
   projectId: number;
@@ -36,23 +37,25 @@ interface SavedState {
   contextInstructions: string;
 }
 
-const MODE_LABELS: Record<string, { label: string; description: string }> = {
-  reformulate: { label: "Reformulation académique", description: "Reformule votre texte dans un registre académique plus soutenu" },
-  clarify: { label: "Clarification", description: "Simplifie et clarifie le texte pour une meilleure lisibilité" },
-  structure: { label: "Structuration", description: "Restructure le texte pour une meilleure logique argumentaire" },
-  improve_style: { label: "Style académique", description: "Améliore le style pour correspondre aux normes académiques" },
-  check_coherence: { label: "Cohérence", description: "Vérifie la cohérence avec le plan et les hypothèses du projet" },
+const MODE_KEYS = ["reformulate", "clarify", "structure", "improve_style", "check_coherence"] as const;
+
+const MODE_LABEL_MAP: Record<string, { labelKey: string; descKey: string }> = {
+  reformulate: { labelKey: "modules.assistedWriting.modeReformulateLabel", descKey: "modules.assistedWriting.modeReformulateDesc" },
+  clarify: { labelKey: "modules.assistedWriting.modeClarifyLabel", descKey: "modules.assistedWriting.modeClarifyDesc" },
+  structure: { labelKey: "modules.assistedWriting.modeStructureLabel", descKey: "modules.assistedWriting.modeStructureDesc" },
+  improve_style: { labelKey: "modules.assistedWriting.modeImproveStyleLabel", descKey: "modules.assistedWriting.modeImproveStyleDesc" },
+  check_coherence: { labelKey: "modules.assistedWriting.modeCheckCoherenceLabel", descKey: "modules.assistedWriting.modeCheckCoherenceDesc" },
 };
 
-const SECTION_TARGETS: Record<string, string> = {
-  introduction: "Introduction",
-  revue_litterature: "Revue de littérature",
-  cadre_theorique: "Cadre théorique",
-  methodologie: "Méthodologie",
-  resultats: "Résultats",
-  discussion: "Discussion",
-  conclusion: "Conclusion",
-};
+const SECTION_TARGET_KEYS = [
+  { key: "introduction", labelKey: "modules.assistedWriting.sectionIntroduction" },
+  { key: "revue_litterature", labelKey: "modules.assistedWriting.sectionLiteratureReview" },
+  { key: "cadre_theorique", labelKey: "modules.assistedWriting.sectionTheoreticalFramework" },
+  { key: "methodologie", labelKey: "modules.assistedWriting.sectionMethodology" },
+  { key: "resultats", labelKey: "modules.assistedWriting.sectionResults" },
+  { key: "discussion", labelKey: "modules.assistedWriting.sectionDiscussion" },
+  { key: "conclusion", labelKey: "modules.assistedWriting.sectionConclusion" },
+];
 
 export default function AssistedWritingModule({
   projectId,
@@ -69,6 +72,7 @@ export default function AssistedWritingModule({
   const [contextInstructions, setContextInstructions] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
 
+  const { t, lang } = useI18n();
   const { toast } = useToast();
   const assistMutation = useAssistWriting();
   const saveConfigMutation = useSaveSectionConfig();
@@ -114,9 +118,19 @@ export default function AssistedWritingModule({
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, [inputText, outputText, mode, sectionTarget, suggestions, contextInstructions, stateLoaded]);
 
+  const getModeLabel = (m: string) => {
+    const map = MODE_LABEL_MAP[m];
+    return map ? t(map.labelKey) : m;
+  };
+
+  const getModeDesc = (m: string) => {
+    const map = MODE_LABEL_MAP[m];
+    return map ? t(map.descKey) : "";
+  };
+
   const handleAssist = () => {
     if (!inputText.trim()) {
-      toast({ title: "Texte requis", description: "Collez ou saisissez le texte à améliorer.", variant: "destructive" });
+      toast({ title: t("modules.assistedWriting.toastTextRequired"), description: t("modules.assistedWriting.toastTextRequiredDesc"), variant: "destructive" });
       return;
     }
     assistMutation.mutate(
@@ -125,10 +139,10 @@ export default function AssistedWritingModule({
         onSuccess: (data) => {
           setOutputText(data.content);
           setSuggestions(data.suggestions || []);
-          toast({ title: "Texte amélioré", description: `Mode: ${MODE_LABELS[mode]?.label || mode}` });
+          toast({ title: t("modules.assistedWriting.toastImproved"), description: `${t("modules.assistedWriting.toastImprovedDesc")} ${getModeLabel(mode)}` });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de l'assistance à la rédaction", variant: "destructive" });
+          toast({ title: t("modules.assistedWriting.toastError"), description: error.message || t("modules.assistedWriting.toastErrorDesc"), variant: "destructive" });
         },
       }
     );
@@ -137,7 +151,7 @@ export default function AssistedWritingModule({
   const handleCopyOutput = () => {
     if (outputText) {
       navigator.clipboard.writeText(outputText);
-      toast({ title: "Copié", description: "Le texte amélioré a été copié dans le presse-papier." });
+      toast({ title: t("modules.assistedWriting.toastCopied"), description: t("modules.assistedWriting.toastCopiedDesc") });
     }
   };
 
@@ -146,18 +160,18 @@ export default function AssistedWritingModule({
       setInputText(outputText);
       setOutputText("");
       setSuggestions([]);
-      toast({ title: "Remplacé", description: "Le texte original a été remplacé par la version améliorée." });
+      toast({ title: t("modules.assistedWriting.toastReplaced"), description: t("modules.assistedWriting.toastReplacedDesc") });
     }
   };
 
   const handleExportWord = () => {
     if (!outputText) return;
     exportToWord(
-      "Rédaction assistée",
+      t("modules.assistedWriting.exportTitle"),
       [
-        { label: "Texte original", content: inputText },
-        { label: `Texte amélioré (${MODE_LABELS[mode]?.label || mode})`, content: outputText },
-        ...(suggestions.length > 0 ? [{ label: "Suggestions", content: suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n") }] : []),
+        { label: t("modules.assistedWriting.exportOriginal"), content: inputText },
+        { label: `${t("modules.assistedWriting.exportImproved")} (${getModeLabel(mode)})`, content: outputText },
+        ...(suggestions.length > 0 ? [{ label: t("modules.assistedWriting.exportSuggestions"), content: suggestions.map((s, i) => `${i + 1}. ${s}`).join("\n") }] : []),
       ],
       `redaction_assistee_${mode}`
     );
@@ -172,7 +186,7 @@ export default function AssistedWritingModule({
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <PenTool className="w-5 h-5 text-primary" />
-              <CardTitle>Rédaction assistée</CardTitle>
+              <CardTitle>{t("modules.assistedWriting.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isValidated ? (
@@ -182,7 +196,7 @@ export default function AssistedWritingModule({
                   disabled={unvalidateMutation.isPending}
                   data-testid="button-unvalidate-writing"
                 >
-                  <X className="w-4 h-4 mr-1" /> Dévalider
+                  <X className="w-4 h-4 mr-1" /> {t("modules.assistedWriting.unvalidate")}
                 </Button>
               ) : (
                 <Button
@@ -191,7 +205,7 @@ export default function AssistedWritingModule({
                   disabled={validateMutation.isPending || !outputText}
                   data-testid="button-validate-writing"
                 >
-                  <Check className="w-4 h-4 mr-1" /> Valider
+                  <Check className="w-4 h-4 mr-1" /> {t("modules.assistedWriting.validate")}
                 </Button>
               )}
               <Button variant="outline" onClick={handleExportWord} disabled={!outputText} data-testid="button-export-writing">
@@ -202,48 +216,47 @@ export default function AssistedWritingModule({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-1.5">
-            <Label htmlFor="context-instructions-writing" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
+            <Label htmlFor="context-instructions-writing" className="text-base font-semibold">{t("modules.assistedWriting.contextLabel")}</Label>
             <Textarea
               id="context-instructions-writing"
               value={contextInstructions}
               onChange={e => setContextInstructions(e.target.value)}
-              placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
+              placeholder={t("modules.assistedWriting.contextPlaceholder")}
               className="min-h-[80px] text-sm"
               data-testid="textarea-context-instructions-writing"
             />
           </div>
 
           <div className="bg-muted/50 rounded-md p-4 text-sm text-muted-foreground">
-            Cet outil vous aide à améliorer votre propre texte. Il ne rédige jamais de contenu à votre place.
-            Collez votre texte, choisissez un mode d'amélioration et laissez l'IA vous suggérer des améliorations.
+            {t("modules.assistedWriting.infoText")}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Mode d'amélioration</Label>
+              <Label>{t("modules.assistedWriting.modeLabel")}</Label>
               <Select value={mode} onValueChange={setMode}>
                 <SelectTrigger data-testid="select-writing-mode">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(MODE_LABELS).map(([key, { label }]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  {MODE_KEYS.map((key) => (
+                    <SelectItem key={key} value={key}>{getModeLabel(key)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">{MODE_LABELS[mode]?.description}</p>
+              <p className="text-xs text-muted-foreground">{getModeDesc(mode)}</p>
             </div>
 
             <div className="space-y-2">
-              <Label>Section cible (optionnel)</Label>
+              <Label>{t("modules.assistedWriting.sectionTargetLabel")}</Label>
               <Select value={sectionTarget} onValueChange={setSectionTarget}>
                 <SelectTrigger data-testid="select-section-target">
-                  <SelectValue placeholder="Toutes sections" />
+                  <SelectValue placeholder={t("modules.assistedWriting.allSections")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Toutes sections</SelectItem>
-                  {Object.entries(SECTION_TARGETS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  <SelectItem value="all">{t("modules.assistedWriting.allSections")}</SelectItem>
+                  {SECTION_TARGET_KEYS.map(({ key, labelKey }) => (
+                    <SelectItem key={key} value={key}>{t(labelKey)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -251,16 +264,16 @@ export default function AssistedWritingModule({
           </div>
 
           <div className="space-y-2">
-            <Label>Votre texte à améliorer</Label>
+            <Label>{t("modules.assistedWriting.yourText")}</Label>
             <Textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Collez ici le texte que vous souhaitez améliorer..."
+              placeholder={t("modules.assistedWriting.textPlaceholder")}
               className="min-h-[200px] resize-y"
               data-testid="textarea-input-text"
             />
             <p className="text-xs text-muted-foreground">
-              {inputText.split(/\s+/).filter(Boolean).length} mots
+              {inputText.split(/\s+/).filter(Boolean).length} {t("modules.assistedWriting.words")}
             </p>
           </div>
 
@@ -270,19 +283,19 @@ export default function AssistedWritingModule({
             data-testid="button-assist-writing"
           >
             {assistMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <PenTool className="w-4 h-4 mr-2" />}
-            Améliorer le texte
+            {t("modules.assistedWriting.improveText")}
           </Button>
 
           {outputText && (
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <Label>Texte amélioré</Label>
+                <Label>{t("modules.assistedWriting.improvedText")}</Label>
                 <div className="flex gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={handleCopyOutput} data-testid="button-copy-output">
-                    <Copy className="w-4 h-4 mr-1" /> Copier
+                    <Copy className="w-4 h-4 mr-1" /> {t("modules.assistedWriting.copy")}
                   </Button>
                   <Button variant="outline" size="sm" onClick={handleReplaceInput} data-testid="button-replace-input">
-                    <RefreshCw className="w-4 h-4 mr-1" /> Remplacer l'original
+                    <RefreshCw className="w-4 h-4 mr-1" /> {t("modules.assistedWriting.replaceOriginal")}
                   </Button>
                 </div>
               </div>
@@ -297,7 +310,7 @@ export default function AssistedWritingModule({
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Lightbulb className="w-4 h-4 text-yellow-500" />
-                  <span className="font-medium text-sm">Suggestions supplémentaires</span>
+                  <span className="font-medium text-sm">{t("modules.assistedWriting.additionalSuggestions")}</span>
                 </div>
                 <ul className="space-y-2">
                   {suggestions.map((s, i) => (

@@ -55,10 +55,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <nav className="space-y-2">
           <NavLink href="/" icon={LayoutDashboard} label={t("nav.dashboard")} />
           <NavLink href="/projects/new" icon={FolderPlus} label={t("nav.newProject")} />
-          <NavLink href="/billing" icon={CreditCard} label="Facturation" />
+          <NavLink href="/billing" icon={CreditCard} label={t("nav.billing")} />
           <NavLink href="/settings" icon={Settings2} label={t("nav.settings")} />
           {adminCheck?.isAdmin && (
-            <NavLink href="/admin" icon={ShieldCheck} label="Super Admin" />
+            <NavLink href="/admin" icon={ShieldCheck} label={t("nav.admin")} />
           )}
         </nav>
 

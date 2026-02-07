@@ -1,10 +1,12 @@
 import Layout from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useProfile, useUpsertProfile } from "@/hooks/use-profiles";
 import { useCreateProject } from "@/hooks/use-projects";
 import { useLocation } from "wouter";
+import { useI18n } from "@/lib/i18n";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,105 +15,71 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 
-const DOMAINS = [
-  { value: "soins_infirmiers", label: "Soins infirmiers / Santé" },
-  { value: "travail_social", label: "Travail social" },
-  { value: "management", label: "Management / Gestion" },
-  { value: "rh", label: "Ressources humaines" },
-  { value: "economie", label: "Économie / Finance" },
-  { value: "marketing", label: "Marketing / Communication" },
-  { value: "droit", label: "Droit / Administration publique" },
-  { value: "education", label: "Éducation / Pédagogie" },
-  { value: "psychologie", label: "Psychologie" },
-  { value: "informatique", label: "Informatique / Numérique" },
-  { value: "data_ia", label: "Data / Intelligence artificielle" },
-  { value: "logistique", label: "Logistique / Supply chain" },
-  { value: "qualite", label: "Qualité / QHSE" },
-  { value: "comptabilite", label: "Comptabilité / Audit / Contrôle de gestion" },
-  { value: "banque", label: "Banque / Assurance" },
-  { value: "immobilier", label: "Immobilier / Urbanisme" },
-  { value: "sciences_politiques", label: "Sciences politiques / Relations internationales" },
-  { value: "environnement", label: "Environnement / Développement durable" },
-  { value: "industrie", label: "Industrie / Génie industriel" },
-  { value: "autre", label: "Autre" },
+const DOMAIN_KEYS = [
+  "soins_infirmiers", "travail_social", "management", "rh", "economie",
+  "marketing", "droit", "education", "psychologie", "informatique",
+  "data_ia", "logistique", "qualite", "comptabilite", "banque",
+  "immobilier", "sciences_politiques", "environnement", "industrie", "autre",
 ];
 
-const DEGREE_LEVELS = [
-  { value: "bts_dut", label: "BTS / DUT" },
-  { value: "licence", label: "Licence / Licence professionnelle" },
-  { value: "bachelor", label: "Bachelor" },
-  { value: "master1", label: "Master 1" },
-  { value: "master2", label: "Master 2" },
-  { value: "mba", label: "MBA" },
-  { value: "diplome_etat", label: "Diplôme d'État (santé / social)" },
-  { value: "doctorat", label: "Doctorat" },
-  { value: "vae", label: "VAE" },
-  { value: "autre", label: "Autre" },
+const DEGREE_LEVEL_KEYS = [
+  "bts_dut", "licence", "bachelor", "master1", "master2",
+  "mba", "diplome_etat", "doctorat", "vae", "autre",
 ];
 
-const USER_PROFILES = [
-  { value: "etudiant_sans_stage", label: "Étudiant sans stage" },
-  { value: "etudiant_stage", label: "Étudiant en stage" },
-  { value: "etudiant_alternance", label: "Étudiant en alternance" },
-  { value: "professionnel", label: "Professionnel" },
-  { value: "professionnel_sante", label: "Professionnel de santé" },
-  { value: "candidat_vae", label: "Candidat VAE" },
+const USER_PROFILE_KEYS = [
+  "etudiant_sans_stage", "etudiant_stage", "etudiant_alternance",
+  "professionnel", "professionnel_sante", "candidat_vae",
 ];
 
-const STRUCTURE_TYPES = [
-  { value: "hopital", label: "Hôpital / Clinique" },
-  { value: "entreprise_privee", label: "Entreprise privée" },
-  { value: "association", label: "Association" },
-  { value: "administration", label: "Administration publique" },
-  { value: "autre", label: "Autre" },
+const STRUCTURE_TYPE_KEYS = [
+  "hopital", "entreprise_privee", "association", "administration", "autre",
 ];
 
-const PROJECT_TYPES = [
-  { value: "memoire", label: "Mémoire" },
-  { value: "tfe", label: "TFE (Travail de Fin d'Études)" },
-  { value: "vae", label: "VAE (Validation des Acquis)" },
-  { value: "rapport_stage", label: "Rapport de Stage" },
-  { value: "these", label: "Thèse (Doctorat)" },
-];
+const PROJECT_TYPE_KEYS = ["memoire", "tfe", "vae", "rapport_stage", "these"];
+
+const FINALITY_KEYS = ["academique", "professionnelle", "mixte"];
+
+const APPROACH_KEYS = ["theorique", "appliquee", "analyse_pratiques", "etude_cas", "ne_sais_pas"];
 
 const step1Schema = z.object({
-  name: z.string().min(2, "Le nom du projet est requis"),
-  type: z.string().min(1, "Le type est requis"),
+  name: z.string().min(2, "required"),
+  type: z.string().min(1, "required"),
   language: z.string().default("Français"),
 });
 
 const step2Schema = z.object({
-  mainDomain: z.string().min(1, "Le domaine est requis"),
+  mainDomain: z.string().min(1, "required"),
   mainDomainOther: z.string().optional(),
-  degreeLevel: z.string().min(1, "Le niveau est requis"),
-  degreeTitle: z.string().min(2, "L'intitulé de la formation est requis"),
+  degreeLevel: z.string().min(1, "required"),
+  degreeTitle: z.string().min(2, "required"),
 }).superRefine((data, ctx) => {
   if (data.mainDomain === "autre" && (!data.mainDomainOther || data.mainDomainOther.trim() === "")) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Précisez le domaine", path: ["mainDomainOther"] });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "required", path: ["mainDomainOther"] });
   }
 });
 
 const step3Schema = z.object({
-  userProfile: z.string().min(1, "Le profil est requis"),
+  userProfile: z.string().min(1, "required"),
   workDomain: z.string().optional(),
   workFunction: z.string().optional(),
   workStructure: z.string().optional(),
 }).superRefine((data, ctx) => {
   const needsWork = showWorkFields(data.userProfile);
   if (needsWork && (!data.workDomain || data.workDomain.trim() === "")) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Le domaine du poste est requis", path: ["workDomain"] });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "required", path: ["workDomain"] });
   }
   if (needsWork && (!data.workFunction || data.workFunction.trim() === "")) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "La fonction est requise", path: ["workFunction"] });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "required", path: ["workFunction"] });
   }
   if (needsWork && (!data.workStructure || data.workStructure.trim() === "")) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Le type de structure est requis", path: ["workStructure"] });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "required", path: ["workStructure"] });
   }
 });
 
 const step4Schema = z.object({
-  finality: z.string().min(1, "La finalité est requise"),
-  approach: z.string().min(1, "L'approche est requise"),
+  finality: z.string().min(1, "required"),
+  approach: z.string().min(1, "required"),
 });
 
 type Step1Data = z.infer<typeof step1Schema>;
@@ -130,6 +98,7 @@ export default function NewProject() {
   const { data: existingProfile, isLoading: isProfileLoading } = useProfile();
   const { mutateAsync: upsertProfile } = useUpsertProfile();
   const { mutateAsync: createProject, isPending: isCreating } = useCreateProject();
+  const { t } = useI18n();
 
   const [collected, setCollected] = useState<Record<string, any>>({});
 
@@ -233,14 +202,20 @@ export default function NewProject() {
     );
   }
 
-  const stepLabels = ["Projet", "Contexte", "Profil", "Orientation"];
+  const stepLabels = [
+    t("newProject.stepProject"),
+    t("newProject.stepContext"),
+    t("newProject.stepProfile"),
+    t("newProject.stepOrientation"),
+  ];
 
   return (
     <Layout>
+      <SEO titleKey="seo.newProjectTitle" />
       <div className="max-w-2xl mx-auto py-8">
         <Button variant="ghost" onClick={() => step > 1 ? setStep(step - 1) : setLocation('/')} className="mb-6" data-testid="button-back">
           <ArrowLeft className="mr-2 w-4 h-4" />
-          {step > 1 ? "Retour" : "Dashboard"}
+          {step > 1 ? t("newProject.back") : t("dashboard.title")}
         </Button>
 
         <div className="flex items-center gap-2 mb-8">
@@ -262,15 +237,15 @@ export default function NewProject() {
             {step === 1 && (
               <div className="animate-in slide-in-from-right-4 duration-300 fade-in">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle>Détails du projet</CardTitle>
-                  <CardDescription>Nommez votre projet et choisissez le type de travail.</CardDescription>
+                  <CardTitle>{t("newProject.projectDetails")}</CardTitle>
+                  <CardDescription>{t("newProject.projectDetailsDesc")}</CardDescription>
                 </CardHeader>
                 <Form {...form1}>
                   <form onSubmit={form1.handleSubmit(onStep1)} className="space-y-6">
                     <FormField control={form1.control} name="name" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Nom du projet</FormLabel>
-                        <FormControl><Input placeholder="Ex: Impact du numérique sur les soins" {...field} data-testid="input-project-name" /></FormControl>
+                        <FormLabel>{t("newProject.projectName")}</FormLabel>
+                        <FormControl><Input placeholder={t("newProject.projectNamePlaceholder")} {...field} data-testid="input-project-name" /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -278,11 +253,11 @@ export default function NewProject() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField control={form1.control} name="type" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Type de travail</FormLabel>
+                          <FormLabel>{t("newProject.workType")}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl><SelectTrigger data-testid="select-project-type"><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                            <FormControl><SelectTrigger data-testid="select-project-type"><SelectValue placeholder={t("newProject.select")} /></SelectTrigger></FormControl>
                             <SelectContent>
-                              {PROJECT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                              {PROJECT_TYPE_KEYS.map(key => <SelectItem key={key} value={key}>{t(`projectTypes.${key}` as any)}</SelectItem>)}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -290,7 +265,7 @@ export default function NewProject() {
                       )} />
                       <FormField control={form1.control} name="language" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Langue</FormLabel>
+                          <FormLabel>{t("newProject.language")}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger data-testid="select-language"><SelectValue /></SelectTrigger></FormControl>
                             <SelectContent>
@@ -304,7 +279,7 @@ export default function NewProject() {
                     </div>
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit" data-testid="button-next-step1">Suivant <ArrowRight className="ml-2 w-4 h-4" /></Button>
+                      <Button type="submit" data-testid="button-next-step1">{t("newProject.next")} <ArrowRight className="ml-2 w-4 h-4" /></Button>
                     </div>
                   </form>
                 </Form>
@@ -314,18 +289,18 @@ export default function NewProject() {
             {step === 2 && (
               <div className="animate-in slide-in-from-right-4 duration-300 fade-in">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle>Contexte académique</CardTitle>
-                  <CardDescription>Ces informations conditionnent toutes les propositions de l'IA.</CardDescription>
+                  <CardTitle>{t("newProject.academicContext")}</CardTitle>
+                  <CardDescription>{t("newProject.academicContextDesc")}</CardDescription>
                 </CardHeader>
                 <Form {...form2}>
                   <form onSubmit={form2.handleSubmit(onStep2)} className="space-y-6">
                     <FormField control={form2.control} name="mainDomain" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Domaine principal</FormLabel>
+                        <FormLabel>{t("newProject.mainDomain")}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger data-testid="select-domain"><SelectValue placeholder="Sélectionner le domaine" /></SelectTrigger></FormControl>
+                          <FormControl><SelectTrigger data-testid="select-domain"><SelectValue placeholder={t("newProject.selectDomain")} /></SelectTrigger></FormControl>
                           <SelectContent>
-                            {DOMAINS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                            {DOMAIN_KEYS.map(key => <SelectItem key={key} value={key}>{t(`domains.${key}` as any)}</SelectItem>)}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -335,8 +310,8 @@ export default function NewProject() {
                     {form2.watch("mainDomain") === "autre" && (
                       <FormField control={form2.control} name="mainDomainOther" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Précisez le domaine</FormLabel>
-                          <FormControl><Input placeholder="Ex: Ergothérapie" {...field} data-testid="input-domain-other" /></FormControl>
+                          <FormLabel>{t("newProject.specifyDomain")}</FormLabel>
+                          <FormControl><Input placeholder={t("newProject.specifyDomainPlaceholder")} {...field} data-testid="input-domain-other" /></FormControl>
                           <FormMessage />
                         </FormItem>
                       )} />
@@ -345,11 +320,11 @@ export default function NewProject() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField control={form2.control} name="degreeLevel" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Formation / Diplôme</FormLabel>
+                          <FormLabel>{t("newProject.degree")}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl><SelectTrigger data-testid="select-degree"><SelectValue placeholder="Niveau" /></SelectTrigger></FormControl>
+                            <FormControl><SelectTrigger data-testid="select-degree"><SelectValue placeholder={t("newProject.degreeLevel")} /></SelectTrigger></FormControl>
                             <SelectContent>
-                              {DEGREE_LEVELS.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                              {DEGREE_LEVEL_KEYS.map(key => <SelectItem key={key} value={key}>{t(`degreeLevels.${key}` as any)}</SelectItem>)}
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -357,16 +332,16 @@ export default function NewProject() {
                       )} />
                       <FormField control={form2.control} name="degreeTitle" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Intitulé exact</FormLabel>
-                          <FormControl><Input placeholder="Ex: Master 2 RH" {...field} data-testid="input-degree-title" /></FormControl>
-                          <FormDescription className="text-xs">Ex: IFSI, Master 2 RH, Licence Management</FormDescription>
+                          <FormLabel>{t("newProject.degreeTitle")}</FormLabel>
+                          <FormControl><Input placeholder={t("newProject.degreeTitlePlaceholder")} {...field} data-testid="input-degree-title" /></FormControl>
+                          <FormDescription className="text-xs">{t("newProject.degreeTitleHint")}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )} />
                     </div>
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit" data-testid="button-next-step2">Suivant <ArrowRight className="ml-2 w-4 h-4" /></Button>
+                      <Button type="submit" data-testid="button-next-step2">{t("newProject.next")} <ArrowRight className="ml-2 w-4 h-4" /></Button>
                     </div>
                   </form>
                 </Form>
@@ -376,18 +351,18 @@ export default function NewProject() {
             {step === 3 && (
               <div className="animate-in slide-in-from-right-4 duration-300 fade-in">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle>Profil utilisateur</CardTitle>
-                  <CardDescription>Dites-nous en plus sur votre situation actuelle.</CardDescription>
+                  <CardTitle>{t("newProject.userProfile")}</CardTitle>
+                  <CardDescription>{t("newProject.userProfileDesc")}</CardDescription>
                 </CardHeader>
                 <Form {...form3}>
                   <form onSubmit={form3.handleSubmit(onStep3)} className="space-y-6">
                     <FormField control={form3.control} name="userProfile" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Votre situation</FormLabel>
+                        <FormLabel>{t("newProject.yourSituation")}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger data-testid="select-profile"><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                          <FormControl><SelectTrigger data-testid="select-profile"><SelectValue placeholder={t("newProject.select")} /></SelectTrigger></FormControl>
                           <SelectContent>
-                            {USER_PROFILES.map(p => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                            {USER_PROFILE_KEYS.map(key => <SelectItem key={key} value={key}>{t(`userProfiles.${key}` as any)}</SelectItem>)}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -398,25 +373,25 @@ export default function NewProject() {
                       <div className="space-y-4 animate-in fade-in duration-300 border-l-2 border-primary/30 pl-4">
                         <FormField control={form3.control} name="workDomain" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Domaine du poste</FormLabel>
-                            <FormControl><Input placeholder="Ex: Service de réanimation" {...field} data-testid="input-work-domain" /></FormControl>
+                            <FormLabel>{t("newProject.workDomain")}</FormLabel>
+                            <FormControl><Input placeholder={t("newProject.workDomainPlaceholder")} {...field} data-testid="input-work-domain" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form3.control} name="workFunction" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Fonction occupée</FormLabel>
-                            <FormControl><Input placeholder="Ex: Infirmier(e) diplômé(e) d'État" {...field} data-testid="input-work-function" /></FormControl>
+                            <FormLabel>{t("newProject.workFunction")}</FormLabel>
+                            <FormControl><Input placeholder={t("newProject.workFunctionPlaceholder")} {...field} data-testid="input-work-function" /></FormControl>
                             <FormMessage />
                           </FormItem>
                         )} />
                         <FormField control={form3.control} name="workStructure" render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Type de structure</FormLabel>
+                            <FormLabel>{t("newProject.structureType")}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl><SelectTrigger data-testid="select-structure"><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                              <FormControl><SelectTrigger data-testid="select-structure"><SelectValue placeholder={t("newProject.select")} /></SelectTrigger></FormControl>
                               <SelectContent>
-                                {STRUCTURE_TYPES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                                {STRUCTURE_TYPE_KEYS.map(key => <SelectItem key={key} value={key}>{t(`structureTypes.${key}` as any)}</SelectItem>)}
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -426,7 +401,7 @@ export default function NewProject() {
                     )}
 
                     <div className="flex justify-end pt-4">
-                      <Button type="submit" data-testid="button-next-step3">Suivant <ArrowRight className="ml-2 w-4 h-4" /></Button>
+                      <Button type="submit" data-testid="button-next-step3">{t("newProject.next")} <ArrowRight className="ml-2 w-4 h-4" /></Button>
                     </div>
                   </form>
                 </Form>
@@ -436,20 +411,18 @@ export default function NewProject() {
             {step === 4 && (
               <div className="animate-in slide-in-from-right-4 duration-300 fade-in">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle>Orientation du travail</CardTitle>
-                  <CardDescription>Dernière étape avant de créer votre projet.</CardDescription>
+                  <CardTitle>{t("newProject.orientation")}</CardTitle>
+                  <CardDescription>{t("newProject.orientationDesc")}</CardDescription>
                 </CardHeader>
                 <Form {...form4}>
                   <form onSubmit={form4.handleSubmit(onStep4)} className="space-y-6">
                     <FormField control={form4.control} name="finality" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Finalité principale</FormLabel>
+                        <FormLabel>{t("newProject.finality")}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger data-testid="select-finality"><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                          <FormControl><SelectTrigger data-testid="select-finality"><SelectValue placeholder={t("newProject.select")} /></SelectTrigger></FormControl>
                           <SelectContent>
-                            <SelectItem value="academique">Académique</SelectItem>
-                            <SelectItem value="professionnelle">Professionnelle</SelectItem>
-                            <SelectItem value="mixte">Mixte</SelectItem>
+                            {FINALITY_KEYS.map(key => <SelectItem key={key} value={key}>{t(`finalities.${key}` as any)}</SelectItem>)}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -458,15 +431,11 @@ export default function NewProject() {
 
                     <FormField control={form4.control} name="approach" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Type d'approche attendue</FormLabel>
+                        <FormLabel>{t("newProject.approachType")}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl><SelectTrigger data-testid="select-approach"><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                          <FormControl><SelectTrigger data-testid="select-approach"><SelectValue placeholder={t("newProject.select")} /></SelectTrigger></FormControl>
                           <SelectContent>
-                            <SelectItem value="theorique">Théorique</SelectItem>
-                            <SelectItem value="appliquee">Appliquée</SelectItem>
-                            <SelectItem value="analyse_pratiques">Analyse de pratiques</SelectItem>
-                            <SelectItem value="etude_cas">Étude de cas</SelectItem>
-                            <SelectItem value="ne_sais_pas">Je ne sais pas</SelectItem>
+                            {APPROACH_KEYS.map(key => <SelectItem key={key} value={key}>{t(`approaches.${key}` as any)}</SelectItem>)}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -476,7 +445,7 @@ export default function NewProject() {
                     <div className="flex justify-end pt-4">
                       <Button type="submit" disabled={isCreating} data-testid="button-create-project">
                         {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
-                        Créer le projet
+                        {t("newProject.createProject")}
                       </Button>
                     </div>
                   </form>

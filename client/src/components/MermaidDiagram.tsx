@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2, Download, FileText, FileDown, RefreshCw } from "lucide-react";
@@ -14,6 +15,7 @@ interface MermaidDiagramProps {
 }
 
 export default function MermaidDiagram({ code, title, onRegenerate, isRegenerating, hideExportPdf }: MermaidDiagramProps) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const [svgContent, setSvgContent] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -38,7 +40,7 @@ export default function MermaidDiagram({ code, title, onRegenerate, isRegenerati
       setSvgContent(svg);
     } catch (err: any) {
       console.error("Mermaid render error:", err);
-      setError(err.message || "Erreur de rendu du diagramme");
+      setError(err.message || t("modules.common.diagramRenderError"));
       setSvgContent("");
     } finally {
       setRendering(false);

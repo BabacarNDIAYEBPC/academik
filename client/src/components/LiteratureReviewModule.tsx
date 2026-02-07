@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useI18n } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,11 +52,11 @@ const LITERATURE_PLATFORMS = [
 ];
 
 const LITERATURE_SOURCE_TYPES = [
-  { key: "scientific_articles", label: "Articles scientifiques" },
-  { key: "books", label: "Ouvrages" },
-  { key: "institutional_reports", label: "Rapports institutionnels" },
-  { key: "recommendations", label: "Recommandations (HAS, OMS...)" },
-  { key: "referentials", label: "Référentiels (VAE)" },
+  { key: "scientific_articles", labelKey: "modules.literatureReview.sourceTypeScientific" as const },
+  { key: "books", labelKey: "modules.literatureReview.sourceTypeBooks" as const },
+  { key: "institutional_reports", labelKey: "modules.literatureReview.sourceTypeReports" as const },
+  { key: "recommendations", labelKey: "modules.literatureReview.sourceTypeRecommendations" as const },
+  { key: "referentials", labelKey: "modules.literatureReview.sourceTypeReferentials" as const },
 ];
 
 const BATCH_SIZES = [10, 20, 30, 50];
@@ -135,6 +136,7 @@ export default function LiteratureReviewModule({
   const [savedAnalyses, setSavedAnalyses] = useState<{ title: string; content: string }[]>([]);
   const [stateLoaded, setStateLoaded] = useState(false);
   const { toast } = useToast();
+  const { t, language } = useI18n();
 
   const searchMutation = useSearchArticles();
   const analyzeMutation = useAnalyzeArticles();
@@ -244,8 +246,8 @@ export default function LiteratureReviewModule({
     saveManualMutation.mutate(
       { sectionId: section.id, content, projectId },
       {
-        onSuccess: () => toast({ title: "Sauvegardé", description: `${title} sauvegardé dans la section.` }),
-        onError: () => toast({ title: "Erreur de sauvegarde", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.literatureReview.toastSaved"), description: `${title} ${t("modules.literatureReview.toastSavedInSection")}` }),
+        onError: () => toast({ title: t("modules.literatureReview.toastSaveError"), variant: "destructive" }),
       }
     );
   };
@@ -254,7 +256,7 @@ export default function LiteratureReviewModule({
     if (!section) return;
     validateMutation.mutate(
       { sectionId: section.id, projectId },
-      { onSuccess: () => toast({ title: "Section validée" }) }
+      { onSuccess: () => toast({ title: t("modules.literatureReview.toastSectionValidated") }) }
     );
   };
 
@@ -262,7 +264,7 @@ export default function LiteratureReviewModule({
     if (!section) return;
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
-      { onSuccess: () => toast({ title: "Validation retirée" }) }
+      { onSuccess: () => toast({ title: t("modules.literatureReview.toastValidationRemoved") }) }
     );
   };
 
@@ -319,7 +321,7 @@ export default function LiteratureReviewModule({
           setFilterType("all");
           setFilterYear("");
           setSortBy("default");
-          toast({ title: "Recherche terminée", description: `${newArticles.length} articles trouvés.` });
+          toast({ title: t("modules.literatureReview.toastSearchComplete"), description: `${newArticles.length} ${t("modules.literatureReview.toastArticlesFound")}` });
           setActiveAction(null);
 
           const newState: SavedLiteratureState = {
@@ -352,7 +354,7 @@ export default function LiteratureReviewModule({
           }
         },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "La recherche a échoué.", variant: "destructive" });
+          toast({ title: t("modules.literatureReview.toastError"), description: err.message || t("modules.literatureReview.toastSearchFailed"), variant: "destructive" });
           setActiveAction(null);
         },
       }
@@ -390,18 +392,18 @@ export default function LiteratureReviewModule({
   const handleAnalyze = (type: 'single' | 'multiple' | 'confrontation' | 'mapping', articleSubset?: LiteratureArticle[], actionId?: ActiveAction) => {
     const toAnalyze = articleSubset || selectedArticles;
     if (toAnalyze.length === 0) {
-      toast({ title: "Aucun article", description: "Sélectionnez au moins un article.", variant: "destructive" });
+      toast({ title: t("modules.literatureReview.toastNoArticle"), description: t("modules.literatureReview.toastSelectArticle"), variant: "destructive" });
       return;
     }
     const titles: Record<string, string> = {
-      single: "Résumé de l'article",
-      multiple: "Résumé de plusieurs articles",
-      confrontation: "Confrontation des ouvrages",
-      mapping: "Carte de mapping conceptuel",
+      single: t("modules.literatureReview.titleSingleSummary"),
+      multiple: t("modules.literatureReview.titleMultipleSummary"),
+      confrontation: t("modules.literatureReview.titleConfrontation"),
+      mapping: t("modules.literatureReview.titleMapping"),
     };
     const action = actionId || (type === "confrontation" ? "confrontation" : type === "mapping" ? "mapping" : "summary_selected");
     setActiveAction(action);
-    setAnalysisTitle(titles[type] || "Analyse");
+    setAnalysisTitle(titles[type] || t("modules.literatureReview.analysis"));
     analyzeMutation.mutate(
       {
         projectId,
@@ -420,11 +422,11 @@ export default function LiteratureReviewModule({
         onSuccess: (data) => {
           setAnalysisResult(data.content);
           setShowAnalysisDialog(true);
-          setSavedAnalyses(prev => [...prev, { title: titles[type] || "Analyse", content: data.content }]);
+          setSavedAnalyses(prev => [...prev, { title: titles[type] || t("modules.literatureReview.analysis"), content: data.content }]);
           setActiveAction(null);
         },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "L'analyse a échoué.", variant: "destructive" });
+          toast({ title: t("modules.literatureReview.toastError"), description: err.message || t("modules.literatureReview.toastAnalysisFailed"), variant: "destructive" });
           setActiveAction(null);
         },
       }
@@ -433,11 +435,11 @@ export default function LiteratureReviewModule({
 
   const handleSummaryAll = () => {
     if (filteredArticles.length === 0) {
-      toast({ title: "Aucun article", description: "Aucun article à résumer.", variant: "destructive" });
+      toast({ title: t("modules.literatureReview.toastNoArticle"), description: t("modules.literatureReview.toastNoArticleToSummarize"), variant: "destructive" });
       return;
     }
     setActiveAction("summary_all");
-    setAnalysisTitle("Résumé de tous les articles");
+    setAnalysisTitle(t("modules.literatureReview.titleAllSummary"));
     analyzeMutation.mutate(
       {
         projectId,
@@ -456,11 +458,11 @@ export default function LiteratureReviewModule({
         onSuccess: (data) => {
           setAnalysisResult(data.content);
           setShowAnalysisDialog(true);
-          setSavedAnalyses(prev => [...prev, { title: "Résumé de tous les articles", content: data.content }]);
+          setSavedAnalyses(prev => [...prev, { title: t("modules.literatureReview.titleAllSummary"), content: data.content }]);
           setActiveAction(null);
         },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "L'analyse a échoué.", variant: "destructive" });
+          toast({ title: t("modules.literatureReview.toastError"), description: err.message || t("modules.literatureReview.toastAnalysisFailed"), variant: "destructive" });
           setActiveAction(null);
         },
       }
@@ -470,7 +472,7 @@ export default function LiteratureReviewModule({
   const handleBibliography = (articlesForBib?: LiteratureArticle[]) => {
     const toBib = articlesForBib || selectedArticles;
     if (toBib.length === 0) {
-      toast({ title: "Aucun article", description: "Sélectionnez au moins un article.", variant: "destructive" });
+      toast({ title: t("modules.literatureReview.toastNoArticle"), description: t("modules.literatureReview.toastSelectArticle"), variant: "destructive" });
       return;
     }
     setActiveAction("bibliography");
@@ -495,7 +497,7 @@ export default function LiteratureReviewModule({
           setActiveAction(null);
         },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "La génération a échoué.", variant: "destructive" });
+          toast({ title: t("modules.literatureReview.toastError"), description: err.message || t("modules.literatureReview.toastGenerationFailed"), variant: "destructive" });
           setActiveAction(null);
         },
       }
@@ -506,11 +508,11 @@ export default function LiteratureReviewModule({
     if (!bibliographyResult) return;
     try {
       const normLabels: Record<string, string> = { apa7: "APA 7", vancouver: "Vancouver", mla: "MLA", chicago: "Chicago" };
-      const title = `Bibliographie — ${normLabels[bibliographyNorm] || bibliographyNorm}`;
+      const title = `${t("modules.literatureReview.bibDash")} ${normLabels[bibliographyNorm] || bibliographyNorm}`;
       await exportToWord(title, [{ label: title, content: bibliographyResult }], "bibliographie");
-      toast({ title: "Export réussi" });
+      toast({ title: t("modules.literatureReview.toastExportSuccess") });
     } catch {
-      toast({ title: "Erreur d'export", variant: "destructive" });
+      toast({ title: t("modules.literatureReview.toastExportError"), variant: "destructive" });
     }
   };
 
@@ -518,9 +520,9 @@ export default function LiteratureReviewModule({
     if (!analysisResult) return;
     try {
       await exportToWord(analysisTitle, [{ label: analysisTitle, content: analysisResult }], "analyse");
-      toast({ title: "Export réussi" });
+      toast({ title: t("modules.literatureReview.toastExportSuccess") });
     } catch {
-      toast({ title: "Erreur d'export", variant: "destructive" });
+      toast({ title: t("modules.literatureReview.toastExportError"), variant: "destructive" });
     }
   };
 
@@ -535,7 +537,7 @@ export default function LiteratureReviewModule({
           setActiveAction(null);
         },
         onError: (err: any) => {
-          toast({ title: "Erreur", description: err.message || "La génération des équations a échoué.", variant: "destructive" });
+          toast({ title: t("modules.literatureReview.toastError"), description: err.message || t("modules.literatureReview.toastEquationsFailed"), variant: "destructive" });
           setActiveAction(null);
         },
       }
@@ -545,10 +547,10 @@ export default function LiteratureReviewModule({
   const handleExportEquations = async () => {
     if (!equationsResult) return;
     try {
-      await exportToWord("Équations de recherche", [{ label: "Équations de recherche", content: equationsResult }], "equations_recherche");
-      toast({ title: "Export réussi" });
+      await exportToWord(t("modules.literatureReview.equationsTitle"), [{ label: t("modules.literatureReview.equationsTitle"), content: equationsResult }], "equations_recherche");
+      toast({ title: t("modules.literatureReview.toastExportSuccess") });
     } catch {
-      toast({ title: "Erreur d'export", variant: "destructive" });
+      toast({ title: t("modules.literatureReview.toastExportError"), variant: "destructive" });
     }
   };
 
@@ -574,7 +576,7 @@ export default function LiteratureReviewModule({
       articleCount: entry.articleCount,
     });
     setShowHistoryDialog(false);
-    toast({ title: "Recherche restaurée", description: `${s.articles.length} articles restaurés.` });
+    toast({ title: t("modules.literatureReview.toastSearchRestored"), description: `${s.articles.length} ${t("modules.literatureReview.toastArticlesRestored")}` });
   };
 
   const handleDuplicateSearch = (entry: SearchHistoryEntry) => {
@@ -589,7 +591,7 @@ export default function LiteratureReviewModule({
       articleCount: entry.articleCount,
     });
     setShowHistoryDialog(false);
-    toast({ title: "Paramètres copiés", description: "Les paramètres de recherche ont été appliqués. Lancez la recherche." });
+    toast({ title: t("modules.literatureReview.toastParamsCopied"), description: t("modules.literatureReview.toastParamsApplied") });
   };
 
   const handleDeleteSearch = (entryId: string) => {
@@ -602,7 +604,7 @@ export default function LiteratureReviewModule({
         projectId,
       });
     }
-    toast({ title: "Recherche supprimée" });
+    toast({ title: t("modules.literatureReview.toastSearchDeleted") });
   };
 
   const getArticleIdx = (article: LiteratureArticle) => articles.indexOf(article);
@@ -619,15 +621,15 @@ export default function LiteratureReviewModule({
             {section && (
               <div className="flex items-center gap-2">
                 <Badge variant={section.status === "validated" ? "default" : "secondary"} data-testid="badge-lit-status">
-                  {section.status === "validated" ? "Validé" : section.status === "draft" ? "Brouillon" : section.status}
+                  {section.status === "validated" ? t("modules.literatureReview.validated") : section.status === "draft" ? t("modules.literatureReview.draft") : section.status}
                 </Badge>
                 {section.status === "validated" ? (
                   <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="button-lit-unvalidate">
-                    <X className="w-4 h-4 mr-1" /> Retirer validation
+                    <X className="w-4 h-4 mr-1" /> {t("modules.literatureReview.removeValidation")}
                   </Button>
                 ) : (
                   <Button variant="outline" size="sm" onClick={handleValidate} data-testid="button-lit-validate">
-                    <Check className="w-4 h-4 mr-1" /> Valider
+                    <Check className="w-4 h-4 mr-1" /> {t("modules.literatureReview.validate")}
                   </Button>
                 )}
               </div>
@@ -637,7 +639,7 @@ export default function LiteratureReviewModule({
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-medium text-muted-foreground">Plateformes de recherche</Label>
+              <Label className="text-xs font-medium text-muted-foreground">{t("modules.literatureReview.searchPlatforms")}</Label>
               <div className="flex flex-wrap gap-3">
                 {LITERATURE_PLATFORMS.map(p => (
                   <div key={p.key} className="flex items-center gap-2">
@@ -660,7 +662,7 @@ export default function LiteratureReviewModule({
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Nombre de résultats</Label>
+                <Label className="text-xs text-muted-foreground">{t("modules.literatureReview.resultCount")}</Label>
                 <Select
                   value={String(config.articleCount)}
                   onValueChange={v => onConfigChange({ ...config, articleCount: Number(v) })}
@@ -675,7 +677,7 @@ export default function LiteratureReviewModule({
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Période début</Label>
+                <Label className="text-xs text-muted-foreground">{t("modules.literatureReview.periodStart")}</Label>
                 <Input
                   type="number"
                   value={config.periodStart}
@@ -686,7 +688,7 @@ export default function LiteratureReviewModule({
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Période fin</Label>
+                <Label className="text-xs text-muted-foreground">{t("modules.literatureReview.periodEnd")}</Label>
                 <Input
                   type="number"
                   value={config.periodEnd}
@@ -697,47 +699,47 @@ export default function LiteratureReviewModule({
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Langue</Label>
+                <Label className="text-xs text-muted-foreground">{t("modules.literatureReview.languageLabel")}</Label>
                 <Select value={config.language} onValueChange={v => onConfigChange({ ...config, language: v })}>
                   <SelectTrigger data-testid="select-lit-language"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="en">Anglais</SelectItem>
-                    <SelectItem value="both">Les deux</SelectItem>
+                    <SelectItem value="fr">{t("modules.literatureReview.langFrench")}</SelectItem>
+                    <SelectItem value="en">{t("modules.literatureReview.langEnglish")}</SelectItem>
+                    <SelectItem value="both">{t("modules.literatureReview.langBoth")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-medium text-muted-foreground">Niveau des sources</Label>
+              <Label className="text-xs font-medium text-muted-foreground">{t("modules.literatureReview.sourceLevel")}</Label>
               <Select value={config.level} onValueChange={v => onConfigChange({ ...config, level: v })}>
                 <SelectTrigger data-testid="select-lit-level"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="academic">Articles très académiques</SelectItem>
-                  <SelectItem value="mixed">Articles mixtes</SelectItem>
-                  <SelectItem value="professional">Sources professionnelles</SelectItem>
+                  <SelectItem value="academic">{t("modules.literatureReview.levelAcademic")}</SelectItem>
+                  <SelectItem value="mixed">{t("modules.literatureReview.levelMixed")}</SelectItem>
+                  <SelectItem value="professional">{t("modules.literatureReview.levelProfessional")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-medium text-muted-foreground">Types de sources</Label>
+              <Label className="text-xs font-medium text-muted-foreground">{t("modules.literatureReview.sourceTypes")}</Label>
               <div className="flex flex-wrap gap-3">
-                {LITERATURE_SOURCE_TYPES.map(t => (
-                  <div key={t.key} className="flex items-center gap-2">
+                {LITERATURE_SOURCE_TYPES.map(st => (
+                  <div key={st.key} className="flex items-center gap-2">
                     <Checkbox
-                      id={`lit-source-${t.key}`}
-                      checked={config.sourceTypes.includes(t.key)}
+                      id={`lit-source-${st.key}`}
+                      checked={config.sourceTypes.includes(st.key)}
                       onCheckedChange={(checked) => {
                         const sourceTypes = checked
-                          ? [...config.sourceTypes, t.key]
-                          : config.sourceTypes.filter(k => k !== t.key);
+                          ? [...config.sourceTypes, st.key]
+                          : config.sourceTypes.filter(k => k !== st.key);
                         onConfigChange({ ...config, sourceTypes });
                       }}
-                      data-testid={`checkbox-lit-source-${t.key}`}
+                      data-testid={`checkbox-lit-source-${st.key}`}
                     />
-                    <Label htmlFor={`lit-source-${t.key}`} className="text-sm cursor-pointer">{t.label}</Label>
+                    <Label htmlFor={`lit-source-${st.key}`} className="text-sm cursor-pointer">{t(st.labelKey)}</Label>
                   </div>
                 ))}
               </div>
@@ -750,9 +752,9 @@ export default function LiteratureReviewModule({
                 data-testid="button-search-articles"
               >
                 {activeAction === "search" ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Recherche en cours...</>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("modules.literatureReview.searchInProgress")}</>
                 ) : (
-                  <><Search className="w-4 h-4 mr-2" /> Lancer la recherche</>
+                  <><Search className="w-4 h-4 mr-2" /> {t("modules.literatureReview.startSearch")}</>
                 )}
               </Button>
               <Button
@@ -762,9 +764,9 @@ export default function LiteratureReviewModule({
                 data-testid="button-generate-equations"
               >
                 {activeAction === "equations" ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Génération en cours...</>
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("modules.literatureReview.generationInProgress")}</>
                 ) : (
-                  <><FileText className="w-4 h-4 mr-2" /> Générer les équations de recherche</>
+                  <><FileText className="w-4 h-4 mr-2" /> {t("modules.literatureReview.generateEquations")}</>
                 )}
               </Button>
               {searchHistory.length > 0 && (
@@ -774,7 +776,7 @@ export default function LiteratureReviewModule({
                   data-testid="button-search-history"
                 >
                   <History className="w-4 h-4 mr-2" />
-                  Historique des recherches
+                  {t("modules.literatureReview.searchHistory")}
                   <Badge variant="secondary" className="ml-1">{searchHistory.length}</Badge>
                 </Button>
               )}
@@ -786,14 +788,14 @@ export default function LiteratureReviewModule({
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-medium text-sm" data-testid="text-results-count">
-                    {filteredArticles.length} résultat(s){filterType !== "all" || filterYear ? " (filtré)" : ""}
+                    {filteredArticles.length} {t("modules.literatureReview.results")}{filterType !== "all" || filterYear ? ` ${t("modules.literatureReview.filtered")}` : ""}
                   </h3>
                   <Button variant="outline" size="sm" onClick={selectAll} data-testid="button-select-all">
                     <CheckSquare className="w-4 h-4 mr-1" />
-                    {allFilteredSelected ? "Tout désélectionner" : "Tout sélectionner"}
+                    {allFilteredSelected ? t("modules.literatureReview.deselectAll") : t("modules.literatureReview.selectAll")}
                   </Button>
                   {selectedKeys.size > 0 && (
-                    <Badge variant="secondary" data-testid="badge-selected-count">{selectedArticles.length} sélectionné(s)</Badge>
+                    <Badge variant="secondary" data-testid="badge-selected-count">{selectedArticles.length} {t("modules.literatureReview.selected")}</Badge>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -803,7 +805,7 @@ export default function LiteratureReviewModule({
                     onClick={() => setShowFilters(!showFilters)}
                     data-testid="button-toggle-filters"
                   >
-                    <SlidersHorizontal className="w-4 h-4 mr-1" /> Filtres & tri
+                    <SlidersHorizontal className="w-4 h-4 mr-1" /> {t("modules.literatureReview.filtersAndSort")}
                   </Button>
                   <Select value={String(batchSize)} onValueChange={v => { setBatchSize(Number(v)); setCurrentPage(0); }}>
                     <SelectTrigger className="w-[80px]" data-testid="select-batch-size">
@@ -822,30 +824,30 @@ export default function LiteratureReviewModule({
                 <div className="flex items-end gap-3 flex-wrap p-3 rounded-lg bg-muted/30 border">
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">
-                      <Filter className="w-3 h-3 inline mr-1" />Type de document
+                      <Filter className="w-3 h-3 inline mr-1" />{t("modules.literatureReview.documentType")}
                     </Label>
                     <Select value={filterType} onValueChange={v => { setFilterType(v); setCurrentPage(0); }}>
                       <SelectTrigger className="w-[180px]" data-testid="select-filter-type">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Tous les types</SelectItem>
-                        {availableTypes.map(t => (
-                          <SelectItem key={t} value={t}>{t}</SelectItem>
+                        <SelectItem value="all">{t("modules.literatureReview.allTypes")}</SelectItem>
+                        {availableTypes.map(tp => (
+                          <SelectItem key={tp} value={tp}>{tp}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">
-                      <Filter className="w-3 h-3 inline mr-1" />Année
+                      <Filter className="w-3 h-3 inline mr-1" />{t("modules.literatureReview.yearLabel")}
                     </Label>
                     <Select value={filterYear || "all"} onValueChange={v => { setFilterYear(v === "all" ? "" : v); setCurrentPage(0); }}>
                       <SelectTrigger className="w-[120px]" data-testid="select-filter-year">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Toutes</SelectItem>
+                        <SelectItem value="all">{t("modules.literatureReview.allYears")}</SelectItem>
                         {availableYears.map(y => (
                           <SelectItem key={y} value={y}>{y}</SelectItem>
                         ))}
@@ -854,17 +856,17 @@ export default function LiteratureReviewModule({
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">
-                      <ArrowUpDown className="w-3 h-3 inline mr-1" />Trier par
+                      <ArrowUpDown className="w-3 h-3 inline mr-1" />{t("modules.literatureReview.sortBy")}
                     </Label>
                     <Select value={sortBy} onValueChange={v => { setSortBy(v); setCurrentPage(0); }}>
                       <SelectTrigger className="w-[160px]" data-testid="select-sort-by">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="default">Par défaut</SelectItem>
-                        <SelectItem value="date_desc">Date (récent)</SelectItem>
-                        <SelectItem value="date_asc">Date (ancien)</SelectItem>
-                        <SelectItem value="type">Type de source</SelectItem>
+                        <SelectItem value="default">{t("modules.literatureReview.sortDefault")}</SelectItem>
+                        <SelectItem value="date_desc">{t("modules.literatureReview.sortDateDesc")}</SelectItem>
+                        <SelectItem value="date_asc">{t("modules.literatureReview.sortDateAsc")}</SelectItem>
+                        <SelectItem value="type">{t("modules.literatureReview.sortType")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -875,7 +877,7 @@ export default function LiteratureReviewModule({
                       onClick={() => { setFilterType("all"); setFilterYear(""); setSortBy("default"); setCurrentPage(0); }}
                       data-testid="button-clear-filters"
                     >
-                      <X className="w-4 h-4 mr-1" /> Réinitialiser
+                      <X className="w-4 h-4 mr-1" /> {t("modules.literatureReview.reset")}
                     </Button>
                   )}
                 </div>
@@ -889,7 +891,7 @@ export default function LiteratureReviewModule({
                   data-testid="button-toggle-actions"
                 >
                   <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                    <Eye className="w-4 h-4" /> Actions d'analyse
+                    <Eye className="w-4 h-4" /> {t("modules.literatureReview.analysisActions")}
                     {selectedArticles.length > 0 && <Badge variant="secondary" className="ml-1">{selectedArticles.length}</Badge>}
                   </span>
                   <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showActions ? "rotate-180" : ""}`} />
@@ -905,7 +907,7 @@ export default function LiteratureReviewModule({
                         data-testid="button-summary-selected"
                       >
                         {activeAction === "summary_selected" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
-                        Résumé ({selectedArticles.length})
+                        {t("modules.literatureReview.summary")} ({selectedArticles.length})
                       </Button>
                     )}
                     <Button
@@ -916,7 +918,7 @@ export default function LiteratureReviewModule({
                       data-testid="button-summary-all"
                     >
                       {activeAction === "summary_all" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
-                      Résumé de tous ({filteredArticles.length})
+                      {t("modules.literatureReview.summaryAll")} ({filteredArticles.length})
                     </Button>
                     {selectedArticles.length >= 2 && (
                       <Button
@@ -927,7 +929,7 @@ export default function LiteratureReviewModule({
                         data-testid="button-confrontation"
                       >
                         {activeAction === "confrontation" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <GitCompare className="w-4 h-4 mr-1" />}
-                        Confronter
+                        {t("modules.literatureReview.confront")}
                       </Button>
                     )}
                     {selectedArticles.length > 0 && (
@@ -939,7 +941,7 @@ export default function LiteratureReviewModule({
                         data-testid="button-mapping"
                       >
                         {activeAction === "mapping" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <MapIcon className="w-4 h-4 mr-1" />}
-                        Mapping
+                        {t("modules.literatureReview.mappingLabel")}
                       </Button>
                     )}
                     <div className="flex items-center gap-1 ml-auto">
@@ -962,7 +964,7 @@ export default function LiteratureReviewModule({
                         data-testid="button-generate-bib"
                       >
                         {activeAction === "bibliography" ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <BookOpen className="w-4 h-4 mr-1" />}
-                        Bibliographie {selectedArticles.length > 0 ? `(${selectedArticles.length})` : `(tous)`}
+                        {t("modules.literatureReview.bibliographyLabel")} {selectedArticles.length > 0 ? `(${selectedArticles.length})` : `(${t("modules.literatureReview.allLabel")})`}
                       </Button>
                     </div>
                   </div>
@@ -1017,7 +1019,7 @@ export default function LiteratureReviewModule({
                             data-testid={`button-resume-${idx}`}
                           >
                             {activeAction === resumeAction ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
-                            Résumé
+                            {t("modules.literatureReview.summary")}
                           </Button>
                         </div>
                       </CardContent>
@@ -1035,10 +1037,10 @@ export default function LiteratureReviewModule({
                     onClick={() => setCurrentPage(p => p - 1)}
                     data-testid="button-results-prev"
                   >
-                    <ChevronLeft className="w-4 h-4 mr-1" /> Précédent
+                    <ChevronLeft className="w-4 h-4 mr-1" /> {t("modules.literatureReview.previous")}
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    Page {currentPage + 1} / {totalPages}
+                    {t("modules.literatureReview.pageLabel")} {currentPage + 1} / {totalPages}
                   </span>
                   <Button
                     variant="ghost"
@@ -1047,7 +1049,7 @@ export default function LiteratureReviewModule({
                     onClick={() => setCurrentPage(p => p + 1)}
                     data-testid="button-results-next"
                   >
-                    Suivant <ChevronRight className="w-4 h-4 ml-1" />
+                    {t("modules.literatureReview.next")} <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </div>
               )}
@@ -1060,7 +1062,7 @@ export default function LiteratureReviewModule({
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{analysisTitle}</DialogTitle>
-            <DialogDescription>Résultat de l'analyse des articles sélectionnés.</DialogDescription>
+            <DialogDescription>{t("modules.literatureReview.analysisResultDesc")}</DialogDescription>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{analysisResult}</ReactMarkdown>
@@ -1068,11 +1070,11 @@ export default function LiteratureReviewModule({
           <div className="flex items-center gap-2 pt-2 flex-wrap">
             {section && (
               <Button size="sm" onClick={() => saveToSection(analysisResult, analysisTitle)} disabled={saveManualMutation.isPending} data-testid="button-save-analysis">
-                <Save className="w-4 h-4 mr-1" /> Sauvegarder dans la section
+                <Save className="w-4 h-4 mr-1" /> {t("modules.literatureReview.saveToSection")}
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={handleExportAnalysis} data-testid="button-export-analysis-word">
-              <FileText className="w-4 h-4 mr-1" /> Word (.docx)
+              <FileText className="w-4 h-4 mr-1" /> {t("modules.literatureReview.wordDocx")}
             </Button>
           </div>
         </DialogContent>
@@ -1082,23 +1084,23 @@ export default function LiteratureReviewModule({
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Bibliographie — {
+              {t("modules.literatureReview.bibDash")} {
                 { apa7: "APA 7", vancouver: "Vancouver", mla: "MLA", chicago: "Chicago" }[bibliographyNorm] || bibliographyNorm
               }
             </DialogTitle>
-            <DialogDescription>Références formatées selon la norme choisie.</DialogDescription>
+            <DialogDescription>{t("modules.literatureReview.bibDesc")}</DialogDescription>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{bibliographyResult}</ReactMarkdown>
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">
             {section && (
-              <Button size="sm" onClick={() => saveToSection(bibliographyResult, "Bibliographie")} disabled={saveManualMutation.isPending} data-testid="button-save-bib">
-                <Save className="w-4 h-4 mr-1" /> Sauvegarder dans la section
+              <Button size="sm" onClick={() => saveToSection(bibliographyResult, t("modules.literatureReview.bibliographyLabel"))} disabled={saveManualMutation.isPending} data-testid="button-save-bib">
+                <Save className="w-4 h-4 mr-1" /> {t("modules.literatureReview.saveToSection")}
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={handleExportBib} data-testid="button-export-bib-word">
-              <FileText className="w-4 h-4 mr-1" /> Word (.docx)
+              <FileText className="w-4 h-4 mr-1" /> {t("modules.literatureReview.wordDocx")}
             </Button>
           </div>
         </DialogContent>
@@ -1107,30 +1109,31 @@ export default function LiteratureReviewModule({
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Historique des recherches</DialogTitle>
-            <DialogDescription>{searchHistory.length} recherche(s) enregistrée(s)</DialogDescription>
+            <DialogTitle>{t("modules.literatureReview.searchHistory")}</DialogTitle>
+            <DialogDescription>{searchHistory.length} {t("modules.literatureReview.searchHistoryCount")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             {searchHistory.map((entry) => {
               const date = new Date(entry.timestamp);
-              const dateStr = date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" });
-              const timeStr = date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-              const langLabels: Record<string, string> = { fr: "Français", en: "Anglais", both: "FR + EN" };
+              const locale = language === "en" ? "en-US" : "fr-FR";
+              const dateStr = date.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
+              const timeStr = date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+              const langLabels: Record<string, string> = { fr: t("modules.literatureReview.langHistoryFr"), en: t("modules.literatureReview.langHistoryEn"), both: t("modules.literatureReview.langHistoryBoth") };
               return (
                 <Card key={entry.id} data-testid={`history-entry-${entry.id}`}>
                   <CardContent className="py-3 space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="text-sm font-medium">{dateStr} à {timeStr}</div>
-                      <Badge variant="secondary">{entry.resultCount} résultat(s)</Badge>
+                      <div className="text-sm font-medium">{dateStr} {t("modules.literatureReview.at")} {timeStr}</div>
+                      <Badge variant="secondary">{entry.resultCount} {t("modules.literatureReview.results")}</Badge>
                     </div>
                     <div className="text-xs text-muted-foreground space-y-1">
-                      <p>Plateformes : {entry.platforms.map(p => LITERATURE_PLATFORMS.find(lp => lp.key === p)?.label || p).join(", ") || "Aucune"}</p>
-                      <p>Langue : {langLabels[entry.language] || entry.language} | Niveau : {entry.level} | Résultats demandés : {entry.articleCount}</p>
+                      <p>{t("modules.literatureReview.platformsInfo")} {entry.platforms.map(p => LITERATURE_PLATFORMS.find(lp => lp.key === p)?.label || p).join(", ") || t("modules.literatureReview.noPlatforms")}</p>
+                      <p>{t("modules.literatureReview.langInfo")} {langLabels[entry.language] || entry.language} | {t("modules.literatureReview.levelInfo")} {entry.level} | {t("modules.literatureReview.requestedResults")} {entry.articleCount}</p>
                       {(entry.periodStart || entry.periodEnd) && (
-                        <p>Période : {entry.periodStart || "..."} — {entry.periodEnd || "..."}</p>
+                        <p>{t("modules.literatureReview.periodInfo")} {entry.periodStart || "..."} — {entry.periodEnd || "..."}</p>
                       )}
                       {entry.sourceTypes.length > 0 && (
-                        <p>Types : {entry.sourceTypes.map(t => LITERATURE_SOURCE_TYPES.find(lt => lt.key === t)?.label || t).join(", ")}</p>
+                        <p>{t("modules.literatureReview.typesInfo")} {entry.sourceTypes.map(st => LITERATURE_SOURCE_TYPES.find(lt => lt.key === st)?.labelKey ? t(LITERATURE_SOURCE_TYPES.find(lt => lt.key === st)!.labelKey) : st).join(", ")}</p>
                       )}
                     </div>
                     <div className="flex items-center gap-2 pt-1 flex-wrap">
@@ -1140,7 +1143,7 @@ export default function LiteratureReviewModule({
                         onClick={() => handleRestoreSearch(entry)}
                         data-testid={`button-restore-${entry.id}`}
                       >
-                        <RotateCcw className="w-4 h-4 mr-1" /> Restaurer
+                        <RotateCcw className="w-4 h-4 mr-1" /> {t("modules.literatureReview.restore")}
                       </Button>
                       <Button
                         variant="outline"
@@ -1148,7 +1151,7 @@ export default function LiteratureReviewModule({
                         onClick={() => handleDuplicateSearch(entry)}
                         data-testid={`button-duplicate-${entry.id}`}
                       >
-                        <Copy className="w-4 h-4 mr-1" /> Dupliquer les paramètres
+                        <Copy className="w-4 h-4 mr-1" /> {t("modules.literatureReview.duplicateParams")}
                       </Button>
                       <Button
                         variant="ghost"
@@ -1156,7 +1159,7 @@ export default function LiteratureReviewModule({
                         onClick={() => handleDeleteSearch(entry.id)}
                         data-testid={`button-delete-${entry.id}`}
                       >
-                        <Trash2 className="w-4 h-4 mr-1" /> Supprimer
+                        <Trash2 className="w-4 h-4 mr-1" /> {t("modules.literatureReview.deleteLabel")}
                       </Button>
                     </div>
                   </CardContent>
@@ -1164,7 +1167,7 @@ export default function LiteratureReviewModule({
               );
             })}
             {searchHistory.length === 0 && (
-              <p className="text-sm text-muted-foreground text-center py-4">Aucune recherche enregistrée.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{t("modules.literatureReview.noSearchHistory")}</p>
             )}
           </div>
         </DialogContent>
@@ -1173,20 +1176,20 @@ export default function LiteratureReviewModule({
       <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Équations de recherche</DialogTitle>
-            <DialogDescription>Termes-clés, synonymes et équations booléennes pour la recherche documentaire.</DialogDescription>
+            <DialogTitle>{t("modules.literatureReview.equationsTitle")}</DialogTitle>
+            <DialogDescription>{t("modules.literatureReview.equationsDesc")}</DialogDescription>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5 whitespace-pre-wrap">
             {equationsResult}
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">
             {section && (
-              <Button size="sm" onClick={() => saveToSection(equationsResult, "Équations de recherche")} disabled={saveManualMutation.isPending} data-testid="button-save-equations">
-                <Save className="w-4 h-4 mr-1" /> Sauvegarder dans la section
+              <Button size="sm" onClick={() => saveToSection(equationsResult, t("modules.literatureReview.equationsTitle"))} disabled={saveManualMutation.isPending} data-testid="button-save-equations">
+                <Save className="w-4 h-4 mr-1" /> {t("modules.literatureReview.saveToSection")}
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={handleExportEquations} data-testid="button-export-equations-word">
-              <FileText className="w-4 h-4 mr-1" /> Word (.docx)
+              <FileText className="w-4 h-4 mr-1" /> {t("modules.literatureReview.wordDocx")}
             </Button>
           </div>
         </DialogContent>

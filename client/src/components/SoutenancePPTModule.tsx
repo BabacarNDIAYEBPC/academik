@@ -19,6 +19,7 @@ import {
   Save, Check, X, FileDown, Sparkles,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 import PptxGenJS from "pptxgenjs";
 
 interface SoutenancePPTModuleProps {
@@ -42,11 +43,13 @@ interface SavedState {
   contextInstructions: string;
 }
 
-const THEMES = [
-  { value: "academique", label: "Académique" },
-  { value: "moderne", label: "Moderne" },
-  { value: "minimaliste", label: "Minimaliste" },
-];
+function getThemes(t: (key: string) => string) {
+  return [
+    { value: "academique", label: t("modules.soutenancePPT.themeAcademic") },
+    { value: "moderne", label: t("modules.soutenancePPT.themeModern") },
+    { value: "minimaliste", label: t("modules.soutenancePPT.themeMinimalist") },
+  ];
+}
 
 export default function SoutenancePPTModule({
   projectId,
@@ -62,6 +65,7 @@ export default function SoutenancePPTModule({
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
+  const { t } = useI18n();
   const generateMutation = useGenerateSoutenancePPT();
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
@@ -121,10 +125,10 @@ export default function SoutenancePPTModule({
       {
         onSuccess: (data) => {
           setSlides(data.slides);
-          toast({ title: "Présentation générée", description: `${data.slides.length} diapositives ont été générées.` });
+          toast({ title: t("modules.soutenancePPT.toastPresentationGenerated"), description: `${data.slides.length} ${t("modules.soutenancePPT.toastPresentationGeneratedDesc")}` });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération", variant: "destructive" });
+          toast({ title: t("modules.soutenancePPT.toastError"), description: error.message || t("modules.soutenancePPT.toastGenerationError"), variant: "destructive" });
         },
       }
     );
@@ -135,8 +139,8 @@ export default function SoutenancePPTModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.soutenancePPT.toastSectionValidated") }),
+        onError: () => toast({ title: t("modules.soutenancePPT.toastError"), variant: "destructive" }),
       }
     );
   };
@@ -146,27 +150,27 @@ export default function SoutenancePPTModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.soutenancePPT.toastValidationRemoved") }),
+        onError: () => toast({ title: t("modules.soutenancePPT.toastError"), variant: "destructive" }),
       }
     );
   };
 
   const handleExportWord = () => {
     if (slides.length === 0) {
-      toast({ title: "Rien à exporter", description: "Générez d'abord une présentation.", variant: "destructive" });
+      toast({ title: t("modules.soutenancePPT.toastNothingToExport"), description: t("modules.soutenancePPT.toastGenerateFirst"), variant: "destructive" });
       return;
     }
     const sections = slides.map((slide, i) => ({
-      label: `Diapositive ${i + 1} — ${slide.title}`,
-      content: slide.content + (slide.notes ? `\n\n**Notes :** ${slide.notes}` : ""),
+      label: `${t("modules.soutenancePPT.slideWord")} ${i + 1} — ${slide.title}`,
+      content: slide.content + (slide.notes ? `\n\n**${t("modules.soutenancePPT.exportNotes")}** ${slide.notes}` : ""),
     }));
-    exportToWord("PowerPoint de soutenance", sections, "soutenance_ppt");
+    exportToWord(t("modules.soutenancePPT.exportTitle"), sections, "soutenance_ppt");
   };
 
   const handleExportPPT = async () => {
     if (slides.length === 0) {
-      toast({ title: "Rien à exporter", description: "Générez d'abord une présentation.", variant: "destructive" });
+      toast({ title: t("modules.soutenancePPT.toastNothingToExport"), description: t("modules.soutenancePPT.toastGenerateFirst"), variant: "destructive" });
       return;
     }
     try {
@@ -184,12 +188,12 @@ export default function SoutenancePPTModule({
 
       const titleSlide = pptx.addSlide();
       titleSlide.background = { fill: colors.bg };
-      titleSlide.addText("Soutenance de recherche", {
+      titleSlide.addText(t("modules.soutenancePPT.researchDefense"), {
         x: 0.5, y: 1.5, w: 12, h: 1.5,
         fontSize: 36, bold: true, color: colors.title,
         align: "center",
       });
-      titleSlide.addText(`${slides.length} diapositives`, {
+      titleSlide.addText(`${slides.length} ${t("modules.soutenancePPT.slides")}`, {
         x: 0.5, y: 3.5, w: 12, h: 0.5,
         fontSize: 14, color: colors.body,
         align: "center",
@@ -228,9 +232,9 @@ export default function SoutenancePPTModule({
       }
 
       await pptx.writeFile({ fileName: "soutenance_presentation.pptx" });
-      toast({ title: "Export réussi", description: "Le fichier PowerPoint a été téléchargé." });
+      toast({ title: t("modules.soutenancePPT.toastExportSuccess"), description: t("modules.soutenancePPT.toastExportDesc") });
     } catch (err: any) {
-      toast({ title: "Erreur d'export", description: err.message || "Erreur lors de l'export PPT", variant: "destructive" });
+      toast({ title: t("modules.soutenancePPT.toastExportError"), description: err.message || t("modules.soutenancePPT.toastExportPPTError"), variant: "destructive" });
     }
   };
 
@@ -253,7 +257,7 @@ export default function SoutenancePPTModule({
   };
 
   const addSlide = () => {
-    setSlides(prev => [...prev, { title: "Nouvelle diapositive", content: "", notes: "" }]);
+    setSlides(prev => [...prev, { title: t("modules.soutenancePPT.newSlide"), content: "", notes: "" }]);
   };
 
   const isValidated = section?.status === "validated";
@@ -263,16 +267,16 @@ export default function SoutenancePPTModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <Presentation className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">PowerPoint de soutenance</CardTitle>
+          <CardTitle className="text-lg">{t("modules.soutenancePPT.title")}</CardTitle>
           {isValidated && (
             <Badge variant="default" className="bg-green-600 text-white">
-              <Check className="w-3 h-3 mr-1" />Validé
+              <Check className="w-3 h-3 mr-1" />{t("modules.soutenancePPT.validated")}
             </Badge>
           )}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-soutenance">
-            <Save className="w-4 h-4 mr-1" />Sauvegarder
+            <Save className="w-4 h-4 mr-1" />{t("modules.soutenancePPT.save")}
           </Button>
           {isValidated ? (
             <Button
@@ -283,7 +287,7 @@ export default function SoutenancePPTModule({
               data-testid="button-unvalidate-soutenance"
             >
               {unvalidateMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <X className="w-4 h-4 mr-1" />}
-              Dévalider
+              {t("modules.soutenancePPT.unvalidate")}
             </Button>
           ) : (
             <Button
@@ -294,7 +298,7 @@ export default function SoutenancePPTModule({
               data-testid="button-validate-soutenance"
             >
               {validateMutation.isPending ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-              Valider
+              {t("modules.soutenancePPT.validate")}
             </Button>
           )}
           <Button
@@ -321,28 +325,28 @@ export default function SoutenancePPTModule({
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="slide-count">Nombre de diapositives</Label>
+            <Label htmlFor="slide-count">{t("modules.soutenancePPT.slideCountLabel")}</Label>
             <Select value={String(slideCount)} onValueChange={v => setSlideCount(Number(v))}>
               <SelectTrigger data-testid="select-slide-count">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {Array.from({ length: 6 }, (_, i) => i + 10).map(n => (
-                  <SelectItem key={n} value={String(n)}>{n} diapositives</SelectItem>
+                  <SelectItem key={n} value={String(n)}>{n} {t("modules.soutenancePPT.slides")}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="theme-select">Thème de la présentation</Label>
+            <Label htmlFor="theme-select">{t("modules.soutenancePPT.presentationTheme")}</Label>
             <Select value={theme} onValueChange={setTheme}>
               <SelectTrigger data-testid="select-theme">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {THEMES.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                {getThemes(t).map(th => (
+                  <SelectItem key={th.value} value={th.value}>{th.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -350,12 +354,12 @@ export default function SoutenancePPTModule({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="context-instructions-soutenance" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
+          <Label htmlFor="context-instructions-soutenance" className="text-base font-semibold">{t("modules.soutenancePPT.contextLabel")}</Label>
           <Textarea
             id="context-instructions-soutenance"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Durée de la soutenance, attentes du jury, points à mettre en avant..."
+            placeholder={t("modules.soutenancePPT.contextPlaceholder")}
             className="min-h-[80px] text-sm"
             data-testid="textarea-context-instructions-soutenance"
           />
@@ -371,22 +375,22 @@ export default function SoutenancePPTModule({
           ) : (
             <Sparkles className="w-4 h-4 mr-1" />
           )}
-          Générer la présentation
+          {t("modules.soutenancePPT.generatePresentation")}
         </Button>
 
         {slides.length > 0 && (
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <h3 className="text-base font-semibold">{slides.length} diapositive{slides.length > 1 ? "s" : ""}</h3>
+              <h3 className="text-base font-semibold">{slides.length} {t("modules.soutenancePPT.slides")}</h3>
               <Button variant="outline" size="sm" onClick={addSlide} data-testid="button-add-slide">
-                <Plus className="w-4 h-4 mr-1" />Ajouter une diapositive
+                <Plus className="w-4 h-4 mr-1" />{t("modules.soutenancePPT.addSlide")}
               </Button>
             </div>
 
             {slides.map((slide, index) => (
               <Card key={index} data-testid={`card-slide-${index}`}>
                 <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap pb-2">
-                  <span className="text-sm font-medium text-muted-foreground">Diapositive {index + 1}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{t("modules.soutenancePPT.slideLabel")} {index + 1}</span>
                   <div className="flex gap-1 flex-wrap">
                     <Button
                       variant="ghost"
@@ -418,30 +422,30 @@ export default function SoutenancePPTModule({
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="space-y-1">
-                    <Label>Titre</Label>
+                    <Label>{t("modules.soutenancePPT.titleLabel")}</Label>
                     <Input
                       value={slide.title}
                       onChange={e => updateSlide(index, "title", e.target.value)}
-                      placeholder="Titre de la diapositive"
+                      placeholder={t("modules.soutenancePPT.titlePlaceholder")}
                       data-testid={`input-slide-title-${index}`}
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label>Contenu</Label>
+                    <Label>{t("modules.soutenancePPT.contentLabel")}</Label>
                     <Textarea
                       value={slide.content}
                       onChange={e => updateSlide(index, "content", e.target.value)}
-                      placeholder="Contenu de la diapositive..."
+                      placeholder={t("modules.soutenancePPT.contentPlaceholder")}
                       className="min-h-[100px] text-sm"
                       data-testid={`textarea-slide-content-${index}`}
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label>Notes (pour l'orateur)</Label>
+                    <Label>{t("modules.soutenancePPT.notesLabel")}</Label>
                     <Textarea
                       value={slide.notes || ""}
                       onChange={e => updateSlide(index, "notes", e.target.value)}
-                      placeholder="Notes personnelles pour cette diapositive..."
+                      placeholder={t("modules.soutenancePPT.notesPlaceholder")}
                       className="min-h-[60px] text-sm"
                       data-testid={`textarea-slide-notes-${index}`}
                     />

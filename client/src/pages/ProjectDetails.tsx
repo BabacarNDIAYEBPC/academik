@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 import { useRoute } from "wouter";
 import { useProject } from "@/hooks/use-projects";
 import { useDocuments, useCreateDocument, useDeleteDocument } from "@/hooks/use-documents";
@@ -50,32 +51,6 @@ import { SECTION_LABELS, SECTION_KEYS } from "@shared/schema";
 import type { ProjectSection, SectionVersion } from "@shared/schema";
 import SectionControls, { type SectionVariables, type LiteratureConfig } from "@/components/SectionControls";
 
-const DOMAIN_LABELS: Record<string, string> = {
-  soins_infirmiers: "Soins infirmiers / Santé",
-  travail_social: "Travail social",
-  management: "Management / Gestion",
-  rh: "Ressources humaines",
-  economie: "Économie / Finance",
-  marketing: "Marketing / Communication",
-  droit: "Droit / Administration publique",
-  education: "Éducation / Pédagogie",
-  psychologie: "Psychologie",
-  informatique: "Informatique / Numérique",
-  data_ia: "Data / Intelligence artificielle",
-  logistique: "Logistique / Supply chain",
-  qualite: "Qualité / QHSE",
-  comptabilite: "Comptabilité / Audit / Contrôle de gestion",
-  banque: "Banque / Assurance",
-  immobilier: "Immobilier / Urbanisme",
-  sciences_politiques: "Sciences politiques / Relations internationales",
-  environnement: "Environnement / Développement durable",
-  industrie: "Industrie / Génie industriel",
-  autre: "Autre",
-};
-
-const FINALITY_LABELS: Record<string, string> = { academique: "Académique", professionnelle: "Professionnelle", mixte: "Mixte" };
-const APPROACH_LABELS: Record<string, string> = { theorique: "Théorique", appliquee: "Appliquée", analyse_pratiques: "Analyse de pratiques", etude_cas: "Étude de cas", ne_sais_pas: "Non défini" };
-const TYPE_LABELS: Record<string, string> = { memoire: "Mémoire", tfe: "TFE", vae: "VAE", rapport_stage: "Rapport de Stage", these: "Thèse" };
 
 function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
@@ -93,81 +68,81 @@ function getSectionsForProjectType(projectType: string): string[] {
   }
 }
 
-function getModuleTabs(projectType: string) {
+function getModuleTabs(projectType: string, t: (path: string) => string) {
   const sections = getSectionsForProjectType(projectType);
   const tabs: { key: string; label: string; icon: any; sectionKeys: string[] }[] = [];
 
   const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "vae_competencies"].includes(s));
   if (foundationKeys.length > 0) {
     const icon = projectType === "tfe" ? ClipboardList : projectType === "vae" ? Award : projectType === "rapport_stage" ? Briefcase : BookOpen;
-    tabs.push({ key: "foundations", label: "Fondements", icon, sectionKeys: foundationKeys });
+    tabs.push({ key: "foundations", label: t("project.foundations"), icon, sectionKeys: foundationKeys });
   }
 
   if (sections.includes("plan")) {
-    tabs.push({ key: "plan", label: "Plan", icon: Map, sectionKeys: ["plan"] });
+    tabs.push({ key: "plan", label: t("project.plan"), icon: Map, sectionKeys: ["plan"] });
   }
 
   if (sections.includes("conceptual_framework")) {
-    tabs.push({ key: "framework", label: "Cadre conceptuel", icon: Lightbulb, sectionKeys: ["conceptual_framework"] });
+    tabs.push({ key: "framework", label: t("project.conceptualFramework"), icon: Lightbulb, sectionKeys: ["conceptual_framework"] });
   }
 
   if (sections.includes("literature_review")) {
-    tabs.push({ key: "literature", label: "Revue", icon: BookMarked, sectionKeys: ["literature_review"] });
+    tabs.push({ key: "literature", label: t("project.literatureReview"), icon: BookMarked, sectionKeys: ["literature_review"] });
   }
 
   if (sections.includes("methodology")) {
-    tabs.push({ key: "methodology", label: "Méthodo", icon: FlaskConical, sectionKeys: ["methodology"] });
+    tabs.push({ key: "methodology", label: t("project.methodology"), icon: FlaskConical, sectionKeys: ["methodology"] });
   }
 
   if (sections.includes("questionnaire")) {
-    tabs.push({ key: "questionnaire", label: "Questionnaire", icon: ClipboardList, sectionKeys: ["questionnaire"] });
+    tabs.push({ key: "questionnaire", label: t("project.questionnaire"), icon: ClipboardList, sectionKeys: ["questionnaire"] });
   }
 
   if (sections.includes("guide_entretien")) {
-    tabs.push({ key: "guide_entretien", label: "Guide d'entretien", icon: FileText, sectionKeys: ["guide_entretien"] });
+    tabs.push({ key: "guide_entretien", label: t("project.interviewGuide"), icon: FileText, sectionKeys: ["guide_entretien"] });
   }
 
   if (sections.includes("questionnaire_analysis")) {
-    tabs.push({ key: "questionnaire_analysis", label: "Dépouillement", icon: BarChart3, sectionKeys: ["questionnaire_analysis"] });
+    tabs.push({ key: "questionnaire_analysis", label: t("project.questionnaireAnalysis"), icon: BarChart3, sectionKeys: ["questionnaire_analysis"] });
   }
 
   if (sections.includes("interview_simulation")) {
-    tabs.push({ key: "interview_simulation", label: "Simulation", icon: MessageSquare, sectionKeys: ["interview_simulation"] });
+    tabs.push({ key: "interview_simulation", label: t("project.interviewSimulation"), icon: MessageSquare, sectionKeys: ["interview_simulation"] });
   }
 
   if (sections.includes("data_analysis")) {
-    tabs.push({ key: "data_analysis", label: "Visualisation", icon: BarChart3, sectionKeys: ["data_analysis"] });
+    tabs.push({ key: "data_analysis", label: t("project.dataVisualization"), icon: BarChart3, sectionKeys: ["data_analysis"] });
   }
 
   if (sections.includes("financial_simulation")) {
-    tabs.push({ key: "financial_simulation", label: "Finance", icon: BarChart3, sectionKeys: ["financial_simulation"] });
+    tabs.push({ key: "financial_simulation", label: t("project.financialSimulation"), icon: BarChart3, sectionKeys: ["financial_simulation"] });
   }
 
   if (sections.includes("assisted_writing")) {
-    tabs.push({ key: "assisted_writing", label: "Rédaction", icon: PenTool, sectionKeys: ["assisted_writing"] });
+    tabs.push({ key: "assisted_writing", label: t("project.assistedWriting"), icon: PenTool, sectionKeys: ["assisted_writing"] });
   }
 
   if (sections.includes("bibliography")) {
-    tabs.push({ key: "bibliography", label: "Biblio", icon: Library, sectionKeys: ["bibliography"] });
+    tabs.push({ key: "bibliography", label: t("project.bibliography"), icon: Library, sectionKeys: ["bibliography"] });
   }
 
   if (sections.includes("exports")) {
-    tabs.push({ key: "exports", label: "Export", icon: Download, sectionKeys: ["exports"] });
+    tabs.push({ key: "exports", label: t("project.exportTab"), icon: Download, sectionKeys: ["exports"] });
   }
 
   if (sections.includes("soutenance_ppt")) {
-    tabs.push({ key: "soutenance_ppt", label: "PPT Soutenance", icon: Presentation, sectionKeys: ["soutenance_ppt"] });
+    tabs.push({ key: "soutenance_ppt", label: t("project.soutenancePPT"), icon: Presentation, sectionKeys: ["soutenance_ppt"] });
   }
 
   if (sections.includes("soutenance_simulation")) {
-    tabs.push({ key: "soutenance_simulation", label: "Oral", icon: Mic, sectionKeys: ["soutenance_simulation"] });
+    tabs.push({ key: "soutenance_simulation", label: t("project.soutenanceOral"), icon: Mic, sectionKeys: ["soutenance_simulation"] });
   }
 
   if (sections.includes("memoire_audit")) {
-    tabs.push({ key: "memoire_audit", label: "Audit", icon: ShieldCheck, sectionKeys: ["memoire_audit"] });
+    tabs.push({ key: "memoire_audit", label: t("project.audit"), icon: ShieldCheck, sectionKeys: ["memoire_audit"] });
   }
 
-  tabs.push({ key: "workflow", label: "Workflow", icon: GitBranch, sectionKeys: [] });
+  tabs.push({ key: "workflow", label: t("project.workflow"), icon: GitBranch, sectionKeys: [] });
 
   return tabs;
 }
@@ -176,6 +151,7 @@ export default function ProjectDetails() {
   const [, params] = useRoute("/projects/:id");
   const projectId = parseInt(params?.id || "0");
   const { data: project, isLoading } = useProject(projectId);
+  const { t } = useI18n();
 
   if (isLoading) {
     return (
@@ -188,19 +164,20 @@ export default function ProjectDetails() {
     );
   }
 
-  if (!project) return <Layout><div className="text-center py-20 text-muted-foreground">Projet introuvable</div></Layout>;
+  if (!project) return <Layout><div className="text-center py-20 text-muted-foreground">{t("project.notFound")}</div></Layout>;
 
   return (
     <Layout>
+      <SEO titleKey="seo.projectTitle" />
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2 flex-wrap">
           <Badge variant="outline" className="uppercase tracking-wider text-xs font-semibold" data-testid="badge-project-type">
-            {TYPE_LABELS[project.type] || project.type}
+            {t("projectTypes." + project.type) || project.type}
           </Badge>
           <span className="text-muted-foreground text-sm">{project.language}</span>
           {project.mainDomain && (
             <Badge variant="secondary" className="text-xs" data-testid="badge-domain">
-              {DOMAIN_LABELS[project.mainDomain] || project.mainDomain}
+              {t("domains." + project.mainDomain) || project.mainDomain}
             </Badge>
           )}
         </div>
@@ -211,14 +188,14 @@ export default function ProjectDetails() {
         <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-full">
           <TabsTrigger value="assistant" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-assistant">
             <Sparkles className="w-4 h-4 shrink-0" />
-            <span className="hidden sm:inline">Academik</span>
-            <span className="sm:hidden">Alpha</span>
+            <span className="hidden sm:inline">{t("project.assistant")}</span>
+            <span className="sm:hidden">{t("project.assistantMobile")}</span>
           </TabsTrigger>
           <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-documents">
-            Documents
+            {t("project.documentsTab")}
           </TabsTrigger>
           <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-overview">
-            Paramétrage
+            {t("project.overviewTab")}
           </TabsTrigger>
         </TabsList>
 
@@ -239,39 +216,41 @@ export default function ProjectDetails() {
 }
 
 function OverviewTab({ project }: { project: any }) {
+  const { t, lang } = useI18n();
+  const locale = lang === "fr" ? "fr-FR" : "en-US";
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Contexte académique</CardTitle>
+          <CardTitle className="text-lg">{t("project.academicContext")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <InfoRow label="Domaine" value={DOMAIN_LABELS[project.mainDomain] || project.mainDomainOther || "Non défini"} />
-          <InfoRow label="Formation" value={project.degreeTitle || "Non défini"} />
-          <InfoRow label="Niveau" value={project.degreeLevel || "Non défini"} />
+          <InfoRow label={t("project.domain")} value={t("domains." + project.mainDomain) || project.mainDomainOther || t("project.notDefined")} />
+          <InfoRow label={t("project.degree")} value={project.degreeTitle || t("project.notDefined")} />
+          <InfoRow label={t("project.level")} value={project.degreeLevel || t("project.notDefined")} />
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Profil & Orientation</CardTitle>
+          <CardTitle className="text-lg">{t("project.profileOrientation")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <InfoRow label="Profil" value={project.userProfile || "Non défini"} />
-          <InfoRow label="Finalité" value={FINALITY_LABELS[project.finality] || "Non défini"} />
-          <InfoRow label="Approche" value={APPROACH_LABELS[project.approach] || "Non défini"} />
-          {project.workDomain && <InfoRow label="Domaine du poste" value={project.workDomain} />}
-          {project.workFunction && <InfoRow label="Fonction" value={project.workFunction} />}
-          {project.workStructure && <InfoRow label="Structure" value={project.workStructure} />}
+          <InfoRow label={t("project.profile")} value={project.userProfile || t("project.notDefined")} />
+          <InfoRow label={t("project.finality")} value={t("finalities." + project.finality) || t("project.notDefined")} />
+          <InfoRow label={t("project.approach")} value={t("approaches." + project.approach) || t("project.notDefined")} />
+          {project.workDomain && <InfoRow label={t("project.workDomain")} value={project.workDomain} />}
+          {project.workFunction && <InfoRow label={t("project.workFunction")} value={project.workFunction} />}
+          {project.workStructure && <InfoRow label={t("project.workStructure")} value={project.workStructure} />}
         </CardContent>
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Informations</CardTitle>
+          <CardTitle className="text-lg">{t("project.info")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <InfoRow label="Créé le" value={new Date(project.createdAt).toLocaleDateString('fr-FR')} />
-          <InfoRow label="Statut" value={project.status} />
-          <InfoRow label="Langue" value={project.language} />
+          <InfoRow label={t("project.createdAt")} value={new Date(project.createdAt).toLocaleDateString(locale)} />
+          <InfoRow label={t("project.status")} value={project.status} />
+          <InfoRow label={t("project.language")} value={project.language} />
         </CardContent>
       </Card>
     </div>
@@ -288,10 +267,11 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 function AssistantTab({ project }: { project: any }) {
+  const { t } = useI18n();
   const { data: sections, isLoading: sectionsLoading } = useSections(project.id);
   const { data: entData } = useEntitlements();
   const { data: moduleVis } = useModuleVisibility();
-  const moduleTabs = useMemo(() => getModuleTabs(project.type), [project.type]);
+  const moduleTabs = useMemo(() => getModuleTabs(project.type, t), [project.type, t]);
   const [activeModule, setActiveModule] = useState(moduleTabs[0]?.key || "foundations");
 
   const isTabLocked = useCallback((tab: { sectionKeys: string[] }) => {
@@ -313,14 +293,14 @@ function AssistantTab({ project }: { project: any }) {
     <div className="space-y-6">
       <div className="flex items-center gap-3 flex-wrap">
         <Badge variant="outline" className="text-xs">
-          {validatedCount}/{totalSections} sections validées
+          {validatedCount}/{totalSections} {t("project.sectionsValidatedCount")}
         </Badge>
         {validatedCount > 0 && validatedCount < totalSections && (
-          <p className="text-xs text-muted-foreground">Les sections validées alimentent la mémoire contextuelle pour les générations suivantes.</p>
+          <p className="text-xs text-muted-foreground">{t("project.contextualMemoryHint")}</p>
         )}
         {validatedCount === totalSections && totalSections > 0 && (
           <Badge variant="default" className="bg-green-600 text-white text-xs">
-            <Check className="w-3 h-3 mr-1" /> Toutes les sections sont validées
+            <Check className="w-3 h-3 mr-1" /> {t("project.allSectionsValidated")}
           </Badge>
         )}
       </div>
@@ -359,7 +339,7 @@ function AssistantTab({ project }: { project: any }) {
                   )}
                   {tab.label}
                   {tabLocked ? (
-                    <span className="sr-only">Verrouillé</span>
+                    <span className="sr-only">{t("project.lockedLabel")}</span>
                   ) : allValidated && !isWorkflow ? (
                     <Check className="w-3 h-3 text-green-500 shrink-0" />
                   ) : (
@@ -403,19 +383,10 @@ const STATUS_COLORS: Record<string, string> = {
   archived: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
 };
 
-const SECTION_STATUS_LABELS: Record<string, string> = {
-  draft: "Brouillon",
-  generated: "Généré",
-  modified: "Modifié",
-  validated: "Validé",
-  sent_tutor: "Envoyé tuteur",
-  awaiting_correction: "En correction",
-  corrected: "Corrigé",
-  final_version: "Version finale",
-  archived: "Archivé",
-};
 
 function WorkflowOverview({ project, sections }: { project: any; sections: ProjectSection[] }) {
+  const { t, lang } = useI18n();
+  const locale = lang === "fr" ? "fr-FR" : "en-US";
   const sectionOrder = getSectionsForProjectType(project.type);
   const { data: history, isLoading: historyLoading } = useProjectStatusHistory(project.id);
 
@@ -445,27 +416,27 @@ function WorkflowOverview({ project, sections }: { project: any; sections: Proje
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
             <GitBranch className="w-5 h-5 text-primary" />
-            Vue d'ensemble du workflow
+            {t("project.workflowOverviewTitle")}
           </CardTitle>
-          <CardDescription>Suivi global de l'avancement et historique consolidé de toutes les sections.</CardDescription>
+          <CardDescription>{t("project.workflowOverviewDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center p-3 rounded-lg bg-muted/30" data-testid="stat-total">
               <p className="text-2xl font-bold">{stats.withContent}/{stats.total}</p>
-              <p className="text-xs text-muted-foreground">Sections rédigées</p>
+              <p className="text-xs text-muted-foreground">{t("project.sectionsWritten")}</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-green-50 dark:bg-green-950/20" data-testid="stat-validated">
               <p className="text-2xl font-bold text-green-700 dark:text-green-400">{stats.validated}</p>
-              <p className="text-xs text-muted-foreground">Validées</p>
+              <p className="text-xs text-muted-foreground">{t("project.validatedLabel")}</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20" data-testid="stat-review">
               <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.needsReview}</p>
-              <p className="text-xs text-muted-foreground">À réévaluer</p>
+              <p className="text-xs text-muted-foreground">{t("project.toReview")}</p>
             </div>
             <div className="text-center p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20" data-testid="stat-progress">
               <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">{progressPercent}%</p>
-              <p className="text-xs text-muted-foreground">Progression</p>
+              <p className="text-xs text-muted-foreground">{t("project.progression")}</p>
             </div>
           </div>
 
@@ -506,11 +477,11 @@ function WorkflowOverview({ project, sections }: { project: any; sections: Proje
                   {needsRev && (
                     <Badge variant="outline" className="text-xs border-amber-300 text-amber-700 dark:text-amber-400 gap-1 no-default-hover-elevate no-default-active-elevate">
                       <AlertTriangle className="w-3 h-3" />
-                      À réévaluer
+                      {t("project.toReview")}
                     </Badge>
                   )}
                   <Badge className={`text-xs ${STATUS_COLORS[status] || ""} no-default-hover-elevate no-default-active-elevate`}>
-                    {SECTION_STATUS_LABELS[status] || status}
+                    {t("sectionStatus." + status) || status}
                   </Badge>
                   {hasContent && status !== "validated" && status !== "final_version" && (
                     <div className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" />
@@ -529,15 +500,15 @@ function WorkflowOverview({ project, sections }: { project: any; sections: Proje
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2 flex-wrap">
             <Clock className="w-4 h-4" />
-            Historique consolidé
+            {t("project.consolidatedHistory")}
           </CardTitle>
-          <CardDescription>Timeline de toutes les actions sur toutes les sections.</CardDescription>
+          <CardDescription>{t("project.consolidatedHistoryDesc")}</CardDescription>
         </CardHeader>
         <CardContent>
           {historyLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : !history || history.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-4">Aucune action enregistrée.</p>
+            <p className="text-sm text-muted-foreground py-4">{t("project.noActionsRecorded")}</p>
           ) : (
             <div className="relative pl-6 space-y-0 max-h-[400px] overflow-y-auto" data-testid="consolidated-timeline">
               <div className="absolute left-2 top-4 bottom-4 w-0.5 bg-border" />
@@ -550,10 +521,10 @@ function WorkflowOverview({ project, sections }: { project: any; sections: Proje
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className="text-xs">{SECTION_LABELS[entry.sectionKey] || entry.sectionKey}</Badge>
                       <Badge className={`text-xs ${STATUS_COLORS[entry.status] || ""} no-default-hover-elevate no-default-active-elevate`}>
-                        {SECTION_STATUS_LABELS[entry.status] || entry.status}
+                        {t("sectionStatus." + entry.status) || entry.status}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(entry.changedAt!).toLocaleDateString("fr-FR", {
+                        {new Date(entry.changedAt!).toLocaleDateString(locale, {
                           day: "numeric", month: "short", year: "numeric",
                           hour: "2-digit", minute: "2-digit",
                         })}
@@ -599,6 +570,7 @@ function ModuleSections({
   const { data: validatedContents } = useValidatedContents(project.id);
   const combinedMutation = useGenerateCombined();
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const isFoundationsModule = sectionKeys.some(k => ["subject", "problematic", "hypotheses"].includes(k));
   const hasSubject = sectionKeys.includes("subject");
@@ -611,10 +583,10 @@ function ModuleSections({
       {
         onSuccess: (data) => {
           const count = Object.keys(data.results).length;
-          toast({ title: "Génération combinée terminée", description: `${count} section(s) générée(s) avec succès.` });
+          toast({ title: t("project.combinedGenerationDone"), description: `${count} ${t("project.sectionsGenerated")}` });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération combinée", variant: "destructive" });
+          toast({ title: t("project.errorTitle"), description: error.message || t("project.combinedGenerationError"), variant: "destructive" });
         },
       }
     );
@@ -653,7 +625,7 @@ function ModuleSections({
       {isFoundationsModule && hasSubject && hasProblematic && (
         <Card>
           <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-3">Génération combinée : générer plusieurs éléments en une seule fois avec répartition automatique dans les champs correspondants.</p>
+            <p className="text-sm text-muted-foreground mb-3">{t("project.combinedGenerationDesc")}</p>
             <div className="flex gap-2 flex-wrap">
               <Button
                 variant="outline"
@@ -662,7 +634,7 @@ function ModuleSections({
                 data-testid="button-combined-subject-problematic"
               >
                 {combinedMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                Sujet + Problématique
+                {t("project.subjectProblematic")}
               </Button>
               {hasHypotheses && (
                 <Button
@@ -672,7 +644,7 @@ function ModuleSections({
                   data-testid="button-combined-all"
                 >
                   {combinedMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                  Sujet + Problématique + Hypothèses
+                  {t("project.subjectProblematicHypotheses")}
                 </Button>
               )}
             </div>
@@ -758,6 +730,7 @@ function SingleSectionWrapper({
   earlierMemoirSection?: string;
   earlierMemoirContent?: string;
 }) {
+  const { t } = useI18n();
   const [importedMemoir, setImportedMemoir] = useState("");
   const [memoirLoaded, setMemoirLoaded] = useState(false);
   const saveConfigMutation = useSaveSectionConfig();
@@ -798,14 +771,13 @@ function SingleSectionWrapper({
   const buildExtraContext = () => {
     let ctx = "";
     const resolveVarLabel = (key: string, val: string) => {
-      if (key === "domain") return DOMAIN_LABELS[val] || variables.domainOther || val;
-      if (key === "projectType") return TYPE_LABELS[val] || variables.projectTypeOther || val;
+      if (key === "domain") return t("domains." + val) || variables.domainOther || val;
+      if (key === "projectType") return t("projectTypes." + val) || variables.projectTypeOther || val;
       if (key === "degreeLevel") {
-        const lvlLabels: Record<string, string> = { bts_dut: "BTS / DUT", licence: "Licence", bachelor: "Bachelor", master1: "Master 1", master2: "Master 2", mba: "MBA", diplome_etat: "Diplôme d'État", doctorat: "Doctorat", vae: "VAE" };
-        return lvlLabels[val] || variables.degreeLevelOther || val;
+        return t("degreeLevels." + val) || variables.degreeLevelOther || val;
       }
-      if (key === "orientation") return APPROACH_LABELS[val] || variables.orientationOther || val;
-      if (key === "finality") return FINALITY_LABELS[val] || val;
+      if (key === "orientation") return t("approaches." + val) || variables.orientationOther || val;
+      if (key === "finality") return t("finalities." + val) || val;
       return val;
     };
     const displayKeys = ["domain", "projectType", "degreeLevel", "filiere", "orientation", "finality", "subject", "problematic", "hypotheses", "context"];
@@ -892,30 +864,6 @@ function SingleSectionWrapper({
   const checkout = useCheckout();
   const locked = isSectionLocked(entData?.entitlements, sectionKey, moduleVis);
 
-  const ENTITLEMENT_LABELS: Record<string, string> = {
-    foundation: "Fondement méthodologique",
-    plan: "Plan du travail",
-    conceptual: "Cadre conceptuel & théorique",
-    literature: "Revue de littérature",
-    methodology: "Méthodologie de recherche",
-    redaction: "Rédaction assistée",
-    soutenance_ppt: "PowerPoint de soutenance",
-    soutenance_simulation: "Simulation de soutenance",
-    audit: "Audit de mémoire",
-    questionnaire: "Questionnaires avancés",
-    guide_entretien: "Guides d'entretien",
-    simulation_entretien: "Simulation d'entretien IA",
-    data_visualization: "Analyse et visualisation des données",
-    financial_simulation: "Simulation financière",
-    questionnaire_analysis: "Dépouillement du questionnaire",
-    analyse_qualitative: "Analyse qualitative",
-    analyse_quantitative: "Analyse quantitative",
-    article_analysis: "Analyse d'articles",
-    article_confrontation: "Confrontation d'articles",
-    biblio_multinormes: "Bibliographie multi-normes",
-    export_illimite: "Export Word / PPT",
-  };
-
   const CORE_KEYS = ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"];
 
   const SECTION_PACK_INFO: Record<string, { packKey: string; label: string }> = {
@@ -933,14 +881,14 @@ function SingleSectionWrapper({
     if (!requirement) return "";
     const keys = Array.isArray(requirement) ? requirement : [requirement];
     if (keys.some(k => CORE_KEYS.includes(k))) {
-      return "Cette section est incluse dans le Pack Fondations (179 €). Activez-le pour accéder à toutes les fonctionnalités de base.";
+      return t("project.foundationPackDesc");
     }
     const packInfo = SECTION_PACK_INFO[sectionKey];
     if (packInfo) {
-      return `Cette section fait partie du ${packInfo.label}. Activez-le pour y accéder.`;
+      return `${t("project.sectionPartOf")} ${packInfo.label}. ${t("project.activateToAccess")}`;
     }
-    const label = keys.map(k => ENTITLEMENT_LABELS[k] || k).join(" / ");
-    return `Cette section fait partie du module « ${label} ». Activez-le pour y accéder.`;
+    const label = keys.map(k => t("entitlementLabels." + k) || k).join(" / ");
+    return `${t("project.sectionPartOfModule")} « ${label} ». ${t("project.activateToAccess")}`;
   };
 
   const handleUnlock = () => {
@@ -961,16 +909,16 @@ function SingleSectionWrapper({
 
   const getUnlockLabel = (): string => {
     const requirement = getSectionEntitlementKey(sectionKey);
-    if (!requirement) return "Activer ce module";
+    if (!requirement) return t("project.activateModule");
     const keys = Array.isArray(requirement) ? requirement : [requirement];
     if (keys.some(k => CORE_KEYS.includes(k))) {
-      return "Activer le Pack Fondations (179 €)";
+      return t("project.activateFoundationPack");
     }
     const packInfo = SECTION_PACK_INFO[sectionKey];
     if (packInfo) {
-      return `Activer le ${packInfo.label}`;
+      return `${t("project.activateThe")} ${packInfo.label}`;
     }
-    return "Activer ce module";
+    return t("project.activateModule");
   };
 
   if (locked) {
@@ -1016,14 +964,14 @@ function SingleSectionWrapper({
       <div className="flex items-center gap-2 flex-wrap">
         <FileText className="w-4 h-4 text-green-600 dark:text-green-400" />
         <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-          Mémoire déjà importé
+          {t("project.memoirAlreadyImported")}
         </span>
         <Badge variant="secondary" className="text-xs no-default-hover-elevate no-default-active-elevate">
-          via {SECTION_LABELS[earlierMemoirSection!] || earlierMemoirSection}
+          {t("project.memoirImportedVia")} {SECTION_LABELS[earlierMemoirSection!] || earlierMemoirSection}
         </Badge>
       </div>
       <p className="text-xs text-muted-foreground">
-        Votre mémoire a été importé dans une section précédente. L'IA l'utilise automatiquement comme référence pour toutes les sections suivantes. Pour le modifier, retournez à la section « {SECTION_LABELS[earlierMemoirSection!] || earlierMemoirSection} ».
+        {t("project.memoirImportedDesc")} « {SECTION_LABELS[earlierMemoirSection!] || earlierMemoirSection} ».
       </p>
     </div>
   ) : (
@@ -1319,6 +1267,7 @@ function SingleSectionWrapper({
 }
 
 function DocumentsTab({ project }: { project: any }) {
+  const { t } = useI18n();
   const { data: documents, isLoading } = useDocuments(project.id);
   const { mutate: createDoc } = useCreateDocument();
   const { mutate: deleteDoc } = useDeleteDocument();
@@ -1331,20 +1280,20 @@ function DocumentsTab({ project }: { project: any }) {
 
   const docTypes = project.type === "vae"
     ? [
-        { value: "referentiel", label: "Référentiel de compétences" },
-        { value: "cv", label: "CV" },
-        { value: "attestation", label: "Attestation" },
-        { value: "fiche_poste", label: "Fiche de poste" },
-        { value: "rapport", label: "Rapport" },
-        { value: "autre", label: "Autre document" },
+        { value: "referentiel", label: t("docTypes.referentiel") },
+        { value: "cv", label: t("docTypes.cv") },
+        { value: "attestation", label: t("docTypes.attestation") },
+        { value: "fiche_poste", label: t("docTypes.fiche_poste") },
+        { value: "rapport", label: t("docTypes.rapport") },
+        { value: "autre", label: t("docTypes.autre") },
       ]
     : [
-        { value: "guide", label: "Guide méthodologique" },
-        { value: "consignes", label: "Consignes du tuteur" },
-        { value: "situation_appel", label: "Situation d'appel" },
-        { value: "cv", label: "CV" },
-        { value: "referentiel", label: "Référentiel de compétences" },
-        { value: "autre", label: "Autre document" },
+        { value: "guide", label: t("docTypes.guide") },
+        { value: "consignes", label: t("docTypes.consignes") },
+        { value: "situation_appel", label: t("docTypes.situation_appel") },
+        { value: "cv", label: t("docTypes.cv") },
+        { value: "referentiel", label: t("docTypes.referentiel") },
+        { value: "autre", label: t("docTypes.autre") },
       ];
 
   const handleFileImport = () => {
@@ -1368,8 +1317,8 @@ function DocumentsTab({ project }: { project: any }) {
             credentials: "include",
           });
           if (!res.ok) {
-            const err = await res.json().catch(() => ({ message: "Erreur serveur" }));
-            throw new Error(err.message || "Erreur lors du traitement du fichier");
+            const err = await res.json().catch(() => ({ message: t("project.serverError") }));
+            throw new Error(err.message || t("project.fileProcessingError"));
           }
           const data = await res.json();
           text = data.text;
@@ -1386,17 +1335,17 @@ function DocumentsTab({ project }: { project: any }) {
           },
           {
             onSuccess: () => {
-              toast({ title: "Fichier importé", description: `"${file.name}" ajouté aux documents du projet.` });
+              toast({ title: t("project.fileImported"), description: `"${file.name}" ${t("project.fileImportedDesc")}` });
               setUploading(false);
             },
             onError: (error: any) => {
-              toast({ title: "Erreur", description: error.message || "Impossible de sauvegarder le document.", variant: "destructive" });
+              toast({ title: t("project.errorTitle"), description: error.message || t("project.cannotSaveDoc"), variant: "destructive" });
               setUploading(false);
             },
           }
         );
       } catch (err: any) {
-        toast({ title: "Erreur d'import", description: err.message || "Impossible de lire le fichier.", variant: "destructive" });
+        toast({ title: t("project.importError"), description: err.message || t("project.cannotReadFile"), variant: "destructive" });
         setUploading(false);
       }
     };
@@ -1420,50 +1369,50 @@ function DocumentsTab({ project }: { project: any }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center flex-wrap gap-2">
         <div>
-          <h3 className="text-lg font-semibold">Documents du projet</h3>
-          <p className="text-sm text-muted-foreground">Les documents sont analysés par l'IA pour améliorer les propositions.</p>
+          <h3 className="text-lg font-semibold">{t("project.projectDocuments")}</h3>
+          <p className="text-sm text-muted-foreground">{t("project.docsAnalyzedByAI")}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" onClick={handleFileImport} disabled={uploading} data-testid="button-import-file">
             {uploading ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : <Upload className="mr-2 w-4 h-4" />}
-            {uploading ? "Traitement..." : "Importer un fichier"}
+            {uploading ? t("project.processingFile") : t("project.importFile")}
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-add-document">
                 <Plus className="mr-2 w-4 h-4" />
-                Ajouter manuellement
+                {t("project.addManually")}
               </Button>
             </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Ajouter un document</DialogTitle>
+              <DialogTitle>{t("project.addDocumentTitle")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Nom</label>
-                <Input value={newDocName} onChange={(e) => setNewDocName(e.target.value)} placeholder="Ex: Guide méthodologique IFSI" data-testid="input-doc-name" />
+                <label className="text-sm font-medium">{t("project.docNameLabel")}</label>
+                <Input value={newDocName} onChange={(e) => setNewDocName(e.target.value)} placeholder={t("project.docNamePlaceholder")} data-testid="input-doc-name" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Type</label>
+                <label className="text-sm font-medium">{t("project.docTypeLabel")}</label>
                 <Select value={newDocType} onValueChange={setNewDocType}>
                   <SelectTrigger data-testid="select-doc-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {docTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                    {docTypes.map(dt => <SelectItem key={dt.value} value={dt.value}>{dt.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Contenu (collez le texte du document)</label>
+                <label className="text-sm font-medium">{t("project.docContentLabel")}</label>
                 <Textarea
                   value={newDocContent}
                   onChange={(e) => setNewDocContent(e.target.value)}
-                  placeholder="Collez ici le contenu du document..."
+                  placeholder={t("project.docContentPlaceholder")}
                   className="h-40 text-sm"
                   data-testid="textarea-doc-content"
                 />
               </div>
-              <Button onClick={handleCreate} className="w-full" disabled={!newDocName.trim()} data-testid="button-create-doc">Ajouter le document</Button>
+              <Button onClick={handleCreate} className="w-full" disabled={!newDocName.trim()} data-testid="button-create-doc">{t("project.addTheDocument")}</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -1475,16 +1424,16 @@ function DocumentsTab({ project }: { project: any }) {
       ) : documents?.length === 0 ? (
         <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
           <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-muted-foreground">Aucun document ajouté.</p>
+          <p className="text-muted-foreground">{t("project.noDocsAdded")}</p>
           <p className="text-xs text-muted-foreground mt-1 mb-4">
             {project.type === "vae"
-              ? "Ajoutez votre CV et votre référentiel de compétences."
-              : "Ajoutez vos guides et consignes pour de meilleures suggestions."}
+              ? t("project.vaeDocsHint")
+              : t("project.standardDocsHint")}
           </p>
-          <p className="text-xs text-muted-foreground mb-3">Formats supportés : Word (.docx), PDF (.pdf), texte (.txt), CSV, BibTeX (.bib), Markdown (.md), RTF</p>
+          <p className="text-xs text-muted-foreground mb-3">{t("project.supportedFormats")}</p>
           <Button variant="outline" onClick={handleFileImport} disabled={uploading} data-testid="button-import-file-empty">
             {uploading ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : <Upload className="mr-2 w-4 h-4" />}
-            {uploading ? "Traitement..." : "Importer un fichier"}
+            {uploading ? t("project.processingFile") : t("project.importFile")}
           </Button>
         </div>
       ) : (

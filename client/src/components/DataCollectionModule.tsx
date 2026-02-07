@@ -20,6 +20,7 @@ import {
   Loader2, ClipboardList, Save, Check, X, FileDown, MessageSquare,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 interface DataCollectionModuleProps {
   projectId: number;
@@ -59,15 +60,15 @@ interface GuideConfig {
   instructions: string;
 }
 
-const QUESTION_FORMATS = [
-  { value: "likert_5", label: "Échelle de Likert (5 points)" },
-  { value: "likert_4", label: "Échelle de Likert (4 points)" },
-  { value: "choix_multiple", label: "Choix multiples" },
-  { value: "choix_unique", label: "Choix unique" },
-  { value: "oui_non", label: "Oui / Non" },
-  { value: "question_ouverte", label: "Question ouverte" },
-  { value: "classement", label: "Classement / Ordonnancement" },
-  { value: "numerique", label: "Échelle numérique (1-10)" },
+const getQuestionFormats = (t: (key: string) => string) => [
+  { value: "likert_5", label: t("modules.dataCollection.formatLikert5") },
+  { value: "likert_4", label: t("modules.dataCollection.formatLikert4") },
+  { value: "choix_multiple", label: t("modules.dataCollection.formatMultipleChoice") },
+  { value: "choix_unique", label: t("modules.dataCollection.formatSingleChoice") },
+  { value: "oui_non", label: t("modules.dataCollection.formatYesNo") },
+  { value: "question_ouverte", label: t("modules.dataCollection.formatOpenQuestion") },
+  { value: "classement", label: t("modules.dataCollection.formatRanking") },
+  { value: "numerique", label: t("modules.dataCollection.formatNumericScale") },
 ];
 
 const DEFAULT_Q_CONFIG: QuestionnaireConfig = {
@@ -108,6 +109,7 @@ export default function DataCollectionModule({
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
+  const { t } = useI18n();
   const questionnaireMutation = useGenerateQuestionnaire();
   const guideMutation = useGenerateInterviewGuide();
   const saveConfigMutation = useSaveSectionConfig();
@@ -173,10 +175,10 @@ export default function DataCollectionModule({
         onSuccess: (data) => {
           setQuestionnaireContent(data.content);
           setTraceabilityContent(data.traceability);
-          toast({ title: "Questionnaire généré", description: "Le questionnaire et le tableau de traçabilité ont été générés." });
+          toast({ title: t("modules.dataCollection.toastQuestionnaireGenerated"), description: t("modules.dataCollection.toastQuestionnaireGeneratedDesc") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataCollection.toastErrorGenerating"), variant: "destructive" });
         },
       }
     );
@@ -188,10 +190,10 @@ export default function DataCollectionModule({
       {
         onSuccess: (data) => {
           setGuideContent(data.content);
-          toast({ title: "Guide généré", description: "Le guide d'entretien a été généré avec succès." });
+          toast({ title: t("modules.dataCollection.toastGuideGenerated"), description: t("modules.dataCollection.toastGuideGeneratedDesc") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération", variant: "destructive" });
+          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataCollection.toastErrorGenerating"), variant: "destructive" });
         },
       }
     );
@@ -202,8 +204,8 @@ export default function DataCollectionModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.sectionValidated") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
@@ -213,22 +215,22 @@ export default function DataCollectionModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.common.validationRemoved") }),
+        onError: () => toast({ title: t("modules.common.error"), variant: "destructive" }),
       }
     );
   };
 
   const handleExport = () => {
     const sections = [];
-    if (questionnaireContent) sections.push({ label: "Questionnaire", content: questionnaireContent });
-    if (traceabilityContent) sections.push({ label: "Tableau de traçabilité", content: traceabilityContent });
-    if (guideContent) sections.push({ label: "Guide d'entretien", content: guideContent });
+    if (questionnaireContent) sections.push({ label: t("modules.dataCollection.exportQuestionnaire"), content: questionnaireContent });
+    if (traceabilityContent) sections.push({ label: t("modules.dataCollection.exportTraceability"), content: traceabilityContent });
+    if (guideContent) sections.push({ label: t("modules.dataCollection.exportGuide"), content: guideContent });
     if (sections.length === 0) {
-      toast({ title: "Rien à exporter", description: "Générez d'abord un questionnaire ou un guide.", variant: "destructive" });
+      toast({ title: t("modules.common.nothingToExport"), description: t("modules.dataCollection.nothingToExportDesc"), variant: "destructive" });
       return;
     }
-    exportToWord("Outils de collecte des données", sections, "collecte_donnees.docx");
+    exportToWord(t("modules.dataCollection.exportTitle"), sections, "collecte_donnees.docx");
   };
 
   const toggleFormat = (format: string) => {
@@ -247,36 +249,36 @@ export default function DataCollectionModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Outils de collecte des données</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
+          <CardTitle className="text-lg">{t("modules.dataCollection.exportTitle")}</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />{t("modules.common.validated")}</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-collection">
-            <Save className="w-4 h-4 mr-1" />Sauvegarder
+            <Save className="w-4 h-4 mr-1" />{t("modules.common.save")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} data-testid="button-export-collection">
-            <FileDown className="w-4 h-4 mr-1" />Exporter
+            <FileDown className="w-4 h-4 mr-1" />{t("modules.common.export")}
           </Button>
           {section && !isValidated && (
             <Button size="sm" onClick={handleValidate} data-testid="button-validate-collection">
-              <Check className="w-4 h-4 mr-1" />Valider
+              <Check className="w-4 h-4 mr-1" />{t("modules.common.validate")}
             </Button>
           )}
           {isValidated && (
             <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="button-unvalidate-collection">
-              <X className="w-4 h-4 mr-1" />Retirer validation
+              <X className="w-4 h-4 mr-1" />{t("modules.common.removeValidation")}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-1.5">
-          <Label htmlFor="context-instructions-collection" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
+          <Label htmlFor="context-instructions-collection" className="text-base font-semibold">{t("modules.common.contextLabel")}</Label>
           <Textarea
             id="context-instructions-collection"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
+            placeholder={t("modules.common.contextPlaceholder")}
             className="min-h-[80px] text-sm"
             data-testid="textarea-context-instructions-collection"
           />
@@ -285,10 +287,10 @@ export default function DataCollectionModule({
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-muted/50 h-auto flex-wrap gap-1 p-1">
             <TabsTrigger value="questionnaire" className="gap-1" data-testid="tab-questionnaire">
-              <ClipboardList className="w-4 h-4" />Questionnaire
+              <ClipboardList className="w-4 h-4" />{t("modules.dataCollection.questionnaireTabLabel")}
             </TabsTrigger>
             <TabsTrigger value="guide" className="gap-1" data-testid="tab-guide">
-              <MessageSquare className="w-4 h-4" />Guide d'entretien
+              <MessageSquare className="w-4 h-4" />{t("modules.dataCollection.interviewGuideTabLabel")}
             </TabsTrigger>
           </TabsList>
 
@@ -296,19 +298,19 @@ export default function DataCollectionModule({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>Type de questionnaire</Label>
+                  <Label>{t("modules.dataCollection.questionnaireTypeLabel")}</Label>
                   <Select value={qConfig.questionnaireType} onValueChange={v => setQConfig(p => ({ ...p, questionnaireType: v }))}>
                     <SelectTrigger data-testid="select-q-type"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="enquete">Enquête par questionnaire</SelectItem>
-                      <SelectItem value="satisfaction">Questionnaire de satisfaction</SelectItem>
-                      <SelectItem value="evaluation">Questionnaire d'évaluation</SelectItem>
-                      <SelectItem value="diagnostic">Questionnaire diagnostique</SelectItem>
+                      <SelectItem value="enquete">{t("modules.dataCollection.typeEnquete")}</SelectItem>
+                      <SelectItem value="satisfaction">{t("modules.dataCollection.typeSatisfaction")}</SelectItem>
+                      <SelectItem value="evaluation">{t("modules.dataCollection.typeEvaluation")}</SelectItem>
+                      <SelectItem value="diagnostic">{t("modules.dataCollection.typeDiagnostic")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Nombre de questions</Label>
+                  <Label>{t("modules.dataCollection.questionCountLabel")}</Label>
                   <Input
                     type="number"
                     value={qConfig.questionCount}
@@ -319,7 +321,7 @@ export default function DataCollectionModule({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Durée cible</Label>
+                  <Label>{t("modules.dataCollection.targetDurationLabel")}</Label>
                   <Select value={qConfig.targetDuration} onValueChange={v => setQConfig(p => ({ ...p, targetDuration: v }))}>
                     <SelectTrigger data-testid="select-q-duration"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -334,18 +336,18 @@ export default function DataCollectionModule({
               </div>
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>Profil du répondant</Label>
+                  <Label>{t("modules.dataCollection.respondentProfileLabel")}</Label>
                   <Input
                     value={qConfig.respondentProfile}
                     onChange={e => setQConfig(p => ({ ...p, respondentProfile: e.target.value }))}
-                    placeholder="Ex: Infirmiers diplômés d'État, cadres de santé..."
+                    placeholder={t("modules.dataCollection.respondentProfilePlaceholder")}
                     data-testid="input-q-profile"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Formats de questions</Label>
+                  <Label>{t("modules.dataCollection.questionFormatsLabel")}</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {QUESTION_FORMATS.map(f => (
+                    {getQuestionFormats(t).map(f => (
                       <Badge
                         key={f.value}
                         variant={qConfig.questionFormats.includes(f.value) ? "default" : "outline"}
@@ -361,11 +363,11 @@ export default function DataCollectionModule({
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Instructions supplémentaires (optionnel)</Label>
+              <Label>{t("modules.dataCollection.additionalInstructions")}</Label>
               <Textarea
                 value={qConfig.instructions}
                 onChange={e => setQConfig(p => ({ ...p, instructions: e.target.value }))}
-                placeholder="Précisions sur le contenu attendu, thèmes à couvrir..."
+                placeholder={t("modules.dataCollection.additionalInstructionsPlaceholder")}
                 className="h-20 text-sm"
                 data-testid="textarea-q-instructions"
               />
@@ -376,13 +378,13 @@ export default function DataCollectionModule({
               data-testid="button-generate-questionnaire"
             >
               {questionnaireMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ClipboardList className="w-4 h-4 mr-2" />}
-              Générer le questionnaire
+              {t("modules.dataCollection.generateQuestionnaireBtn")}
             </Button>
 
             {questionnaireContent && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-base font-semibold">Questionnaire généré</Label>
+                  <Label className="text-base font-semibold">{t("modules.dataCollection.generatedQuestionnaireLabel")}</Label>
                   <Textarea
                     value={questionnaireContent}
                     onChange={e => setQuestionnaireContent(e.target.value)}
@@ -392,7 +394,7 @@ export default function DataCollectionModule({
                 </div>
                 {traceabilityContent && (
                   <div className="space-y-1.5">
-                    <Label className="text-base font-semibold">Tableau de traçabilité</Label>
+                    <Label className="text-base font-semibold">{t("modules.dataCollection.traceabilityLabel")}</Label>
                     <Textarea
                       value={traceabilityContent}
                       onChange={e => setTraceabilityContent(e.target.value)}
@@ -409,20 +411,20 @@ export default function DataCollectionModule({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>Type d'entretien</Label>
+                  <Label>{t("modules.dataCollection.interviewTypeLabel")}</Label>
                   <Select value={gConfig.interviewType} onValueChange={v => setGConfig(p => ({ ...p, interviewType: v }))}>
                     <SelectTrigger data-testid="select-g-type"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="semi_directif">Semi-directif</SelectItem>
-                      <SelectItem value="directif">Directif</SelectItem>
-                      <SelectItem value="non_directif">Non-directif</SelectItem>
-                      <SelectItem value="comprehensif">Compréhensif</SelectItem>
-                      <SelectItem value="focus_group">Focus group</SelectItem>
+                      <SelectItem value="semi_directif">{t("modules.dataCollection.typeSemiDirectif")}</SelectItem>
+                      <SelectItem value="directif">{t("modules.dataCollection.typeDirectif")}</SelectItem>
+                      <SelectItem value="non_directif">{t("modules.dataCollection.typeNonDirectif")}</SelectItem>
+                      <SelectItem value="comprehensif">{t("modules.dataCollection.typeComprehensif")}</SelectItem>
+                      <SelectItem value="focus_group">{t("modules.dataCollection.typeFocusGroup")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Durée cible</Label>
+                  <Label>{t("modules.dataCollection.targetDurationLabel")}</Label>
                   <Select value={gConfig.targetDuration} onValueChange={v => setGConfig(p => ({ ...p, targetDuration: v }))}>
                     <SelectTrigger data-testid="select-g-duration"><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -434,7 +436,7 @@ export default function DataCollectionModule({
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Nombre de thèmes</Label>
+                  <Label>{t("modules.dataCollection.themeCountLabel")}</Label>
                   <Input
                     type="number"
                     value={gConfig.themeCount}
@@ -445,7 +447,7 @@ export default function DataCollectionModule({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Questions par thème</Label>
+                  <Label>{t("modules.dataCollection.questionsPerThemeLabel")}</Label>
                   <Input
                     type="number"
                     value={gConfig.questionsPerTheme}
@@ -458,52 +460,52 @@ export default function DataCollectionModule({
               </div>
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label>Ton</Label>
+                  <Label>{t("modules.dataCollection.toneLabel")}</Label>
                   <Select value={gConfig.tone} onValueChange={v => setGConfig(p => ({ ...p, tone: v }))}>
                     <SelectTrigger data-testid="select-g-tone"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="professionnel">Professionnel</SelectItem>
-                      <SelectItem value="empathique">Empathique</SelectItem>
-                      <SelectItem value="neutre">Neutre / Académique</SelectItem>
-                      <SelectItem value="convivial">Convivial</SelectItem>
+                      <SelectItem value="professionnel">{t("modules.dataCollection.toneProfessionnel")}</SelectItem>
+                      <SelectItem value="empathique">{t("modules.dataCollection.toneEmpathique")}</SelectItem>
+                      <SelectItem value="neutre">{t("modules.dataCollection.toneNeutre")}</SelectItem>
+                      <SelectItem value="convivial">{t("modules.dataCollection.toneConvivial")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Profil de l'interviewé</Label>
+                  <Label>{t("modules.dataCollection.intervieweeProfileLabel")}</Label>
                   <Input
                     value={gConfig.intervieweeProfile}
                     onChange={e => setGConfig(p => ({ ...p, intervieweeProfile: e.target.value }))}
-                    placeholder="Ex: Cadre de santé, 10 ans d'expérience..."
+                    placeholder={t("modules.dataCollection.intervieweeProfilePlaceholder")}
                     data-testid="input-g-profile"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Fonction de l'interviewé</Label>
+                  <Label>{t("modules.dataCollection.intervieweeFunctionLabel")}</Label>
                   <Input
                     value={gConfig.intervieweeFunction}
                     onChange={e => setGConfig(p => ({ ...p, intervieweeFunction: e.target.value }))}
-                    placeholder="Ex: Directeur des soins, IDE coordinateur..."
+                    placeholder={t("modules.dataCollection.intervieweeFunctionPlaceholder")}
                     data-testid="input-g-function"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Type de structure</Label>
+                  <Label>{t("modules.dataCollection.structureTypeLabel")}</Label>
                   <Input
                     value={gConfig.structureType}
                     onChange={e => setGConfig(p => ({ ...p, structureType: e.target.value }))}
-                    placeholder="Ex: CHU, clinique privée, EHPAD..."
+                    placeholder={t("modules.dataCollection.structureTypePlaceholder")}
                     data-testid="input-g-structure"
                   />
                 </div>
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Instructions supplémentaires (optionnel)</Label>
+              <Label>{t("modules.dataCollection.additionalInstructions")}</Label>
               <Textarea
                 value={gConfig.instructions}
                 onChange={e => setGConfig(p => ({ ...p, instructions: e.target.value }))}
-                placeholder="Précisions sur les thèmes à aborder, points de vigilance..."
+                placeholder={t("modules.dataCollection.guideInstructionsPlaceholder")}
                 className="h-20 text-sm"
                 data-testid="textarea-g-instructions"
               />
@@ -514,12 +516,12 @@ export default function DataCollectionModule({
               data-testid="button-generate-guide"
             >
               {guideMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <MessageSquare className="w-4 h-4 mr-2" />}
-              Générer le guide d'entretien
+              {t("modules.dataCollection.generateGuideBtn")}
             </Button>
 
             {guideContent && (
               <div className="space-y-1.5">
-                <Label className="text-base font-semibold">Guide d'entretien généré</Label>
+                <Label className="text-base font-semibold">{t("modules.dataCollection.generatedGuideLabel")}</Label>
                 <Textarea
                   value={guideContent}
                   onChange={e => setGuideContent(e.target.value)}

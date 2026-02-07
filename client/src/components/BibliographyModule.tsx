@@ -19,6 +19,7 @@ import {
   AlertTriangle, CheckCircle, Info, RefreshCw, Copy, Upload, Trash2,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 interface BibliographyModuleProps {
   projectId: number;
@@ -51,12 +52,12 @@ interface SavedState {
   importedBibliography: string;
 }
 
-const NORM_LABELS: Record<string, string> = {
-  apa7: "APA 7e édition",
-  vancouver: "Vancouver",
-  mla: "MLA (Modern Language Association)",
-  chicago: "Chicago (Notes et bibliographie)",
-};
+const NORM_KEYS = [
+  { key: "apa7", labelKey: "modules.bibliography.normApa7" },
+  { key: "vancouver", labelKey: "modules.bibliography.normVancouver" },
+  { key: "mla", labelKey: "modules.bibliography.normMla" },
+  { key: "chicago", labelKey: "modules.bibliography.normChicago" },
+];
 
 const ALERT_ICONS: Record<string, any> = {
   missing_entry: AlertTriangle,
@@ -90,6 +91,7 @@ export default function BibliographyModule({
   const [importedBibliography, setImportedBibliography] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
 
+  const { t, lang } = useI18n();
   const { toast } = useToast();
   const generateMutation = useGenerateBibliographyFull();
   const checkMutation = useCheckBibliographyCoherence();
@@ -137,6 +139,11 @@ export default function BibliographyModule({
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, [bibliography, norm, sources, alerts, coherenceSuggestions, contextInstructions, importedBibliography, stateLoaded]);
 
+  const getNormLabel = (normKey: string) => {
+    const found = NORM_KEYS.find(n => n.key === normKey);
+    return found ? t(found.labelKey) : normKey;
+  };
+
   const handleGenerate = () => {
     generateMutation.mutate(
       { projectId, norm: norm as any, extraContext: combinedContext || undefined },
@@ -146,10 +153,10 @@ export default function BibliographyModule({
           setSources(data.sources || []);
           setAlerts([]);
           setCoherenceSuggestions([]);
-          toast({ title: "Bibliographie générée", description: `${data.sources?.length || 0} source(s) identifiée(s) en norme ${NORM_LABELS[norm]}` });
+          toast({ title: t("modules.bibliography.toastGenerated"), description: `${data.sources?.length || 0} ${t("modules.bibliography.toastGeneratedDesc")} ${getNormLabel(norm)}` });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération", variant: "destructive" });
+          toast({ title: t("modules.bibliography.toastError"), description: error.message || t("modules.bibliography.toastGenerationError"), variant: "destructive" });
         },
       }
     );
@@ -157,7 +164,7 @@ export default function BibliographyModule({
 
   const handleCheckCoherence = () => {
     if (!bibliography.trim()) {
-      toast({ title: "Bibliographie requise", description: "Générez ou saisissez une bibliographie avant de vérifier la cohérence.", variant: "destructive" });
+      toast({ title: t("modules.bibliography.toastBibRequired"), description: t("modules.bibliography.toastBibRequiredDesc"), variant: "destructive" });
       return;
     }
     checkMutation.mutate(
@@ -168,13 +175,13 @@ export default function BibliographyModule({
           setCoherenceSuggestions(data.suggestions || []);
           const errorCount = data.alerts?.filter(a => a.type !== "info").length || 0;
           toast({
-            title: errorCount === 0 ? "Bibliographie cohérente" : `${errorCount} alerte(s) détectée(s)`,
-            description: errorCount === 0 ? "Aucune incohérence détectée." : "Consultez les alertes ci-dessous.",
+            title: errorCount === 0 ? t("modules.bibliography.toastCoherent") : `${errorCount} ${t("modules.bibliography.toastAlertsDetected")}`,
+            description: errorCount === 0 ? t("modules.bibliography.toastCoherentDesc") : t("modules.bibliography.toastAlertsDesc"),
             variant: errorCount === 0 ? "default" : "destructive",
           });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la vérification", variant: "destructive" });
+          toast({ title: t("modules.bibliography.toastError"), description: error.message || t("modules.bibliography.toastVerifError"), variant: "destructive" });
         },
       }
     );
@@ -183,15 +190,15 @@ export default function BibliographyModule({
   const handleCopy = () => {
     if (bibliography) {
       navigator.clipboard.writeText(bibliography);
-      toast({ title: "Copié", description: "La bibliographie a été copiée dans le presse-papier." });
+      toast({ title: t("modules.bibliography.toastCopied"), description: t("modules.bibliography.toastCopiedDesc") });
     }
   };
 
   const handleExportWord = () => {
     if (!bibliography) return;
     exportToWord(
-      "Bibliographie",
-      [{ label: `Bibliographie (${NORM_LABELS[norm]})`, content: bibliography }],
+      t("modules.bibliography.exportLabel"),
+      [{ label: `${t("modules.bibliography.exportLabel")} (${getNormLabel(norm)})`, content: bibliography }],
       `bibliographie_${norm}`
     );
   };
@@ -205,7 +212,7 @@ export default function BibliographyModule({
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <Library className="w-5 h-5 text-primary" />
-              <CardTitle>Bibliographie</CardTitle>
+              <CardTitle>{t("modules.bibliography.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isValidated ? (
@@ -215,7 +222,7 @@ export default function BibliographyModule({
                   disabled={unvalidateMutation.isPending}
                   data-testid="button-unvalidate-bibliography"
                 >
-                  <X className="w-4 h-4 mr-1" /> Dévalider
+                  <X className="w-4 h-4 mr-1" /> {t("modules.bibliography.unvalidate")}
                 </Button>
               ) : (
                 <Button
@@ -224,7 +231,7 @@ export default function BibliographyModule({
                   disabled={validateMutation.isPending || !bibliography}
                   data-testid="button-validate-bibliography"
                 >
-                  <Check className="w-4 h-4 mr-1" /> Valider
+                  <Check className="w-4 h-4 mr-1" /> {t("modules.bibliography.validate")}
                 </Button>
               )}
               <Button variant="outline" onClick={handleExportWord} disabled={!bibliography} data-testid="button-export-bibliography">
@@ -235,12 +242,12 @@ export default function BibliographyModule({
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-1.5">
-            <Label htmlFor="context-instructions-bibliography" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
+            <Label htmlFor="context-instructions-bibliography" className="text-base font-semibold">{t("modules.bibliography.contextLabel")}</Label>
             <Textarea
               id="context-instructions-bibliography"
               value={contextInstructions}
               onChange={e => setContextInstructions(e.target.value)}
-              placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
+              placeholder={t("modules.bibliography.contextPlaceholder")}
               className="min-h-[80px] text-sm"
               data-testid="textarea-context-instructions-bibliography"
             />
@@ -248,7 +255,7 @@ export default function BibliographyModule({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <Label className="text-base font-semibold">Importer une bibliographie existante</Label>
+              <Label className="text-base font-semibold">{t("modules.bibliography.importExistingLabel")}</Label>
               <div className="flex gap-2 flex-wrap">
                 <Button
                   variant="outline"
@@ -266,16 +273,16 @@ export default function BibliographyModule({
                           const combined = [prev, `--- ${file.name} ---\n${text}`].filter(Boolean).join("\n\n");
                           return combined;
                         });
-                        toast({ title: "Import réussi", description: `"${file.name}" importé comme référence bibliographique.` });
+                        toast({ title: t("modules.bibliography.toastImportSuccess"), description: `"${file.name}" ${t("modules.bibliography.toastImportSuccessDesc")}` });
                       } catch {
-                        toast({ title: "Erreur d'import", description: "Impossible de lire le fichier.", variant: "destructive" });
+                        toast({ title: t("modules.bibliography.toastImportError"), description: t("modules.bibliography.toastImportErrorDesc"), variant: "destructive" });
                       }
                     };
                     input.click();
                   }}
                   data-testid="button-import-bibliography"
                 >
-                  <Upload className="w-4 h-4 mr-1" />Importer un fichier
+                  <Upload className="w-4 h-4 mr-1" />{t("modules.bibliography.importFile")}
                 </Button>
                 {importedBibliography && (
                   <Button
@@ -283,45 +290,44 @@ export default function BibliographyModule({
                     size="sm"
                     onClick={() => {
                       setImportedBibliography("");
-                      toast({ title: "Import supprimé" });
+                      toast({ title: t("modules.bibliography.toastImportCleared") });
                     }}
                     data-testid="button-clear-imported-bib"
                   >
-                    <Trash2 className="w-4 h-4 mr-1" />Effacer
+                    <Trash2 className="w-4 h-4 mr-1" />{t("modules.bibliography.clear")}
                   </Button>
                 )}
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Importez un mémoire ou une bibliographie existante pour que l'IA en extraie les références et les convertisse dans la norme choisie.
+              {t("modules.bibliography.importDesc")}
             </p>
             {importedBibliography && (
               <Textarea
                 value={importedBibliography}
                 onChange={e => setImportedBibliography(e.target.value)}
                 className="min-h-[100px] text-sm font-mono"
-                placeholder="Contenu importé..."
+                placeholder={t("modules.bibliography.importedPlaceholder")}
                 data-testid="textarea-imported-bibliography"
               />
             )}
           </div>
 
           <div className="bg-muted/50 rounded-md p-4 text-sm text-muted-foreground">
-            Générez automatiquement votre bibliographie à partir des sources citées dans vos sections validées
-            (revue de littérature, cadre conceptuel, etc.). Vous pouvez changer de norme bibliographique à tout moment.
-            {importedBibliography && " Les références importées seront également prises en compte."}
+            {t("modules.bibliography.infoText")}
+            {importedBibliography && t("modules.bibliography.importedAlsoConsidered")}
           </div>
 
           <div className="flex items-end gap-4 flex-wrap">
             <div className="space-y-2 flex-1 min-w-[200px]">
-              <Label>Norme bibliographique</Label>
+              <Label>{t("modules.bibliography.normLabel")}</Label>
               <Select value={norm} onValueChange={setNorm}>
                 <SelectTrigger data-testid="select-bibliography-norm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(NORM_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  {NORM_KEYS.map(({ key, labelKey }) => (
+                    <SelectItem key={key} value={key}>{t(labelKey)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -333,7 +339,7 @@ export default function BibliographyModule({
               data-testid="button-generate-bibliography"
             >
               {generateMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
-              Générer la bibliographie
+              {t("modules.bibliography.generate")}
             </Button>
           </div>
 
@@ -341,13 +347,13 @@ export default function BibliographyModule({
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Label>Bibliographie générée</Label>
+                  <Label>{t("modules.bibliography.generatedLabel")}</Label>
                   {sources.length > 0 && (
-                    <Badge variant="outline" className="text-xs">{sources.length} source(s)</Badge>
+                    <Badge variant="outline" className="text-xs">{sources.length} {t("modules.bibliography.sources")}</Badge>
                   )}
                 </div>
                 <Button variant="outline" size="sm" onClick={handleCopy} data-testid="button-copy-bibliography">
-                  <Copy className="w-4 h-4 mr-1" /> Copier
+                  <Copy className="w-4 h-4 mr-1" /> {t("modules.bibliography.copy")}
                 </Button>
               </div>
               <Textarea
@@ -367,7 +373,7 @@ export default function BibliographyModule({
               data-testid="button-check-coherence"
             >
               {checkMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-              Vérifier la cohérence
+              {t("modules.bibliography.checkCoherence")}
             </Button>
           )}
 
@@ -376,7 +382,7 @@ export default function BibliographyModule({
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-center gap-2 mb-2">
                   <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                  <span className="font-medium text-sm">Alertes de cohérence ({alerts.length})</span>
+                  <span className="font-medium text-sm">{t("modules.bibliography.coherenceAlerts")} ({alerts.length})</span>
                 </div>
                 {alerts.map((alert, i) => {
                   const Icon = ALERT_ICONS[alert.type] || Info;
@@ -397,7 +403,7 @@ export default function BibliographyModule({
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <Info className="w-4 h-4 text-blue-500" />
-                  <span className="font-medium text-sm">Suggestions d'amélioration</span>
+                  <span className="font-medium text-sm">{t("modules.bibliography.improvementSuggestions")}</span>
                 </div>
                 <ul className="space-y-2">
                   {coherenceSuggestions.map((s, i) => (
@@ -414,7 +420,7 @@ export default function BibliographyModule({
           {sources.length > 0 && (
             <Card>
               <CardContent className="p-4">
-                <span className="font-medium text-sm mb-3 block">Sources identifiées ({sources.length})</span>
+                <span className="font-medium text-sm mb-3 block">{t("modules.bibliography.identifiedSources")} ({sources.length})</span>
                 <div className="space-y-2">
                   {sources.map((source, i) => (
                     <div key={i} className="flex items-start gap-3 text-sm p-2 rounded-md bg-muted/30">

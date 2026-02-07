@@ -18,6 +18,7 @@ import {
   BookOpen, Table, Paperclip, Check,
 } from "lucide-react";
 import { exportToWord, exportToPdf } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 interface ExportsModuleProps {
   projectId: number;
@@ -36,15 +37,15 @@ interface SavedState {
   selectedSections: string[];
 }
 
-const FORMAT_OPTIONS = [
-  { value: "docx", label: "Word (.docx)", icon: FileText },
-  { value: "pdf", label: "PDF (.pdf)", icon: FileDown },
+const FORMAT_KEYS = [
+  { value: "docx", labelKey: "modules.exports.formatDocx", icon: FileText },
+  { value: "pdf", labelKey: "modules.exports.formatPdf", icon: FileDown },
 ];
 
-const EXPORT_TYPES = [
-  { value: "draft", label: "Brouillon", description: "Version de travail avec annotations" },
-  { value: "tutor", label: "Version tuteur", description: "Version soumise au tuteur pour relecture" },
-  { value: "final", label: "Version finale", description: "Version définitive pour la soutenance" },
+const EXPORT_TYPE_KEYS = [
+  { value: "draft", labelKey: "modules.exports.typeDraft", descKey: "modules.exports.typeDraftDesc" },
+  { value: "tutor", labelKey: "modules.exports.typeTutor", descKey: "modules.exports.typeTutorDesc" },
+  { value: "final", labelKey: "modules.exports.typeFinal", descKey: "modules.exports.typeFinalDesc" },
 ];
 
 export default function ExportsModule({
@@ -63,6 +64,7 @@ export default function ExportsModule({
   const [selectAll, setSelectAll] = useState(true);
   const [stateLoaded, setStateLoaded] = useState(false);
 
+  const { t, lang } = useI18n();
   const { toast } = useToast();
   const exportMutation = useExportDocument();
   const { data: allSections } = useSections(projectId);
@@ -158,10 +160,10 @@ export default function ExportsModule({
             }
 
             if (exportSections.length === 0) {
-              exportSections.push({ label: "Document", content: data.content || "Aucun contenu à exporter." });
+              exportSections.push({ label: t("modules.exports.document"), content: data.content || t("modules.exports.noContent") });
             }
 
-            const title = variables.subject || "Document académique";
+            const title = variables.subject || t("modules.exports.academicDocument");
             const filename = data.fileName.replace(/\.(docx|pdf)$/, "");
 
             if (format === "pdf") {
@@ -170,14 +172,14 @@ export default function ExportsModule({
               await exportToWord(title, exportSections, filename);
             }
 
-            toast({ title: "Export réussi", description: `Le document a été exporté en ${format.toUpperCase()}.` });
+            toast({ title: t("modules.exports.toastExportSuccess"), description: `${t("modules.exports.toastExportSuccessDesc")} ${format.toUpperCase()}.` });
           } catch (err: any) {
             console.error("Export generation error:", err);
-            toast({ title: "Erreur d'export", description: err.message || "Erreur lors de la génération du fichier.", variant: "destructive" });
+            toast({ title: t("modules.exports.toastExportError"), description: err.message || t("modules.exports.toastExportErrorDesc"), variant: "destructive" });
           }
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de l'export", variant: "destructive" });
+          toast({ title: t("modules.exports.toastError"), description: error.message || t("modules.exports.toastErrorDesc"), variant: "destructive" });
         },
       }
     );
@@ -193,54 +195,53 @@ export default function ExportsModule({
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <Download className="w-5 h-5 text-primary" />
-              <CardTitle>Export du document</CardTitle>
+              <CardTitle>{t("modules.exports.title")}</CardTitle>
             </div>
             <Badge variant="outline" className="text-xs">
-              {validatedCount}/{totalCount} sections validées
+              {validatedCount}/{totalCount} {t("modules.exports.validatedSections")}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="bg-muted/50 rounded-md p-4 text-sm text-muted-foreground">
-            Exportez votre travail en Word ou PDF. Vous pouvez exporter toutes les sections ou seulement celles de votre choix.
-            Choisissez le type de version (brouillon, tuteur, final) pour adapter le formatage.
+            {t("modules.exports.infoText")}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label>Format d'export</Label>
+              <Label>{t("modules.exports.formatLabel")}</Label>
               <Select value={format} onValueChange={setFormat}>
                 <SelectTrigger data-testid="select-export-format">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {FORMAT_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  {FORMAT_KEYS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Type de version</Label>
+              <Label>{t("modules.exports.versionTypeLabel")}</Label>
               <Select value={exportType} onValueChange={setExportType}>
                 <SelectTrigger data-testid="select-export-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {EXPORT_TYPES.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  {EXPORT_TYPE_KEYS.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {EXPORT_TYPES.find(t => t.value === exportType)?.description}
+                {t(EXPORT_TYPE_KEYS.find(et => et.value === exportType)?.descKey || "")}
               </p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <Label>Options</Label>
+            <Label>{t("modules.exports.optionsLabel")}</Label>
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2">
                 <Checkbox
@@ -251,7 +252,7 @@ export default function ExportsModule({
                 />
                 <label htmlFor="toc" className="text-sm flex items-center gap-2 cursor-pointer">
                   <Table className="w-4 h-4 text-muted-foreground" />
-                  Table des matières
+                  {t("modules.exports.tableOfContents")}
                 </label>
               </div>
               <div className="flex items-center gap-2">
@@ -263,7 +264,7 @@ export default function ExportsModule({
                 />
                 <label htmlFor="bib" className="text-sm flex items-center gap-2 cursor-pointer">
                   <BookOpen className="w-4 h-4 text-muted-foreground" />
-                  Bibliographie
+                  {t("modules.exports.bibliography")}
                 </label>
               </div>
               <div className="flex items-center gap-2">
@@ -275,7 +276,7 @@ export default function ExportsModule({
                 />
                 <label htmlFor="annexes" className="text-sm flex items-center gap-2 cursor-pointer">
                   <Paperclip className="w-4 h-4 text-muted-foreground" />
-                  Annexes (documents importés)
+                  {t("modules.exports.annexes")}
                 </label>
               </div>
             </div>
@@ -283,9 +284,9 @@ export default function ExportsModule({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <Label>Sections à exporter</Label>
+              <Label>{t("modules.exports.sectionsLabel")}</Label>
               <Button variant="ghost" size="sm" onClick={handleSelectAll} data-testid="button-select-all">
-                {selectAll ? "Désélectionner tout" : "Tout sélectionner"}
+                {selectAll ? t("modules.exports.deselectAll") : t("modules.exports.selectAll")}
               </Button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -307,7 +308,7 @@ export default function ExportsModule({
                     <Checkbox checked={isSelected} tabIndex={-1} />
                     <span className="text-sm flex-1">{label}</span>
                     {isValidatedSection && <Check className="w-3 h-3 text-green-500" />}
-                    {!hasContent && <Badge variant="outline" className="text-xs">Vide</Badge>}
+                    {!hasContent && <Badge variant="outline" className="text-xs">{t("modules.exports.empty")}</Badge>}
                   </div>
                 );
               })}
@@ -320,7 +321,7 @@ export default function ExportsModule({
             data-testid="button-export-document"
           >
             {exportMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-            Exporter le document
+            {t("modules.exports.exportDocument")}
           </Button>
         </CardContent>
       </Card>

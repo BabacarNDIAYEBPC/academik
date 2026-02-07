@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Layout from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,7 @@ import { useModuleVisibility, isModuleVisible } from "@/hooks/use-admin";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
+import { useI18n } from "@/lib/i18n";
 import {
   FileText, Zap, FolderOpen, Calendar, ShoppingCart, Loader2, TrendingUp,
   Download, Clock, AlertTriangle, Receipt, Lock, Unlock, CheckCircle2,
@@ -32,70 +34,73 @@ const COMPANY_INFO = {
 const CORE_PACK_PRICE = 179;
 
 const CORE_MODULES = [
-  { key: "foundation", price: 29, label: "Sujet / Problématique / Hypothèses", description: "Formulation du sujet, problématique et hypothèses de recherche" },
-  { key: "plan", price: 25, label: "Plan académique structuré", description: "Plan logique adapté au niveau (Licence / Master / TFE / VAE)" },
-  { key: "conceptual", price: 35, label: "Cadre conceptuel (concepts + schémas)", description: "Concepts clés, relations et schémas explicatifs" },
-  { key: "literature", price: 49, label: "Revue de littérature", description: "Recherche bibliographique, sélection, filtrage et structuration" },
-  { key: "methodology", price: 39, label: "Méthodologie complète", description: "Type de recherche, population, outils de collecte et méthodes d'analyse" },
+  { key: "foundation", price: 29 },
+  { key: "plan", price: 25 },
+  { key: "conceptual", price: 35 },
+  { key: "literature", price: 49 },
+  { key: "methodology", price: 39 },
 ];
 
 const CORE_MODULES_TOTAL = CORE_MODULES.reduce((sum, m) => sum + m.price, 0);
 
 const OPTION_CATALOG = {
   collecte: [
-    { key: "questionnaire", price: 25, label: "Questionnaire (collecte)", description: "Questionnaire structuré, questions uniquement, prêt pour Word" },
-    { key: "guide_entretien", price: 25, label: "Guide d'entretien (collecte)", description: "Guide d'entretien qualitatif, questions uniquement" },
-    { key: "simulation_entretien", price: 19, label: "Simulation d'entretien IA", description: "Préparez vos entretiens avec simulation IA" },
-    { key: "questionnaire_analysis", price: 29, label: "Dépouillement du questionnaire", description: "Exploitation et analyse des réponses au questionnaire" },
+    { key: "questionnaire", price: 25 },
+    { key: "guide_entretien", price: 25 },
+    { key: "simulation_entretien", price: 19 },
+    { key: "questionnaire_analysis", price: 29 },
   ],
   analyse: [
-    { key: "data_visualization", price: 25, label: "Analyse et visualisation des données", description: "Tableaux croisés dynamiques, graphiques et exploitation visuelle" },
-    { key: "financial_simulation", price: 29, label: "Simulation financière", description: "Tableaux financiers, simulations chiffrées et calculs dynamiques" },
-    { key: "analyse_qualitative", price: 39, label: "Analyse qualitative", description: "Verbatims, codage thématique et synthèse" },
-    { key: "analyse_quantitative", price: 39, label: "Analyse quantitative", description: "Tableaux croisés et graphiques" },
+    { key: "data_visualization", price: 25 },
+    { key: "financial_simulation", price: 29 },
+    { key: "analyse_qualitative", price: 39 },
+    { key: "analyse_quantitative", price: 39 },
   ],
   revue: [
-    { key: "article_analysis", price: 29, label: "Résumé & analyse d'articles", description: "Analyse structurée d'articles scientifiques" },
-    { key: "article_confrontation", price: 29, label: "Confrontation d'articles", description: "Comparaison critique entre articles" },
-    { key: "biblio_multinormes", price: 25, label: "Bibliographie multi-normes", description: "APA, Vancouver, MLA, Chicago" },
+    { key: "article_analysis", price: 29 },
+    { key: "article_confrontation", price: 29 },
+    { key: "biblio_multinormes", price: 25 },
   ],
   soutenance: [
-    { key: "soutenance_ppt", price: 29, label: "PowerPoint de soutenance", description: "Diaporama structuré pour la soutenance" },
-    { key: "soutenance_simulation", price: 29, label: "Simulation de soutenance", description: "Questions type jury et préparation" },
-    { key: "audit", price: 49, label: "Audit complet du mémoire", description: "Relecture critique et recommandations" },
+    { key: "soutenance_ppt", price: 29 },
+    { key: "soutenance_simulation", price: 29 },
+    { key: "audit", price: 49 },
   ],
   confort: [
-    { key: "export_illimite", price: 19, label: "Export illimité Word / PPT", description: "Export sans limites vers Word et PowerPoint" },
-    { key: "fusion_memoire", price: 19, label: "Fusion mémoire en un document", description: "Assemblage de toutes les sections" },
+    { key: "export_illimite", price: 19 },
+    { key: "fusion_memoire", price: 19 },
   ],
   ia: [
-    { key: "words_20k", price: 19, label: "+20 000 mots IA", description: "Quota supplémentaire de génération" },
-    { key: "words_50k", price: 39, label: "+50 000 mots IA", description: "Quota supplémentaire étendu" },
-    { key: "extra_project", price: 29, label: "Projet supplémentaire", description: "Un projet actif additionnel" },
+    { key: "words_20k", price: 19 },
+    { key: "words_50k", price: 39 },
+    { key: "extra_project", price: 29 },
   ],
 };
 
-const PACK_OPTIONS: Record<string, { keys: string[]; price: number; label: string }> = {
-  pack_collecte: { keys: ["questionnaire", "guide_entretien"], price: 45, label: "Pack Collecte" },
-  pack_analyse: { keys: ["analyse_qualitative", "analyse_quantitative"], price: 69, label: "Pack Analyse" },
-  pack_revue: { keys: ["article_analysis", "article_confrontation", "biblio_multinormes"], price: 59, label: "Pack Revue avancée" },
-  pack_soutenance: { keys: ["soutenance_ppt", "soutenance_simulation", "audit"], price: 79, label: "Pack Soutenance & Audit" },
+const PACK_OPTIONS: Record<string, { keys: string[]; price: number; labelKey: string }> = {
+  pack_collecte: { keys: ["questionnaire", "guide_entretien"], price: 45, labelKey: "pack_collecte" },
+  pack_analyse: { keys: ["analyse_qualitative", "analyse_quantitative"], price: 69, labelKey: "pack_analyse" },
+  pack_revue: { keys: ["article_analysis", "article_confrontation", "biblio_multinormes"], price: 59, labelKey: "pack_revue" },
+  pack_soutenance: { keys: ["soutenance_ppt", "soutenance_simulation", "audit"], price: 79, labelKey: "pack_soutenance" },
 };
 
 const CORE_ENTITLEMENTS = ["foundation", "plan", "conceptual", "literature", "methodology"];
 
 function SubscriptionProgressBar({ periodStart, periodEnd }: { periodStart?: string | null; periodEnd?: string | null }) {
+  const { t, lang } = useI18n();
+  const locale = lang === "fr" ? "fr-FR" : "en-US";
+
   if (!periodStart || !periodEnd) {
     return (
       <Card data-testid="card-subscription-progress">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="w-5 h-5" />
-            Abonnement
+            {t("billing.subscription")}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Aucune souscription active</p>
+          <p className="text-sm text-muted-foreground">{t("billing.noSubscription")}</p>
         </CardContent>
       </Card>
     );
@@ -111,28 +116,28 @@ function SubscriptionProgressBar({ periodStart, periodEnd }: { periodStart?: str
   const isExpiringSoon = remainingDays <= 7;
   const isExpired = remainingDays <= 0;
 
+  const descriptionText = isExpired
+    ? t("billing.subscriptionExpired")
+    : isExpiringSoon
+      ? `${t("billing.renewalIn")} ${remainingDays} ${lang === "fr" ? `jour${remainingDays > 1 ? "s" : ""}` : `day${remainingDays > 1 ? "s" : ""}`}`
+      : `${remainingDays} ${lang === "fr" ? `jour${remainingDays > 1 ? "s" : ""} restant${remainingDays > 1 ? "s" : ""}` : `day${remainingDays > 1 ? "s" : ""} remaining`}`;
+
   return (
     <Card data-testid="card-subscription-progress">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Clock className="w-5 h-5" />
-          Abonnement
+          {t("billing.subscription")}
         </CardTitle>
-        <CardDescription>
-          {isExpired
-            ? "Votre abonnement a expiré"
-            : isExpiringSoon
-              ? `Renouvellement dans ${remainingDays} jour${remainingDays > 1 ? "s" : ""}`
-              : `${remainingDays} jour${remainingDays > 1 ? "s" : ""} restant${remainingDays > 1 ? "s" : ""}`}
-        </CardDescription>
+        <CardDescription>{descriptionText}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between gap-2 text-sm flex-wrap">
           <span className="text-muted-foreground">
-            {start.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+            {start.toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })}
           </span>
           <span className="text-muted-foreground">
-            {end.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+            {end.toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })}
           </span>
         </div>
         <Progress
@@ -143,18 +148,18 @@ function SubscriptionProgressBar({ periodStart, periodEnd }: { periodStart?: str
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             {isExpired ? (
-              <Badge variant="destructive" data-testid="badge-subscription-status">Expiré</Badge>
+              <Badge variant="destructive" data-testid="badge-subscription-status">{t("billing.expired")}</Badge>
             ) : isExpiringSoon ? (
               <Badge variant="secondary" className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400" data-testid="badge-subscription-status">
                 <AlertTriangle className="w-3 h-3 mr-1" />
-                Expire bientôt
+                {t("billing.expiringSoon")}
               </Badge>
             ) : (
-              <Badge variant="secondary" data-testid="badge-subscription-status">Actif</Badge>
+              <Badge variant="secondary" data-testid="badge-subscription-status">{t("billing.active")}</Badge>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            {elapsedDays} / {totalDays} jours
+            {elapsedDays} / {totalDays} {t("billing.days")}
           </p>
         </div>
 
@@ -163,11 +168,8 @@ function SubscriptionProgressBar({ periodStart, periodEnd }: { periodStart?: str
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-destructive">Abonnement expiré</p>
-                <p className="text-muted-foreground mt-1">
-                  Veuillez renouveler votre souscription pour continuer à utiliser les fonctionnalités.
-                  Un prélèvement automatique sera tenté à la date de renouvellement.
-                </p>
+                <p className="font-medium text-destructive">{t("billing.subscriptionExpiredAlert")}</p>
+                <p className="text-muted-foreground mt-1">{t("billing.subscriptionExpiredDesc")}</p>
               </div>
             </div>
           </div>
@@ -178,11 +180,8 @@ function SubscriptionProgressBar({ periodStart, periodEnd }: { periodStart?: str
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-orange-800 dark:text-orange-300">Renouvellement imminent</p>
-                <p className="text-muted-foreground mt-1">
-                  Votre prélèvement automatique sera effectué la veille de la date de renouvellement.
-                  Assurez-vous que votre moyen de paiement est à jour.
-                </p>
+                <p className="font-medium text-orange-800 dark:text-orange-300">{t("billing.renewalImminent")}</p>
+                <p className="text-muted-foreground mt-1">{t("billing.renewalImminentDesc2")}</p>
               </div>
             </div>
           </div>
@@ -193,6 +192,8 @@ function SubscriptionProgressBar({ periodStart, periodEnd }: { periodStart?: str
 }
 
 function InvoiceRow({ invoice }: { invoice: any }) {
+  const { t, lang } = useI18n();
+  const locale = lang === "fr" ? "fr-FR" : "en-US";
   const date = new Date(invoice.createdAt);
   const items = (invoice.items as any[]) || [];
 
@@ -214,17 +215,19 @@ function InvoiceRow({ invoice }: { invoice: any }) {
         <div>
           <p className="font-medium text-sm">{invoice.invoiceNumber}</p>
           <p className="text-xs text-muted-foreground">
-            {date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+            {date.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" })}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-3 flex-wrap">
         <div className="text-right">
           <p className="font-medium">{(invoice.amount / 100).toFixed(2)} €</p>
-          <p className="text-xs text-muted-foreground">{items.length} article{items.length > 1 ? "s" : ""}</p>
+          <p className="text-xs text-muted-foreground">
+            {items.length} {items.length > 1 ? t("billing.articles") : t("billing.article")}
+          </p>
         </div>
         <Badge variant={invoice.status === "paid" ? "secondary" : "destructive"}>
-          {invoice.status === "paid" ? "Payée" : "En attente"}
+          {invoice.status === "paid" ? t("billing.paid") : t("billing.pending")}
         </Badge>
         <Button size="icon" variant="ghost" onClick={handleDownload} data-testid={`button-download-invoice-${invoice.id}`}>
           <Download className="w-4 h-4" />
@@ -312,6 +315,7 @@ function generateInvoiceHTML(invoice: any): string {
 }
 
 function UpgradeSection({ entitlements }: { entitlements: string[] }) {
+  const { t, lang } = useI18n();
   const [selectedOptions, setSelectedOptions] = useState<Record<string, boolean>>({});
   const [selectedPacks, setSelectedPacks] = useState<Record<string, boolean>>({});
   const [selectedCoreModules, setSelectedCoreModules] = useState<Record<string, boolean>>({});
@@ -411,7 +415,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
     if (items.length > 0) {
       checkout.mutate({ items }, {
         onError: (err: any) => {
-          toast({ title: "Erreur de paiement", description: err.message || "Impossible de procéder au paiement. Veuillez réessayer.", variant: "destructive" });
+          toast({ title: t("billing.paymentError"), description: err.message || t("billing.cannotProceedPayment"), variant: "destructive" });
         },
       });
     }
@@ -439,13 +443,13 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
   const filterItems = (items: typeof OPTION_CATALOG.collecte) =>
     items.filter(item => isModuleVisible(moduleVis, item.key));
 
-  const categories: { catKey: string; title: string; icon: any; items: typeof OPTION_CATALOG.collecte; packKey?: string }[] = [
-    { catKey: "collecte", title: "Collecte de données", icon: Mic, items: filterItems(OPTION_CATALOG.collecte), packKey: "pack_collecte" },
-    { catKey: "analyse", title: "Analyse de données", icon: BarChart3, items: filterItems(OPTION_CATALOG.analyse), packKey: "pack_analyse" },
-    { catKey: "revue", title: "Revue & Bibliographie", icon: Search, items: filterItems(OPTION_CATALOG.revue), packKey: "pack_revue" },
-    { catKey: "soutenance", title: "Soutenance & Audit", icon: Presentation, items: filterItems(OPTION_CATALOG.soutenance), packKey: "pack_soutenance" },
-    { catKey: "confort", title: "Confort & Export", icon: FileCheck, items: filterItems(OPTION_CATALOG.confort) },
-    { catKey: "ia", title: "Quotas IA", icon: BrainCircuit, items: filterItems(OPTION_CATALOG.ia) },
+  const categories: { catKey: string; titleKey: string; icon: any; items: typeof OPTION_CATALOG.collecte; packKey?: string }[] = [
+    { catKey: "collecte", titleKey: "billing.catCollecte", icon: Mic, items: filterItems(OPTION_CATALOG.collecte), packKey: "pack_collecte" },
+    { catKey: "analyse", titleKey: "billing.catAnalyse", icon: BarChart3, items: filterItems(OPTION_CATALOG.analyse), packKey: "pack_analyse" },
+    { catKey: "revue", titleKey: "billing.catRevue", icon: Search, items: filterItems(OPTION_CATALOG.revue), packKey: "pack_revue" },
+    { catKey: "soutenance", titleKey: "billing.catSoutenance", icon: Presentation, items: filterItems(OPTION_CATALOG.soutenance), packKey: "pack_soutenance" },
+    { catKey: "confort", titleKey: "billing.catConfort", icon: FileCheck, items: filterItems(OPTION_CATALOG.confort) },
+    { catKey: "ia", titleKey: "billing.catIA", icon: BrainCircuit, items: filterItems(OPTION_CATALOG.ia) },
   ].filter(cat => cat.items.length > 0);
 
   return (
@@ -453,16 +457,16 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Unlock className="w-5 h-5" />
-          Modules & Fonctionnalités
+          {t("billing.modulesAndFeatures")}
         </CardTitle>
-        <CardDescription>Sélectionnez le pack complet ou achetez chaque module individuellement.</CardDescription>
+        <CardDescription>{t("billing.selectPackOrIndividual")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
 
         <div className="space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Package className="w-5 h-5 text-primary" />
-            <h3 className="text-base font-semibold">Fondations Mémoire / TFE / VAE</h3>
+            <h3 className="text-base font-semibold">{t("billing.foundationsTitle")}</h3>
           </div>
 
           <Card
@@ -490,19 +494,19 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                     />
                   )}
                   <div>
-                    <span className="font-bold text-base">Pack Fondations complet</span>
-                    <p className="text-xs text-muted-foreground mt-0.5">Tous les modules ci-dessous inclus + Workflow, sauvegarde, export Word, 20 000 mots IA</p>
+                    <span className="font-bold text-base">{t("billing.completeFoundationsPack")}</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("billing.allModulesIncludedDesc")}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   {coreOwned && (
                     <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                      Activé
+                      {t("billing.activated")}
                     </Badge>
                   )}
                   <div className="text-right">
                     <Badge className="text-lg font-extrabold px-3 py-1">{CORE_PACK_PRICE} &euro;</Badge>
-                    <p className="text-xs text-muted-foreground mt-1">au lieu de {CORE_MODULES_TOTAL} &euro;</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("billing.insteadOf")} {CORE_MODULES_TOTAL} &euro;</p>
                   </div>
                 </div>
               </div>
@@ -511,7 +515,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
 
           <div className="relative">
             <div className="absolute inset-x-0 top-0 flex justify-center -translate-y-1/2">
-              <span className="bg-background px-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">ou achetez à l'unité</span>
+              <span className="bg-background px-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">{t("billing.orBuyIndividually")}</span>
             </div>
             <div className="border rounded-lg p-4 pt-5 space-y-2">
               {visibleCoreModules.map((mod) => {
@@ -541,14 +545,14 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                         />
                       )}
                       <div>
-                        <span className="text-sm font-medium">{mod.label}</span>
-                        <p className="text-xs text-muted-foreground">{mod.description}</p>
+                        <span className="text-sm font-medium">{t(`billingCatalog.${mod.key}.label`)}</span>
+                        <p className="text-xs text-muted-foreground">{t(`billingCatalog.${mod.key}.description`)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {owned && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
-                          Activé
+                          {t("billing.activated")}
                         </Badge>
                       )}
                       <span className="text-sm font-bold text-muted-foreground whitespace-nowrap">{mod.price} &euro;</span>
@@ -564,10 +568,9 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
               <div className="flex items-start gap-3">
                 <Package className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-sm">Le Pack Fondations est plus avantageux !</p>
+                  <p className="font-semibold text-sm">{t("billing.packMoreAdvantage")}</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Votre sélection ({selectedCoreModuleCount} modules) revient à {selectedCoreModulesTotal} &euro;.
-                    Le Pack complet avec TOUS les modules ne coûte que <strong>{CORE_PACK_PRICE} &euro;</strong> &mdash; vous économisez {selectedCoreModulesTotal - CORE_PACK_PRICE} &euro;.
+                    {t("billing.selectionCostsDesc").replace("{count}", String(selectedCoreModuleCount)).replace("{price}", String(selectedCoreModulesTotal))} <strong>{CORE_PACK_PRICE} &euro;</strong> &mdash; {t("billing.youSave")} {selectedCoreModulesTotal - CORE_PACK_PRICE} &euro;.
                   </p>
                 </div>
               </div>
@@ -577,13 +580,13 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                 data-testid="button-switch-to-pack"
               >
                 <Package className="w-4 h-4 mr-2" />
-                Passer au Pack Fondations ({CORE_PACK_PRICE} &euro;)
+                {t("billing.switchToPack")} ({CORE_PACK_PRICE} &euro;)
               </Button>
             </div>
           )}
         </div>
 
-        {categories.map(({ catKey, title, icon: CatIcon, items, packKey }) => {
+        {categories.map(({ catKey, titleKey, icon: CatIcon, items, packKey }) => {
           const packDef = packKey ? PACK_OPTIONS[packKey] : null;
           const packActive = packKey ? !!selectedPacks[packKey] : false;
           const packFullyOwned = packKey ? isPackFullyOwned(packKey) : false;
@@ -593,7 +596,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3 flex-wrap">
                   <CatIcon className="w-5 h-5 text-primary" />
-                  <CardTitle className="text-base">{title}</CardTitle>
+                  <CardTitle className="text-base">{t(titleKey)}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -624,14 +627,14 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                           />
                         )}
                         <div>
-                          <span className="text-sm font-medium">{item.label}</span>
-                          <p className="text-xs text-muted-foreground">{item.description}</p>
+                          <span className="text-sm font-medium">{t(`billingCatalog.${item.key}.label`)}</span>
+                          <p className="text-xs text-muted-foreground">{t(`billingCatalog.${item.key}.description`)}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {owned && (
                           <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
-                            Activé
+                            {t("billing.activated")}
                           </Badge>
                         )}
                         <span className="text-sm font-bold text-muted-foreground whitespace-nowrap">{item.price} &euro;</span>
@@ -660,17 +663,17 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                       <div>
                         <span className="text-sm font-bold flex items-center gap-2">
                           <Package className="w-4 h-4 text-primary" />
-                          {packDef.label}
+                          {t(`billingCatalog.${packDef.labelKey}.label`)}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {packFullyOwned ? "Tous les modules inclus sont activés" : "Tout inclus, économisez !"}
+                          {packFullyOwned ? t("billing.allModulesActivated") : t("billing.allIncludedSave")}
                         </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {packFullyOwned && (
                         <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs">
-                          Activé
+                          {t("billing.activated")}
                         </Badge>
                       )}
                       <Badge className="font-extrabold">{packDef.price} &euro;</Badge>
@@ -686,19 +689,19 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
           <Card className="bg-primary text-primary-foreground">
             <CardContent className="p-6">
               <div className="text-center space-y-4">
-                <p className="text-sm opacity-80 uppercase tracking-wider">Total à payer</p>
+                <p className="text-sm opacity-80 uppercase tracking-wider">{t("billing.totalToPay")}</p>
                 <p className="text-4xl font-extrabold" data-testid="text-upgrade-total">
                   {total} &euro;
                 </p>
                 <div className="text-left text-sm space-y-1 opacity-90">
-                  {corePackSelected && !coreOwned && <div className="flex justify-between gap-2"><span>Pack Fondations complet</span><span>{CORE_PACK_PRICE} &euro;</span></div>}
+                  {corePackSelected && !coreOwned && <div className="flex justify-between gap-2"><span>{t("billing.completeFoundationsPack")}</span><span>{CORE_PACK_PRICE} &euro;</span></div>}
                   {!corePackSelected && Object.entries(selectedCoreModules).filter(([, v]) => v).map(([key]) => {
                     const mod = CORE_MODULES.find(m => m.key === key);
                     if (!mod) return null;
-                    return <div key={key} className="flex justify-between gap-2"><span>{mod.label}</span><span>{mod.price} &euro;</span></div>;
+                    return <div key={key} className="flex justify-between gap-2"><span>{t(`billingCatalog.${key}.label`)}</span><span>{mod.price} &euro;</span></div>;
                   })}
                   {Object.entries(selectedPacks).filter(([, v]) => v).map(([pk]) => (
-                    <div key={pk} className="flex justify-between gap-2"><span>{PACK_OPTIONS[pk].label}</span><span>{PACK_OPTIONS[pk].price} &euro;</span></div>
+                    <div key={pk} className="flex justify-between gap-2"><span>{t(`billingCatalog.${PACK_OPTIONS[pk].labelKey}.label`)}</span><span>{PACK_OPTIONS[pk].price} &euro;</span></div>
                   ))}
                   {Object.entries(selectedOptions).filter(([key, v]) => {
                     if (!v) return false;
@@ -706,7 +709,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                   }).map(([key]) => {
                     const item = Object.values(OPTION_CATALOG).flat().find(i => i.key === key);
                     if (!item) return null;
-                    return <div key={key} className="flex justify-between gap-2"><span>{item.label}</span><span>{item.price} &euro;</span></div>;
+                    return <div key={key} className="flex justify-between gap-2"><span>{t(`billingCatalog.${key}.label`)}</span><span>{item.price} &euro;</span></div>;
                   })}
                 </div>
                 <Button
@@ -718,7 +721,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
                   data-testid="button-upgrade-pay"
                 >
                   {checkout.isPending ? <Loader2 className="mr-2 w-4 h-4 animate-spin" /> : null}
-                  Payer et activer
+                  {t("billing.payAndActivate")}
                   <ArrowRight className="ml-2 w-4 h-4" />
                 </Button>
               </div>
@@ -731,6 +734,8 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
 }
 
 export default function Billing() {
+  const { t, lang } = useI18n();
+  const locale = lang === "fr" ? "fr-FR" : "en-US";
   const { data: quota, isLoading } = useQuota();
   const surplusMutation = useSurplusPurchase();
   const confirmPayment = useConfirmPayment();
@@ -753,7 +758,7 @@ export default function Billing() {
       confirmAttempted.current = true;
       confirmPayment.mutate(sessionId, {
         onSuccess: () => {
-          toast({ title: "Paiement confirmé", description: "Vos modules ont été activés avec succès." });
+          toast({ title: t("billing.paymentConfirmed"), description: t("billing.modulesActivatedSuccess") });
           queryClient.invalidateQueries({ queryKey: ["/api/entitlements"] });
           queryClient.invalidateQueries({ queryKey: ["/api/purchases"] });
           queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
@@ -761,7 +766,7 @@ export default function Billing() {
           window.history.replaceState({}, "", window.location.pathname);
         },
         onError: () => {
-          toast({ title: "Erreur", description: "Impossible de confirmer le paiement. Contactez le support.", variant: "destructive" });
+          toast({ title: t("billing.error"), description: t("billing.cannotConfirmPayment"), variant: "destructive" });
           window.history.replaceState({}, "", window.location.pathname);
         },
       });
@@ -769,18 +774,18 @@ export default function Billing() {
       confirmAttempted.current = true;
       confirmSurplus.mutate(sessionId, {
         onSuccess: () => {
-          toast({ title: "Surplus activé", description: "Votre quota a été augmenté avec succès." });
+          toast({ title: t("billing.surplusActivated"), description: t("billing.quotaIncreased") });
           queryClient.invalidateQueries({ queryKey: ["/api/quota"] });
           queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
           window.history.replaceState({}, "", window.location.pathname);
         },
         onError: () => {
-          toast({ title: "Erreur", description: "Impossible de confirmer le surplus. Contactez le support.", variant: "destructive" });
+          toast({ title: t("billing.error"), description: t("billing.cannotConfirmSurplus"), variant: "destructive" });
           window.history.replaceState({}, "", window.location.pathname);
         },
       });
     } else if (payment === "cancelled" || surplus === "cancelled") {
-      toast({ title: "Paiement annulé", description: "Votre paiement a été annulé." });
+      toast({ title: t("billing.paymentCancelled"), description: t("billing.paymentCancelledDesc") });
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
@@ -788,10 +793,10 @@ export default function Billing() {
   const handleBuySurplus = async (key: string) => {
     try {
       await surplusMutation.mutateAsync(key);
-      toast({ title: "Surplus activé", description: "Votre quota a été augmenté." });
+      toast({ title: t("billing.surplusActivated"), description: t("billing.quotaIncreasedShort") });
       queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
     } catch (err: any) {
-      toast({ title: "Erreur", description: err.message || "Impossible d'acheter le surplus", variant: "destructive" });
+      toast({ title: t("billing.error"), description: err.message || t("billing.cannotBuySurplus"), variant: "destructive" });
     }
   };
 
@@ -809,7 +814,7 @@ export default function Billing() {
     return (
       <Layout>
         <div className="flex items-center justify-center py-20">
-          <p className="text-muted-foreground">Impossible de charger les quotas.</p>
+          <p className="text-muted-foreground">{t("billing.cannotLoadQuotas")}</p>
         </div>
       </Layout>
     );
@@ -821,10 +826,11 @@ export default function Billing() {
 
   return (
     <Layout>
+      <SEO titleKey="seo.billingTitle" />
       <div className="space-y-6" data-testid="page-billing">
         <div>
-          <h1 className="text-2xl font-bold" data-testid="text-billing-title">Facturation & Quotas</h1>
-          <p className="text-muted-foreground mt-1">Gérez votre abonnement, vos modules et consultez vos factures</p>
+          <h1 className="text-2xl font-bold" data-testid="text-billing-title">{t("billing.billingAndQuotas")}</h1>
+          <p className="text-muted-foreground mt-1">{t("billing.manageSubscription")}</p>
         </div>
 
         <SubscriptionProgressBar periodStart={quota.periodStart} periodEnd={quota.periodEnd} />
@@ -832,15 +838,15 @@ export default function Billing() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card data-testid="card-words-quota">
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mots générés</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("billing.wordsGenerated")}</CardTitle>
               <FileText className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold" data-testid="text-words-used">
-                {quota.wordsUsed.toLocaleString("fr-FR")}
+                {quota.wordsUsed.toLocaleString(locale)}
               </div>
               <p className="text-xs text-muted-foreground">
-                sur {quota.wordsLimit.toLocaleString("fr-FR")} mots / mois
+                {t("billing.outOf")} {quota.wordsLimit.toLocaleString(locale)} {t("billing.wordsPerMonth")}
               </p>
               <Progress 
                 value={wordsPct} 
@@ -851,7 +857,7 @@ export default function Billing() {
 
           <Card data-testid="card-actions-quota">
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Actions IA</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("billing.aiActions")}</CardTitle>
               <Zap className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -859,7 +865,7 @@ export default function Billing() {
                 {quota.actionsUsed}
               </div>
               <p className="text-xs text-muted-foreground">
-                sur {quota.actionsLimit} actions / mois
+                {t("billing.outOf")} {quota.actionsLimit} {t("billing.actionsPerMonth")}
               </p>
               <Progress 
                 value={actionsPct} 
@@ -870,7 +876,7 @@ export default function Billing() {
 
           <Card data-testid="card-projects-quota">
             <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Projets actifs</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("billing.activeProjectsLabel")}</CardTitle>
               <FolderOpen className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -878,7 +884,7 @@ export default function Billing() {
                 {quota.activeProjects}
               </div>
               <p className="text-xs text-muted-foreground">
-                sur {quota.activeProjectsLimit} projets actifs
+                {t("billing.outOf")} {quota.activeProjectsLimit} {t("billing.activeProjectsCount")}
               </p>
               <Progress 
                 value={projectsPct} 
@@ -894,9 +900,9 @@ export default function Billing() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Receipt className="w-5 h-5" />
-              Mes factures
+              {t("billing.myInvoices")}
             </CardTitle>
-            <CardDescription>Historique de vos factures avec téléchargement</CardDescription>
+            <CardDescription>{t("billing.invoiceHistoryDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {invoicesLoading ? (
@@ -904,7 +910,7 @@ export default function Billing() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : !invoicesData?.length ? (
-              <p className="text-sm text-muted-foreground text-center py-8">Aucune facture disponible</p>
+              <p className="text-sm text-muted-foreground text-center py-8">{t("billing.noInvoiceAvailable")}</p>
             ) : (
               <div className="space-y-3">
                 {invoicesData.map((inv: any) => (
@@ -919,9 +925,9 @@ export default function Billing() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              Packs supplémentaires
+              {t("billing.surplusPacks")}
             </CardTitle>
-            <CardDescription>Augmentez vos quotas en achetant des packs à la carte</CardDescription>
+            <CardDescription>{t("billing.increaseQuotasDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
@@ -943,7 +949,7 @@ export default function Billing() {
                     ) : (
                       <ShoppingCart className="w-4 h-4 mr-1" />
                     )}
-                    Acheter
+                    {t("billing.buy")}
                   </Button>
                 </div>
               ))}
@@ -955,30 +961,29 @@ export default function Billing() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="w-5 h-5" />
-              Prélèvement automatique
+              {t("billing.automaticPayment")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Le prélèvement automatique est effectué la veille de chaque date de renouvellement.
-              Si le paiement échoue, vous recevrez une notification et une relance sera effectuée sous 3 jours.
+              {t("billing.automaticPaymentDesc")}
             </p>
             <div className="p-3 rounded-md border text-sm space-y-2">
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-muted-foreground">Prochain prélèvement</span>
+                <span className="text-muted-foreground">{t("billing.nextPayment")}</span>
                 <span className="font-medium" data-testid="text-next-payment-date">
                   {quota.periodEnd
                     ? (() => {
                         const d = new Date(quota.periodEnd);
                         d.setDate(d.getDate() - 1);
-                        return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+                        return d.toLocaleDateString(locale, { day: "numeric", month: "long", year: "numeric" });
                       })()
                     : "-"}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-muted-foreground">Mode de paiement</span>
-                <span className="font-medium">Carte bancaire</span>
+                <span className="text-muted-foreground">{t("billing.paymentMethod")}</span>
+                <span className="font-medium">{t("billing.creditCard")}</span>
               </div>
             </div>
           </CardContent>

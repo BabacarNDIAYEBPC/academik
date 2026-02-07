@@ -18,6 +18,7 @@ import {
   FileDown, MessageSquare, Table2,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 
 interface MethodologyModuleProps {
@@ -27,14 +28,6 @@ interface MethodologyModuleProps {
   extraContext?: string;
   section?: ProjectSection;
 }
-
-const TABLE_TYPES = [
-  { key: "methodological_choice", label: "Choix méthodologique", description: "Type de méthodologie, justification et liens" },
-  { key: "pre_operational", label: "Phase préopératoire", description: "Objectifs terrain, démarche, contraintes" },
-  { key: "target_population", label: "Population cible", description: "Critères d'inclusion / exclusion, caractéristiques" },
-  { key: "collection_tools", label: "Outils de collecte", description: "Questionnaire, entretien, grille d'observation..." },
-  { key: "limits", label: "Limites méthodologiques", description: "Biais, impacts, mesures correctives" },
-];
 
 interface TableData {
   rows: Record<string, string>[];
@@ -62,11 +55,20 @@ export default function MethodologyModule({
   const [instructions, setInstructions] = useState("");
 
   const { toast } = useToast();
+  const { t } = useI18n();
   const tablesMutation = useGenerateMethodologyTables();
   const saveManualMutation = useSaveManual();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
   const saveConfigMutation = useSaveSectionConfig();
+
+  const TABLE_TYPES = [
+    { key: "methodological_choice", label: t("modules.methodology.tableMethodologicalChoice"), description: t("modules.methodology.tableMethodologicalChoiceDesc") },
+    { key: "pre_operational", label: t("modules.methodology.tablePreOperational"), description: t("modules.methodology.tablePreOperationalDesc") },
+    { key: "target_population", label: t("modules.methodology.tableTargetPopulation"), description: t("modules.methodology.tableTargetPopulationDesc") },
+    { key: "collection_tools", label: t("modules.methodology.tableCollectionTools"), description: t("modules.methodology.tableCollectionToolsDesc") },
+    { key: "limits", label: t("modules.methodology.tableLimits"), description: t("modules.methodology.tableLimitsDesc") },
+  ];
 
   const stateRef = useRef({ tables, instructions });
   useEffect(() => {
@@ -130,11 +132,12 @@ export default function MethodologyModule({
           setTables(prev => ({ ...prev, [tableType]: data }));
           setExpandedTables(prev => new Set(prev).add(tableType));
           setActiveAction(null);
-          toast({ title: "Tableau généré", description: `Le tableau "${TABLE_TYPES.find(t => t.key === tableType)?.label}" a été créé.` });
+          const tableLabel = TABLE_TYPES.find(tt => tt.key === tableType)?.label;
+          toast({ title: t("modules.methodology.toastTableGenerated"), description: `${t("modules.methodology.toastTableCreatedPrefix")} "${tableLabel}" ${t("modules.methodology.toastTableCreatedSuffix")}` });
         },
         onError: (err) => {
           setActiveAction(null);
-          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          toast({ title: t("modules.methodology.toastError"), description: err.message, variant: "destructive" });
         },
       }
     );
@@ -142,29 +145,29 @@ export default function MethodologyModule({
 
   const handleGenerateAll = async () => {
     setActiveAction("all");
-    for (const t of TABLE_TYPES) {
+    for (const tbl of TABLE_TYPES) {
       try {
         const data = await tablesMutation.mutateAsync({
           projectId,
-          tableType: t.key,
+          tableType: tbl.key,
           extraContext: `${extraContext || ""}\n${instructions ? `Consignes: ${instructions}` : ""}`,
         });
-        setTables(prev => ({ ...prev, [t.key]: data }));
-        setExpandedTables(prev => new Set(prev).add(t.key));
+        setTables(prev => ({ ...prev, [tbl.key]: data }));
+        setExpandedTables(prev => new Set(prev).add(tbl.key));
       } catch {
-        toast({ title: "Erreur", description: `Erreur pour "${t.label}"`, variant: "destructive" });
+        toast({ title: t("modules.methodology.toastError"), description: `${t("modules.methodology.toastErrorFor")} "${tbl.label}"`, variant: "destructive" });
       }
     }
     setActiveAction(null);
-    toast({ title: "Tous les tableaux générés", description: "Les 5 tableaux analytiques sont prêts." });
+    toast({ title: t("modules.methodology.toastAllTablesGenerated"), description: t("modules.methodology.toastAllTablesReady") });
   };
 
   const buildFullContent = () => {
-    let content = "# Cadre méthodologique\n\n";
-    TABLE_TYPES.forEach(t => {
-      const data = tables[t.key];
+    let content = `# ${t("modules.methodology.title")}\n\n`;
+    TABLE_TYPES.forEach(tbl => {
+      const data = tables[tbl.key];
       if (!data || !data.rows?.length) return;
-      content += `## ${t.label}\n\n`;
+      content += `## ${tbl.label}\n\n`;
       const cols = Object.keys(data.rows[0]);
       content += `| ${cols.join(" | ")} |\n`;
       content += `| ${cols.map(() => "---").join(" | ")} |\n`;
@@ -186,7 +189,7 @@ export default function MethodologyModule({
       { sectionId: section.id, content, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Sauvegardé", description: "La méthodologie a été enregistrée." });
+          toast({ title: t("modules.methodology.toastSaved"), description: t("modules.methodology.toastMethodologySaved") });
         },
       }
     );
@@ -198,7 +201,7 @@ export default function MethodologyModule({
       { sectionId: section.id, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Validé", description: "La méthodologie est validée." });
+          toast({ title: t("modules.methodology.toastValidated"), description: t("modules.methodology.toastMethodologyValidated") });
         },
       }
     );
@@ -210,7 +213,7 @@ export default function MethodologyModule({
       { sectionId: section.id, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Dévalidé", description: "La méthodologie n'est plus validée." });
+          toast({ title: t("modules.methodology.toastUnvalidated"), description: t("modules.methodology.toastMethodologyUnvalidated") });
         },
       }
     );
@@ -218,8 +221,8 @@ export default function MethodologyModule({
 
   const handleExportWord = () => {
     const exportSections: { label: string; content: string }[] = [];
-    TABLE_TYPES.forEach(t => {
-      const data = tables[t.key];
+    TABLE_TYPES.forEach(tbl => {
+      const data = tables[tbl.key];
       if (!data || !data.rows?.length) return;
       let content = "";
       const cols = Object.keys(data.rows[0]);
@@ -229,10 +232,10 @@ export default function MethodologyModule({
         });
         content += "\n";
       });
-      if (data.comment) content += `Commentaire: ${data.comment}\n`;
-      exportSections.push({ label: t.label, content });
+      if (data.comment) content += `${t("modules.methodology.comment")}: ${data.comment}\n`;
+      exportSections.push({ label: tbl.label, content });
     });
-    exportToWord("Cadre méthodologique", exportSections, "methodologie");
+    exportToWord(t("modules.methodology.exportTitle"), exportSections, "methodologie");
   };
 
   const isValidated = section?.status === "validated";
@@ -245,20 +248,20 @@ export default function MethodologyModule({
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <FlaskConical className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">Cadre méthodologique</CardTitle>
+              <CardTitle className="text-lg">{t("modules.methodology.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isValidated ? (
                 <Badge variant="default" className="bg-green-600 text-white">
-                  <Check className="w-3 h-3 mr-1" /> Validé
+                  <Check className="w-3 h-3 mr-1" /> {t("modules.methodology.validated")}
                 </Badge>
               ) : (
-                hasAnyTable && <Badge variant="outline">Brouillon</Badge>
+                hasAnyTable && <Badge variant="outline">{t("modules.methodology.draft")}</Badge>
               )}
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Générez les 5 tableaux analytiques pour structurer votre méthodologie. Les commentaires IA servent de guide de rédaction.
+            {t("modules.methodology.description")}
           </p>
         </CardHeader>
       </Card>
@@ -266,11 +269,11 @@ export default function MethodologyModule({
       <Card>
         <CardContent className="p-4 space-y-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Consignes spécifiques</Label>
+            <Label className="text-sm font-medium">{t("modules.methodology.specificInstructions")}</Label>
             <Textarea
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Instructions libres pour affiner la génération des tableaux..."
+              placeholder={t("modules.methodology.instructionsPlaceholder")}
               className="resize-none text-sm"
               rows={2}
               data-testid="input-methodology-instructions"
@@ -282,30 +285,30 @@ export default function MethodologyModule({
             data-testid="button-generate-all-tables"
           >
             {activeAction === "all" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Table2 className="w-4 h-4 mr-2" />}
-            Générer les 5 tableaux
+            {t("modules.methodology.generateAllTables")}
           </Button>
         </CardContent>
       </Card>
 
-      {TABLE_TYPES.map(t => {
-        const data = tables[t.key];
-        const isExpanded = expandedTables.has(t.key);
-        const isGenerating = activeAction === t.key || activeAction === "all";
+      {TABLE_TYPES.map(tbl => {
+        const data = tables[tbl.key];
+        const isExpanded = expandedTables.has(tbl.key);
+        const isGenerating = activeAction === tbl.key || activeAction === "all";
 
         return (
-          <Card key={t.key}>
+          <Card key={tbl.key}>
             <CardHeader className="pb-2">
               <button
-                onClick={() => toggleExpanded(t.key)}
+                onClick={() => toggleExpanded(tbl.key)}
                 className="flex items-center gap-2 w-full text-left"
-                data-testid={`toggle-table-${t.key}`}
+                data-testid={`toggle-table-${tbl.key}`}
               >
                 <Table2 className="w-4 h-4" />
                 <div className="flex-1">
-                  <CardTitle className="text-base">{t.label}</CardTitle>
-                  <p className="text-xs text-muted-foreground">{t.description}</p>
+                  <CardTitle className="text-base">{tbl.label}</CardTitle>
+                  <p className="text-xs text-muted-foreground">{tbl.description}</p>
                 </div>
-                {data && <Badge variant="secondary" className="mr-2">{data.rows?.length || 0} ligne(s)</Badge>}
+                {data && <Badge variant="secondary" className="mr-2">{data.rows?.length || 0} {t("modules.methodology.rows")}</Badge>}
                 <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
               </button>
             </CardHeader>
@@ -314,12 +317,12 @@ export default function MethodologyModule({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleGenerateTable(t.key)}
+                  onClick={() => handleGenerateTable(tbl.key)}
                   disabled={activeAction !== null}
-                  data-testid={`button-generate-table-${t.key}`}
+                  data-testid={`button-generate-table-${tbl.key}`}
                 >
                   {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FlaskConical className="w-4 h-4 mr-2" />}
-                  {data ? "Régénérer" : "Générer"}
+                  {data ? t("modules.methodology.regenerate") : t("modules.methodology.generate")}
                 </Button>
 
                 {data && data.rows?.length > 0 && (
@@ -357,7 +360,7 @@ export default function MethodologyModule({
                     <div className="flex items-start gap-2">
                       <MessageSquare className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-1">Guide de rédaction IA</p>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">{t("modules.methodology.aiWritingGuide")}</p>
                         <p className="text-sm">{data.comment}</p>
                       </div>
                     </div>
@@ -374,18 +377,18 @@ export default function MethodologyModule({
           <CardContent className="p-4">
             <div className="flex items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={handleExportWord} data-testid="button-export-methodology-word">
-                <FileDown className="w-4 h-4 mr-1" /> Word
+                <FileDown className="w-4 h-4 mr-1" /> {t("modules.methodology.exportWord")}
               </Button>
               <Button variant="outline" size="sm" onClick={handleSaveToSection} data-testid="button-save-methodology">
-                <Save className="w-4 h-4 mr-1" /> Enregistrer
+                <Save className="w-4 h-4 mr-1" /> {t("modules.methodology.save")}
               </Button>
               {isValidated ? (
                 <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="button-unvalidate-methodology">
-                  <X className="w-4 h-4 mr-1" /> Dévalider
+                  <X className="w-4 h-4 mr-1" /> {t("modules.methodology.unvalidate")}
                 </Button>
               ) : (
                 <Button size="sm" onClick={handleValidate} disabled={!section?.activeVersionId} data-testid="button-validate-methodology">
-                  <Check className="w-4 h-4 mr-1" /> Valider
+                  <Check className="w-4 h-4 mr-1" /> {t("modules.methodology.validate")}
                 </Button>
               )}
             </div>

@@ -20,6 +20,7 @@ import {
   Loader2, AlertTriangle, CheckCircle, Info, Target,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 interface AuditMemoireModuleProps {
   projectId: number;
@@ -62,6 +63,7 @@ export default function AuditMemoireModule({
   const [activeTab, setActiveTab] = useState("structural");
   const [stateLoaded, setStateLoaded] = useState(false);
 
+  const { t, lang } = useI18n();
   const { toast } = useToast();
   const auditMutation = useAuditMemoire();
   const saveConfigMutation = useSaveSectionConfig();
@@ -130,9 +132,9 @@ export default function AuditMemoireModule({
       try {
         const text = await file.text();
         setMemoireContent(text);
-        toast({ title: "Fichier importé", description: `"${file.name}" importé avec succès.` });
+        toast({ title: t("modules.audit.toastFileImported"), description: `"${file.name}" ${t("modules.audit.toastFileImportedDesc")}` });
       } catch {
-        toast({ title: "Erreur d'import", description: "Impossible de lire le fichier.", variant: "destructive" });
+        toast({ title: t("modules.audit.toastImportError"), description: t("modules.audit.toastImportErrorDesc"), variant: "destructive" });
       }
     };
     input.click();
@@ -140,7 +142,7 @@ export default function AuditMemoireModule({
 
   const handleLaunchAudit = () => {
     if (!memoireContent.trim()) {
-      toast({ title: "Contenu requis", description: "Importez ou collez le contenu de votre mémoire avant de lancer l'audit.", variant: "destructive" });
+      toast({ title: t("modules.audit.toastContentRequired"), description: t("modules.audit.toastContentRequiredDesc"), variant: "destructive" });
       return;
     }
     auditMutation.mutate(
@@ -155,10 +157,10 @@ export default function AuditMemoireModule({
         onSuccess: (data) => {
           setAuditResult(data);
           setCheckedPriorities([]);
-          toast({ title: "Audit terminé", description: "L'audit de votre mémoire a été réalisé avec succès." });
+          toast({ title: t("modules.audit.toastAuditComplete"), description: t("modules.audit.toastAuditCompleteDesc") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de l'audit", variant: "destructive" });
+          toast({ title: t("modules.audit.toastError"), description: error.message || t("modules.audit.toastErrorDesc"), variant: "destructive" });
         },
       }
     );
@@ -174,26 +176,26 @@ export default function AuditMemoireModule({
     if (!auditResult) return;
     const sections = [
       {
-        label: "Audit structurel",
-        content: formatAuditAxis(auditResult.structural),
+        label: t("modules.audit.exportStructural"),
+        content: formatAuditAxis(auditResult.structural, t),
       },
       {
-        label: "Audit méthodologique",
-        content: formatAuditAxis(auditResult.methodological),
+        label: t("modules.audit.exportMethodological"),
+        content: formatAuditAxis(auditResult.methodological, t),
       },
       {
-        label: "Audit théorique & bibliographique",
-        content: formatAuditAxis(auditResult.theoretical),
+        label: t("modules.audit.exportTheoretical"),
+        content: formatAuditAxis(auditResult.theoretical, t),
       },
       {
-        label: "Corrections prioritaires",
-        content: auditResult.priorities.map((p, i) => `${i + 1}. ${checkedPriorities.includes(p) ? "[FAIT] " : ""}${p}`).join("\n"),
+        label: t("modules.audit.exportPriorities"),
+        content: auditResult.priorities.map((p, i) => `${i + 1}. ${checkedPriorities.includes(p) ? `[${t("modules.audit.done")}] ` : ""}${p}`).join("\n"),
       },
     ];
     if (auditResult.score !== undefined) {
-      sections.push({ label: "Score global", content: `${auditResult.score} / 100` });
+      sections.push({ label: t("modules.audit.exportScore"), content: `${auditResult.score} / 100` });
     }
-    exportToWord("Audit de mémoire", sections, "audit_memoire");
+    exportToWord(t("modules.audit.exportDocTitle"), sections, "audit_memoire");
   };
 
   const handleValidate = () => {
@@ -201,8 +203,8 @@ export default function AuditMemoireModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: (error: any) => toast({ title: "Erreur", description: error.message, variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.audit.toastValidated") }),
+        onError: (error: any) => toast({ title: t("modules.audit.toastError"), description: error.message, variant: "destructive" }),
       }
     );
   };
@@ -212,8 +214,8 @@ export default function AuditMemoireModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: (error: any) => toast({ title: "Erreur", description: error.message, variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.audit.toastUnvalidated") }),
+        onError: (error: any) => toast({ title: t("modules.audit.toastError"), description: error.message, variant: "destructive" }),
       }
     );
   };
@@ -227,7 +229,7 @@ export default function AuditMemoireModule({
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <ShieldCheck className="w-5 h-5 text-primary" />
-              <CardTitle>Audit de mémoire</CardTitle>
+              <CardTitle>{t("modules.audit.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isValidated ? (
@@ -239,7 +241,7 @@ export default function AuditMemoireModule({
                   data-testid="button-unvalidate-audit"
                 >
                   <X className="w-4 h-4 mr-1" />
-                  Retirer validation
+                  {t("modules.audit.removeValidation")}
                 </Button>
               ) : (
                 <Button
@@ -250,12 +252,12 @@ export default function AuditMemoireModule({
                   data-testid="button-validate-audit"
                 >
                   <Check className="w-4 h-4 mr-1" />
-                  Valider
+                  {t("modules.audit.validate")}
                 </Button>
               )}
               {section?.status && (
                 <Badge variant={isValidated ? "default" : "secondary"} data-testid="badge-audit-status">
-                  {isValidated ? "Validé" : section.status}
+                  {isValidated ? t("modules.audit.validated") : section.status}
                 </Badge>
               )}
             </div>
@@ -264,55 +266,55 @@ export default function AuditMemoireModule({
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <Label className="text-sm font-semibold">Contenu du mémoire</Label>
+              <Label className="text-sm font-semibold">{t("modules.audit.memoireContentLabel")}</Label>
               <Button variant="outline" size="sm" onClick={handleImportFile} data-testid="button-import-memoir-audit">
                 <Upload className="w-4 h-4 mr-1" />
-                Importer un fichier
+                {t("modules.audit.importFile")}
               </Button>
             </div>
             <Textarea
               value={memoireContent}
               onChange={(e) => setMemoireContent(e.target.value)}
               className="min-h-[200px] text-sm"
-              placeholder="Collez ici le contenu complet de votre mémoire ou importez un fichier (.txt, .md, .rtf)..."
+              placeholder={t("modules.audit.memoirePlaceholder")}
               data-testid="textarea-memoir-content"
             />
             {memoireContent && (
               <p className="text-xs text-muted-foreground" data-testid="text-memoir-length">
-                {memoireContent.length.toLocaleString()} caractères
+                {memoireContent.length.toLocaleString()} {t("modules.audit.characters")}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Guide méthodologique (optionnel)</Label>
+            <Label className="text-sm font-semibold">{t("modules.audit.guideLabel")}</Label>
             <Textarea
               value={guideContent}
               onChange={(e) => setGuideContent(e.target.value)}
               className="min-h-[100px] text-sm"
-              placeholder="Collez ici le guide méthodologique de votre établissement si disponible..."
+              placeholder={t("modules.audit.guidePlaceholder")}
               data-testid="textarea-guide-content"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Consignes du tuteur (optionnel)</Label>
+            <Label className="text-sm font-semibold">{t("modules.audit.tutorLabel")}</Label>
             <Textarea
               value={tutorInstructions}
               onChange={(e) => setTutorInstructions(e.target.value)}
               className="min-h-[100px] text-sm"
-              placeholder="Consignes spécifiques données par votre tuteur ou directeur de mémoire..."
+              placeholder={t("modules.audit.tutorPlaceholder")}
               data-testid="textarea-tutor-instructions"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Contexte / consignes</Label>
+            <Label className="text-sm font-semibold">{t("modules.audit.contextLabel")}</Label>
             <Textarea
               value={contextInstructions}
               onChange={(e) => setContextInstructions(e.target.value)}
               className="min-h-[80px] text-sm"
-              placeholder="Instructions supplémentaires pour orienter l'audit..."
+              placeholder={t("modules.audit.contextPlaceholder")}
               data-testid="textarea-context-instructions"
             />
           </div>
@@ -327,7 +329,7 @@ export default function AuditMemoireModule({
             ) : (
               <Sparkles className="w-4 h-4 mr-2" />
             )}
-            {auditMutation.isPending ? "Audit en cours..." : "Lancer l'audit"}
+            {auditMutation.isPending ? t("modules.audit.auditInProgress") : t("modules.audit.launchAudit")}
           </Button>
         </CardContent>
       </Card>
@@ -341,7 +343,7 @@ export default function AuditMemoireModule({
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="flex items-center gap-2">
                       <Target className="w-5 h-5 text-primary" />
-                      <span className="font-semibold text-sm">Score global</span>
+                      <span className="font-semibold text-sm">{t("modules.audit.globalScore")}</span>
                     </div>
                     <span className="text-2xl font-bold" data-testid="text-audit-score">
                       {auditResult.score} / 100
@@ -355,19 +357,19 @@ export default function AuditMemoireModule({
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Résultats de l'audit</CardTitle>
+              <CardTitle className="text-base">{t("modules.audit.auditResults")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="w-full" data-testid="tabs-audit-axes">
                   <TabsTrigger value="structural" className="flex-1" data-testid="tab-structural">
-                    Structurel
+                    {t("modules.audit.tabStructural")}
                   </TabsTrigger>
                   <TabsTrigger value="methodological" className="flex-1" data-testid="tab-methodological">
-                    Méthodologique
+                    {t("modules.audit.tabMethodological")}
                   </TabsTrigger>
                   <TabsTrigger value="theoretical" className="flex-1" data-testid="tab-theoretical">
-                    Théorique
+                    {t("modules.audit.tabTheoretical")}
                   </TabsTrigger>
                 </TabsList>
 
@@ -391,7 +393,7 @@ export default function AuditMemoireModule({
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-orange-500" />
-                  <CardTitle className="text-base">Corrections prioritaires</CardTitle>
+                  <CardTitle className="text-base">{t("modules.audit.priorityCorrections")}</CardTitle>
                   <Badge variant="secondary" data-testid="badge-priorities-count">
                     {checkedPriorities.length} / {auditResult.priorities.length}
                   </Badge>
@@ -424,7 +426,7 @@ export default function AuditMemoireModule({
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="outline" onClick={handleExportWord} data-testid="button-export-audit-word">
               <FileDown className="w-4 h-4 mr-2" />
-              Exporter en Word
+              {t("modules.audit.exportWord")}
             </Button>
           </div>
         </>
@@ -433,28 +435,29 @@ export default function AuditMemoireModule({
   );
 }
 
-function formatAuditAxis(axis: { strengths: string[]; weaknesses: string[]; recommendations: string[] }): string {
+function formatAuditAxis(axis: { strengths: string[]; weaknesses: string[]; recommendations: string[] }, t: (key: string) => string): string {
   const parts: string[] = [];
   if (axis.strengths.length > 0) {
-    parts.push("## Points forts\n" + axis.strengths.map((s) => `- ${s}`).join("\n"));
+    parts.push(`## ${t("modules.audit.strengths")}\n` + axis.strengths.map((s) => `- ${s}`).join("\n"));
   }
   if (axis.weaknesses.length > 0) {
-    parts.push("## Points faibles\n" + axis.weaknesses.map((w) => `- ${w}`).join("\n"));
+    parts.push(`## ${t("modules.audit.weaknesses")}\n` + axis.weaknesses.map((w) => `- ${w}`).join("\n"));
   }
   if (axis.recommendations.length > 0) {
-    parts.push("## Recommandations\n" + axis.recommendations.map((r) => `- ${r}`).join("\n"));
+    parts.push(`## ${t("modules.audit.recommendations")}\n` + axis.recommendations.map((r) => `- ${r}`).join("\n"));
   }
   return parts.join("\n\n");
 }
 
 function AuditAxisDisplay({ axis }: { axis: { strengths: string[]; weaknesses: string[]; recommendations: string[] } }) {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
       {axis.strengths.length > 0 && (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-semibold text-green-700 dark:text-green-400">Points forts</span>
+            <span className="text-sm font-semibold text-green-700 dark:text-green-400">{t("modules.audit.strengths")}</span>
           </div>
           <ul className="space-y-1 pl-6">
             {axis.strengths.map((item, i) => (
@@ -474,7 +477,7 @@ function AuditAxisDisplay({ axis }: { axis: { strengths: string[]; weaknesses: s
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-red-500" />
-            <span className="text-sm font-semibold text-red-700 dark:text-red-400">Points faibles</span>
+            <span className="text-sm font-semibold text-red-700 dark:text-red-400">{t("modules.audit.weaknesses")}</span>
           </div>
           <ul className="space-y-1 pl-6">
             {axis.weaknesses.map((item, i) => (
@@ -494,7 +497,7 @@ function AuditAxisDisplay({ axis }: { axis: { strengths: string[]; weaknesses: s
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Info className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">Recommandations</span>
+            <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">{t("modules.audit.recommendations")}</span>
           </div>
           <ul className="space-y-1 pl-6">
             {axis.recommendations.map((item, i) => (

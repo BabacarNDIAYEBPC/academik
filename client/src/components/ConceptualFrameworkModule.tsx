@@ -32,6 +32,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 
 interface SourceArticle {
@@ -53,12 +54,12 @@ const PLATFORMS = [
   { key: "sciencedirect", label: "ScienceDirect" },
 ];
 
-const SOURCE_TYPES = [
-  { key: "scientific_articles", label: "Articles scientifiques" },
-  { key: "books", label: "Ouvrages" },
-  { key: "theses", label: "Thèses / Mémoires" },
-  { key: "institutional_reports", label: "Rapports institutionnels" },
-  { key: "recommendations", label: "Recommandations (HAS, OMS...)" },
+const SOURCE_TYPE_KEYS = [
+  { key: "scientific_articles", labelKey: "modules.conceptual.typeScientificArticles" },
+  { key: "books", labelKey: "modules.conceptual.typeBooks" },
+  { key: "theses", labelKey: "modules.conceptual.typeTheses" },
+  { key: "institutional_reports", labelKey: "modules.conceptual.typeInstitutionalReports" },
+  { key: "recommendations", labelKey: "modules.conceptual.typeRecommendations" },
 ];
 
 const BATCH_SIZES = [10, 20, 30, 50];
@@ -129,6 +130,7 @@ export default function ConceptualFrameworkModule({
   const [searchSourceTypes, setSearchSourceTypes] = useState<string[]>(["scientific_articles"]);
   const [searchArticleCount, setSearchArticleCount] = useState(10);
 
+  const { t, lang } = useI18n();
   const { toast } = useToast();
   const searchMutation = useSearchArticles();
   const conceptsMutation = useGenerateConcepts();
@@ -263,11 +265,11 @@ export default function ConceptualFrameworkModule({
           setSources(data.articles || []);
           setCurrentPage(0);
           setActiveAction(null);
-          toast({ title: "Recherche terminée", description: `${data.articles?.length || 0} source(s) trouvée(s).` });
+          toast({ title: t("modules.conceptual.toastSearchComplete"), description: `${data.articles?.length || 0} ${t("modules.conceptual.toastSearchCompleteDesc")}` });
         },
         onError: (err) => {
           setActiveAction(null);
-          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          toast({ title: t("modules.conceptual.toastError"), description: err.message, variant: "destructive" });
         },
       }
     );
@@ -275,7 +277,7 @@ export default function ConceptualFrameworkModule({
 
   const handleGenerateConcepts = () => {
     if (selectedSources.length === 0 && sources.length > 0) {
-      toast({ title: "Sélection requise", description: "Sélectionnez au moins une source, ou utilisez la suggestion automatique.", variant: "destructive" });
+      toast({ title: t("modules.conceptual.toastSelectionRequired"), description: t("modules.conceptual.toastSelectionRequiredDesc"), variant: "destructive" });
       return;
     }
     if (selectedSources.length === 0 && sources.length === 0) {
@@ -295,11 +297,11 @@ export default function ConceptualFrameworkModule({
           setConceptsContent(data.content);
           setBibliographyContent(data.bibliography);
           setActiveAction(null);
-          toast({ title: "Concepts générés", description: "Le cadre conceptuel et la bibliographie ont été générés." });
+          toast({ title: t("modules.conceptual.toastConceptsGenerated"), description: t("modules.conceptual.toastConceptsGeneratedDesc") });
         },
         onError: (err) => {
           setActiveAction(null);
-          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          toast({ title: t("modules.conceptual.toastError"), description: err.message, variant: "destructive" });
         },
       }
     );
@@ -318,11 +320,11 @@ export default function ConceptualFrameworkModule({
           const newSources = data.articles || [];
           setSources(prev => [...prev, ...newSources]);
           setActiveAction(null);
-          toast({ title: "Sources complémentaires", description: `${newSources.length} nouvelle(s) source(s) suggérée(s).` });
+          toast({ title: t("modules.conceptual.toastSuggestedSources"), description: `${newSources.length} ${t("modules.conceptual.toastSuggestedSourcesDesc")}` });
         },
         onError: (err) => {
           setActiveAction(null);
-          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          toast({ title: t("modules.conceptual.toastError"), description: err.message, variant: "destructive" });
         },
       }
     );
@@ -342,7 +344,7 @@ export default function ConceptualFrameworkModule({
           setSources(newSources);
           const keys = new Set(newSources.map(getSourceKey));
           setSelectedKeys(keys);
-          toast({ title: "Articles suggérés", description: `${newSources.length} source(s) proposée(s). Génération des concepts en cours...` });
+          toast({ title: t("modules.conceptual.toastArticlesSuggested"), description: `${newSources.length} ${t("modules.conceptual.toastArticlesSuggestedDesc")}` });
           conceptsMutation.mutate(
             {
               projectId,
@@ -355,18 +357,18 @@ export default function ConceptualFrameworkModule({
                 setConceptsContent(conceptData.content);
                 setBibliographyContent(conceptData.bibliography);
                 setActiveAction(null);
-                toast({ title: "Concepts générés", description: "Articles proposés et cadre conceptuel généré automatiquement." });
+                toast({ title: t("modules.conceptual.toastConceptsGenerated"), description: t("modules.conceptual.toastAutoConceptsDesc") });
               },
               onError: (err) => {
                 setActiveAction(null);
-                toast({ title: "Erreur", description: err.message, variant: "destructive" });
+                toast({ title: t("modules.conceptual.toastError"), description: err.message, variant: "destructive" });
               },
             }
           );
         },
         onError: (err) => {
           setActiveAction(null);
-          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          toast({ title: t("modules.conceptual.toastError"), description: err.message, variant: "destructive" });
         },
       }
     );
@@ -385,11 +387,11 @@ export default function ConceptualFrameworkModule({
           setEquationsContent(data.content);
           setShowEquationsDialog(true);
           setActiveAction(null);
-          toast({ title: "Équations générées", description: "Les équations de recherche ont été générées." });
+          toast({ title: t("modules.conceptual.toastEquationsGenerated"), description: t("modules.conceptual.toastEquationsGeneratedDesc") });
         },
         onError: (err) => {
           setActiveAction(null);
-          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          toast({ title: t("modules.conceptual.toastError"), description: err.message, variant: "destructive" });
         },
       }
     );
@@ -397,7 +399,7 @@ export default function ConceptualFrameworkModule({
 
   const handleAnalyzeArticles = () => {
     if (selectedSources.length === 0) {
-      toast({ title: "Sélection requise", description: "Sélectionnez au moins un article.", variant: "destructive" });
+      toast({ title: t("modules.conceptual.toastSelectionRequired"), description: t("modules.conceptual.toastSelectionRequiredArticle"), variant: "destructive" });
       return;
     }
     const type = selectedSources.length === 1 ? "single" : analysisType;
@@ -421,11 +423,11 @@ export default function ConceptualFrameworkModule({
           setAnalysisContent(data.content);
           setShowAnalysisDialog(true);
           setActiveAction(null);
-          toast({ title: "Analyse terminée", description: "L'analyse des articles est disponible." });
+          toast({ title: t("modules.conceptual.toastAnalysisComplete"), description: t("modules.conceptual.toastAnalysisCompleteDesc") });
         },
         onError: (err) => {
           setActiveAction(null);
-          toast({ title: "Erreur", description: err.message, variant: "destructive" });
+          toast({ title: t("modules.conceptual.toastError"), description: err.message, variant: "destructive" });
         },
       }
     );
@@ -441,7 +443,7 @@ export default function ConceptualFrameworkModule({
           onSuccess: (data) => {
             setBibliographyContent(data.content);
             setActiveAction(null);
-            toast({ title: "Norme mise à jour", description: `Bibliographie convertie en ${norm.toUpperCase()}.` });
+            toast({ title: t("modules.conceptual.toastNormUpdated"), description: `${t("modules.conceptual.toastNormUpdatedDesc")} ${norm.toUpperCase()}.` });
           },
           onError: () => {
             setActiveAction(null);
@@ -453,12 +455,12 @@ export default function ConceptualFrameworkModule({
 
   const handleSaveToSection = () => {
     if (!section) return;
-    const fullContent = `${conceptsContent}\n\n---\n\n## Bibliographie\n\n${bibliographyContent}`;
+    const fullContent = `${conceptsContent}\n\n---\n\n## ${t("modules.conceptual.bibliographyTitle")}\n\n${bibliographyContent}`;
     saveManualMutation.mutate(
       { sectionId: section.id, content: fullContent, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Sauvegardé", description: "Le cadre conceptuel a été enregistré." });
+          toast({ title: t("modules.conceptual.toastSaved"), description: t("modules.conceptual.toastSavedDesc") });
         },
       }
     );
@@ -470,7 +472,7 @@ export default function ConceptualFrameworkModule({
       { sectionId: section.id, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Validé", description: "Le cadre conceptuel est validé et alimentera les sections suivantes." });
+          toast({ title: t("modules.conceptual.toastValidated"), description: t("modules.conceptual.toastValidatedDesc") });
         },
       }
     );
@@ -482,7 +484,7 @@ export default function ConceptualFrameworkModule({
       { sectionId: section.id, projectId },
       {
         onSuccess: () => {
-          toast({ title: "Dévalidé", description: "Le cadre conceptuel n'est plus validé." });
+          toast({ title: t("modules.conceptual.toastUnvalidated"), description: t("modules.conceptual.toastUnvalidatedDesc") });
         },
       }
     );
@@ -490,12 +492,12 @@ export default function ConceptualFrameworkModule({
 
   const handleExportWord = () => {
     const exportSections = [
-      { label: "Cadre conceptuel", content: conceptsContent },
+      { label: t("modules.conceptual.exportFramework"), content: conceptsContent },
     ];
     if (bibliographyContent) {
-      exportSections.push({ label: "Bibliographie", content: bibliographyContent });
+      exportSections.push({ label: t("modules.conceptual.exportBibliography"), content: bibliographyContent });
     }
-    exportToWord("Cadre conceptuel", exportSections, "cadre-conceptuel");
+    exportToWord(t("modules.conceptual.exportFramework"), exportSections, "cadre-conceptuel");
   };
 
   const isValidated = section?.status === "validated";
@@ -507,7 +509,7 @@ export default function ConceptualFrameworkModule({
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">Cadre conceptuel</CardTitle>
+              <CardTitle className="text-lg">{t("modules.conceptual.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Select value={citationNorm} onValueChange={handleNormChange}>
@@ -522,15 +524,15 @@ export default function ConceptualFrameworkModule({
               </Select>
               {isValidated ? (
                 <Badge variant="default" className="bg-green-600 text-white">
-                  <Check className="w-3 h-3 mr-1" /> Validé
+                  <Check className="w-3 h-3 mr-1" /> {t("modules.conceptual.validated")}
                 </Badge>
               ) : (
-                section?.activeVersionId && <Badge variant="outline">Brouillon</Badge>
+                section?.activeVersionId && <Badge variant="outline">{t("modules.conceptual.draft")}</Badge>
               )}
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Recherchez des sources, sélectionnez-les, puis générez les concepts-clés avec bibliographie.
+            {t("modules.conceptual.description")}
           </p>
         </CardHeader>
       </Card>
@@ -543,7 +545,7 @@ export default function ConceptualFrameworkModule({
             data-testid="toggle-search-form"
           >
             <Search className="w-4 h-4" />
-            <CardTitle className="text-base">Recherche de sources</CardTitle>
+            <CardTitle className="text-base">{t("modules.conceptual.sourceSearch")}</CardTitle>
             <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${showSearchForm ? "rotate-180" : ""}`} />
           </button>
         </CardHeader>
@@ -551,7 +553,7 @@ export default function ConceptualFrameworkModule({
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Plateformes</Label>
+                <Label className="text-sm font-medium">{t("modules.conceptual.platforms")}</Label>
                 <div className="space-y-2">
                   {PLATFORMS.map(p => (
                     <label key={p.key} className="flex items-center gap-2 text-sm">
@@ -572,7 +574,7 @@ export default function ConceptualFrameworkModule({
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Période</Label>
+                  <Label className="text-sm font-medium">{t("modules.conceptual.period")}</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
@@ -581,7 +583,7 @@ export default function ConceptualFrameworkModule({
                       className="w-24"
                       data-testid="input-period-start"
                     />
-                    <span className="text-sm text-muted-foreground">à</span>
+                    <span className="text-sm text-muted-foreground">{t("modules.conceptual.periodTo")}</span>
                     <Input
                       type="number"
                       value={searchPeriodEnd}
@@ -593,14 +595,14 @@ export default function ConceptualFrameworkModule({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Nombre de sources</Label>
+                  <Label className="text-sm font-medium">{t("modules.conceptual.sourceCount")}</Label>
                   <Select value={searchArticleCount.toString()} onValueChange={(v) => setSearchArticleCount(Number(v))}>
                     <SelectTrigger data-testid="select-article-count">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {BATCH_SIZES.map(n => (
-                        <SelectItem key={n} value={n.toString()}>{n} sources</SelectItem>
+                        <SelectItem key={n} value={n.toString()}>{n} {t("modules.conceptual.sources")}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -609,31 +611,31 @@ export default function ConceptualFrameworkModule({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Types de sources</Label>
+              <Label className="text-sm font-medium">{t("modules.conceptual.sourceTypes")}</Label>
               <div className="flex flex-wrap gap-3">
-                {SOURCE_TYPES.map(t => (
-                  <label key={t.key} className="flex items-center gap-2 text-sm">
+                {SOURCE_TYPE_KEYS.map(st => (
+                  <label key={st.key} className="flex items-center gap-2 text-sm">
                     <Checkbox
-                      checked={searchSourceTypes.includes(t.key)}
+                      checked={searchSourceTypes.includes(st.key)}
                       onCheckedChange={(checked) => {
                         setSearchSourceTypes(prev =>
-                          checked ? [...prev, t.key] : prev.filter(x => x !== t.key)
+                          checked ? [...prev, st.key] : prev.filter(x => x !== st.key)
                         );
                       }}
-                      data-testid={`checkbox-source-type-${t.key}`}
+                      data-testid={`checkbox-source-type-${st.key}`}
                     />
-                    {t.label}
+                    {t(st.labelKey)}
                   </label>
                 ))}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Consignes spécifiques</Label>
+              <Label className="text-sm font-medium">{t("modules.conceptual.specificInstructions")}</Label>
               <Textarea
                 value={instructions}
                 onChange={(e) => setInstructions(e.target.value)}
-                placeholder="Instructions libres pour affiner la recherche IA..."
+                placeholder={t("modules.conceptual.instructionsPlaceholder")}
                 className="resize-none text-sm"
                 rows={2}
                 data-testid="input-search-instructions"
@@ -646,7 +648,7 @@ export default function ConceptualFrameworkModule({
               data-testid="button-search-sources"
             >
               {activeAction === "search" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
-              Rechercher des sources
+              {t("modules.conceptual.searchSources")}
             </Button>
           </CardContent>
         )}
@@ -657,9 +659,9 @@ export default function ConceptualFrameworkModule({
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <CardTitle className="text-base">
-                Sources ({filteredSorted.length})
+                {t("modules.conceptual.sourcesTitle")} ({filteredSorted.length})
                 {selectedKeys.size > 0 && (
-                  <Badge variant="secondary" className="ml-2">{selectedKeys.size} sélectionnée(s)</Badge>
+                  <Badge variant="secondary" className="ml-2">{selectedKeys.size} {t("modules.conceptual.selected")}</Badge>
                 )}
               </CardTitle>
               <div className="flex items-center gap-2 flex-wrap">
@@ -670,13 +672,13 @@ export default function ConceptualFrameworkModule({
                   data-testid="button-toggle-filters"
                 >
                   <Filter className="w-4 h-4 mr-1" />
-                  Filtres
+                  {t("modules.conceptual.filters")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={selectAll} data-testid="button-select-all">
-                  <CheckSquare className="w-4 h-4 mr-1" /> Tout
+                  <CheckSquare className="w-4 h-4 mr-1" /> {t("modules.conceptual.selectAll")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={deselectAll} data-testid="button-deselect-all">
-                  <X className="w-4 h-4 mr-1" /> Aucun
+                  <X className="w-4 h-4 mr-1" /> {t("modules.conceptual.deselectAll")}
                 </Button>
                 <Select value={batchSize.toString()} onValueChange={(v) => { setBatchSize(Number(v)); setCurrentPage(0); }}>
                   <SelectTrigger className="w-[100px]" data-testid="select-batch-size">
@@ -684,7 +686,7 @@ export default function ConceptualFrameworkModule({
                   </SelectTrigger>
                   <SelectContent>
                     {BATCH_SIZES.map(n => (
-                      <SelectItem key={n} value={n.toString()}>{n} / page</SelectItem>
+                      <SelectItem key={n} value={n.toString()}>{n} {t("modules.conceptual.perPage")}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -696,26 +698,26 @@ export default function ConceptualFrameworkModule({
             <CardContent className="pb-2 pt-0">
               <div className="flex items-center gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs">Type:</Label>
+                  <Label className="text-xs">{t("modules.conceptual.filterType")}</Label>
                   <Select value={filterType} onValueChange={setFilterType}>
                     <SelectTrigger className="w-[160px]" data-testid="filter-type">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Tous</SelectItem>
-                      {SOURCE_TYPES.map(t => (
-                        <SelectItem key={t.key} value={t.key}>{t.label}</SelectItem>
+                      <SelectItem value="all">{t("modules.conceptual.filterAll")}</SelectItem>
+                      {SOURCE_TYPE_KEYS.map(st => (
+                        <SelectItem key={st.key} value={st.key}>{t(st.labelKey)}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Label className="text-xs">Année:</Label>
+                  <Label className="text-xs">{t("modules.conceptual.filterYear")}</Label>
                   <Input
                     type="text"
                     value={filterYear}
                     onChange={(e) => setFilterYear(e.target.value)}
-                    placeholder="ex. 2023"
+                    placeholder={t("modules.conceptual.filterYearPlaceholder")}
                     className="w-24"
                     data-testid="filter-year"
                   />
@@ -796,7 +798,7 @@ export default function ConceptualFrameworkModule({
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Actions</CardTitle>
+          <CardTitle className="text-base">{t("modules.conceptual.actions")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -806,8 +808,8 @@ export default function ConceptualFrameworkModule({
               data-testid="button-generate-concepts"
             >
               {activeAction === "concepts" || activeAction === "autosuggest" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lightbulb className="w-4 h-4 mr-2" />}
-              Générer les concepts
-              {selectedKeys.size > 0 && ` (${selectedKeys.size} source${selectedKeys.size > 1 ? "s" : ""})`}
+              {t("modules.conceptual.generateConcepts")}
+              {selectedKeys.size > 0 && ` (${selectedKeys.size} ${t("modules.conceptual.source")}${selectedKeys.size > 1 ? "s" : ""})`}
             </Button>
             {sources.length > 0 && (
               <Button
@@ -817,7 +819,7 @@ export default function ConceptualFrameworkModule({
                 data-testid="button-suggest-sources"
               >
                 {activeAction === "suggest" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-                Proposer d'autres sources
+                {t("modules.conceptual.suggestMoreSources")}
               </Button>
             )}
             <Button
@@ -827,19 +829,19 @@ export default function ConceptualFrameworkModule({
               data-testid="button-generate-equations"
             >
               {activeAction === "equations" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Search className="w-4 h-4 mr-2" />}
-              Équations de recherche
+              {t("modules.conceptual.researchEquations")}
             </Button>
             {selectedSources.length > 0 && (
               <>
                 {selectedSources.length > 1 && (
                   <Select value={analysisType} onValueChange={setAnalysisType}>
                     <SelectTrigger className="w-[180px]" data-testid="select-analysis-type">
-                      <SelectValue placeholder="Type d'analyse" />
+                      <SelectValue placeholder={t("modules.conceptual.analysisTypePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="multiple">Résumé multiple</SelectItem>
-                      <SelectItem value="confrontation">Confrontation</SelectItem>
-                      <SelectItem value="mapping">Mapping</SelectItem>
+                      <SelectItem value="multiple">{t("modules.conceptual.analysisMultiple")}</SelectItem>
+                      <SelectItem value="confrontation">{t("modules.conceptual.analysisConfrontation")}</SelectItem>
+                      <SelectItem value="mapping">{t("modules.conceptual.analysisMapping")}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -850,7 +852,7 @@ export default function ConceptualFrameworkModule({
                   data-testid="button-analyze-articles"
                 >
                   {activeAction === "analysis" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />}
-                  {selectedSources.length === 1 ? "Résumer l'article" : "Analyser les articles"}
+                  {selectedSources.length === 1 ? t("modules.conceptual.summarizeArticle") : t("modules.conceptual.analyzeArticles")}
                 </Button>
               </>
             )}
@@ -859,8 +861,7 @@ export default function ConceptualFrameworkModule({
           {sources.length === 0 && (
             <div className="p-4 rounded-lg border border-dashed border-border/60 bg-muted/30 text-sm text-muted-foreground space-y-3">
               <p>
-                Vous pouvez également décider de laisser la plateforme vous proposer automatiquement 
-                des articles pertinents en lien avec votre sujet.
+                {t("modules.conceptual.autoSuggestText")}
               </p>
               <Button
                 variant="secondary"
@@ -869,7 +870,7 @@ export default function ConceptualFrameworkModule({
                 data-testid="button-auto-suggest"
               >
                 {activeAction === "autosuggest" ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lightbulb className="w-4 h-4 mr-2" />}
-                Laisser la plateforme proposer les articles
+                {t("modules.conceptual.autoSuggestButton")}
               </Button>
             </div>
           )}
@@ -880,21 +881,21 @@ export default function ConceptualFrameworkModule({
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between gap-4 flex-wrap">
-              <CardTitle className="text-base">Cadre conceptuel généré</CardTitle>
+              <CardTitle className="text-base">{t("modules.conceptual.generatedFramework")}</CardTitle>
               <div className="flex items-center gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={handleExportWord} data-testid="button-export-word">
                   <FileDown className="w-4 h-4 mr-1" /> Word
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleSaveToSection} data-testid="button-save-concepts">
-                  <Save className="w-4 h-4 mr-1" /> Enregistrer
+                  <Save className="w-4 h-4 mr-1" /> {t("modules.conceptual.save")}
                 </Button>
                 {isValidated ? (
                   <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="button-unvalidate">
-                    <X className="w-4 h-4 mr-1" /> Dévalider
+                    <X className="w-4 h-4 mr-1" /> {t("modules.conceptual.unvalidate")}
                   </Button>
                 ) : (
                   <Button size="sm" onClick={handleValidate} disabled={!section?.activeVersionId} data-testid="button-validate-concepts">
-                    <Check className="w-4 h-4 mr-1" /> Valider
+                    <Check className="w-4 h-4 mr-1" /> {t("modules.conceptual.validate")}
                   </Button>
                 )}
               </div>
@@ -914,7 +915,7 @@ export default function ConceptualFrameworkModule({
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4" />
-                <CardTitle className="text-base">Bibliographie ({citationNorm.toUpperCase()})</CardTitle>
+                <CardTitle className="text-base">{t("modules.conceptual.bibliographyTitle")} ({citationNorm.toUpperCase()})</CardTitle>
               </div>
               <Select value={citationNorm} onValueChange={handleNormChange}>
                 <SelectTrigger className="w-[140px]" data-testid="select-bib-norm">
@@ -938,14 +939,14 @@ export default function ConceptualFrameworkModule({
       <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-equations">
           <DialogHeader>
-            <DialogTitle>Équations de recherche</DialogTitle>
+            <DialogTitle>{t("modules.conceptual.equationsDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{equationsContent}</ReactMarkdown>
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" size="sm" onClick={() => {
-              exportToWord("Équations de recherche", [{ label: "Équations de recherche", content: equationsContent }], "equations-recherche");
+              exportToWord(t("modules.conceptual.exportEquationsTitle"), [{ label: t("modules.conceptual.exportEquationsTitle"), content: equationsContent }], "equations-recherche");
             }} data-testid="button-export-equations">
               <FileDown className="w-4 h-4 mr-1" /> Word
             </Button>
@@ -956,14 +957,14 @@ export default function ConceptualFrameworkModule({
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-analysis">
           <DialogHeader>
-            <DialogTitle>Analyse des articles</DialogTitle>
+            <DialogTitle>{t("modules.conceptual.analysisDialogTitle")}</DialogTitle>
           </DialogHeader>
           <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
             <ReactMarkdown>{analysisContent}</ReactMarkdown>
           </div>
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" size="sm" onClick={() => {
-              exportToWord("Analyse articles", [{ label: "Analyse", content: analysisContent }], "analyse-articles");
+              exportToWord(t("modules.conceptual.exportAnalysisTitle"), [{ label: t("modules.conceptual.exportAnalysisLabel"), content: analysisContent }], "analyse-articles");
             }} data-testid="button-export-analysis">
               <FileDown className="w-4 h-4 mr-1" /> Word
             </Button>

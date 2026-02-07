@@ -16,6 +16,7 @@ import { SECTION_LABELS } from "@shared/schema";
 import type { ProjectSection, SectionVersion } from "@shared/schema";
 import { exportToWord, exportToPdf } from "@/lib/export-utils";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/lib/i18n";
 import { apiRequest } from "@/lib/queryClient";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -45,7 +46,7 @@ export interface SectionVariables {
 
 export interface SectionFilterOption {
   key: string;
-  label: string;
+  labelKey: string;
   checked: boolean;
 }
 
@@ -71,82 +72,82 @@ export interface LiteratureConfig {
 }
 
 const DOMAINS = [
-  { value: "soins_infirmiers", label: "Soins infirmiers / Santé" },
-  { value: "travail_social", label: "Travail social" },
-  { value: "management", label: "Management / Gestion" },
-  { value: "rh", label: "Ressources humaines" },
-  { value: "economie", label: "Économie / Finance" },
-  { value: "marketing", label: "Marketing / Communication" },
-  { value: "droit", label: "Droit / Administration publique" },
-  { value: "education", label: "Éducation / Pédagogie" },
-  { value: "psychologie", label: "Psychologie" },
-  { value: "informatique", label: "Informatique / Numérique" },
-  { value: "data_ia", label: "Data / Intelligence artificielle" },
-  { value: "logistique", label: "Logistique / Supply chain" },
-  { value: "qualite", label: "Qualité / QHSE" },
-  { value: "comptabilite", label: "Comptabilité / Audit / Contrôle de gestion" },
-  { value: "banque", label: "Banque / Assurance" },
-  { value: "immobilier", label: "Immobilier / Urbanisme" },
-  { value: "sciences_politiques", label: "Sciences politiques / Relations internationales" },
-  { value: "environnement", label: "Environnement / Développement durable" },
-  { value: "industrie", label: "Industrie / Génie industriel" },
-  { value: "autre", label: "Autre" },
+  { value: "soins_infirmiers", labelKey: "domains.soins_infirmiers" },
+  { value: "travail_social", labelKey: "domains.travail_social" },
+  { value: "management", labelKey: "domains.management" },
+  { value: "rh", labelKey: "domains.rh" },
+  { value: "economie", labelKey: "domains.economie" },
+  { value: "marketing", labelKey: "domains.marketing" },
+  { value: "droit", labelKey: "domains.droit" },
+  { value: "education", labelKey: "domains.education" },
+  { value: "psychologie", labelKey: "domains.psychologie" },
+  { value: "informatique", labelKey: "domains.informatique" },
+  { value: "data_ia", labelKey: "domains.data_ia" },
+  { value: "logistique", labelKey: "domains.logistique" },
+  { value: "qualite", labelKey: "domains.qualite" },
+  { value: "comptabilite", labelKey: "domains.comptabilite" },
+  { value: "banque", labelKey: "domains.banque" },
+  { value: "immobilier", labelKey: "domains.immobilier" },
+  { value: "sciences_politiques", labelKey: "domains.sciences_politiques" },
+  { value: "environnement", labelKey: "domains.environnement" },
+  { value: "industrie", labelKey: "domains.industrie" },
+  { value: "autre", labelKey: "domains.autre" },
 ];
 
 const DEGREE_LEVELS = [
-  { value: "bts_dut", label: "BTS / DUT" },
-  { value: "licence", label: "Licence / Licence professionnelle" },
-  { value: "bachelor", label: "Bachelor" },
-  { value: "master1", label: "Master 1" },
-  { value: "master2", label: "Master 2" },
-  { value: "mba", label: "MBA" },
-  { value: "diplome_etat", label: "Diplôme d'État (santé / social)" },
-  { value: "doctorat", label: "Doctorat" },
-  { value: "vae", label: "VAE" },
-  { value: "autre", label: "Autre" },
+  { value: "bts_dut", labelKey: "degreeLevels.bts_dut" },
+  { value: "licence", labelKey: "degreeLevels.licence" },
+  { value: "bachelor", labelKey: "degreeLevels.bachelor" },
+  { value: "master1", labelKey: "degreeLevels.master1" },
+  { value: "master2", labelKey: "degreeLevels.master2" },
+  { value: "mba", labelKey: "degreeLevels.mba" },
+  { value: "diplome_etat", labelKey: "degreeLevels.diplome_etat" },
+  { value: "doctorat", labelKey: "degreeLevels.doctorat" },
+  { value: "vae", labelKey: "degreeLevels.vae" },
+  { value: "autre", labelKey: "degreeLevels.autre" },
 ];
 
 const PROJECT_TYPES = [
-  { value: "memoire", label: "Mémoire" },
-  { value: "tfe", label: "TFE (Travail de Fin d'Études)" },
-  { value: "vae", label: "VAE (Validation des Acquis)" },
-  { value: "rapport_stage", label: "Rapport de Stage" },
-  { value: "autre", label: "Autre" },
+  { value: "memoire", labelKey: "projectTypes.memoire" },
+  { value: "tfe", labelKey: "projectTypes.tfe" },
+  { value: "vae", labelKey: "projectTypes.vae" },
+  { value: "rapport_stage", labelKey: "projectTypes.rapport_stage" },
+  { value: "autre", labelKey: "projectTypes.autre" },
 ];
 
 const ORIENTATIONS = [
-  { value: "theorique", label: "Théorique" },
-  { value: "appliquee", label: "Appliquée" },
-  { value: "analyse_pratiques", label: "Analyse de pratiques" },
-  { value: "etude_cas", label: "Étude de cas" },
-  { value: "mixte", label: "Mixte" },
-  { value: "autre", label: "Autre" },
+  { value: "theorique", labelKey: "approaches.theorique" },
+  { value: "appliquee", labelKey: "approaches.appliquee" },
+  { value: "analyse_pratiques", labelKey: "approaches.analyse_pratiques" },
+  { value: "etude_cas", labelKey: "approaches.etude_cas" },
+  { value: "mixte", labelKey: "approaches.mixte" },
+  { value: "autre", labelKey: "approaches.autre" },
 ];
 
 const FINALITIES = [
-  { value: "academique", label: "Académique" },
-  { value: "professionnelle", label: "Professionnelle" },
-  { value: "mixte", label: "Mixte" },
+  { value: "academique", labelKey: "finalities.academique" },
+  { value: "professionnelle", labelKey: "finalities.professionnelle" },
+  { value: "mixte", labelKey: "finalities.mixte" },
 ];
 
-const DROPDOWN_CONFIG: Record<string, { options: { value: string; label: string }[]; otherKey: string }> = {
+const DROPDOWN_CONFIG: Record<string, { options: { value: string; labelKey: string }[]; otherKey: string }> = {
   domain: { options: DOMAINS, otherKey: "domainOther" },
   degreeLevel: { options: DEGREE_LEVELS, otherKey: "degreeLevelOther" },
   projectType: { options: PROJECT_TYPES, otherKey: "projectTypeOther" },
   orientation: { options: ORIENTATIONS, otherKey: "orientationOther" },
 };
 
-const VARIABLE_LABELS: Record<string, string> = {
-  subject: "Sujet",
-  problematic: "Problématique",
-  hypotheses: "Hypothèses",
-  domain: "Domaine",
-  projectType: "Type de travail",
-  degreeLevel: "Niveau d'étude",
-  filiere: "Filière / Formation",
-  orientation: "Orientation / Approche",
-  finality: "Finalité",
-  context: "Contexte (terrain / professionnel)",
+const VARIABLE_LABEL_KEYS: Record<string, string> = {
+  subject: "sectionControls.variableSubject",
+  problematic: "sectionControls.variableProblematic",
+  hypotheses: "sectionControls.variableHypotheses",
+  domain: "sectionControls.variableDomain",
+  projectType: "sectionControls.variableProjectType",
+  degreeLevel: "sectionControls.variableDegreeLevel",
+  filiere: "sectionControls.variableFiliere",
+  orientation: "sectionControls.variableOrientation",
+  finality: "sectionControls.variableFinality",
+  context: "sectionControls.variableContext",
 };
 
 const FUNDAMENTAL_KEYS = ["domain", "projectType", "degreeLevel", "orientation", "finality"];
@@ -193,57 +194,57 @@ function getVariableKeysForSection(sectionKey: string): string[] {
   return base;
 }
 
-export function getFiltersForSection(sectionKey: string): { key: string; label: string }[] {
+export function getFiltersForSection(sectionKey: string): { key: string; labelKey: string }[] {
   switch (sectionKey) {
     case "plan":
       return [
-        { key: "academic", label: "Plan très académique" },
-        { key: "simplified", label: "Plan simplifié" },
-        { key: "fieldFocus", label: "Accent terrain" },
-        { key: "theoryFocus", label: "Accent théorique" },
+        { key: "academic", labelKey: "sectionControls.filterAcademic" },
+        { key: "simplified", labelKey: "sectionControls.filterSimplified" },
+        { key: "fieldFocus", labelKey: "sectionControls.filterFieldFocus" },
+        { key: "theoryFocus", labelKey: "sectionControls.filterTheoryFocus" },
       ];
     case "conceptual_framework":
       return [
-        { key: "classic", label: "Concepts classiques" },
-        { key: "recent", label: "Concepts récents" },
-        { key: "critical", label: "Approche critique" },
-        { key: "descriptive", label: "Approche descriptive" },
+        { key: "classic", labelKey: "sectionControls.filterClassic" },
+        { key: "recent", labelKey: "sectionControls.filterRecent" },
+        { key: "critical", labelKey: "sectionControls.filterCritical" },
+        { key: "descriptive", labelKey: "sectionControls.filterDescriptive" },
       ];
     case "theoretical_framework":
       return [
-        { key: "classic", label: "Concepts classiques" },
-        { key: "recent", label: "Concepts récents" },
-        { key: "critical", label: "Approche critique" },
-        { key: "descriptive", label: "Approche descriptive" },
+        { key: "classic", labelKey: "sectionControls.filterClassic" },
+        { key: "recent", labelKey: "sectionControls.filterRecent" },
+        { key: "critical", labelKey: "sectionControls.filterCritical" },
+        { key: "descriptive", labelKey: "sectionControls.filterDescriptive" },
       ];
     case "methodology":
       return [
-        { key: "simple", label: "Méthode simple" },
-        { key: "deep", label: "Méthode approfondie" },
-        { key: "noHeavyField", label: "Faisable sans terrain lourd" },
-        { key: "timeConstrained", label: "Adaptée aux contraintes de temps" },
+        { key: "simple", labelKey: "sectionControls.filterSimpleMethod" },
+        { key: "deep", labelKey: "sectionControls.filterDeepMethod" },
+        { key: "noHeavyField", labelKey: "sectionControls.filterNoHeavyField" },
+        { key: "timeConstrained", labelKey: "sectionControls.filterTimeConstrained" },
       ];
     case "subject":
       return [
-        { key: "moreTheoretical", label: "Plus théorique" },
-        { key: "moreOperational", label: "Plus opérationnel" },
-        { key: "moreSynthetic", label: "Plus synthétique" },
-        { key: "moreDetailed", label: "Plus détaillé" },
+        { key: "moreTheoretical", labelKey: "sectionControls.filterMoreTheoretical" },
+        { key: "moreOperational", labelKey: "sectionControls.filterMoreOperational" },
+        { key: "moreSynthetic", labelKey: "sectionControls.filterMoreSynthetic" },
+        { key: "moreDetailed", labelKey: "sectionControls.filterMoreDetailed" },
       ];
     case "problematic":
     case "hypotheses":
     case "situation_appel":
       return [
-        { key: "moreTheoretical", label: "Plus théorique" },
-        { key: "moreOperational", label: "Plus opérationnel" },
-        { key: "moreSynthetic", label: "Plus synthétique" },
-        { key: "professional", label: "Orientation professionnelle" },
+        { key: "moreTheoretical", labelKey: "sectionControls.filterMoreTheoretical" },
+        { key: "moreOperational", labelKey: "sectionControls.filterMoreOperational" },
+        { key: "moreSynthetic", labelKey: "sectionControls.filterMoreSynthetic" },
+        { key: "professional", labelKey: "sectionControls.filterProfessional" },
       ];
     default:
       return [
-        { key: "moreTheoretical", label: "Plus théorique" },
-        { key: "moreOperational", label: "Plus opérationnel" },
-        { key: "moreSynthetic", label: "Plus synthétique" },
+        { key: "moreTheoretical", labelKey: "sectionControls.filterMoreTheoretical" },
+        { key: "moreOperational", labelKey: "sectionControls.filterMoreOperational" },
+        { key: "moreSynthetic", labelKey: "sectionControls.filterMoreSynthetic" },
       ];
   }
 }
@@ -257,11 +258,11 @@ const LITERATURE_PLATFORMS = [
 ];
 
 const LITERATURE_SOURCE_TYPES = [
-  { key: "scientific_articles", label: "Articles scientifiques" },
-  { key: "books", label: "Ouvrages" },
-  { key: "institutional_reports", label: "Rapports institutionnels" },
-  { key: "recommendations", label: "Recommandations (HAS, OMS...)" },
-  { key: "referentials", label: "Référentiels (VAE)" },
+  { key: "scientific_articles", labelKey: "sectionControls.litScientificArticles" },
+  { key: "books", labelKey: "sectionControls.litBooks" },
+  { key: "institutional_reports", labelKey: "sectionControls.litInstitutionalReports" },
+  { key: "recommendations", labelKey: "sectionControls.litRecommendations" },
+  { key: "referentials", labelKey: "sectionControls.litReferentials" },
 ];
 
 interface SectionControlsProps {
@@ -299,6 +300,7 @@ export default function SectionControls({
   const [showFilters, setShowFilters] = useState(false);
   const [pendingChange, setPendingChange] = useState<{ key: string; value: string } | null>(null);
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const variableKeys = getVariableKeysForSection(sectionKey);
   const filterOptions = getFiltersForSection(sectionKey);
@@ -320,14 +322,14 @@ export default function SectionControls({
     }
     setPendingChange(null);
     toast({
-      title: "Variable modifiée",
-      description: "La modification sera prise en compte lors de la prochaine génération.",
+      title: t("sectionControls.variableModified"),
+      description: t("sectionControls.variableModifiedDesc"),
     });
   };
 
   const handleExportSection = async (format: "word" | "pdf") => {
     if (!activeVersion?.content) {
-      toast({ title: "Aucun contenu", description: "Générez du contenu avant d'exporter.", variant: "destructive" });
+      toast({ title: t("sectionControls.noContent"), description: t("sectionControls.generateBeforeExport"), variant: "destructive" });
       return;
     }
     const label = SECTION_LABELS[sectionKey] || sectionKey;
@@ -338,9 +340,9 @@ export default function SectionControls({
       } else {
         await exportToPdf(label, [{ label, content: activeVersion.content }], filename);
       }
-      toast({ title: "Export réussi", description: `${label} exporté en ${format === "word" ? "Word" : "PDF"}.` });
+      toast({ title: t("sectionControls.exportSuccess"), description: `${label} ${t("sectionControls.exportedAs")} ${format === "word" ? "Word" : "PDF"}.` });
     } catch {
-      toast({ title: "Erreur d'export", description: "L'export a échoué.", variant: "destructive" });
+      toast({ title: t("sectionControls.exportError"), description: t("sectionControls.exportFailed"), variant: "destructive" });
     }
   };
 
@@ -350,18 +352,18 @@ export default function SectionControls({
       const allContents: { key: string; label: string; content: string }[] = await res.json();
       const sectionsWithContent = allContents.filter(s => s.content);
       if (sectionsWithContent.length === 0) {
-        toast({ title: "Aucun contenu", description: "Aucune section n'a de contenu à exporter.", variant: "destructive" });
+        toast({ title: t("sectionControls.noContent"), description: t("sectionControls.noSectionContent"), variant: "destructive" });
         return;
       }
       const filename = "export_complet";
       if (format === "word") {
-        await exportToWord("Export complet", sectionsWithContent, filename);
+        await exportToWord(t("sectionControls.completeExport"), sectionsWithContent, filename);
       } else {
-        await exportToPdf("Export complet", sectionsWithContent, filename);
+        await exportToPdf(t("sectionControls.completeExport"), sectionsWithContent, filename);
       }
-      toast({ title: "Export réussi", description: `${sectionsWithContent.length} section(s) exportée(s).` });
+      toast({ title: t("sectionControls.exportSuccess"), description: `${sectionsWithContent.length} ${t("sectionControls.sectionsExported")}` });
     } catch {
-      toast({ title: "Erreur d'export", description: "L'export a échoué.", variant: "destructive" });
+      toast({ title: t("sectionControls.exportError"), description: t("sectionControls.exportFailed"), variant: "destructive" });
     }
   };
 
@@ -374,6 +376,7 @@ export default function SectionControls({
       const currentVal = variables[key] || "";
       const isOther = currentVal === "autre" || (currentVal && !dropdownCfg.options.some(o => o.value === currentVal));
       const selectVal = isOther ? "autre" : currentVal;
+      const varLabel = VARIABLE_LABEL_KEYS[key] ? t(VARIABLE_LABEL_KEYS[key]) : key;
 
       return (
         <div className="space-y-1.5">
@@ -389,11 +392,11 @@ export default function SectionControls({
             }}
           >
             <SelectTrigger data-testid={`select-var-${key}-${sectionKey}`}>
-              <SelectValue placeholder={`Choisir ${VARIABLE_LABELS[key] || key}...`} />
+              <SelectValue placeholder={`${t("sectionControls.choosePrefix")} ${varLabel}...`} />
             </SelectTrigger>
             <SelectContent>
               {dropdownCfg.options.map(opt => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -402,7 +405,7 @@ export default function SectionControls({
               value={variables[dropdownCfg.otherKey] || ""}
               onChange={e => onVariablesChange({ ...variables, [dropdownCfg.otherKey]: e.target.value })}
               className="text-sm"
-              placeholder={`Précisez ${(VARIABLE_LABELS[key] || key).toLowerCase()}...`}
+              placeholder={`${t("sectionControls.specifyPrefix")} ${varLabel.toLowerCase()}...`}
               data-testid={`input-var-other-${key}-${sectionKey}`}
             />
           )}
@@ -417,11 +420,11 @@ export default function SectionControls({
           onValueChange={(v) => handleVariableChange(key, v)}
         >
           <SelectTrigger data-testid={`select-var-${key}-${sectionKey}`}>
-            <SelectValue placeholder="Choisir la finalité..." />
+            <SelectValue placeholder={t("sectionControls.chooseFinality")} />
           </SelectTrigger>
           <SelectContent>
             {FINALITIES.map(opt => (
-              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              <SelectItem key={opt.value} value={opt.value}>{t(opt.labelKey)}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -434,7 +437,7 @@ export default function SectionControls({
           value={variables[key] || ""}
           onChange={e => onVariablesChange({ ...variables, [key]: e.target.value })}
           className="text-sm h-16 resize-none"
-          placeholder={`${VARIABLE_LABELS[key] || key}...`}
+          placeholder={`${VARIABLE_LABEL_KEYS[key] ? t(VARIABLE_LABEL_KEYS[key]) : key}...`}
           data-testid={`input-var-${key}-${sectionKey}`}
         />
       );
@@ -445,7 +448,7 @@ export default function SectionControls({
         value={variables[key] || ""}
         onChange={e => onVariablesChange({ ...variables, [key]: e.target.value })}
         className="text-sm"
-        placeholder={`${VARIABLE_LABELS[key] || key}...`}
+        placeholder={`${VARIABLE_LABEL_KEYS[key] ? t(VARIABLE_LABEL_KEYS[key]) : key}...`}
         data-testid={`input-var-${key}-${sectionKey}`}
       />
     );
@@ -479,11 +482,11 @@ export default function SectionControls({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" data-testid={`button-export-${sectionKey}`}>
-                <Download className="w-4 h-4 mr-1" /> Exporter
+                <Download className="w-4 h-4 mr-1" /> {t("common.export")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Cette section</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("sectionControls.thisSection")}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleExportSection("word")} data-testid={`button-export-word-${sectionKey}`}>
                 <FileText className="w-4 h-4 mr-2" /> Word (.docx)
               </DropdownMenuItem>
@@ -491,12 +494,12 @@ export default function SectionControls({
                 <FileDown className="w-4 h-4 mr-2" /> PDF (.pdf)
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Toutes les sections</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("sectionControls.allSections")}</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => handleBatchExport("word")} data-testid="button-export-all-word">
-                <FileText className="w-4 h-4 mr-2" /> Tout en Word
+                <FileText className="w-4 h-4 mr-2" /> {t("sectionControls.allInWord")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleBatchExport("pdf")} data-testid="button-export-all-pdf">
-                <FileDown className="w-4 h-4 mr-2" /> Tout en PDF
+                <FileDown className="w-4 h-4 mr-2" /> {t("sectionControls.allInPdf")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -508,20 +511,20 @@ export default function SectionControls({
           <CardHeader className="py-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <Settings2 className="w-4 h-4" />
-              Variables utilisées pour cette section
+              {t("sectionControls.variablesTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pt-0">
             <p className="text-xs text-muted-foreground">
-              Pré-remplies depuis le paramétrage du projet. Modifiez-les pour ajuster la génération IA de cette section.
+              {t("sectionControls.variablesDesc")}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {variableKeys.map(key => (
                 <div key={key} className="space-y-1">
                   <Label className="text-xs font-medium text-muted-foreground">
-                    {VARIABLE_LABELS[key] || key}
+                    {VARIABLE_LABEL_KEYS[key] ? t(VARIABLE_LABEL_KEYS[key]) : key}
                     {FUNDAMENTAL_KEYS.includes(key) && (
-                      <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0">fondamentale</Badge>
+                      <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0">{t("sectionControls.fundamental")}</Badge>
                     )}
                   </Label>
                   {renderVariableInput(key)}
@@ -537,7 +540,7 @@ export default function SectionControls({
           <CardHeader className="py-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <SlidersHorizontal className="w-4 h-4" />
-              Options d'affinage
+              {t("sectionControls.filterTitle")}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-0">
@@ -551,7 +554,7 @@ export default function SectionControls({
                     data-testid={`checkbox-filter-${opt.key}-${sectionKey}`}
                   />
                   <Label htmlFor={`filter-${opt.key}-${sectionKey}`} className="text-sm cursor-pointer">
-                    {opt.label}
+                    {t(opt.labelKey)}
                   </Label>
                 </div>
               ))}
@@ -566,12 +569,12 @@ export default function SectionControls({
 
       <div className="space-y-1">
         <Label className="text-xs font-medium text-muted-foreground">
-          Prompt de correction / d'ajustement
+          {t("sectionControls.correctionLabel")}
         </Label>
         <Textarea
           value={correctionPrompt}
           onChange={e => onCorrectionPromptChange(e.target.value)}
-          placeholder="Indiquez ici ce que vous souhaitez corriger, préciser ou ajouter. Ex: Reformuler de façon plus opérationnelle, simplifier pour un niveau licence..."
+          placeholder={t("sectionControls.correctionPlaceholder")}
           className="resize-none h-20 text-sm"
           data-testid={`textarea-correction-${sectionKey}`}
         />
@@ -582,24 +585,21 @@ export default function SectionControls({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              Modification d'une variable fondamentale
+              {t("sectionControls.fundamentalVarChange")}
             </DialogTitle>
             <DialogDescription>
-              Modifier <strong>{pendingChange ? VARIABLE_LABELS[pendingChange.key] || pendingChange.key : ""}</strong> peut
-              impacter le sujet, la problématique, les hypothèses, le plan, les concepts, la revue de littérature et la
-              méthodologie.
+              {t("sectionControls.modifyKey")} <strong>{pendingChange ? (VARIABLE_LABEL_KEYS[pendingChange.key] ? t(VARIABLE_LABEL_KEYS[pendingChange.key]) : pendingChange.key) : ""}</strong> {t("sectionControls.fundamentalVarImpact")}
             </DialogDescription>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Cette modification sera utilisée pour les prochaines générations de cette section. Vous pourrez régénérer
-            les autres sections si nécessaire.
+            {t("sectionControls.fundamentalVarNote")}
           </p>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setPendingChange(null)} data-testid="button-cancel-var-change">
-              Annuler
+              {t("common.cancel")}
             </Button>
             <Button onClick={confirmFundamentalChange} data-testid="button-confirm-var-change">
-              Confirmer la modification
+              {t("sectionControls.confirmChange")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -617,6 +617,7 @@ function LiteratureReviewForm({
   config: LiteratureConfig;
   onChange: (c: LiteratureConfig) => void;
 }) {
+  const { t } = useI18n();
   const [showAddForm, setShowAddForm] = useState(false);
   const [articlePage, setArticlePage] = useState(0);
   const [newArticle, setNewArticle] = useState<Omit<ArticleReference, "id">>({
@@ -649,10 +650,10 @@ function LiteratureReviewForm({
 
   return (
     <div className="space-y-4 border-t pt-4">
-      <h4 className="text-sm font-medium">Paramètres de recherche bibliographique</h4>
+      <h4 className="text-sm font-medium">{t("sectionControls.litSearchParams")}</h4>
 
       <div className="space-y-2">
-        <Label className="text-xs font-medium text-muted-foreground">Plateformes</Label>
+        <Label className="text-xs font-medium text-muted-foreground">{t("sectionControls.litPlatforms")}</Label>
         <div className="flex flex-wrap gap-3">
           {LITERATURE_PLATFORMS.map(p => (
             <div key={p.key} className="flex items-center gap-2">
@@ -675,7 +676,7 @@ function LiteratureReviewForm({
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Nombre d'articles</Label>
+          <Label className="text-xs text-muted-foreground">{t("sectionControls.litArticleCount")}</Label>
           <Select
             value={String(config.articleCount)}
             onValueChange={v => onChange({ ...config, articleCount: Number(v) })}
@@ -691,7 +692,7 @@ function LiteratureReviewForm({
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Période début</Label>
+          <Label className="text-xs text-muted-foreground">{t("sectionControls.litPeriodStart")}</Label>
           <Input
             type="number"
             value={config.periodStart}
@@ -703,7 +704,7 @@ function LiteratureReviewForm({
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Période fin</Label>
+          <Label className="text-xs text-muted-foreground">{t("sectionControls.litPeriodEnd")}</Label>
           <Input
             type="number"
             value={config.periodEnd}
@@ -715,47 +716,47 @@ function LiteratureReviewForm({
         </div>
 
         <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground">Langue</Label>
+          <Label className="text-xs text-muted-foreground">{t("sectionControls.litLanguage")}</Label>
           <Select value={config.language} onValueChange={v => onChange({ ...config, language: v })}>
             <SelectTrigger data-testid="select-language"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="fr">Français</SelectItem>
-              <SelectItem value="en">Anglais</SelectItem>
-              <SelectItem value="both">Les deux</SelectItem>
+              <SelectItem value="fr">{t("sectionControls.litFrench")}</SelectItem>
+              <SelectItem value="en">{t("sectionControls.litEnglish")}</SelectItem>
+              <SelectItem value="both">{t("sectionControls.litBoth")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-medium text-muted-foreground">Niveau des sources</Label>
+        <Label className="text-xs font-medium text-muted-foreground">{t("sectionControls.litSourceLevel")}</Label>
         <Select value={config.level} onValueChange={v => onChange({ ...config, level: v })}>
           <SelectTrigger data-testid="select-source-level"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="academic">Articles très académiques</SelectItem>
-            <SelectItem value="mixed">Articles mixtes</SelectItem>
-            <SelectItem value="professional">Sources professionnelles</SelectItem>
+            <SelectItem value="academic">{t("sectionControls.litAcademic")}</SelectItem>
+            <SelectItem value="mixed">{t("sectionControls.litMixed")}</SelectItem>
+            <SelectItem value="professional">{t("sectionControls.litProfessional")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs font-medium text-muted-foreground">Types de sources</Label>
+        <Label className="text-xs font-medium text-muted-foreground">{t("sectionControls.litSourceTypes")}</Label>
         <div className="flex flex-wrap gap-3">
-          {LITERATURE_SOURCE_TYPES.map(t => (
-            <div key={t.key} className="flex items-center gap-2">
+          {LITERATURE_SOURCE_TYPES.map(st => (
+            <div key={st.key} className="flex items-center gap-2">
               <Checkbox
-                id={`source-${t.key}`}
-                checked={config.sourceTypes.includes(t.key)}
+                id={`source-${st.key}`}
+                checked={config.sourceTypes.includes(st.key)}
                 onCheckedChange={(checked) => {
                   const sourceTypes = checked
-                    ? [...config.sourceTypes, t.key]
-                    : config.sourceTypes.filter(k => k !== t.key);
+                    ? [...config.sourceTypes, st.key]
+                    : config.sourceTypes.filter(k => k !== st.key);
                   onChange({ ...config, sourceTypes });
                 }}
-                data-testid={`checkbox-source-${t.key}`}
+                data-testid={`checkbox-source-${st.key}`}
               />
-              <Label htmlFor={`source-${t.key}`} className="text-sm cursor-pointer">{t.label}</Label>
+              <Label htmlFor={`source-${st.key}`} className="text-sm cursor-pointer">{t(st.labelKey)}</Label>
             </div>
           ))}
         </div>
@@ -765,7 +766,7 @@ function LiteratureReviewForm({
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-muted-foreground" />
-            <h4 className="text-sm font-medium">Articles et références ({articles.length})</h4>
+            <h4 className="text-sm font-medium">{t("sectionControls.litArticlesAndRefs")} ({articles.length})</h4>
           </div>
           <Button
             variant="outline"
@@ -773,7 +774,7 @@ function LiteratureReviewForm({
             onClick={() => setShowAddForm(!showAddForm)}
             data-testid="button-add-article"
           >
-            <Plus className="w-4 h-4 mr-1" /> Ajouter un article
+            <Plus className="w-4 h-4 mr-1" /> {t("sectionControls.litAddArticle")}
           </Button>
         </div>
 
@@ -782,27 +783,27 @@ function LiteratureReviewForm({
             <CardContent className="pt-4 space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Titre *</Label>
+                  <Label className="text-xs text-muted-foreground">{t("sectionControls.litTitle")}</Label>
                   <Input
                     value={newArticle.title}
                     onChange={e => setNewArticle(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="Titre de l'article"
+                    placeholder={t("sectionControls.litTitlePlaceholder")}
                     className="text-sm"
                     data-testid="input-article-title"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Auteurs</Label>
+                  <Label className="text-xs text-muted-foreground">{t("sectionControls.litAuthors")}</Label>
                   <Input
                     value={newArticle.authors}
                     onChange={e => setNewArticle(prev => ({ ...prev, authors: e.target.value }))}
-                    placeholder="Dupont, J., Martin, L."
+                    placeholder={t("sectionControls.litAuthorsPlaceholder")}
                     className="text-sm"
                     data-testid="input-article-authors"
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Année</Label>
+                  <Label className="text-xs text-muted-foreground">{t("sectionControls.litYear")}</Label>
                   <Input
                     value={newArticle.year}
                     onChange={e => setNewArticle(prev => ({ ...prev, year: e.target.value }))}
@@ -812,18 +813,18 @@ function LiteratureReviewForm({
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-muted-foreground">Source / Revue</Label>
+                  <Label className="text-xs text-muted-foreground">{t("sectionControls.litSourceJournal")}</Label>
                   <Input
                     value={newArticle.source}
                     onChange={e => setNewArticle(prev => ({ ...prev, source: e.target.value }))}
-                    placeholder="Revue française de..."
+                    placeholder={t("sectionControls.litSourcePlaceholder")}
                     className="text-sm"
                     data-testid="input-article-source"
                   />
                 </div>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">URL (optionnel)</Label>
+                <Label className="text-xs text-muted-foreground">{t("sectionControls.litUrl")}</Label>
                 <Input
                   value={newArticle.url || ""}
                   onChange={e => setNewArticle(prev => ({ ...prev, url: e.target.value }))}
@@ -833,21 +834,21 @@ function LiteratureReviewForm({
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Notes (optionnel)</Label>
+                <Label className="text-xs text-muted-foreground">{t("sectionControls.litNotes")}</Label>
                 <Textarea
                   value={newArticle.notes || ""}
                   onChange={e => setNewArticle(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder="Points clés, pertinence..."
+                  placeholder={t("sectionControls.litNotesPlaceholder")}
                   className="text-sm min-h-[60px]"
                   data-testid="input-article-notes"
                 />
               </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={addArticle} disabled={!newArticle.title.trim()} data-testid="button-save-article">
-                  <Plus className="w-4 h-4 mr-1" /> Ajouter
+                  <Plus className="w-4 h-4 mr-1" /> {t("sectionControls.litAdd")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setShowAddForm(false)} data-testid="button-cancel-article">
-                  Annuler
+                  {t("common.cancel")}
                 </Button>
               </div>
             </CardContent>
@@ -856,7 +857,7 @@ function LiteratureReviewForm({
 
         {articles.length === 0 && !showAddForm && (
           <p className="text-xs text-muted-foreground text-center py-3">
-            Aucun article ajouté. Ajoutez des références pour les intégrer dans la génération.
+            {t("sectionControls.litNoArticles")}
           </p>
         )}
 

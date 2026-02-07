@@ -18,6 +18,7 @@ import {
   Loader2, ClipboardList, Save, Check, X, FileDown,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
+import { useI18n } from "@/lib/i18n";
 
 interface QuestionnaireModuleProps {
   projectId: number;
@@ -42,17 +43,6 @@ interface SavedState {
   contextInstructions: string;
 }
 
-const QUESTION_FORMATS = [
-  { value: "likert_5", label: "Échelle de Likert (5 points)" },
-  { value: "likert_4", label: "Échelle de Likert (4 points)" },
-  { value: "choix_multiple", label: "Choix multiples" },
-  { value: "choix_unique", label: "Choix unique" },
-  { value: "oui_non", label: "Oui / Non" },
-  { value: "question_ouverte", label: "Question ouverte" },
-  { value: "classement", label: "Classement / Ordonnancement" },
-  { value: "numerique", label: "Échelle numérique (1-10)" },
-];
-
 const DEFAULT_Q_CONFIG: QuestionnaireConfig = {
   questionnaireType: "enquete",
   questionCount: 25,
@@ -75,12 +65,24 @@ export default function QuestionnaireModule({
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
+  const { t } = useI18n();
   const questionnaireMutation = useGenerateQuestionnaire();
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
 
   const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
+
+  const QUESTION_FORMATS = [
+    { value: "likert_5", label: t("modules.questionnaire.formatLikert5") },
+    { value: "likert_4", label: t("modules.questionnaire.formatLikert4") },
+    { value: "choix_multiple", label: t("modules.questionnaire.formatMultipleChoice") },
+    { value: "choix_unique", label: t("modules.questionnaire.formatSingleChoice") },
+    { value: "oui_non", label: t("modules.questionnaire.formatYesNo") },
+    { value: "question_ouverte", label: t("modules.questionnaire.formatOpenQuestion") },
+    { value: "classement", label: t("modules.questionnaire.formatRanking") },
+    { value: "numerique", label: t("modules.questionnaire.formatNumericScale") },
+  ];
 
   const stateRef = useRef({ questionnaireContent, qConfig, contextInstructions });
   useEffect(() => {
@@ -132,10 +134,10 @@ export default function QuestionnaireModule({
       {
         onSuccess: (data) => {
           setQuestionnaireContent(data.content);
-          toast({ title: "Questionnaire généré", description: "Le questionnaire a été généré avec succès." });
+          toast({ title: t("modules.questionnaire.toastGenerated"), description: t("modules.questionnaire.toastGeneratedDesc") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de la génération", variant: "destructive" });
+          toast({ title: t("modules.questionnaire.toastError"), description: error.message || t("modules.questionnaire.toastGenerationError"), variant: "destructive" });
         },
       }
     );
@@ -146,8 +148,8 @@ export default function QuestionnaireModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.questionnaire.toastSectionValidated") }),
+        onError: () => toast({ title: t("modules.questionnaire.toastError"), variant: "destructive" }),
       }
     );
   };
@@ -157,18 +159,18 @@ export default function QuestionnaireModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.questionnaire.toastValidationRemoved") }),
+        onError: () => toast({ title: t("modules.questionnaire.toastError"), variant: "destructive" }),
       }
     );
   };
 
   const handleExport = () => {
     if (!questionnaireContent) {
-      toast({ title: "Rien à exporter", description: "Générez d'abord un questionnaire.", variant: "destructive" });
+      toast({ title: t("modules.questionnaire.toastNothingToExport"), description: t("modules.questionnaire.toastGenerateFirst"), variant: "destructive" });
       return;
     }
-    exportToWord("Questionnaire", [{ label: "Questionnaire", content: questionnaireContent }], "questionnaire.docx");
+    exportToWord(t("modules.questionnaire.title"), [{ label: t("modules.questionnaire.title"), content: questionnaireContent }], "questionnaire.docx");
   };
 
   const toggleFormat = (format: string) => {
@@ -187,36 +189,36 @@ export default function QuestionnaireModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Questionnaire</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
+          <CardTitle className="text-lg">{t("modules.questionnaire.title")}</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />{t("modules.questionnaire.validated")}</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="questionnaire-button-save">
-            <Save className="w-4 h-4 mr-1" />Sauvegarder
+            <Save className="w-4 h-4 mr-1" />{t("modules.questionnaire.save")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} data-testid="questionnaire-button-export">
-            <FileDown className="w-4 h-4 mr-1" />Exporter
+            <FileDown className="w-4 h-4 mr-1" />{t("modules.questionnaire.exportBtn")}
           </Button>
           {section && !isValidated && (
             <Button size="sm" onClick={handleValidate} data-testid="questionnaire-button-validate">
-              <Check className="w-4 h-4 mr-1" />Valider
+              <Check className="w-4 h-4 mr-1" />{t("modules.questionnaire.validate")}
             </Button>
           )}
           {isValidated && (
             <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="questionnaire-button-unvalidate">
-              <X className="w-4 h-4 mr-1" />Retirer validation
+              <X className="w-4 h-4 mr-1" />{t("modules.questionnaire.removeValidation")}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-1.5">
-          <Label htmlFor="questionnaire-context-instructions" className="text-base font-semibold">Contexte / consignes spécifiques</Label>
+          <Label htmlFor="questionnaire-context-instructions" className="text-base font-semibold">{t("modules.questionnaire.contextLabel")}</Label>
           <Textarea
             id="questionnaire-context-instructions"
             value={contextInstructions}
             onChange={e => setContextInstructions(e.target.value)}
-            placeholder="Ex: Contraintes méthodologiques, instructions du tuteur, contexte particulier..."
+            placeholder={t("modules.questionnaire.contextPlaceholder")}
             className="min-h-[80px] text-sm"
             data-testid="questionnaire-textarea-context-instructions"
           />
@@ -226,19 +228,19 @@ export default function QuestionnaireModule({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label>Type de questionnaire</Label>
+                <Label>{t("modules.questionnaire.questionnaireType")}</Label>
                 <Select value={qConfig.questionnaireType} onValueChange={v => setQConfig(p => ({ ...p, questionnaireType: v }))}>
                   <SelectTrigger data-testid="questionnaire-select-type"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="enquete">Enquête par questionnaire</SelectItem>
-                    <SelectItem value="satisfaction">Questionnaire de satisfaction</SelectItem>
-                    <SelectItem value="evaluation">Questionnaire d'évaluation</SelectItem>
-                    <SelectItem value="diagnostic">Questionnaire diagnostique</SelectItem>
+                    <SelectItem value="enquete">{t("modules.questionnaire.typeEnquete")}</SelectItem>
+                    <SelectItem value="satisfaction">{t("modules.questionnaire.typeSatisfaction")}</SelectItem>
+                    <SelectItem value="evaluation">{t("modules.questionnaire.typeEvaluation")}</SelectItem>
+                    <SelectItem value="diagnostic">{t("modules.questionnaire.typeDiagnostic")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Nombre de questions</Label>
+                <Label>{t("modules.questionnaire.questionCount")}</Label>
                 <Input
                   type="number"
                   value={qConfig.questionCount}
@@ -249,7 +251,7 @@ export default function QuestionnaireModule({
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Durée cible</Label>
+                <Label>{t("modules.questionnaire.targetDuration")}</Label>
                 <Select value={qConfig.targetDuration} onValueChange={v => setQConfig(p => ({ ...p, targetDuration: v }))}>
                   <SelectTrigger data-testid="questionnaire-select-duration"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -264,16 +266,16 @@ export default function QuestionnaireModule({
             </div>
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <Label>Profil du répondant</Label>
+                <Label>{t("modules.questionnaire.respondentProfile")}</Label>
                 <Input
                   value={qConfig.respondentProfile}
                   onChange={e => setQConfig(p => ({ ...p, respondentProfile: e.target.value }))}
-                  placeholder="Ex: Infirmiers diplômés d'État, cadres de santé..."
+                  placeholder={t("modules.questionnaire.respondentProfilePlaceholder")}
                   data-testid="questionnaire-input-profile"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Formats de questions</Label>
+                <Label>{t("modules.questionnaire.questionFormats")}</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {QUESTION_FORMATS.map(f => (
                     <Badge
@@ -291,11 +293,11 @@ export default function QuestionnaireModule({
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Instructions supplémentaires (optionnel)</Label>
+            <Label>{t("modules.questionnaire.additionalInstructions")}</Label>
             <Textarea
               value={qConfig.instructions}
               onChange={e => setQConfig(p => ({ ...p, instructions: e.target.value }))}
-              placeholder="Précisions sur le contenu attendu, thèmes à couvrir..."
+              placeholder={t("modules.questionnaire.instructionsPlaceholder")}
               className="h-20 text-sm"
               data-testid="questionnaire-textarea-instructions"
             />
@@ -306,12 +308,12 @@ export default function QuestionnaireModule({
             data-testid="questionnaire-button-generate"
           >
             {questionnaireMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ClipboardList className="w-4 h-4 mr-2" />}
-            Générer le questionnaire
+            {t("modules.questionnaire.generateQuestionnaire")}
           </Button>
 
           {questionnaireContent && (
             <div className="space-y-1.5">
-              <Label className="text-base font-semibold">Questionnaire généré</Label>
+              <Label className="text-base font-semibold">{t("modules.questionnaire.generatedQuestionnaire")}</Label>
               <Textarea
                 value={questionnaireContent}
                 onChange={e => setQuestionnaireContent(e.target.value)}

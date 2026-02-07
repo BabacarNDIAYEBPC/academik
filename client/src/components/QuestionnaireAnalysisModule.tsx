@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 import ReactMarkdown from "react-markdown";
+import { useI18n } from "@/lib/i18n";
 
 interface QuestionnaireAnalysisModuleProps {
   projectId: number;
@@ -47,13 +48,6 @@ interface SavedState {
   history: HistoryEntry[];
 }
 
-const ANALYSIS_TYPES = [
-  { value: "depouillement", label: "Dépouillement complet" },
-  { value: "tri_plat", label: "Tri à plat" },
-  { value: "tri_croise", label: "Tri croisé" },
-  { value: "analyse_thematique", label: "Analyse thématique" },
-];
-
 export default function QuestionnaireAnalysisModule({
   projectId,
   projectType,
@@ -72,6 +66,14 @@ export default function QuestionnaireAnalysisModule({
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
+  const { t, language } = useI18n();
+
+  const ANALYSIS_TYPES = useMemo(() => [
+    { value: "depouillement", label: t("modules.questionnaireAnalysis.typeDepouillement") },
+    { value: "tri_plat", label: t("modules.questionnaireAnalysis.typeTriPlat") },
+    { value: "tri_croise", label: t("modules.questionnaireAnalysis.typeTriCroise") },
+    { value: "analyse_thematique", label: t("modules.questionnaireAnalysis.typeThematique") },
+  ], [t, language]);
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
@@ -141,7 +143,7 @@ export default function QuestionnaireAnalysisModule({
 
   const handleAnalyze = () => {
     if (!responseData.trim()) {
-      toast({ title: "Données requises", description: "Collez les réponses du questionnaire avant de lancer l'analyse.", variant: "destructive" });
+      toast({ title: t("modules.questionnaireAnalysis.toastDataRequired"), description: t("modules.questionnaireAnalysis.toastPasteResponses"), variant: "destructive" });
       return;
     }
     const combinedContext = [extraContext, customInstructions].filter(Boolean).join("\n");
@@ -160,7 +162,7 @@ export default function QuestionnaireAnalysisModule({
         onSuccess: (data: any) => {
           const result = data.content || data.analysis || "";
           setAnalysisResult(result);
-          const typeLabel = ANALYSIS_TYPES.find(t => t.value === analysisType)?.label || analysisType;
+          const typeLabel = ANALYSIS_TYPES.find(at => at.value === analysisType)?.label || analysisType;
           const entry: HistoryEntry = {
             id: Date.now().toString(),
             type: typeLabel,
@@ -169,10 +171,10 @@ export default function QuestionnaireAnalysisModule({
             fullResult: result,
           };
           setHistory(prev => [entry, ...prev]);
-          toast({ title: "Analyse terminée", description: "Le dépouillement a été généré avec succès." });
+          toast({ title: t("modules.questionnaireAnalysis.toastAnalysisComplete"), description: t("modules.questionnaireAnalysis.toastAnalysisGenerated") });
         },
         onError: (error: any) => {
-          toast({ title: "Erreur", description: error.message || "Erreur lors de l'analyse", variant: "destructive" });
+          toast({ title: t("modules.questionnaireAnalysis.toastError"), description: error.message || t("modules.questionnaireAnalysis.toastAnalysisError"), variant: "destructive" });
         },
       }
     );
@@ -180,7 +182,7 @@ export default function QuestionnaireAnalysisModule({
 
   const handleRestoreHistory = (entry: HistoryEntry) => {
     setAnalysisResult(entry.fullResult);
-    toast({ title: "Résultat restauré", description: `Analyse "${entry.type}" du ${new Date(entry.createdAt).toLocaleDateString("fr-FR")} restaurée.` });
+    toast({ title: t("modules.questionnaireAnalysis.toastResultRestored"), description: `${entry.type} - ${new Date(entry.createdAt).toLocaleDateString(language === "fr" ? "fr-FR" : "en-US")}` });
   };
 
   const handleValidate = () => {
@@ -188,8 +190,8 @@ export default function QuestionnaireAnalysisModule({
     validateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Section validée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.questionnaireAnalysis.toastSectionValidated") }),
+        onError: () => toast({ title: t("modules.questionnaireAnalysis.toastError"), variant: "destructive" }),
       }
     );
   };
@@ -199,20 +201,20 @@ export default function QuestionnaireAnalysisModule({
     unvalidateMutation.mutate(
       { sectionId: section.id, projectId },
       {
-        onSuccess: () => toast({ title: "Validation retirée" }),
-        onError: () => toast({ title: "Erreur", variant: "destructive" }),
+        onSuccess: () => toast({ title: t("modules.questionnaireAnalysis.toastValidationRemoved") }),
+        onError: () => toast({ title: t("modules.questionnaireAnalysis.toastError"), variant: "destructive" }),
       }
     );
   };
 
   const handleExport = () => {
     if (!analysisResult) {
-      toast({ title: "Rien à exporter", description: "Générez d'abord une analyse.", variant: "destructive" });
+      toast({ title: t("modules.questionnaireAnalysis.toastNothingToExport"), description: t("modules.questionnaireAnalysis.toastGenerateFirst"), variant: "destructive" });
       return;
     }
-    const typeLabel = ANALYSIS_TYPES.find(t => t.value === analysisType)?.label || analysisType;
+    const typeLabel = ANALYSIS_TYPES.find(at => at.value === analysisType)?.label || analysisType;
     exportToWord(
-      "Dépouillement du questionnaire",
+      t("modules.questionnaireAnalysis.exportTitle"),
       [{ label: typeLabel, content: analysisResult }],
       "depouillement_questionnaire.docx"
     );
@@ -225,24 +227,24 @@ export default function QuestionnaireAnalysisModule({
       <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Dépouillement du questionnaire</CardTitle>
-          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />Validé</Badge>}
+          <CardTitle className="text-lg">{t("modules.questionnaireAnalysis.title")}</CardTitle>
+          {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />{t("modules.questionnaireAnalysis.validated")}</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={doSave} data-testid="button-save-analysis">
-            <Save className="w-4 h-4 mr-1" />Sauvegarder
+            <Save className="w-4 h-4 mr-1" />{t("modules.questionnaireAnalysis.save")}
           </Button>
           <Button variant="outline" size="sm" onClick={handleExport} data-testid="button-export-analysis">
-            <FileDown className="w-4 h-4 mr-1" />Exporter
+            <FileDown className="w-4 h-4 mr-1" />{t("modules.questionnaireAnalysis.exportBtn")}
           </Button>
           {section && !isValidated && (
             <Button size="sm" onClick={handleValidate} data-testid="button-validate-analysis">
-              <Check className="w-4 h-4 mr-1" />Valider
+              <Check className="w-4 h-4 mr-1" />{t("modules.questionnaireAnalysis.validate")}
             </Button>
           )}
           {isValidated && (
             <Button variant="outline" size="sm" onClick={handleUnvalidate} data-testid="button-unvalidate-analysis">
-              <X className="w-4 h-4 mr-1" />Retirer validation
+              <X className="w-4 h-4 mr-1" />{t("modules.questionnaireAnalysis.removeValidation")}
             </Button>
           )}
         </div>
@@ -252,7 +254,7 @@ export default function QuestionnaireAnalysisModule({
           <div className="space-y-2">
             <Label className="text-base font-semibold flex items-center gap-2">
               <ClipboardList className="w-4 h-4" />
-              Questionnaire source
+              {t("modules.questionnaireAnalysis.questionnaireSource")}
             </Label>
             <div className="border rounded-md p-3 max-h-48 overflow-y-auto bg-muted/30">
               <p className="text-sm text-muted-foreground whitespace-pre-wrap" data-testid="text-questionnaire-preview">
@@ -266,20 +268,20 @@ export default function QuestionnaireAnalysisModule({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <Label htmlFor="analysis-type">Type d'analyse</Label>
+            <Label htmlFor="analysis-type">{t("modules.questionnaireAnalysis.analysisType")}</Label>
             <Select value={analysisType} onValueChange={setAnalysisType}>
               <SelectTrigger data-testid="select-analysis-type" id="analysis-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ANALYSIS_TYPES.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                {ANALYSIS_TYPES.map(at => (
+                  <SelectItem key={at.value} value={at.value}>{at.label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="respondent-count">Nombre de répondants</Label>
+            <Label htmlFor="respondent-count">{t("modules.questionnaireAnalysis.respondentCount")}</Label>
             <Input
               id="respondent-count"
               type="number"
@@ -292,24 +294,24 @@ export default function QuestionnaireAnalysisModule({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="response-data" className="text-base font-semibold">Données des réponses</Label>
+          <Label htmlFor="response-data" className="text-base font-semibold">{t("modules.questionnaireAnalysis.responseData")}</Label>
           <Textarea
             id="response-data"
             value={responseData}
             onChange={e => setResponseData(e.target.value)}
-            placeholder="Collez ici les réponses collectées (format libre : tableau, texte brut, CSV, réponses individuelles...)"
+            placeholder={t("modules.questionnaireAnalysis.responseDataPlaceholder") as string}
             className="min-h-[200px] text-sm"
             data-testid="textarea-response-data"
           />
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="custom-instructions">Consignes spécifiques (optionnel)</Label>
+          <Label htmlFor="custom-instructions">{t("modules.questionnaireAnalysis.customInstructions")}</Label>
           <Textarea
             id="custom-instructions"
             value={customInstructions}
             onChange={e => setCustomInstructions(e.target.value)}
-            placeholder="Ex: Concentrer l'analyse sur les variables sociodémographiques, comparer les résultats par tranche d'âge..."
+            placeholder={t("modules.questionnaireAnalysis.customInstructionsPlaceholder") as string}
             className="min-h-[80px] text-sm"
             data-testid="textarea-custom-instructions"
           />
@@ -321,12 +323,12 @@ export default function QuestionnaireAnalysisModule({
           data-testid="button-analyze"
         >
           {analyzeMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-          Analyser les réponses
+          {t("modules.questionnaireAnalysis.analyzeResponses")}
         </Button>
 
         {analysisResult && (
           <div className="space-y-2">
-            <Label className="text-base font-semibold">Résultats de l'analyse</Label>
+            <Label className="text-base font-semibold">{t("modules.questionnaireAnalysis.analysisResults")}</Label>
             <div className="border rounded-md p-4 prose prose-sm dark:prose-invert prose-academic max-w-none" data-testid="text-analysis-result">
               <ReactMarkdown>{analysisResult}</ReactMarkdown>
             </div>
@@ -343,7 +345,7 @@ export default function QuestionnaireAnalysisModule({
               data-testid="button-toggle-history"
             >
               <History className="w-4 h-4" />
-              Historique des analyses ({history.length})
+              {t("modules.questionnaireAnalysis.analysisHistory")} ({history.length})
               <span className="text-xs text-muted-foreground">{historyExpanded ? "▲" : "▼"}</span>
             </Button>
             {historyExpanded && (
@@ -359,7 +361,7 @@ export default function QuestionnaireAnalysisModule({
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">{entry.type}</Badge>
                         <span className="text-xs text-muted-foreground">
-                          {new Date(entry.createdAt).toLocaleDateString("fr-FR", {
+                          {new Date(entry.createdAt).toLocaleDateString(language === "fr" ? "fr-FR" : "en-US", {
                             day: "2-digit",
                             month: "2-digit",
                             year: "numeric",
