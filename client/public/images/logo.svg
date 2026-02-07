@@ -5,22 +5,31 @@
       <stop offset="50%" stop-color="#5E52F0"/>
       <stop offset="100%" stop-color="#8B5CF6"/>
     </linearGradient>
-    <linearGradient id="cursor-fill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#6E60E8"/>
-      <stop offset="100%" stop-color="#8B6BF0"/>
+    <linearGradient id="cursor-fill" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#9B7EF5"/>
+      <stop offset="100%" stop-color="#7B55E0"/>
     </linearGradient>
   </defs>
   <rect x="0" y="0" width="512" height="512" rx="110" ry="110" fill="url(#bg)"/>
-  <g transform="translate(256, 268)">
-    <path d="M-95,-80 L100,-30 L-10,95 L-10,15 L-95,-80 Z" 
-          fill="url(#cursor-fill)" 
-          stroke="white" 
-          stroke-width="20" 
-          stroke-linejoin="round" 
-          stroke-linecap="round"/>
-    <line x1="100" y1="-30" x2="-10" y2="15" 
-          stroke="white" 
-          stroke-width="20" 
-          stroke-linecap="round"/>
+  <g transform="translate(245, 255)">
+    <path d="
+      M -90,-80
+      Q -105,-95 -90,-105
+      L 105,-25
+      Q 125,-16 108,0
+      L 25,42
+      Q 5,52 0,75
+      L -20,140
+      Q -28,165 -45,145
+      L -72,102
+      Q -82,88 -90,82
+      L -90,-80
+      Z
+    " 
+      fill="url(#cursor-fill)" 
+      stroke="white" 
+      stroke-width="22" 
+      stroke-linejoin="round" 
+      stroke-linecap="round"/>
   </g>
 </svg>
