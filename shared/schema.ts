@@ -196,6 +196,28 @@ export const aiLogs = pgTable("ai_logs", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// === INVOICES ===
+export const invoices = pgTable("invoices", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  invoiceNumber: text("invoice_number").notNull().unique(),
+  purchaseId: integer("purchase_id"),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull().default("eur"),
+  status: text("status").notNull().default("paid"),
+  items: jsonb("items").notNull(),
+  clientName: text("client_name"),
+  clientEmail: text("client_email"),
+  clientAddress: text("client_address"),
+  paymentMethod: text("payment_method"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true });
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type Invoice = typeof invoices.$inferSelect;
+
 // === SECTION STATUSES ===
 export const SECTION_STATUSES = {
   DRAFT: 'draft',

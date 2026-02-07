@@ -2846,6 +2846,19 @@ IMPORTANT:
             status: "active",
           });
         }
+        const demoProfile = await storage.getProfile(userId);
+        const demoInvoiceNum = await storage.getNextInvoiceNumber();
+        await storage.createInvoice({
+          userId,
+          invoiceNumber: demoInvoiceNum,
+          amount: totalCents,
+          currency: "eur",
+          status: "paid",
+          items: lineItems.map(i => ({ key: i.key, label: i.label, price: i.price })),
+          clientName: demoProfile ? `${demoProfile.firstName || ""} ${demoProfile.lastName || ""}`.trim() : undefined,
+          clientEmail: demoProfile?.email || undefined,
+          paymentMethod: "demo",
+        });
         return res.json({ success: true, mode: "demo", message: "Fonctionnalités activées (mode démo)" });
       }
 
@@ -2920,11 +2933,45 @@ IMPORTANT:
         }
       }
 
+      const profile = await storage.getProfile(userId);
+      const totalAmount = items.reduce((s: number, key: string) => s + (PRICING[key]?.price || 0), 0);
+      const invoiceNumber = await storage.getNextInvoiceNumber();
+      await storage.createInvoice({
+        userId,
+        invoiceNumber,
+        amount: totalAmount,
+        currency: "eur",
+        status: "paid",
+        items: items.map((key: string) => ({ key, label: PRICING[key]?.label || key, price: PRICING[key]?.price || 0 })),
+        clientName: profile ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() : undefined,
+        clientEmail: profile?.email || undefined,
+        paymentMethod: "card",
+        stripePaymentIntentId: session.payment_intent as string,
+      });
+
       res.json({ success: true, entitlements: await storage.getUserEntitlements(userId) });
     } catch (err: any) {
       console.error("Confirm error:", err);
       res.status(500).json({ message: err.message || "Erreur de confirmation" });
     }
+  });
+
+  // === INVOICES ===
+  app.get("/api/invoices", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const userInvoices = await storage.getUserInvoices(userId);
+    res.json(userInvoices);
+  });
+
+  app.get("/api/invoices/:id", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    const userId = getUserId(req);
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    const invoice = await storage.getInvoice(parseInt(req.params.id));
+    if (!invoice || invoice.userId !== userId) return res.status(404).json({ message: "Facture introuvable" });
+    res.json(invoice);
   });
 
   // === QUOTA MANAGEMENT ===
@@ -2957,6 +3004,19 @@ IMPORTANT:
       const stripeKeySurplusCheckout = await ensureStripeKey();
       if (!stripeKeySurplusCheckout) {
         await storage.addQuotaSurplus(userId, surplus.type, surplus.amount, surplus.price);
+        const surplusProfile = await storage.getProfile(userId);
+        const surplusInvNum = await storage.getNextInvoiceNumber();
+        await storage.createInvoice({
+          userId,
+          invoiceNumber: surplusInvNum,
+          amount: surplus.price,
+          currency: "eur",
+          status: "paid",
+          items: [{ key: surplusKey, label: surplus.label, price: surplus.price }],
+          clientName: surplusProfile ? `${surplusProfile.firstName || ""} ${surplusProfile.lastName || ""}`.trim() : undefined,
+          clientEmail: surplusProfile?.email || undefined,
+          paymentMethod: "demo",
+        });
         const updatedQuota = await storage.getQuota(userId);
         return res.json({ success: true, mode: "demo", quota: updatedQuota, message: "Surplus activé (mode démo)" });
       }

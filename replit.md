@@ -30,7 +30,8 @@ The application follows a client-server architecture.
     -   **Export Functionality**: Supports per-section and batch export to Word (.docx) and PDF formats.
     -   **Quota System**: Manages user quotas for words, AI actions, projects, and documents with options for purchasing surplus.
     -   **Payment System**: Integrated with Stripe. Single core pack at €179 (foundations through methodology) + à la carte options (collecte, analyse, revue avancée, soutenance, confort, IA quotas). Entitlement system: `core_pack` purchase expands to foundation/plan/conceptual/literature/methodology entitlements. Pack purchases (pack_collecte, pack_analyse, pack_revue, pack_soutenance) expand to their constituent items. SECTION_TO_ENTITLEMENT maps section keys to entitlement keys. getUserEntitlements in storage.ts expands pack purchases into individual entitlements.
-
+    -   **Invoice System**: Auto-generated invoices on every purchase (core pack, options, surplus). Invoices stored in DB (invoices table) with auto-incrementing invoice numbers (AS-YYYYMM-NNNN format). Client billing space shows invoice history with download (HTML format). Invoice template includes company details (Performance Consulting Groupe SAS, SIREN 913 540 944, RCS Perpignan, 3 Avenue de Toulouse, 66140 Canet-en-Roussillon) and client details.
+    -   **Subscription Tracking**: Visual progress bar showing days remaining in current period, color-coded warnings (orange when < 7 days, red when expired). Auto-payment notification section with next debit date.
     -   **Super Admin Console**: Full administration dashboard for managing users, plans, AI settings, payments, and audit logs.
 
 ## Super Admin Console

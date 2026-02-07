@@ -2,13 +2,14 @@ import { db } from "./db";
 import {
   users, profiles, projects, documents, aiGenerations,
   projectSections, sectionVersions, sectionStatusHistory, userPurchases,
-  userQuotas, quotaSurplus, plans, adminSettings, auditLogs, aiLogs,
+  userQuotas, quotaSurplus, plans, adminSettings, auditLogs, aiLogs, invoices,
   type User, type Profile, type Project, type Document, type AiGeneration,
   type InsertProfile, type InsertProject, type InsertDocument,
   type ProjectSection, type SectionVersion, type StatusHistory,
   type UserPurchase, type InsertPurchase,
   type UserQuota, type QuotaSurplus, type InsertSurplus,
   type Plan, type InsertPlan, type AuditLog, type AiLog, type AdminSetting,
+  type Invoice, type InsertInvoice,
   SECTION_ORDER,
 } from "@shared/schema";
 import { sql } from "drizzle-orm";
@@ -87,6 +88,11 @@ export interface IStorage {
 
   getAllPurchases(limit?: number): Promise<any[]>;
   getAllSurplus(limit?: number): Promise<any[]>;
+
+  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
+  getUserInvoices(userId: string): Promise<Invoice[]>;
+  getInvoice(id: number): Promise<Invoice | undefined>;
+  getNextInvoiceNumber(): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -701,6 +707,41 @@ export class DatabaseStorage implements IStorage {
       enriched.push({ ...s, userEmail: user?.email, userName: user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Inconnu" });
     }
     return enriched;
+  }
+
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    const [created] = await db.insert(invoices).values(invoice).returning();
+    return created;
+  }
+
+  async getUserInvoices(userId: string): Promise<Invoice[]> {
+    return db.select().from(invoices)
+      .where(eq(invoices.userId, userId))
+      .orderBy(desc(invoices.createdAt));
+  }
+
+  async getInvoice(id: number): Promise<Invoice | undefined> {
+    const [inv] = await db.select().from(invoices).where(eq(invoices.id, id));
+    return inv;
+  }
+
+  async getNextInvoiceNumber(): Promise<string> {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const prefix = `AS-${year}${month}`;
+    const [latest] = await db.select({ invoiceNumber: invoices.invoiceNumber })
+      .from(invoices)
+      .where(sql`${invoices.invoiceNumber} LIKE ${prefix + '%'}`)
+      .orderBy(desc(invoices.invoiceNumber))
+      .limit(1);
+    let seq = 1;
+    if (latest) {
+      const parts = latest.invoiceNumber.split("-");
+      const lastSeq = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastSeq)) seq = lastSeq + 1;
+    }
+    return `${prefix}-${String(seq).padStart(4, "0")}`;
   }
 }
 
