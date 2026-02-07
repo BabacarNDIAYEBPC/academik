@@ -172,7 +172,7 @@ export default function SoutenancePPTModule({
     try {
       const pptx = new PptxGenJS();
       pptx.layout = "LAYOUT_WIDE";
-      pptx.author = "Academic Writing Assistant";
+      pptx.author = "AlphaScholar";
       pptx.title = "Soutenance";
 
       const THEME_COLORS: Record<string, { bg: string; title: string; body: string; accent: string }> = {

@@ -195,8 +195,8 @@ export default function ProjectDetails() {
         <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-full">
           <TabsTrigger value="assistant" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-assistant">
             <Sparkles className="w-4 h-4 shrink-0" />
-            <span className="hidden sm:inline">ASSISTANT Méthodologie</span>
-            <span className="sm:hidden">Assistant</span>
+            <span className="hidden sm:inline">AlphaScholar</span>
+            <span className="sm:hidden">Alpha</span>
           </TabsTrigger>
           <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-documents">
             Documents
