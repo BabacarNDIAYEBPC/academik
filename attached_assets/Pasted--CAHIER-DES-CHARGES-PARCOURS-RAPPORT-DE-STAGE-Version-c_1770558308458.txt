@@ -1,0 +1,275 @@
+📘 CAHIER DES CHARGES – PARCOURS RAPPORT DE STAGE
+
+Version complète – structurée – prête dev / IA
+
+🎯 1. Objectif du parcours Rapport de stage
+
+Permettre à l’étudiant de :
+
+structurer correctement son rapport de stage
+
+partir du terrain réel
+
+rédiger un document cohérent, professionnel et académique
+
+garder la liberté d’ajouter, s’il le souhaite, des éléments plus analytiques (revue, recherche, etc.)
+
+👉 Le logiciel guide sans contraindre.
+
+🧭 2. Logique générale du parcours
+
+Le rapport de stage commence par l’entreprise
+
+Les sections sont générées à partir de questions progressives
+
+Aucune section académique lourde n’est imposée
+
+Des options d’approfondissement sont proposées à la fin de certaines sections
+
+🟦 SECTION 1 — PRÉSENTATION DE L’ENTREPRISE
+
+(SECTION DE DÉPART – OBLIGATOIRE)
+
+🎯 Objectif
+
+Poser le cadre professionnel et contextualiser le stage.
+
+❓ Questions posées à l’étudiant
+Bloc 1 – Identification
+
+Quel est le nom de l’entreprise ?
+
+Quel est son statut juridique ?
+
+En quelle année a-t-elle été créée ?
+
+Quel est son secteur d’activité ?
+
+Quelle est sa taille (TPE, PME, grande entreprise) ?
+
+Où est-elle située (ville / pays) ?
+
+Quel est son site web ?
+
+Bloc 2 – Activités
+
+Quelle est l’activité principale de l’entreprise ?
+
+Quels sont ses produits ou services ?
+
+Quelles sont ses missions principales ?
+
+À quels types de clients ou usagers s’adresse-t-elle ?
+
+Bloc 3 – Organisation
+
+Comment l’entreprise est-elle organisée ?
+
+Quels sont les principaux services ?
+
+Dans quel service avez-vous effectué votre stage ?
+
+Quel est le rôle de ce service dans l’entreprise ?
+
+🧠 Sortie IA attendue
+
+Texte structuré : Présentation de l’entreprise
+
+Style académique simple et clair
+
+Possibilité de reformulation et d’enrichissement
+
+⚙️ Option facultative
+
+Souhaitez-vous approfondir cette section (contexte sectoriel, chiffres, environnement) ?
+OUI / NON
+
+🟦 SECTION 2 — PRÉSENTATION DU STAGE
+
+(OBLIGATOIRE)
+
+🎯 Objectif
+
+Situer précisément le stage dans l’entreprise.
+
+❓ Questions posées
+
+Quel était l’intitulé de votre poste ?
+
+Quelle était la durée de votre stage ?
+
+Quels étaient les objectifs du stage ?
+
+Quelles missions vous ont été confiées ?
+
+Quels outils ou méthodes avez-vous utilisés ?
+
+Aviez-vous un tuteur ou un responsable ? Quel était son rôle ?
+
+🧠 Sortie IA attendue
+
+Texte structuré : Présentation du stage
+
+Mise en lien avec l’entreprise
+
+🟦 SECTION 3 — DESCRIPTION DES MISSIONS RÉALISÉES
+
+(OBLIGATOIRE)
+
+🎯 Objectif
+
+Décrire concrètement le travail effectué.
+
+❓ Questions posées
+
+Quelles étaient vos missions principales ?
+
+Quelles missions secondaires avez-vous réalisées ?
+
+Comment s’organisaient vos journées ou semaines ?
+
+Quelles responsabilités vous ont été confiées ?
+
+Avez-vous travaillé seul ou en équipe ?
+
+🧠 Sortie IA attendue
+
+Section claire et détaillée
+
+Structuration logique des missions
+
+🟦 SECTION 4 — ANALYSE D’UNE SITUATION PROFESSIONNELLE
+
+(OBLIGATOIRE)
+
+🎯 Objectif
+
+Apporter une analyse réflexive, sans entrer dans une recherche académique lourde.
+
+❓ Questions posées
+
+Quelle situation professionnelle vous a particulièrement marqué ?
+
+Dans quel contexte s’est-elle déroulée ?
+
+Quels étaient les enjeux de cette situation ?
+
+Quelles actions ont été mises en place ?
+
+Quels ont été les résultats ?
+
+Que retenez-vous de cette expérience ?
+
+🧠 Sortie IA attendue
+
+Analyse structurée
+
+Mise en valeur de la posture professionnelle de l’étudiant
+
+⚙️ Option facultative
+
+Souhaitez-vous approfondir cette analyse avec des apports théoriques ?
+OUI / NON
+
+🟦 SECTION 5 — APPORTS DU STAGE
+
+(OBLIGATOIRE)
+
+🎯 Objectif
+
+Mettre en évidence les bénéfices du stage.
+
+❓ Questions posées
+Apports professionnels
+
+Quelles compétences professionnelles avez-vous développées ?
+
+Qu’avez-vous appris sur le métier ?
+
+Apports personnels
+
+Qu’avez-vous appris sur vous-même ?
+
+Quelles qualités avez-vous renforcées ?
+
+Apports académiques
+
+Quels liens pouvez-vous faire avec votre formation ?
+
+🧠 Sortie IA attendue
+
+Section synthétique et structurée
+
+Valorisation du parcours de l’étudiant
+
+🟦 SECTION 6 — CONCLUSION
+
+(OBLIGATOIRE)
+
+🎯 Objectif
+
+Clore le rapport de manière cohérente.
+
+❓ Questions posées
+
+Quel bilan global tirez-vous de ce stage ?
+
+En quoi ce stage a-t-il contribué à votre projet professionnel ?
+
+Quelles perspectives envisagez-vous pour la suite ?
+
+🧠 Sortie IA attendue
+
+Conclusion fluide et cohérente
+
+Projection professionnelle claire
+
+🟨 SECTIONS OPTIONNELLES (LIBERTÉ ÉTUDIANTE)
+
+À tout moment, l’étudiant peut ajouter :
+
+Revue de littérature
+
+Cadre théorique
+
+Analyse plus approfondie
+
+Annexes
+
+👉 Ces sections ne sont jamais imposées, mais toujours accessibles.
+
+⚙️ 3. Fonctionnalités transversales attendues
+
+Questions posées une par une
+
+Génération automatique des sections
+
+Possibilité d’édition manuelle
+
+Boutons “Approfondir / Passer”
+
+Export Word / PDF
+
+Cohérence automatique du document
+
+✅ CONCLUSION GÉNÉRALE
+
+Ce cahier des charges garantit que :
+
+l’essentiel d’un rapport de stage est toujours présent
+
+l’étudiant n’est jamais bloqué
+
+l’outil reste pédagogique, intelligent et souple
+
+ton logiciel se distingue clairement des générateurs génériques
+
+👉 Si tu veux, prochaine étape naturelle :
+
+cahier des charges Mémoire professionnel
+
+ou VAE
+
+ou transformation en spec technique dev / IA
+
+Dis-moi.
