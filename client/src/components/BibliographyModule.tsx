@@ -209,10 +209,10 @@ export default function BibliographyModule({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Library className="w-5 h-5 text-primary" />
-              <CardTitle>{t("modules.bibliography.title")}</CardTitle>
+              <CardTitle className="text-base md:text-lg">{t("modules.bibliography.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isValidated ? (
@@ -318,8 +318,8 @@ export default function BibliographyModule({
             {importedBibliography && t("modules.bibliography.importedAlsoConsidered")}
           </div>
 
-          <div className="flex items-end gap-4 flex-wrap">
-            <div className="space-y-2 flex-1 min-w-[200px]">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4">
+            <div className="space-y-2 flex-1 min-w-0">
               <Label>{t("modules.bibliography.normLabel")}</Label>
               <Select value={norm} onValueChange={setNorm}>
                 <SelectTrigger data-testid="select-bibliography-norm">

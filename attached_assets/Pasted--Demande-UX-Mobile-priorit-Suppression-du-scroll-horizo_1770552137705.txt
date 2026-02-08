@@ -1,0 +1,69 @@
+🎯 Demande UX Mobile (priorité) — Suppression du scroll horizontal + UI cohérente
+
+Constat :
+Sur mobile, dans plusieurs modules, le contenu et certains champs sont coupés. L’utilisateur est obligé d’utiliser une barre de défilement horizontale (scroll à droite/gauche) pour lire tout le texte ou accéder à tous les champs.
+
+Ce comportement est à supprimer totalement : sur mobile, il ne doit pas y avoir de scroll horizontal pour consulter une page ou un formulaire.
+
+1) Objectif principal
+
+✅ Tout doit tenir sur l’écran en largeur, sans déplacer la page à droite/gauche.
+✅ Le contenu doit être responsive et s’adapter automatiquement à la taille de l’écran.
+✅ Une navigation fluide, mobile-first, avec une expérience utilisateur unique, cohérente, et bien pensée.
+
+2) Exigences UX obligatoires
+A. Zéro scroll horizontal
+
+Interdire tout overflow horizontal sur mobile.
+
+Ajuster la mise en page : grilles, tableaux, formulaires, blocs, cards, etc.
+
+Les champs doivent être lisibles et complets sans défilement latéral.
+
+B. Réorganisation du contenu en mobile
+
+Passer toutes les zones en 1 colonne sur mobile (sauf exceptions très simples).
+
+Les tableaux doivent être remplacés par une présentation en cartes (cards) ou en lignes empilées.
+
+Les champs longs : utiliser retour à la ligne, ellipsis intelligent si nécessaire, et icône “voir plus” si besoin.
+
+C. Boutons : disposition standard et identique partout
+
+Sur tous les modules qui partagent des actions communes, appliquer la même disposition et le même ordre :
+
+Bas de page (sticky si possible) :
+
+Primaire : Enregistrer / Valider (bouton principal)
+
+Secondaire : Annuler / Retour
+
+Optionnel : Supprimer (en style danger, séparé/moins exposé)
+
+Règles :
+
+Même ordre, même style, mêmes tailles sur tous les modules.
+
+Boutons adaptés au pouce (zones tactiles confortables).
+
+Pas de boutons dispersés dans tous les sens selon le module.
+
+3) Rendu attendu
+
+Une interface mobile sans friction, lisible, rapide, et uniforme.
+
+Une expérience “produit premium” : mêmes patterns, mêmes emplacements, mêmes réflexes utilisateurs.
+
+Un design cohérent sur l’ensemble de l’application, pas module par module.
+
+4) Critères d’acceptation (test simple)
+
+Sur mobile :
+
+✅ Aucun écran ne déclenche un scroll horizontal.
+
+✅ Tous les champs/formulaires sont entièrement visibles en largeur.
+
+✅ Les boutons communs (Enregistrer / Annuler / etc.) sont placés exactement au même endroit dans tous les modules.
+
+✅ Les pages sont agréables à utiliser à une main.

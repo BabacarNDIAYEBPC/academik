@@ -503,17 +503,17 @@ export default function ConceptualFrameworkModule({
   const isValidated = section?.status === "validated";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-4">
             <div className="flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">{t("modules.conceptual.title")}</CardTitle>
+              <CardTitle className="text-base md:text-lg">{t("modules.conceptual.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Select value={citationNorm} onValueChange={handleNormChange}>
-                <SelectTrigger className="w-[140px]" data-testid="select-citation-norm">
+                <SelectTrigger className="w-[120px] md:w-[140px]" data-testid="select-citation-norm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -664,7 +664,7 @@ export default function ConceptualFrameworkModule({
                   <Badge variant="secondary" className="ml-2">{selectedKeys.size} {t("modules.conceptual.selected")}</Badge>
                 )}
               </CardTitle>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1 md:gap-2 flex-wrap">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -672,16 +672,16 @@ export default function ConceptualFrameworkModule({
                   data-testid="button-toggle-filters"
                 >
                   <Filter className="w-4 h-4 mr-1" />
-                  {t("modules.conceptual.filters")}
+                  <span className="hidden sm:inline">{t("modules.conceptual.filters")}</span>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={selectAll} data-testid="button-select-all">
-                  <CheckSquare className="w-4 h-4 mr-1" /> {t("modules.conceptual.selectAll")}
+                  <CheckSquare className="w-4 h-4 mr-1" /> <span className="hidden sm:inline">{t("modules.conceptual.selectAll")}</span>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={deselectAll} data-testid="button-deselect-all">
-                  <X className="w-4 h-4 mr-1" /> {t("modules.conceptual.deselectAll")}
+                  <X className="w-4 h-4 mr-1" /> <span className="hidden sm:inline">{t("modules.conceptual.deselectAll")}</span>
                 </Button>
                 <Select value={batchSize.toString()} onValueChange={(v) => { setBatchSize(Number(v)); setCurrentPage(0); }}>
-                  <SelectTrigger className="w-[100px]" data-testid="select-batch-size">
+                  <SelectTrigger className="w-[80px] md:w-[100px]" data-testid="select-batch-size">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -696,11 +696,11 @@ export default function ConceptualFrameworkModule({
 
           {showFilters && (
             <CardContent className="pb-2 pt-0">
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-wrap">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Label className="text-xs">{t("modules.conceptual.filterType")}</Label>
                   <Select value={filterType} onValueChange={setFilterType}>
-                    <SelectTrigger className="w-[160px]" data-testid="filter-type">
+                    <SelectTrigger className="w-full sm:w-[160px]" data-testid="filter-type">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -711,7 +711,7 @@ export default function ConceptualFrameworkModule({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Label className="text-xs">{t("modules.conceptual.filterYear")}</Label>
                   <Input
                     type="text"
@@ -835,7 +835,7 @@ export default function ConceptualFrameworkModule({
               <>
                 {selectedSources.length > 1 && (
                   <Select value={analysisType} onValueChange={setAnalysisType}>
-                    <SelectTrigger className="w-[180px]" data-testid="select-analysis-type">
+                    <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-analysis-type">
                       <SelectValue placeholder={t("modules.conceptual.analysisTypePlaceholder")} />
                     </SelectTrigger>
                     <SelectContent>
@@ -880,9 +880,9 @@ export default function ConceptualFrameworkModule({
       {conceptsContent && (
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <CardTitle className="text-base">{t("modules.conceptual.generatedFramework")}</CardTitle>
-              <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center justify-between gap-2 md:gap-4 flex-wrap">
+              <CardTitle className="text-sm md:text-base">{t("modules.conceptual.generatedFramework")}</CardTitle>
+              <div className="flex items-center gap-1 md:gap-2 flex-wrap">
                 <Button variant="outline" size="sm" onClick={handleExportWord} data-testid="button-export-word">
                   <FileDown className="w-4 h-4 mr-1" /> Word
                 </Button>
@@ -902,7 +902,7 @@ export default function ConceptualFrameworkModule({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
+            <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5">
               <ReactMarkdown>{conceptsContent}</ReactMarkdown>
             </div>
           </CardContent>
@@ -912,13 +912,13 @@ export default function ConceptualFrameworkModule({
       {bibliographyContent && (
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center justify-between gap-2 md:gap-4 flex-wrap">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4" />
-                <CardTitle className="text-base">{t("modules.conceptual.bibliographyTitle")} ({citationNorm.toUpperCase()})</CardTitle>
+                <CardTitle className="text-sm md:text-base">{t("modules.conceptual.bibliographyTitle")} ({citationNorm.toUpperCase()})</CardTitle>
               </div>
               <Select value={citationNorm} onValueChange={handleNormChange}>
-                <SelectTrigger className="w-[140px]" data-testid="select-bib-norm">
+                <SelectTrigger className="w-[120px] md:w-[140px]" data-testid="select-bib-norm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -930,18 +930,18 @@ export default function ConceptualFrameworkModule({
             </div>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
+            <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5">
               <ReactMarkdown>{bibliographyContent}</ReactMarkdown>
             </div>
           </CardContent>
         </Card>
       )}
       <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-equations">
+        <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-equations">
           <DialogHeader>
             <DialogTitle>{t("modules.conceptual.equationsDialogTitle")}</DialogTitle>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5">
             <ReactMarkdown>{equationsContent}</ReactMarkdown>
           </div>
           <div className="flex justify-end gap-2 mt-4">
@@ -955,11 +955,11 @@ export default function ConceptualFrameworkModule({
       </Dialog>
 
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-analysis">
+        <DialogContent className="max-w-[95vw] md:max-w-2xl max-h-[80vh] overflow-y-auto" data-testid="dialog-analysis">
           <DialogHeader>
             <DialogTitle>{t("modules.conceptual.analysisDialogTitle")}</DialogTitle>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5">
             <ReactMarkdown>{analysisContent}</ReactMarkdown>
           </div>
           <div className="flex justify-end gap-2 mt-4">

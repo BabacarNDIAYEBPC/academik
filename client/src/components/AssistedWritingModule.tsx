@@ -183,10 +183,10 @@ export default function AssistedWritingModule({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <PenTool className="w-5 h-5 text-primary" />
-              <CardTitle>{t("modules.assistedWriting.title")}</CardTitle>
+              <CardTitle className="text-base md:text-lg">{t("modules.assistedWriting.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isValidated ? (

@@ -185,17 +185,17 @@ export default function ProjectDetails() {
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground" data-testid="text-project-name">{project.name}</h1>
       </div>
 
-      <Tabs defaultValue="assistant" className="space-y-8">
-        <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-full">
-          <TabsTrigger value="assistant" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-assistant">
+      <Tabs defaultValue="assistant" className="space-y-6 md:space-y-8">
+        <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto gap-1 w-full grid grid-cols-3">
+          <TabsTrigger value="assistant" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 md:py-2.5 px-2 md:px-5 rounded-lg transition-all gap-1.5 text-xs md:text-sm" data-testid="tab-assistant">
             <Sparkles className="w-4 h-4 shrink-0" />
             <span className="hidden sm:inline">{t("project.assistant")}</span>
             <span className="sm:hidden">{t("project.assistantMobile")}</span>
           </TabsTrigger>
-          <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-documents">
+          <TabsTrigger value="documents" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 md:py-2.5 px-2 md:px-5 rounded-lg transition-all text-xs md:text-sm" data-testid="tab-documents">
             {t("project.documentsTab")}
           </TabsTrigger>
-          <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 sm:py-2.5 px-3 sm:px-5 rounded-lg transition-all text-xs sm:text-sm flex-1 sm:flex-none" data-testid="tab-overview">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground py-2 md:py-2.5 px-2 md:px-5 rounded-lg transition-all text-xs md:text-sm" data-testid="tab-overview">
             {t("project.overviewTab")}
           </TabsTrigger>
         </TabsList>
@@ -311,8 +311,33 @@ function AssistantTab({ project }: { project: any }) {
       </div>
 
       <Tabs value={activeModule} onValueChange={setActiveModule}>
-        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2 sm:pb-0">
-          <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-max sm:w-auto">
+        <div className="md:hidden mb-4">
+          <Select value={activeModule} onValueChange={setActiveModule}>
+            <SelectTrigger className="w-full" data-testid="select-module-mobile">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {moduleTabs.map(tab => {
+                const tabLocked = isTabLocked(tab);
+                const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
+                const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
+                const isWorkflow = tab.key === "workflow";
+                return (
+                  <SelectItem key={tab.key} value={tab.key} disabled={tabLocked} data-testid={`select-module-option-${tab.key}`}>
+                    <span className="flex items-center gap-2">
+                      {tabLocked && <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                      {tab.label}
+                      {!tabLocked && allValidated && !isWorkflow && <Check className="w-3 h-3 text-green-500 shrink-0" />}
+                    </span>
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="hidden md:block">
+          <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-auto">
             {moduleTabs.map(tab => {
               const Icon = tab.icon;
               const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
@@ -331,7 +356,7 @@ function AssistantTab({ project }: { project: any }) {
                   key={tab.key}
                   value={tab.key}
                   disabled={tabLocked}
-                  className={`py-1.5 sm:py-2 px-2.5 sm:px-4 rounded-lg transition-all gap-1.5 sm:gap-2 text-xs sm:text-sm whitespace-nowrap ${
+                  className={`py-2 px-4 rounded-lg transition-all gap-2 text-sm whitespace-nowrap ${
                     tabLocked
                       ? ""
                       : "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -339,9 +364,9 @@ function AssistantTab({ project }: { project: any }) {
                   data-testid={`tab-module-${tab.key}`}
                 >
                   {tabLocked ? (
-                    <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-muted-foreground" />
+                    <Lock className="w-4 h-4 shrink-0 text-muted-foreground" />
                   ) : (
-                    <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                    <Icon className="w-4 h-4 shrink-0" />
                   )}
                   {tab.label}
                   {tabLocked ? (

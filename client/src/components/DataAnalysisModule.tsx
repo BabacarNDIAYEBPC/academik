@@ -410,7 +410,7 @@ function ResultDisplay({ label, value, onChange, testId }: { label: string; valu
           data-testid={`textarea-${testId}`}
         />
       ) : (
-        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 min-h-[200px]" data-testid={`display-${testId}`}>
+        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 md:p-5 min-h-[200px]" data-testid={`display-${testId}`}>
           <RichTextDisplay content={value} />
         </div>
       )}
@@ -800,10 +800,10 @@ export default function DataAnalysisModule({
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2">
+      <CardHeader className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <BarChart3 className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">{t("modules.dataAnalysis.title")}</CardTitle>
+          <CardTitle className="text-base md:text-lg">{t("modules.dataAnalysis.title")}</CardTitle>
           {isValidated && <Badge variant="default" className="bg-green-600 text-white"><Check className="w-3 h-3 mr-1" />{t("modules.common.validated")}</Badge>}
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -875,7 +875,7 @@ export default function DataAnalysisModule({
                         <Trash2 className="w-4 h-4 text-muted-foreground" />
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                       <div className="space-y-1">
                         <Label className="text-xs">{t("modules.dataAnalysis.initialsLabel")}</Label>
                         <Input
@@ -1079,7 +1079,7 @@ export default function DataAnalysisModule({
                           <thead>
                             <tr>
                               {group.headers.map((h, i) => (
-                                <th key={i} className="text-left px-4 py-3 font-bold text-xs uppercase tracking-wider whitespace-nowrap text-white bg-[#00BCD4] border-r border-[#00ACC1] last:border-r-0">
+                                <th key={i} className="text-left px-2 py-2 md:px-4 md:py-3 font-bold text-xs uppercase tracking-wider whitespace-nowrap text-white bg-[#00BCD4] border-r border-[#00ACC1] last:border-r-0">
                                   {h}
                                 </th>
                               ))}
@@ -1104,7 +1104,7 @@ export default function DataAnalysisModule({
                                     return (
                                       <td
                                         key={ci}
-                                        className={`px-4 py-2.5 text-xs whitespace-nowrap border-r border-slate-100 dark:border-slate-800 last:border-r-0 ${
+                                        className={`px-2 py-1.5 md:px-4 md:py-2.5 text-xs whitespace-nowrap border-r border-slate-100 dark:border-slate-800 last:border-r-0 ${
                                           isTotal ? "font-bold text-foreground" : ci === 0 ? "font-semibold text-foreground" : "text-foreground"
                                         }`}
                                         style={isNumeric && !isTotal ? {
@@ -1146,7 +1146,7 @@ export default function DataAnalysisModule({
                         </div>
 
                         <div className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden" data-testid={`chart-container-${group.id}`}>
-                          <div className="h-[380px] p-5 pb-2">
+                          <div className="h-[280px] sm:h-[380px] p-3 sm:p-5 pb-2">
                             {currentChartType === "pie" ? (
                               <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>

@@ -610,16 +610,16 @@ export default function LiteratureReviewModule({
   const getArticleIdx = (article: LiteratureArticle) => articles.indexOf(article);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-lg flex items-center gap-2">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
+            <CardTitle className="text-base md:text-lg flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
               {SECTION_LABELS["literature_review"]}
             </CardTitle>
             {section && (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant={section.status === "validated" ? "default" : "secondary"} data-testid="badge-lit-status">
                   {section.status === "validated" ? t("modules.literatureReview.validated") : section.status === "draft" ? t("modules.literatureReview.draft") : section.status}
                 </Badge>
@@ -636,7 +636,7 @@ export default function LiteratureReviewModule({
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 md:space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium text-muted-foreground">{t("modules.literatureReview.searchPlatforms")}</Label>
@@ -660,7 +660,7 @@ export default function LiteratureReviewModule({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs text-muted-foreground">{t("modules.literatureReview.resultCount")}</Label>
                 <Select
@@ -821,13 +821,13 @@ export default function LiteratureReviewModule({
               </div>
 
               {showFilters && (
-                <div className="flex items-end gap-3 flex-wrap p-3 rounded-lg bg-muted/30 border">
-                  <div className="space-y-1">
+                <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 flex-wrap p-3 rounded-lg bg-muted/30 border">
+                  <div className="space-y-1 w-full sm:w-auto">
                     <Label className="text-xs text-muted-foreground">
                       <Filter className="w-3 h-3 inline mr-1" />{t("modules.literatureReview.documentType")}
                     </Label>
                     <Select value={filterType} onValueChange={v => { setFilterType(v); setCurrentPage(0); }}>
-                      <SelectTrigger className="w-[180px]" data-testid="select-filter-type">
+                      <SelectTrigger className="w-full sm:w-[180px]" data-testid="select-filter-type">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -838,12 +838,12 @@ export default function LiteratureReviewModule({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 w-full sm:w-auto">
                     <Label className="text-xs text-muted-foreground">
                       <Filter className="w-3 h-3 inline mr-1" />{t("modules.literatureReview.yearLabel")}
                     </Label>
                     <Select value={filterYear || "all"} onValueChange={v => { setFilterYear(v === "all" ? "" : v); setCurrentPage(0); }}>
-                      <SelectTrigger className="w-[120px]" data-testid="select-filter-year">
+                      <SelectTrigger className="w-full sm:w-[120px]" data-testid="select-filter-year">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -854,12 +854,12 @@ export default function LiteratureReviewModule({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 w-full sm:w-auto">
                     <Label className="text-xs text-muted-foreground">
                       <ArrowUpDown className="w-3 h-3 inline mr-1" />{t("modules.literatureReview.sortBy")}
                     </Label>
                     <Select value={sortBy} onValueChange={v => { setSortBy(v); setCurrentPage(0); }}>
-                      <SelectTrigger className="w-[160px]" data-testid="select-sort-by">
+                      <SelectTrigger className="w-full sm:w-[160px]" data-testid="select-sort-by">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -944,9 +944,9 @@ export default function LiteratureReviewModule({
                         {t("modules.literatureReview.mappingLabel")}
                       </Button>
                     )}
-                    <div className="flex items-center gap-1 ml-auto">
+                    <div className="flex items-center gap-1 w-full sm:w-auto sm:ml-auto">
                       <Select value={bibliographyNorm} onValueChange={setBibliographyNorm}>
-                        <SelectTrigger className="w-[120px]" data-testid="select-bib-norm">
+                        <SelectTrigger className="w-[100px] sm:w-[120px]" data-testid="select-bib-norm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -979,48 +979,69 @@ export default function LiteratureReviewModule({
                   const resumeAction: ActiveAction = `resume_${idx}`;
                   return (
                     <Card key={key} className={isSelected ? "border-primary" : ""} data-testid={`article-result-${idx}`}>
-                      <CardContent className="py-3 flex items-start gap-3">
-                        <div className="pt-1">
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={() => toggleSelect(article)}
-                            data-testid={`checkbox-article-${idx}`}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium" data-testid={`text-article-title-${idx}`}>
-                            {article.title}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            <span className="font-medium">{article.lastName}{article.firstName ? `, ${article.firstName}` : ""}</span>
-                            {article.year && <> ({article.year})</>}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {article.publisher && <>{article.publisher}</>}
-                            {article.platform && <> — {article.platform}</>}
-                            {article.type && (
-                              <Badge variant="secondary" className="ml-2 text-[10px] py-0">{article.type}</Badge>
+                      <CardContent className="py-2 md:py-3 px-3 md:px-6">
+                        <div className="flex items-start gap-2 md:gap-3">
+                          <div className="pt-1">
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleSelect(article)}
+                              data-testid={`checkbox-article-${idx}`}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium" data-testid={`text-article-title-${idx}`}>
+                              {article.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              <span className="font-medium">{article.lastName}{article.firstName ? `, ${article.firstName}` : ""}</span>
+                              {article.year && <> ({article.year})</>}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {article.publisher && <>{article.publisher}</>}
+                              {article.platform && <> — {article.platform}</>}
+                              {article.type && (
+                                <Badge variant="secondary" className="ml-2 text-[10px] py-0">{article.type}</Badge>
+                              )}
+                            </p>
+                            <div className="flex gap-1 mt-2 md:hidden flex-wrap">
+                              {article.url && (
+                                <Button variant="ghost" size="icon" asChild>
+                                  <a href={article.url} target="_blank" rel="noopener noreferrer" data-testid={`link-article-mobile-${idx}`}>
+                                    <ExternalLink className="w-4 h-4" />
+                                  </a>
+                                </Button>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleAnalyze("single", [article], resumeAction)}
+                                disabled={isAnyActionRunning}
+                                data-testid={`button-resume-mobile-${idx}`}
+                              >
+                                {activeAction === resumeAction ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
+                                {t("modules.literatureReview.summary")}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="hidden md:flex gap-1 shrink-0">
+                            {article.url && (
+                              <Button variant="ghost" size="icon" asChild>
+                                <a href={article.url} target="_blank" rel="noopener noreferrer" data-testid={`link-article-${idx}`}>
+                                  <ExternalLink className="w-4 h-4" />
+                                </a>
+                              </Button>
                             )}
-                          </p>
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          {article.url && (
-                            <Button variant="ghost" size="icon" asChild>
-                              <a href={article.url} target="_blank" rel="noopener noreferrer" data-testid={`link-article-${idx}`}>
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAnalyze("single", [article], resumeAction)}
+                              disabled={isAnyActionRunning}
+                              data-testid={`button-resume-${idx}`}
+                            >
+                              {activeAction === resumeAction ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
+                              {t("modules.literatureReview.summary")}
                             </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAnalyze("single", [article], resumeAction)}
-                            disabled={isAnyActionRunning}
-                            data-testid={`button-resume-${idx}`}
-                          >
-                            {activeAction === resumeAction ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Eye className="w-4 h-4 mr-1" />}
-                            {t("modules.literatureReview.summary")}
-                          </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -1059,12 +1080,12 @@ export default function LiteratureReviewModule({
       </Card>
 
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] md:max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{analysisTitle}</DialogTitle>
             <DialogDescription>{t("modules.literatureReview.analysisResultDesc")}</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5">
             <ReactMarkdown>{analysisResult}</ReactMarkdown>
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">
@@ -1081,7 +1102,7 @@ export default function LiteratureReviewModule({
       </Dialog>
 
       <Dialog open={showBibDialog} onOpenChange={setShowBibDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] md:max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {t("modules.literatureReview.bibDash")} {
@@ -1090,7 +1111,7 @@ export default function LiteratureReviewModule({
             </DialogTitle>
             <DialogDescription>{t("modules.literatureReview.bibDesc")}</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5">
             <ReactMarkdown>{bibliographyResult}</ReactMarkdown>
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">
@@ -1107,7 +1128,7 @@ export default function LiteratureReviewModule({
       </Dialog>
 
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] md:max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("modules.literatureReview.searchHistory")}</DialogTitle>
             <DialogDescription>{searchHistory.length} {t("modules.literatureReview.searchHistoryCount")}</DialogDescription>
@@ -1121,7 +1142,7 @@ export default function LiteratureReviewModule({
               const langLabels: Record<string, string> = { fr: t("modules.literatureReview.langHistoryFr"), en: t("modules.literatureReview.langHistoryEn"), both: t("modules.literatureReview.langHistoryBoth") };
               return (
                 <Card key={entry.id} data-testid={`history-entry-${entry.id}`}>
-                  <CardContent className="py-3 space-y-2">
+                  <CardContent className="py-2 md:py-3 px-3 md:px-6 space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div className="text-sm font-medium">{dateStr} {t("modules.literatureReview.at")} {timeStr}</div>
                       <Badge variant="secondary">{entry.resultCount} {t("modules.literatureReview.results")}</Badge>
@@ -1174,12 +1195,12 @@ export default function LiteratureReviewModule({
       </Dialog>
 
       <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-[95vw] md:max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{t("modules.literatureReview.equationsTitle")}</DialogTitle>
             <DialogDescription>{t("modules.literatureReview.equationsDesc")}</DialogDescription>
           </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5 whitespace-pre-wrap">
+          <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5 whitespace-pre-wrap">
             {equationsResult}
           </div>
           <div className="flex items-center gap-2 pt-2 flex-wrap">

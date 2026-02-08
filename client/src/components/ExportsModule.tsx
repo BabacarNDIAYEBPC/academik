@@ -192,10 +192,10 @@ export default function ExportsModule({
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Download className="w-5 h-5 text-primary" />
-              <CardTitle>{t("modules.exports.title")}</CardTitle>
+              <CardTitle className="text-base md:text-lg">{t("modules.exports.title")}</CardTitle>
             </div>
             <Badge variant="outline" className="text-xs">
               {validatedCount}/{totalCount} {t("modules.exports.validatedSections")}

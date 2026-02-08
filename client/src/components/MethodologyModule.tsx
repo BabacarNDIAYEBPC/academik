@@ -245,10 +245,10 @@ export default function MethodologyModule({
     <div className="space-y-6">
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <FlaskConical className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">{t("modules.methodology.title")}</CardTitle>
+              <CardTitle className="text-base md:text-lg">{t("modules.methodology.title")}</CardTitle>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {isValidated ? (
@@ -333,7 +333,7 @@ export default function MethodologyModule({
                           {Object.keys(data.rows[0]).map((col, i) => (
                             <th
                               key={i}
-                              className="border border-border bg-muted/50 px-3 py-2 text-left font-medium text-xs"
+                              className="border border-border bg-muted/50 px-2 py-1.5 md:px-3 md:py-2 text-left font-medium text-xs"
                             >
                               {col}
                             </th>
@@ -344,7 +344,7 @@ export default function MethodologyModule({
                         {data.rows.map((row, rowIdx) => (
                           <tr key={rowIdx}>
                             {Object.values(row).map((val, colIdx) => (
-                              <td key={colIdx} className="border border-border px-3 py-2 text-xs">
+                              <td key={colIdx} className="border border-border px-2 py-1.5 md:px-3 md:py-2 text-xs">
                                 {val}
                               </td>
                             ))}

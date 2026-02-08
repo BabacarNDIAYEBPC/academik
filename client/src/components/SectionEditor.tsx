@@ -196,55 +196,55 @@ export default function SectionEditor({
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-2 flex-wrap pb-3">
-          <div className="flex-1 min-w-0">
-            <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
-              <Sparkles className="w-5 h-5 text-primary" />
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-2">
+            <CardTitle className="text-base md:text-lg flex items-center gap-2 flex-wrap">
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary shrink-0" />
               {label}
             </CardTitle>
             {section && (
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge className={`${STATUS_COLORS[currentStatus] || ""} no-default-hover-elevate no-default-active-elevate`} data-testid={`badge-status-${sectionKey}`}>
-                  <StatusIcon className="w-3 h-3 mr-1" />
-                  {statusLabel(currentStatus)}
-                </Badge>
-                <Select value={currentStatus} onValueChange={handleStatusChange} data-testid={`select-status-${sectionKey}`}>
-                  <SelectTrigger className="w-full sm:w-[200px] h-8 text-xs" data-testid={`trigger-status-${sectionKey}`}>
-                    <SelectValue placeholder={t("section.changeStatus")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {STATUS_WORKFLOW_ORDER.map((s) => (
-                      <SelectItem key={s} value={s} data-testid={`status-option-${s}`}>
-                        {statusLabel(s)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="flex gap-1 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowStatusTimeline(true)}
+                  data-testid={`button-status-timeline-${sectionKey}`}
+                  title={t("section.tracking")}
+                >
+                  <Clock className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowHistory(true)}
+                  data-testid={`button-history-${sectionKey}`}
+                  title={t("section.history")}
+                >
+                  <History className="w-4 h-4" />
+                </Button>
               </div>
             )}
           </div>
-          <div className="flex gap-1">
-            {section && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowStatusTimeline(true)}
-                data-testid={`button-status-timeline-${sectionKey}`}
-              >
-                <Clock className="w-4 h-4 mr-1" /> {t("section.tracking")}
-              </Button>
-            )}
-            {section && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowHistory(true)}
-                data-testid={`button-history-${sectionKey}`}
-              >
-                <History className="w-4 h-4 mr-1" /> {t("section.history")}
-              </Button>
-            )}
-          </div>
+          {section && (
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <Badge className={`${STATUS_COLORS[currentStatus] || ""} no-default-hover-elevate no-default-active-elevate`} data-testid={`badge-status-${sectionKey}`}>
+                <StatusIcon className="w-3 h-3 mr-1" />
+                {statusLabel(currentStatus)}
+              </Badge>
+              <Select value={currentStatus} onValueChange={handleStatusChange} data-testid={`select-status-${sectionKey}`}>
+                <SelectTrigger className="w-full sm:w-[200px] h-8 text-xs" data-testid={`trigger-status-${sectionKey}`}>
+                  <SelectValue placeholder={t("section.changeStatus")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_WORKFLOW_ORDER.map((s) => (
+                    <SelectItem key={s} value={s} data-testid={`status-option-${s}`}>
+                      {statusLabel(s)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -291,7 +291,7 @@ export default function SectionEditor({
 
           {!isPending && hasContent && !isEditing && (
             <>
-              <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-5 overflow-x-hidden" data-testid={`content-${sectionKey}`}>
+              <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5 overflow-x-hidden" data-testid={`content-${sectionKey}`}>
                 <ReactMarkdown>{activeVersion!.content}</ReactMarkdown>
               </div>
 
