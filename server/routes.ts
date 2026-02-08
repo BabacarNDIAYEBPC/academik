@@ -10,6 +10,7 @@ import OpenAI from "openai";
 import multer from "multer";
 import mammoth from "mammoth";
 import crypto from "crypto";
+import { sendPaymentConfirmationEmail, sendInvoiceEmail, trackAbandonedCheckout, markCheckoutRecovered, startAbandonedCartScheduler } from "./email";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -3692,6 +3693,13 @@ IMPORTANT:
         },
       });
 
+      trackAbandonedCheckout(
+        userId,
+        lineItems.map(i => ({ key: i.key, label: i.label, price: i.price })),
+        lineItems.reduce((s, i) => s + i.price, 0),
+        session.id
+      ).catch(err => console.error("[CHECKOUT] Track abandoned cart error:", err));
+
       res.json({ url: session.url, sessionId: session.id });
     } catch (err: any) {
       console.error("Checkout error:", err);
@@ -3755,6 +3763,34 @@ IMPORTANT:
         paymentMethod: "card",
         stripePaymentIntentId: session.payment_intent as string,
       });
+
+      markCheckoutRecovered(userId, items, sessionId).catch(err =>
+        console.error("[CHECKOUT] Mark recovered error:", err)
+      );
+
+      if (profile?.email) {
+        const emailItems = items.map((key: string) => ({
+          label: PRICING[key]?.label || key,
+          price: PRICING[key]?.price || 0,
+        }));
+        const firstName = (profile.firstName || profile.email.split("@")[0] || "Client");
+
+        sendPaymentConfirmationEmail(
+          profile.email,
+          firstName,
+          emailItems,
+          totalAmount,
+          invoiceNumber
+        ).catch(err => console.error("[CHECKOUT] Payment confirmation email error:", err));
+
+        sendInvoiceEmail(
+          profile.email,
+          firstName,
+          invoiceNumber,
+          emailItems,
+          totalAmount
+        ).catch(err => console.error("[CHECKOUT] Invoice email error:", err));
+      }
 
       res.json({ success: true, entitlements: await storage.getUserEntitlements(userId) });
     } catch (err: any) {
@@ -4349,7 +4385,7 @@ IMPORTANT:
     try {
       const senderEmail = await storage.getAdminSetting("dunning_sender_email");
       const cleaned = typeof senderEmail === "string" ? senderEmail.replace(/^"+|"+$/g, "").trim() : "";
-      res.json({ senderEmail: cleaned || "noreply@academik.fr" });
+      res.json({ senderEmail: cleaned || "contact@academik.fr" });
     } catch (err: any) {
       res.status(500).json({ message: err.message });
     }

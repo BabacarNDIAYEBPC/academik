@@ -225,7 +225,7 @@ async function getSenderEmail(): Promise<string> {
     const cleaned = typeof setting === "string" ? setting.replace(/^"+|"+$/g, "").trim() : String(setting);
     if (cleaned && cleaned.includes("@")) return cleaned;
   }
-  return "noreply@academik.fr";
+  return "contact@academik.fr";
 }
 
 async function getAppUrl(): Promise<string> {

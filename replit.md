@@ -41,11 +41,22 @@ The application uses a client-server architecture.
 - **Internationalization (i18n)**: Custom React context-based system for French and English support across the application.
 - **SEO & Google Indexing**: Utilizes an SEO component for dynamic metadata, `robots.txt` for crawl control, `sitemap.xml` for site structure, and JSON-LD for structured data.
 
+- **Email System** (server/email.ts): Comprehensive email service using Resend API with sender `contact@academik.fr`. Includes:
+    - Welcome email on first user registration
+    - Payment confirmation email after successful checkout
+    - Invoice email with itemized details
+    - Abandoned cart recovery emails (scheduler: every 30 min, sends after 1 hour of inactivity)
+    - Quota low warning emails
+    - All emails use responsive HTML templates with Academik branding and company footer
+    - Database table: `abandoned_checkouts` for tracking unfinished purchases
+    - Dunning/payment reminder emails (server/dunning.ts) also use `contact@academik.fr`
+
 ## External Dependencies
 - **OpenAI**: AI content generation.
 - **PostgreSQL**: Primary database.
 - **Replit Auth (OIDC)**: Authentication.
 - **Stripe**: Payment processing.
+- **Resend**: Transactional email delivery (sender: contact@academik.fr).
 - **docx**: Word document generation.
 - **file-saver**: Client-side file saving.
 - **html2pdf.js**: HTML to PDF conversion.

@@ -260,6 +260,26 @@ export const insertDunningEmailLogSchema = createInsertSchema(dunningEmailLogs).
 export type InsertDunningEmailLog = z.infer<typeof insertDunningEmailLogSchema>;
 export type DunningEmailLog = typeof dunningEmailLogs.$inferSelect;
 
+// === ABANDONED CHECKOUTS ===
+export const abandonedCheckouts = pgTable("abandoned_checkouts", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  userEmail: text("user_email"),
+  userName: text("user_name"),
+  items: jsonb("items"),
+  totalAmount: integer("total_amount").notNull().default(0),
+  stripeSessionId: text("stripe_session_id"),
+  emailSent: boolean("email_sent").notNull().default(false),
+  emailSentAt: timestamp("email_sent_at"),
+  recovered: boolean("recovered").notNull().default(false),
+  recoveredAt: timestamp("recovered_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAbandonedCheckoutSchema = createInsertSchema(abandonedCheckouts).omit({ id: true, createdAt: true });
+export type InsertAbandonedCheckout = z.infer<typeof insertAbandonedCheckoutSchema>;
+export type AbandonedCheckout = typeof abandonedCheckouts.$inferSelect;
+
 // === FORMS (Formulaire en ligne) ===
 export const forms = pgTable("forms", {
   id: serial("id").primaryKey(),

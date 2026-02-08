@@ -16,6 +16,9 @@ class AuthStorage implements IAuthStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    const existing = userData.id ? await this.getUser(userData.id) : undefined;
+    const isNewUser = !existing;
+
     const [user] = await db
       .insert(users)
       .values(userData)
@@ -27,6 +30,19 @@ class AuthStorage implements IAuthStorage {
         },
       })
       .returning();
+
+    if (isNewUser && userData.email) {
+      try {
+        const { sendWelcomeEmail } = await import("../../email");
+        const firstName = userData.firstName || userData.email.split("@")[0] || "Utilisateur";
+        sendWelcomeEmail(userData.email, firstName).catch(err =>
+          console.error("[AUTH] Welcome email error:", err)
+        );
+      } catch (err) {
+        console.error("[AUTH] Welcome email import error:", err);
+      }
+    }
+
     return user;
   }
 }
