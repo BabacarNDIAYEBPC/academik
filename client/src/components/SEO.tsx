@@ -7,7 +7,7 @@ interface SEOProps {
   keywordsKey?: string;
   canonicalPath?: string;
   ogType?: string;
-  jsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
 }
 
 function setMeta(attr: string, attrValue: string, content: string) {
@@ -20,11 +20,15 @@ function setMeta(attr: string, attrValue: string, content: string) {
   el.setAttribute("content", content);
 }
 
-function setLink(rel: string, href: string) {
-  let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+function setLink(rel: string, href: string, attrs?: Record<string, string>) {
+  const selector = attrs
+    ? `link[rel="${rel}"]${Object.entries(attrs).map(([k, v]) => `[${k}="${v}"]`).join("")}`
+    : `link[rel="${rel}"]`;
+  let el = document.querySelector(selector) as HTMLLinkElement | null;
   if (!el) {
     el = document.createElement("link");
     el.setAttribute("rel", rel);
+    if (attrs) Object.entries(attrs).forEach(([k, v]) => el!.setAttribute(k, v));
     document.head.appendChild(el);
   }
   el.setAttribute("href", href);
@@ -54,6 +58,10 @@ export function SEO({ titleKey, descriptionKey, keywordsKey, canonicalPath, ogTy
 
     setLink("canonical", canonical);
 
+    setLink("alternate", canonical, { hreflang: "fr" });
+    setLink("alternate", canonical, { hreflang: "en" });
+    setLink("alternate", canonical, { hreflang: "x-default" });
+
     setMeta("property", "og:title", title);
     setMeta("property", "og:type", ogType);
     setMeta("property", "og:url", canonical);
@@ -62,6 +70,7 @@ export function SEO({ titleKey, descriptionKey, keywordsKey, canonicalPath, ogTy
     setMeta("property", "og:image:width", "1200");
     setMeta("property", "og:image:height", "630");
     setMeta("property", "og:locale", lang === "fr" ? "fr_FR" : "en_US");
+    setMeta("property", "og:locale:alternate", lang === "fr" ? "en_US" : "fr_FR");
     if (description) {
       setMeta("property", "og:description", description);
     }
@@ -81,7 +90,8 @@ export function SEO({ titleKey, descriptionKey, keywordsKey, canonicalPath, ogTy
         scriptEl.setAttribute("data-seo-jsonld", "true");
         document.head.appendChild(scriptEl);
       }
-      scriptEl.textContent = JSON.stringify(jsonLd);
+      const jsonLdData = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
+      scriptEl.textContent = JSON.stringify(jsonLdData.length === 1 ? jsonLdData[0] : jsonLdData);
     } else if (scriptEl) {
       scriptEl.remove();
     }

@@ -4818,6 +4818,30 @@ Disallow: /billing
 Disallow: /admin
 Disallow: /api/
 
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
 Sitemap: https://academik.fr/sitemap.xml
 `);
   });
@@ -4825,21 +4849,80 @@ Sitemap: https://academik.fr/sitemap.xml
   app.get("/sitemap.xml", (_req, res) => {
     const now = new Date().toISOString().split("T")[0];
     res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://academik.fr</loc>
-    <lastmod>${now}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://academik.fr/</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://academik.fr" />
     <lastmod>${now}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 </urlset>
 `);
+  });
+
+  app.get("/llms.txt", (_req, res) => {
+    res.type("text/plain").send(`# Academik
+> Assistant de rédaction académique propulsé par l'intelligence artificielle
+
+## À propos
+Academik (https://academik.fr) est un assistant méthodologique intelligent qui accompagne les étudiants et professionnels dans la structuration, l'analyse et la rédaction de leurs travaux académiques.
+
+## Types de travaux supportés
+- Mémoire (Master, Licence)
+- TFE Infirmier (Travail de Fin d'Études)
+- Thèse de doctorat
+- VAE (Validation des Acquis de l'Expérience)
+- Rapport de Stage
+
+## Fonctionnalités principales
+- Génération de contenu section par section avec mémoire contextuelle
+- Cadre théorique et conceptuel assisté par IA
+- Revue de littérature automatisée
+- Plan de travail dynamique
+- Construction de problématique et hypothèses
+- Analyse qualitative et quantitative
+- Simulation d'entretien
+- Export Word et PDF
+- Historique des versions pour chaque section
+- Régénération contrôlée (mode similaire ou différent)
+
+## Tarification
+- Pack fondamental : 179 € (fondements, plan, cadres, revue, méthodologie)
+- Options à la carte : collecte, analyse, soutenance, audit
+- Packs économiques disponibles
+
+## Langues
+- Français (langue principale)
+- Anglais
+
+## Entreprise
+Performance Consulting Groupe SAS
+SIREN : 913 540 944
+RCS Perpignan
+3 Avenue de Toulouse, 66140 Canet-en-Roussillon, France
+
+## Contact
+Site web : https://academik.fr
+`);
+  });
+
+  app.get("/.well-known/ai-plugin.json", (_req, res) => {
+    res.json({
+      schema_version: "v1",
+      name_for_human: "Academik",
+      name_for_model: "academik",
+      description_for_human: "Assistant de rédaction académique IA pour mémoire, TFE, thèse, VAE et rapport de stage.",
+      description_for_model: "Academik is an AI-powered academic writing assistant that helps students and professionals structure, analyze, and write academic papers including dissertations, nursing theses (TFE), doctoral theses, VAE (prior learning assessment), and internship reports. It provides section-by-section content generation with contextual memory, version history, and controlled regeneration. Available in French and English.",
+      auth: { type: "none" },
+      api: { type: "openapi", url: "https://academik.fr" },
+      logo_url: "https://academik.fr/images/logo-512.png",
+      contact_email: "contact@academik.fr",
+      legal_info_url: "https://academik.fr"
+    });
   });
 
   return httpServer;

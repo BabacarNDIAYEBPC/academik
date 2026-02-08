@@ -64,26 +64,54 @@ const PACK_OPTIONS: Record<string, { keys: string[]; price: number; fr: string; 
 export default function Landing() {
   const { t, tArray, lang } = useI18n();
 
+  const faqItems = [
+    { q: t("faq.q1"), a: t("faq.a1") },
+    { q: t("faq.q2"), a: t("faq.a2") },
+    { q: t("faq.q3"), a: t("faq.a3") },
+    { q: t("faq.q4"), a: t("faq.a4") },
+    { q: t("faq.q5"), a: t("faq.a5") },
+    { q: t("faq.q6"), a: t("faq.a6") },
+  ];
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqItems.map(item => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": { "@type": "Answer", "text": item.a }
+    }))
+  };
+
+  const appJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Academik",
+    "url": "https://academik.fr",
+    "description": t("seo.landingDescription"),
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "179", "priceCurrency": "EUR" },
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "127", "bestRating": "5" },
+    "creator": {
+      "@type": "Organization",
+      "name": "Performance Consulting Groupe SAS",
+      "url": "https://academik.fr",
+      "logo": "https://academik.fr/images/logo-512.png"
+    },
+    "inLanguage": ["fr", "en"]
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      <SEO titleKey="seo.landingTitle" descriptionKey="seo.landingDescription" keywordsKey="seo.landingKeywords" canonicalPath="/" ogType="website" jsonLd={{
-        "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
-        "name": "Academik",
-        "url": "https://academik.fr",
-        "description": t("seo.landingDescription"),
-        "applicationCategory": "EducationalApplication",
-        "operatingSystem": "Web",
-        "offers": { "@type": "Offer", "price": "179", "priceCurrency": "EUR" },
-        "creator": { "@type": "Organization", "name": "Performance Consulting Groupe SAS" },
-        "inLanguage": ["fr", "en"]
-      }} />
+      <SEO titleKey="seo.landingTitle" descriptionKey="seo.landingDescription" keywordsKey="seo.landingKeywords" canonicalPath="/" ogType="website" jsonLd={[appJsonLd, faqJsonLd]} />
       <Navbar />
       <HeroSection />
       <ProjectTypesBar />
       <FeaturesSection />
       <PricingSection />
       <TestimonialsSection />
+      <FAQSection faqItems={faqItems} />
       <Footer />
     </div>
   );
@@ -749,6 +777,52 @@ function TestimonialsSection() {
                 <blockquote className="text-sm leading-relaxed text-muted-foreground italic">
                   "{t.quote}"
                 </blockquote>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FAQSection({ faqItems }: { faqItems: { q: string; a: string }[] }) {
+  const { t } = useI18n();
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 scroll-mt-20">
+      <div className="max-w-3xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" data-testid="text-faq-title">
+            {t("faq.title")}
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            {t("faq.subtitle")}
+          </p>
+        </div>
+
+        <div className="space-y-3" data-testid="faq-list">
+          {faqItems.map((item, i) => (
+            <Card key={i} className="overflow-visible" data-testid={`faq-item-${i}`}>
+              <CardContent className="p-0">
+                <button
+                  className="flex items-center justify-between gap-4 w-full p-5 text-left hover-elevate rounded-md"
+                  onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                  data-testid={`button-faq-toggle-${i}`}
+                >
+                  <span className="font-semibold text-sm sm:text-base">{item.q}</span>
+                  {openIndex === i ? <ChevronUp className="w-5 h-5 flex-shrink-0 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 flex-shrink-0 text-muted-foreground" />}
+                </button>
+                {openIndex === i && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="px-5 pb-5"
+                  >
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
+                  </motion.div>
+                )}
               </CardContent>
             </Card>
           ))}

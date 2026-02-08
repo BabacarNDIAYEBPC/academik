@@ -775,6 +775,22 @@ const translations = {
     projectDescription: { fr: "Rédigez et structurez votre travail académique section par section avec l'aide de l'intelligence artificielle Academik.", en: "Write and structure your academic work section by section with the help of Academik artificial intelligence." },
     adminTitle: { fr: "Administration - Academik", en: "Administration - Academik" },
   },
+  faq: {
+    title: { fr: "Questions fréquentes", en: "Frequently Asked Questions" },
+    subtitle: { fr: "Tout ce que vous devez savoir sur Academik", en: "Everything you need to know about Academik" },
+    q1: { fr: "Qu'est-ce qu'Academik ?", en: "What is Academik?" },
+    a1: { fr: "Academik est un assistant de rédaction académique propulsé par l'intelligence artificielle. Il accompagne les étudiants et professionnels dans la structuration, l'analyse et la rédaction de leurs travaux académiques : mémoire, TFE infirmier, thèse, VAE et rapport de stage.", en: "Academik is an AI-powered academic writing assistant. It supports students and professionals in structuring, analyzing, and writing their academic papers: dissertations, nursing theses (TFE), doctoral theses, VAE (prior learning assessment), and internship reports." },
+    q2: { fr: "Quels types de travaux académiques sont supportés ?", en: "What types of academic work are supported?" },
+    a2: { fr: "Academik supporte le Mémoire (master, licence), le TFE Infirmier (Travail de Fin d'Études), la Thèse de doctorat, la VAE (Validation des Acquis de l'Expérience) et le Rapport de Stage. Chaque type bénéficie de modèles et méthodologies adaptés.", en: "Academik supports Dissertations (master's, bachelor's), Nursing Theses (TFE), Doctoral Theses, VAE (Prior Learning Assessment), and Internship Reports. Each type benefits from tailored templates and methodologies." },
+    q3: { fr: "Est-ce qu'Academik rédige le mémoire à ma place ?", en: "Does Academik write the dissertation for me?" },
+    a3: { fr: "Non. Academik est un assistant méthodologique qui vous guide dans la structuration et la rédaction. Il vous aide à formuler votre problématique, construire votre plan, développer votre cadre théorique et conceptuel, mais c'est vous qui gardez le contrôle de votre travail académique.", en: "No. Academik is a methodological assistant that guides you through structuring and writing. It helps you formulate your research question, build your outline, develop your theoretical and conceptual framework, but you retain full control of your academic work." },
+    q4: { fr: "Combien coûte Academik ?", en: "How much does Academik cost?" },
+    a4: { fr: "Le pack fondamental est à 179 € et inclut les fondements, le plan de travail, les cadres théorique et conceptuel, la revue de littérature et la méthodologie. Des options à la carte sont disponibles pour la collecte de données, l'analyse, la soutenance et plus encore.", en: "The core pack is 179 € and includes foundations, work plan, theoretical and conceptual frameworks, literature review, and methodology. À la carte options are available for data collection, analysis, defense preparation, and more." },
+    q5: { fr: "En quelles langues Academik est-il disponible ?", en: "In which languages is Academik available?" },
+    a5: { fr: "Academik est disponible en français et en anglais. L'interface s'adapte automatiquement à la langue choisie par l'utilisateur, et les contenus générés par l'IA respectent la langue sélectionnée pour le projet.", en: "Academik is available in French and English. The interface automatically adapts to the user's chosen language, and AI-generated content respects the language selected for the project." },
+    q6: { fr: "Comment fonctionne la mémoire contextuelle ?", en: "How does contextual memory work?" },
+    a6: { fr: "Chaque section validée est automatiquement utilisée comme contexte pour les générations suivantes. Ainsi, votre problématique informe la construction de votre plan, qui à son tour guide le développement de votre cadre théorique. Cela garantit la cohérence de l'ensemble de votre travail.", en: "Each validated section is automatically used as context for subsequent generations. Your research question informs the construction of your outline, which in turn guides the development of your theoretical framework. This ensures the coherence of your entire work." },
+  },
   modules: {
     assistedWriting: {
       title: { fr: "Rédaction assistée", en: "Assisted Writing" },
