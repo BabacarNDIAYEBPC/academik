@@ -31,6 +31,9 @@ const OPTION_CATALOG = {
   ],
   analyse: [
     { key: "data_visualization", price: 25, fr: "Analyse et visualisation des données", en: "Data Analysis & Visualization" },
+    { key: "confrontation", price: 19, fr: "Confrontation des résultats", en: "Results Confrontation" },
+    { key: "hypothesis_validation", price: 19, fr: "Validation des hypothèses", en: "Hypothesis Validation" },
+    { key: "formulaire", price: 25, fr: "Formulaire en ligne", en: "Online Form Builder" },
     { key: "financial_simulation", price: 29, fr: "Simulation financière", en: "Financial Simulation" },
     { key: "analyse_qualitative", price: 39, fr: "Analyse qualitative (verbatims, codage, synthèse)", en: "Qualitative Analysis (verbatims, coding, synthesis)" },
     { key: "analyse_quantitative", price: 39, fr: "Analyse quantitative (tableaux + graphiques)", en: "Quantitative Analysis (tables + charts)" },

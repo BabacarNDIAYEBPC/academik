@@ -12,8 +12,6 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   useAnalyzeQualitative,
-  useConfrontResults,
-  useValidateHypotheses,
   useSaveSectionConfig,
   useValidateSection,
   useUnvalidateSection,
@@ -21,8 +19,8 @@ import {
 import type { ProjectSection } from "@shared/schema";
 import {
   Loader2, BarChart3, Save, Check, X, FileDown,
-  Plus, Trash2, BookOpen, FlaskConical, Upload,
-  FileText, PenTool, Eye,
+  Plus, Trash2, BookOpen,
+  PenTool, Eye,
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 import { useI18n } from "@/lib/i18n";
@@ -171,13 +169,9 @@ interface SavedState {
   qualitativeResult: string;
   depouillementData: string;
   depouillementResult: string;
-  confrontResult: string;
-  validationResult: string;
   analysisMode: string;
   depouillementType: string;
   contextInstructions: string;
-  confrontImportedData: string;
-  validationImportedDoc: string;
   respondentCount: number;
   depouillementInstructions: string;
 }
@@ -228,12 +222,7 @@ export default function DataAnalysisModule({
   const [depouillementData, setDepouillementData] = useState("");
   const [depouillementType, setDepouillementType] = useState("depouillement");
   const [depouillementResult, setDepouillementResult] = useState("");
-  const [confrontResult, setConfrontResult] = useState("");
-  const [validationResult, setValidationResult] = useState("");
   const [contextInstructions, setContextInstructions] = useState("");
-  const [confrontImportedData, setConfrontImportedData] = useState("");
-  const [validationImportedDoc, setValidationImportedDoc] = useState("");
-  const [uploadingValidationDoc, setUploadingValidationDoc] = useState(false);
   const [respondentCount, setRespondentCount] = useState(30);
   const [depouillementInstructions, setDepouillementInstructions] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
@@ -247,18 +236,16 @@ export default function DataAnalysisModule({
       return res.json();
     },
   });
-  const confrontMutation = useConfrontResults();
-  const validateHypMutation = useValidateHypotheses();
   const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
 
   const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
 
-  const stateRef = useRef({ verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions });
+  const stateRef = useRef({ verbatims, qualitativeResult, depouillementData, depouillementResult, analysisMode, depouillementType, contextInstructions, respondentCount, depouillementInstructions });
   useEffect(() => {
-    stateRef.current = { verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions };
-  }, [verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions]);
+    stateRef.current = { verbatims, qualitativeResult, depouillementData, depouillementResult, analysisMode, depouillementType, contextInstructions, respondentCount, depouillementInstructions };
+  }, [verbatims, qualitativeResult, depouillementData, depouillementResult, analysisMode, depouillementType, contextInstructions, respondentCount, depouillementInstructions]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -268,13 +255,9 @@ export default function DataAnalysisModule({
       qualitativeResult: s.qualitativeResult,
       depouillementData: s.depouillementData,
       depouillementResult: s.depouillementResult,
-      confrontResult: s.confrontResult,
-      validationResult: s.validationResult,
       analysisMode: s.analysisMode,
       depouillementType: s.depouillementType,
       contextInstructions: s.contextInstructions,
-      confrontImportedData: s.confrontImportedData,
-      validationImportedDoc: s.validationImportedDoc,
       respondentCount: s.respondentCount,
       depouillementInstructions: s.depouillementInstructions,
     };
@@ -294,13 +277,9 @@ export default function DataAnalysisModule({
       if (s.qualitativeResult) setQualitativeResult(s.qualitativeResult);
       if (s.depouillementData) setDepouillementData(s.depouillementData);
       if (s.depouillementResult) setDepouillementResult(s.depouillementResult);
-      if (s.confrontResult) setConfrontResult(s.confrontResult);
-      if (s.validationResult) setValidationResult(s.validationResult);
       if (s.analysisMode) setAnalysisMode(s.analysisMode);
       if (s.depouillementType) setDepouillementType(s.depouillementType);
       if (s.contextInstructions) setContextInstructions(s.contextInstructions);
-      if (s.confrontImportedData) setConfrontImportedData(s.confrontImportedData);
-      if (s.validationImportedDoc) setValidationImportedDoc(s.validationImportedDoc);
       if (s.respondentCount) setRespondentCount(s.respondentCount);
       if (s.depouillementInstructions) setDepouillementInstructions(s.depouillementInstructions);
     }
@@ -317,7 +296,7 @@ export default function DataAnalysisModule({
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
     return () => clearTimeout(timer);
-  }, [verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions, stateLoaded, doSave]);
+  }, [verbatims, qualitativeResult, depouillementData, depouillementResult, analysisMode, depouillementType, contextInstructions, respondentCount, depouillementInstructions, stateLoaded, doSave]);
 
   const addVerbatim = () => {
     setVerbatims(prev => [...prev, {
@@ -386,85 +365,6 @@ export default function DataAnalysisModule({
     );
   };
 
-  const handleConfront = () => {
-    const allResults = [qualitativeResult, depouillementResult, confrontImportedData].filter(Boolean).join("\n\n---\n\n");
-    if (!allResults) {
-      toast({ title: t("modules.dataAnalysis.resultsRequired"), description: t("modules.dataAnalysis.generateAnalysisFirst"), variant: "destructive" });
-      return;
-    }
-    confrontMutation.mutate(
-      { projectId, results: allResults, extraContext: combinedContext || undefined },
-      {
-        onSuccess: (data) => {
-          setConfrontResult(data.content);
-          toast({ title: t("modules.dataAnalysis.confrontComplete") });
-        },
-        onError: (error: any) => {
-          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataAnalysis.confrontError"), variant: "destructive" });
-        },
-      }
-    );
-  };
-
-  const handleImportValidationDoc = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".docx,.pdf,.txt,.rtf,.md,.csv";
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      setUploadingValidationDoc(true);
-      try {
-        let text = "";
-        const needsServerParse = /\.(docx|pdf|rtf)$/i.test(file.name);
-        if (needsServerParse) {
-          const formData = new FormData();
-          formData.append("file", file);
-          const resp = await fetch("/api/parse-file", { method: "POST", body: formData, credentials: "include" });
-          if (!resp.ok) {
-            const errData = await resp.json().catch(() => ({ message: t("modules.common.serverError") }));
-            throw new Error(errData.message || t("modules.common.cannotReadFile"));
-          }
-          const data = await resp.json();
-          text = data.text;
-        } else {
-          text = await file.text();
-        }
-        if (!text.trim()) {
-          toast({ title: t("modules.dataAnalysis.fileEmpty"), description: t("modules.dataAnalysis.fileEmptyDesc"), variant: "destructive" });
-          setUploadingValidationDoc(false);
-          return;
-        }
-        setValidationImportedDoc(text);
-        toast({ title: t("modules.dataAnalysis.documentImported"), description: `"${file.name}" ${t("modules.dataAnalysis.docUsedForValidation")}` });
-      } catch (err: any) {
-        toast({ title: t("modules.dataAnalysis.importError"), description: err.message || t("modules.common.cannotReadFile"), variant: "destructive" });
-      } finally {
-        setUploadingValidationDoc(false);
-      }
-    };
-    input.click();
-  };
-
-  const handleValidateHypotheses = () => {
-    const allResults = [qualitativeResult, depouillementResult, confrontResult, validationImportedDoc].filter(Boolean).join("\n\n---\n\n");
-    if (!allResults) {
-      toast({ title: t("modules.dataAnalysis.resultsRequired"), description: t("modules.dataAnalysis.importOrAnalyzeFirst"), variant: "destructive" });
-      return;
-    }
-    validateHypMutation.mutate(
-      { projectId, results: allResults, extraContext: combinedContext || undefined },
-      {
-        onSuccess: (data) => {
-          setValidationResult(data.content);
-          toast({ title: t("modules.dataAnalysis.validationComplete") });
-        },
-        onError: (error: any) => {
-          toast({ title: t("modules.common.error"), description: error.message || t("modules.dataAnalysis.validationError"), variant: "destructive" });
-        },
-      }
-    );
-  };
 
   const handleSectionValidate = () => {
     if (!section) return;
@@ -488,56 +388,10 @@ export default function DataAnalysisModule({
     );
   };
 
-  const handleConfrontFileImport = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".txt,.csv,.xlsx,.xls";
-    input.multiple = true;
-    input.onchange = async (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (!files || files.length === 0) return;
-      const importedParts: string[] = [];
-      for (const file of Array.from(files)) {
-        try {
-          if (file.name.endsWith(".txt")) {
-            const text = await file.text();
-            importedParts.push(`--- ${file.name} ---\n${text}`);
-          } else if (file.name.endsWith(".csv")) {
-            const text = await file.text();
-            importedParts.push(`--- ${file.name} ---\n${text}`);
-          } else {
-            const XLSX = await import("xlsx");
-            const buffer = await file.arrayBuffer();
-            const workbook = XLSX.read(buffer, { type: "array" });
-            const allSheets: string[] = [];
-            for (const sheetName of workbook.SheetNames) {
-              const sheet = workbook.Sheets[sheetName];
-              const csvData = XLSX.utils.sheet_to_csv(sheet, { FS: ";" });
-              allSheets.push(`[${sheetName}]\n${csvData}`);
-            }
-            importedParts.push(`--- ${file.name} ---\n${allSheets.join("\n\n")}`);
-          }
-        } catch (err: any) {
-          toast({ title: t("modules.dataAnalysis.importError"), description: `${file.name}: ${err.message || t("modules.common.cannotReadFile")}`, variant: "destructive" });
-        }
-      }
-      if (importedParts.length > 0) {
-        setConfrontImportedData(prev => {
-          const combined = [prev, ...importedParts].filter(Boolean).join("\n\n");
-          return combined;
-        });
-        toast({ title: t("modules.dataAnalysis.importSuccess"), description: `${importedParts.length} ${t("modules.dataAnalysis.filesImportedForConfront")}` });
-      }
-    };
-    input.click();
-  };
-
   const handleExport = () => {
     const sections = [];
     if (qualitativeResult) sections.push({ label: t("modules.dataAnalysis.qualitativeExport"), content: qualitativeResult });
     if (depouillementResult) sections.push({ label: t("modules.dataAnalysis.quantitativeExport"), content: depouillementResult });
-    if (confrontResult) sections.push({ label: t("modules.dataAnalysis.confrontExport"), content: confrontResult });
-    if (validationResult) sections.push({ label: t("modules.dataAnalysis.validationExport"), content: validationResult });
     if (sections.length === 0) {
       toast({ title: t("modules.common.nothingToExport"), variant: "destructive" });
       return;
@@ -594,12 +448,6 @@ export default function DataAnalysisModule({
             </TabsTrigger>
             <TabsTrigger value="quantitative" className="gap-1" data-testid="tab-quantitative">
               <BarChart3 className="w-4 h-4" />Dépouillement
-            </TabsTrigger>
-            <TabsTrigger value="confront" className="gap-1" data-testid="tab-confront">
-              <FlaskConical className="w-4 h-4" />{t("modules.dataAnalysis.confrontTab")}
-            </TabsTrigger>
-            <TabsTrigger value="validation" className="gap-1" data-testid="tab-validation">
-              <Check className="w-4 h-4" />{t("modules.dataAnalysis.hypothesesTab")}
             </TabsTrigger>
           </TabsList>
 
@@ -785,148 +633,6 @@ export default function DataAnalysisModule({
             )}
           </TabsContent>
 
-          <TabsContent value="confront" className="space-y-4 mt-4">
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                {t("modules.dataAnalysis.confrontDesc")}
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {qualitativeResult && <Badge variant="default" className="bg-green-600/10 text-green-600 border-green-600/20">{t("modules.dataAnalysis.qualitativeAvailable")}</Badge>}
-                {depouillementResult && <Badge variant="default" className="bg-blue-600/10 text-blue-600 border-blue-600/20">{t("modules.dataAnalysis.quantitativeAvailable")}</Badge>}
-                {!qualitativeResult && !depouillementResult && (
-                  <Badge variant="outline" className="text-muted-foreground">{t("modules.dataAnalysis.noAnalysisAvailable")}</Badge>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">{t("modules.dataAnalysis.importAdditionalData")}</Label>
-              <p className="text-xs text-muted-foreground">
-                {t("modules.dataAnalysis.importAdditionalDataDesc")}
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleConfrontFileImport}
-                  data-testid="button-import-confront-file"
-                >
-                  <Upload className="w-4 h-4 mr-1" />{t("modules.dataAnalysis.importFiles")}
-                </Button>
-                {confrontImportedData && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setConfrontImportedData("");
-                      toast({ title: t("modules.dataAnalysis.importedDataCleared") });
-                    }}
-                    data-testid="button-clear-confront-import"
-                  >
-                    <Trash2 className="w-4 h-4 mr-1" />{t("modules.dataAnalysis.clearImport")}
-                  </Button>
-                )}
-              </div>
-              <Textarea
-                value={confrontImportedData}
-                onChange={e => setConfrontImportedData(e.target.value)}
-                placeholder={t("modules.dataAnalysis.confrontImportPlaceholder")}
-                className="min-h-[120px] text-sm"
-                data-testid="textarea-confront-imported-data"
-              />
-              {confrontImportedData && (
-                <Badge variant="outline" className="text-xs">
-                  <FileText className="w-3 h-3 mr-1" />
-                  {t("modules.dataAnalysis.importedDataLabel")}: {confrontImportedData.length} {t("modules.dataAnalysis.characters")}
-                </Badge>
-              )}
-            </div>
-
-            <Button
-              onClick={handleConfront}
-              disabled={confrontMutation.isPending || (!qualitativeResult && !depouillementResult && !confrontImportedData)}
-              data-testid="button-confront"
-            >
-              {confrontMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FlaskConical className="w-4 h-4 mr-2" />}
-              {t("modules.dataAnalysis.confrontWithLiterature")}
-            </Button>
-
-            {confrontResult && (
-              <ResultDisplay
-                label={t("modules.dataAnalysis.confrontResultLabel")}
-                value={confrontResult}
-                onChange={setConfrontResult}
-                testId="confront-result"
-              />
-            )}
-          </TabsContent>
-
-          <TabsContent value="validation" className="space-y-4 mt-4">
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <p className="text-sm text-muted-foreground flex-1 min-w-0">
-                  {t("modules.dataAnalysis.validationDesc")}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleImportValidationDoc}
-                  disabled={uploadingValidationDoc}
-                  data-testid="button-import-validation-doc"
-                >
-                  {uploadingValidationDoc ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />}
-                  {t("modules.dataAnalysis.importAnalysisDoc")}
-                </Button>
-              </div>
-              <div className="flex gap-2 flex-wrap">
-                {qualitativeResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.qualitativeTab")}</Badge>}
-                {depouillementResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.quantitativeTab")}</Badge>}
-                {confrontResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.confrontTab")}</Badge>}
-                {validationImportedDoc && (
-                  <Badge variant="secondary" className="text-xs">
-                    <FileText className="w-3 h-3 mr-1" />
-                    {t("modules.dataAnalysis.externalDocImported")}
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            {validationImportedDoc && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <Label className="text-sm font-medium">{t("modules.dataAnalysis.importedAnalysisDoc")}</Label>
-                  <Button variant="ghost" size="sm" onClick={() => { setValidationImportedDoc(""); toast({ title: t("modules.dataAnalysis.documentRemoved") }); }} data-testid="button-remove-validation-doc">
-                    <Trash2 className="w-4 h-4 mr-1" /> {t("modules.dataAnalysis.removeDoc")}
-                  </Button>
-                </div>
-                <Textarea
-                  value={validationImportedDoc}
-                  onChange={e => setValidationImportedDoc(e.target.value)}
-                  className="min-h-[150px] text-sm"
-                  placeholder={t("modules.dataAnalysis.importedDocContent")}
-                  data-testid="textarea-validation-imported-doc"
-                />
-              </div>
-            )}
-
-            <Button
-              onClick={handleValidateHypotheses}
-              disabled={validateHypMutation.isPending || (!qualitativeResult && !depouillementResult && !confrontResult && !validationImportedDoc)}
-              data-testid="button-validate-hypotheses"
-            >
-              {validateHypMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              {t("modules.dataAnalysis.validateHypotheses")}
-            </Button>
-
-            {validationResult && (
-              <ResultDisplay
-                label={t("modules.dataAnalysis.validationResultLabel")}
-                value={validationResult}
-                onChange={setValidationResult}
-                testId="validation-result"
-              />
-            )}
-          </TabsContent>
         </Tabs>
       </CardContent>
     </Card>

@@ -392,6 +392,7 @@ export const SECTION_KEYS = {
   RS_CONTRIBUTIONS: 'rs_contributions',
   RS_CONCLUSION: 'rs_conclusion',
   CONFRONTATION: 'confrontation',
+  HYPOTHESIS_VALIDATION: 'hypothesis_validation',
   FORMULAIRE: 'formulaire',
   QUESTIONNAIRE_ANALYSIS: 'questionnaire_analysis',
   FINANCIAL_SIMULATION: 'financial_simulation',
@@ -403,7 +404,7 @@ export const SECTION_ORDER = [
   'rs_cover_page', 'rs_acknowledgements', 'rs_introduction', 'rs_company', 'rs_internship', 'rs_missions', 'rs_analysis', 'rs_contributions', 'rs_conclusion',
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
-  'questionnaire', 'formulaire', 'guide_entretien', 'questionnaire_analysis', 'interview_simulation', 'data_analysis', 'confrontation',
+  'questionnaire', 'formulaire', 'guide_entretien', 'questionnaire_analysis', 'interview_simulation', 'data_analysis', 'confrontation', 'hypothesis_validation',
   'financial_simulation', 'assisted_writing', 'bibliography', 'exports',
   'soutenance_ppt', 'soutenance_simulation', 'memoire_audit',
 ];
@@ -457,7 +458,8 @@ export const SECTION_LABELS: Record<string, string> = {
   rs_analysis: "Analyse d'une situation professionnelle",
   rs_contributions: "Apports du stage",
   rs_conclusion: "Conclusion",
-  confrontation: "Confrontation & validation",
+  confrontation: "Confrontation des résultats",
+  hypothesis_validation: "Validation des hypothèses",
   formulaire: "Formulaire en ligne",
 };
 

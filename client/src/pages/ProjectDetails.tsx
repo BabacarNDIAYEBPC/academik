@@ -24,6 +24,8 @@ import SoutenancePPTModule from "@/components/SoutenancePPTModule";
 import SoutenanceSimulationModule from "@/components/SoutenanceSimulationModule";
 import AuditMemoireModule from "@/components/AuditMemoireModule";
 import FormulaireModule from "@/components/FormulaireModule";
+import ConfrontationModule from "@/components/ConfrontationModule";
+import HypothesisValidationModule from "@/components/HypothesisValidationModule";
 import TfeFoundationsModule from "@/components/TfeFoundationsModule";
 import MemoirImportField from "@/components/MemoirImportField";
 import VariablesPanel from "@/components/VariablesPanel";
@@ -60,13 +62,13 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "memoire_professionnel":
-      return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "etude_de_cas":
       return ["cs_fiche", "cs_contexte", "cs_probleme", "cs_cadre", "cs_donnees", "cs_options", "cs_recommandation", "cs_conclusion", "literature_review", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
-      return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
       return ["vae_presentation", "vae_parcours", "vae_motivation", "vae_cartographie", "vae_bloc_demo", "vae_synthese", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation"];
     case "rapport_stage":
@@ -78,7 +80,7 @@ function getSectionsForProjectType(projectType: string): string[] {
 
 const OPTIONAL_MODULE_KEYS = new Set([
   "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis",
-  "interview_simulation", "data_analysis", "confrontation", "financial_simulation",
+  "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation",
   "soutenance_ppt", "soutenance_simulation", "bibliography", "memoire_audit",
 ]);
 
@@ -225,6 +227,10 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
 
     if (sections.includes("confrontation")) {
       push("confrontation", t("project.confrontation"), GitBranch, ["confrontation"]);
+    }
+
+    if (sections.includes("hypothesis_validation")) {
+      push("hypothesis_validation", t("project.hypothesisValidation"), CheckSquare, ["hypothesis_validation"]);
     }
 
     if (sections.includes("financial_simulation")) {
@@ -381,6 +387,22 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+const MODULE_PRICE_MAP: Record<string, { packKey: string; price: string }> = {
+  questionnaire: { packKey: "questionnaire", price: "25 €" },
+  guide_entretien: { packKey: "guide_entretien", price: "25 €" },
+  questionnaire_analysis: { packKey: "questionnaire_analysis", price: "29 €" },
+  interview_simulation: { packKey: "simulation_entretien", price: "19 €" },
+  data_analysis: { packKey: "data_visualization", price: "25 €" },
+  confrontation: { packKey: "confrontation", price: "19 €" },
+  hypothesis_validation: { packKey: "hypothesis_validation", price: "19 €" },
+  formulaire: { packKey: "formulaire", price: "25 €" },
+  financial_simulation: { packKey: "financial_simulation", price: "29 €" },
+  soutenance_ppt: { packKey: "soutenance_ppt", price: "29 €" },
+  soutenance_simulation: { packKey: "soutenance_simulation", price: "29 €" },
+  bibliography: { packKey: "pack_revue", price: "59 €" },
+  memoire_audit: { packKey: "audit", price: "49 €" },
+};
+
 function AssistantTab({ project }: { project: any }) {
   const { t } = useI18n();
   const [, navigate] = useLocation();
@@ -389,6 +411,7 @@ function AssistantTab({ project }: { project: any }) {
   const { data: moduleVis } = useModuleVisibility();
   const { data: adminCheck } = useAdminCheck();
   const isAdmin = adminCheck?.isAdmin === true;
+  const checkout = useCheckout();
   const moduleTabs = useMemo(() => getModuleTabs(project.type, t), [project.type, t]);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
 
@@ -518,13 +541,18 @@ function AssistantTab({ project }: { project: any }) {
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {lockedOptionalTabs.map(tab => {
                 const Icon = tab.icon;
+                const priceInfo = MODULE_PRICE_MAP[tab.key];
                 return (
                   <div
                     key={tab.key}
                     className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border hover-elevate cursor-pointer"
                     onClick={() => {
-                      setShowModuleDialog(false);
-                      navigate("/billing");
+                      if (priceInfo) {
+                        checkout.mutate({ pack: priceInfo.packKey });
+                      } else {
+                        setShowModuleDialog(false);
+                        navigate("/billing");
+                      }
                     }}
                     data-testid={`module-option-${tab.key}`}
                   >
@@ -532,12 +560,35 @@ function AssistantTab({ project }: { project: any }) {
                       <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
                         <Icon className="w-4 h-4 text-muted-foreground" />
                       </div>
-                      <span className="text-sm font-medium">{tab.label}</span>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{tab.label}</span>
+                        {priceInfo && (
+                          <span className="text-xs text-muted-foreground">{priceInfo.price}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
-                      <Badge variant="secondary" className="text-[10px]">{t("project.unlockModule")}</Badge>
-                    </div>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={checkout.isPending}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (priceInfo) {
+                          checkout.mutate({ pack: priceInfo.packKey });
+                        } else {
+                          setShowModuleDialog(false);
+                          navigate("/billing");
+                        }
+                      }}
+                      data-testid={`button-unlock-${tab.key}`}
+                    >
+                      {checkout.isPending ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Lock className="w-3.5 h-3.5" />
+                      )}
+                      <span className="ml-1">{priceInfo ? priceInfo.price : t("project.unlockModule")}</span>
+                    </Button>
                   </div>
                 );
               })}
@@ -1075,6 +1126,9 @@ function SingleSectionWrapper({
     questionnaire_analysis: { packKey: "questionnaire_analysis", label: "Dépouillement du questionnaire (29 €)" },
     interview_simulation: { packKey: "simulation_entretien", label: "Simulation d'entretien (19 €)" },
     data_analysis: { packKey: "data_visualization", label: "Visualisation des données (25 €)" },
+    confrontation: { packKey: "confrontation", label: "Confrontation (19 €)" },
+    hypothesis_validation: { packKey: "hypothesis_validation", label: "Validation des hypothèses (19 €)" },
+    formulaire: { packKey: "formulaire", label: "Formulaire en ligne (25 €)" },
     financial_simulation: { packKey: "financial_simulation", label: "Simulation financière (29 €)" },
     bibliography: { packKey: "pack_revue", label: "Pack Revue avancée (59 €)" },
   };
@@ -1307,6 +1361,38 @@ function SingleSectionWrapper({
         {memoirField}
         {variablesField}
         <DataAnalysisModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "confrontation") {
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <ConfrontationModule
+          projectId={projectId}
+          projectType={projectType}
+          variables={variables}
+          extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "hypothesis_validation") {
+    return (
+      <div className="space-y-4">
+        {memoirField}
+        {variablesField}
+        <HypothesisValidationModule
           projectId={projectId}
           projectType={projectType}
           variables={variables}

@@ -52,6 +52,9 @@ const OPTION_CATALOG = {
   ],
   analyse: [
     { key: "data_visualization", price: 25 },
+    { key: "confrontation", price: 19 },
+    { key: "hypothesis_validation", price: 19 },
+    { key: "formulaire", price: 25 },
     { key: "financial_simulation", price: 29 },
     { key: "analyse_qualitative", price: 39 },
     { key: "analyse_quantitative", price: 39 },

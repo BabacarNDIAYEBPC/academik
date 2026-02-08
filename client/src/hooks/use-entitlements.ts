@@ -83,6 +83,7 @@ export const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   cs_recommandation: "foundation",
   cs_conclusion: "foundation",
   confrontation: "confrontation",
+  hypothesis_validation: "hypothesis_validation",
   formulaire: "formulaire",
   vae_presentation: "vae_foundation",
   vae_parcours: "vae_foundation",

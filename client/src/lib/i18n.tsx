@@ -428,6 +428,18 @@ const translations = {
       label: { fr: "Analyse et visualisation des données", en: "Data Analysis & Visualization" },
       description: { fr: "Tableaux croisés dynamiques, graphiques et exploitation visuelle", en: "Pivot tables, charts and visual analysis" },
     },
+    confrontation: {
+      label: { fr: "Confrontation des résultats", en: "Results Confrontation" },
+      description: { fr: "Confrontez vos résultats de terrain avec la littérature scientifique", en: "Confront your field results with scientific literature" },
+    },
+    hypothesis_validation: {
+      label: { fr: "Validation des hypothèses", en: "Hypothesis Validation" },
+      description: { fr: "Validez ou invalidez vos hypothèses avec l'ensemble des résultats", en: "Validate or invalidate your hypotheses with all results" },
+    },
+    formulaire: {
+      label: { fr: "Formulaire en ligne", en: "Online Form Builder" },
+      description: { fr: "Créez des formulaires en ligne avec collecte et analyse des réponses", en: "Create online forms with response collection and analysis" },
+    },
     financial_simulation: {
       label: { fr: "Simulation financière", en: "Financial Simulation" },
       description: { fr: "Tableaux financiers, simulations chiffrées et calculs dynamiques", en: "Financial tables, numerical simulations and dynamic calculations" },
@@ -538,6 +550,7 @@ const translations = {
     interviewSimulation: { fr: "Simulation", en: "Simulation" },
     dataVisualization: { fr: "Analyse", en: "Analysis" },
     confrontation: { fr: "Confrontation", en: "Confrontation" },
+    hypothesisValidation: { fr: "Validation Hyp.", en: "Hypothesis Valid." },
     formulaire: { fr: "Formulaire", en: "Form Builder" },
     financialSimulation: { fr: "Finance", en: "Finance" },
     assistedWriting: { fr: "Rédaction", en: "Writing" },
@@ -706,6 +719,9 @@ const translations = {
     guide_entretien: { fr: "Guides d'entretien", en: "Interview Guides" },
     simulation_entretien: { fr: "Simulation d'entretien guidée", en: "Guided Interview Simulation" },
     data_visualization: { fr: "Analyse et visualisation des données", en: "Data Analysis & Visualization" },
+    confrontation: { fr: "Confrontation des résultats", en: "Results Confrontation" },
+    hypothesis_validation: { fr: "Validation des hypothèses", en: "Hypothesis Validation" },
+    formulaire: { fr: "Formulaire en ligne", en: "Online Form Builder" },
     financial_simulation: { fr: "Simulation financière", en: "Financial Simulation" },
     questionnaire_analysis: { fr: "Dépouillement du questionnaire", en: "Questionnaire Analysis" },
     analyse_qualitative: { fr: "Analyse qualitative", en: "Qualitative Analysis" },
