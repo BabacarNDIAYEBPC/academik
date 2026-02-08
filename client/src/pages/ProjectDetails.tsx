@@ -493,7 +493,11 @@ function AssistantTab({ project }: { project: any }) {
     const priceInfo = MODULE_PRICE_MAP[moduleKey];
     if (priceInfo) {
       setCheckoutLoadingKey(moduleKey);
-      checkout.mutate({ pack: priceInfo.packKey }, {
+      const packBundles = ["core_pack", "pack_collecte", "pack_analyse", "pack_revue", "pack_soutenance"];
+      const payload = packBundles.includes(priceInfo.packKey)
+        ? { pack: priceInfo.packKey }
+        : { items: [priceInfo.packKey] };
+      checkout.mutate(payload, {
         onSettled: () => setCheckoutLoadingKey(null),
       });
     } else {
@@ -623,24 +627,24 @@ function AssistantTab({ project }: { project: any }) {
                     return (
                       <div
                         key={mod.key}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border hover-elevate cursor-pointer"
-                        onClick={() => handleModuleCheckout(mod.key)}
+                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border bg-card cursor-pointer"
+                        onClick={() => { if (!checkoutLoadingKey) handleModuleCheckout(mod.key); }}
                         data-testid={`module-option-${mod.key}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
                             <Icon className="w-4 h-4 text-muted-foreground" />
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{t(mod.labelKey)}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-medium text-foreground">{t(mod.labelKey)}</span>
                             {priceInfo && <span className="text-xs text-muted-foreground">{priceInfo.price}</span>}
                           </div>
                         </div>
                         <Button
                           variant="default"
                           size="sm"
-                          disabled={checkoutLoadingKey !== null}
-                          onClick={(e) => { e.stopPropagation(); handleModuleCheckout(mod.key); }}
+                          disabled={isLoading}
+                          onClick={(e) => { e.stopPropagation(); if (!checkoutLoadingKey) handleModuleCheckout(mod.key); }}
                           data-testid={`button-unlock-${mod.key}`}
                         >
                           {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
@@ -661,24 +665,24 @@ function AssistantTab({ project }: { project: any }) {
                     return (
                       <div
                         key={mod.key}
-                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border hover-elevate cursor-pointer"
-                        onClick={() => handleModuleCheckout(mod.key)}
+                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border bg-card cursor-pointer"
+                        onClick={() => { if (!checkoutLoadingKey) handleModuleCheckout(mod.key); }}
                         data-testid={`module-option-${mod.key}`}
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center shrink-0">
                             <Icon className="w-4 h-4 text-muted-foreground" />
                           </div>
-                          <div className="flex flex-col">
-                            <span className="text-sm font-medium">{t(mod.labelKey)}</span>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-sm font-medium text-foreground">{t(mod.labelKey)}</span>
                             {priceInfo && <span className="text-xs text-muted-foreground">{priceInfo.price}</span>}
                           </div>
                         </div>
                         <Button
                           variant="default"
                           size="sm"
-                          disabled={checkoutLoadingKey !== null}
-                          onClick={(e) => { e.stopPropagation(); handleModuleCheckout(mod.key); }}
+                          disabled={isLoading}
+                          onClick={(e) => { e.stopPropagation(); if (!checkoutLoadingKey) handleModuleCheckout(mod.key); }}
                           data-testid={`button-unlock-${mod.key}`}
                         >
                           {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
