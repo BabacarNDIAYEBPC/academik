@@ -16,7 +16,7 @@ import { useI18n } from "@/lib/i18n";
 import {
   FileText, Zap, FolderOpen, Calendar, ShoppingCart, Loader2, TrendingUp,
   Download, Clock, AlertTriangle, Receipt, Lock, Unlock, CheckCircle2,
-  Mic, BarChart3, Search, Presentation, FileCheck, BrainCircuit, Package, ArrowRight,
+  Mic, BarChart3, Search, Presentation, FileCheck, BrainCircuit, Package, ArrowRight, PenTool,
 } from "lucide-react";
 
 const COMPANY_INFO = {
@@ -68,6 +68,12 @@ const OPTION_CATALOG = {
     { key: "soutenance_ppt", price: 29 },
     { key: "soutenance_simulation", price: 29 },
     { key: "audit", price: 49 },
+  ],
+  redaction: [
+    { key: "remerciements", price: 9 },
+    { key: "abstract_resume", price: 9 },
+    { key: "sigles_acronymes", price: 9 },
+    { key: "cover_page", price: 15 },
   ],
   confort: [
     { key: "export_illimite", price: 19 },
@@ -451,6 +457,7 @@ function UpgradeSection({ entitlements }: { entitlements: string[] }) {
     { catKey: "analyse", titleKey: "billing.catAnalyse", icon: BarChart3, items: filterItems(OPTION_CATALOG.analyse), packKey: "pack_analyse" },
     { catKey: "revue", titleKey: "billing.catRevue", icon: Search, items: filterItems(OPTION_CATALOG.revue), packKey: "pack_revue" },
     { catKey: "soutenance", titleKey: "billing.catSoutenance", icon: Presentation, items: filterItems(OPTION_CATALOG.soutenance), packKey: "pack_soutenance" },
+    { catKey: "redaction", titleKey: "billing.catRedaction", icon: PenTool, items: filterItems(OPTION_CATALOG.redaction) },
     { catKey: "confort", titleKey: "billing.catConfort", icon: FileCheck, items: filterItems(OPTION_CATALOG.confort) },
     { catKey: "ia", titleKey: "billing.catIA", icon: BrainCircuit, items: filterItems(OPTION_CATALOG.ia) },
   ].filter(cat => cat.items.length > 0);

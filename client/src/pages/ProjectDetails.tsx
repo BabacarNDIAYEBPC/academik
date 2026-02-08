@@ -26,6 +26,7 @@ import AuditMemoireModule from "@/components/AuditMemoireModule";
 import FormulaireModule from "@/components/FormulaireModule";
 import ConfrontationModule from "@/components/ConfrontationModule";
 import HypothesisValidationModule from "@/components/HypothesisValidationModule";
+import CoverPageModule from "@/components/CoverPageModule";
 import TfeFoundationsModule from "@/components/TfeFoundationsModule";
 import MemoirImportField from "@/components/MemoirImportField";
 import VariablesPanel from "@/components/VariablesPanel";
@@ -62,25 +63,26 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "remerciements", "abstract_resume", "sigles_acronymes", "cover_page", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "memoire_professionnel":
-      return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "remerciements", "abstract_resume", "sigles_acronymes", "cover_page", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "etude_de_cas":
-      return ["cs_fiche", "cs_contexte", "cs_probleme", "cs_cadre", "cs_donnees", "cs_options", "cs_recommandation", "cs_conclusion", "literature_review", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["cs_fiche", "cs_contexte", "cs_probleme", "cs_cadre", "cs_donnees", "cs_options", "cs_recommandation", "cs_conclusion", "literature_review", "remerciements", "abstract_resume", "sigles_acronymes", "cover_page", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
-      return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation", "remerciements", "abstract_resume", "sigles_acronymes", "cover_page", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
-      return ["vae_presentation", "vae_parcours", "vae_motivation", "vae_cartographie", "vae_bloc_demo", "vae_synthese", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation"];
+      return ["vae_presentation", "vae_parcours", "vae_motivation", "vae_cartographie", "vae_bloc_demo", "vae_synthese", "remerciements", "abstract_resume", "sigles_acronymes", "cover_page", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation"];
     case "rapport_stage":
-      return ["rs_cover_page", "rs_acknowledgements", "rs_introduction", "rs_company", "rs_internship", "rs_missions", "rs_analysis", "rs_contributions", "rs_conclusion", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["rs_cover_page", "rs_acknowledgements", "rs_introduction", "rs_company", "rs_internship", "rs_missions", "rs_analysis", "rs_contributions", "rs_conclusion", "remerciements", "abstract_resume", "sigles_acronymes", "cover_page", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     default:
-      return ["subject", "plan", "methodology", "assisted_writing", "exports", "memoire_audit"];
+      return ["subject", "plan", "methodology", "remerciements", "abstract_resume", "sigles_acronymes", "cover_page", "assisted_writing", "exports", "memoire_audit"];
   }
 }
 
 const OPTIONAL_MODULE_KEYS = new Set([
   "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis",
   "interview_simulation", "data_analysis", "confrontation", "hypothesis_validation", "financial_simulation",
+  "remerciements", "abstract_resume", "sigles_acronymes", "cover_page",
   "soutenance_ppt", "soutenance_simulation", "bibliography", "memoire_audit",
 ]);
 
@@ -237,6 +239,22 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
       push("financial_simulation", t("project.financialSimulation"), BarChart3, ["financial_simulation"]);
     }
 
+  }
+
+  if (sections.includes("remerciements")) {
+    push("remerciements", t("project.remerciements"), Heart, ["remerciements"]);
+  }
+
+  if (sections.includes("abstract_resume")) {
+    push("abstract_resume", t("project.abstractResume"), FileText, ["abstract_resume"]);
+  }
+
+  if (sections.includes("sigles_acronymes")) {
+    push("sigles_acronymes", t("project.siglesAcronymes"), BookOpen, ["sigles_acronymes"]);
+  }
+
+  if (sections.includes("cover_page")) {
+    push("cover_page", t("project.coverPage"), Award, ["cover_page"]);
   }
 
   if (sections.includes("assisted_writing")) {
@@ -396,12 +414,36 @@ const MODULE_PRICE_MAP: Record<string, { packKey: string; price: string }> = {
   confrontation: { packKey: "confrontation", price: "19 €" },
   hypothesis_validation: { packKey: "hypothesis_validation", price: "19 €" },
   formulaire: { packKey: "formulaire", price: "25 €" },
+  remerciements: { packKey: "remerciements", price: "9 €" },
+  abstract_resume: { packKey: "abstract_resume", price: "9 €" },
+  sigles_acronymes: { packKey: "sigles_acronymes", price: "9 €" },
+  cover_page: { packKey: "cover_page", price: "15 €" },
   financial_simulation: { packKey: "financial_simulation", price: "29 €" },
   soutenance_ppt: { packKey: "soutenance_ppt", price: "29 €" },
   soutenance_simulation: { packKey: "soutenance_simulation", price: "29 €" },
   bibliography: { packKey: "pack_revue", price: "59 €" },
   memoire_audit: { packKey: "audit", price: "49 €" },
 };
+
+const ALL_OPTIONAL_MODULES: { key: string; labelKey: string; icon: any }[] = [
+  { key: "questionnaire", labelKey: "project.questionnaire", icon: ClipboardList },
+  { key: "formulaire", labelKey: "project.formulaire", icon: ClipboardList },
+  { key: "guide_entretien", labelKey: "project.interviewGuide", icon: FileText },
+  { key: "questionnaire_analysis", labelKey: "project.questionnaireAnalysis", icon: BarChart3 },
+  { key: "interview_simulation", labelKey: "project.interviewSimulation", icon: MessageSquare },
+  { key: "data_analysis", labelKey: "project.dataVisualization", icon: BarChart3 },
+  { key: "confrontation", labelKey: "project.confrontation", icon: GitBranch },
+  { key: "hypothesis_validation", labelKey: "project.hypothesisValidation", icon: CheckSquare },
+  { key: "financial_simulation", labelKey: "project.financialSimulation", icon: BarChart3 },
+  { key: "remerciements", labelKey: "project.remerciements", icon: Heart },
+  { key: "abstract_resume", labelKey: "project.abstractResume", icon: FileText },
+  { key: "sigles_acronymes", labelKey: "project.siglesAcronymes", icon: BookOpen },
+  { key: "cover_page", labelKey: "project.coverPage", icon: Award },
+  { key: "soutenance_ppt", labelKey: "project.soutenancePPT", icon: Presentation },
+  { key: "soutenance_simulation", labelKey: "project.soutenanceOral", icon: Mic },
+  { key: "bibliography", labelKey: "project.bibliography", icon: Library },
+  { key: "memoire_audit", labelKey: "project.audit", icon: ShieldCheck },
+];
 
 function AssistantTab({ project }: { project: any }) {
   const { t } = useI18n();
@@ -414,6 +456,7 @@ function AssistantTab({ project }: { project: any }) {
   const checkout = useCheckout();
   const moduleTabs = useMemo(() => getModuleTabs(project.type, t), [project.type, t]);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
+  const [checkoutLoadingKey, setCheckoutLoadingKey] = useState<string | null>(null);
 
   const isTabLocked = useCallback((tab: { sectionKeys: string[] }) => {
     if (isAdmin) return false;
@@ -426,6 +469,38 @@ function AssistantTab({ project }: { project: any }) {
   const unlockedOptionalTabs = useMemo(() => optionalTabs.filter(t => !isTabLocked(t)), [optionalTabs, isTabLocked]);
   const lockedOptionalTabs = useMemo(() => optionalTabs.filter(t => isTabLocked(t)), [optionalTabs, isTabLocked]);
   const visibleTabs = useMemo(() => [...coreTabs, ...unlockedOptionalTabs], [coreTabs, unlockedOptionalTabs]);
+
+  const projectSectionKeys = useMemo(() => new Set(getSectionsForProjectType(project.type)), [project.type]);
+
+  const isModuleLocked = useCallback((moduleKey: string) => {
+    if (isAdmin) return false;
+    return isSectionLocked(entData?.entitlements, moduleKey, moduleVis, isAdmin);
+  }, [entData?.entitlements, moduleVis, isAdmin]);
+
+  const priorityLockedModules = useMemo(() =>
+    ALL_OPTIONAL_MODULES.filter(m => projectSectionKeys.has(m.key) && isModuleLocked(m.key)),
+    [projectSectionKeys, isModuleLocked]
+  );
+
+  const otherLockedModules = useMemo(() =>
+    ALL_OPTIONAL_MODULES.filter(m => !projectSectionKeys.has(m.key) && isModuleLocked(m.key)),
+    [projectSectionKeys, isModuleLocked]
+  );
+
+  const hasAnyLockedModules = priorityLockedModules.length > 0 || otherLockedModules.length > 0;
+
+  const handleModuleCheckout = useCallback((moduleKey: string) => {
+    const priceInfo = MODULE_PRICE_MAP[moduleKey];
+    if (priceInfo) {
+      setCheckoutLoadingKey(moduleKey);
+      checkout.mutate({ pack: priceInfo.packKey }, {
+        onSettled: () => setCheckoutLoadingKey(null),
+      });
+    } else {
+      setShowModuleDialog(false);
+      navigate("/billing");
+    }
+  }, [checkout, navigate]);
 
   const [activeModule, setActiveModule] = useState(visibleTabs[0]?.key || "foundations");
 
@@ -478,11 +553,9 @@ function AssistantTab({ project }: { project: any }) {
               })}
             </SelectContent>
           </Select>
-          {lockedOptionalTabs.length > 0 && (
-            <Button variant="outline" size="icon" onClick={() => setShowModuleDialog(true)} data-testid="button-add-module-mobile">
-              <Plus className="w-4 h-4" />
-            </Button>
-          )}
+          <Button variant="outline" size="icon" onClick={() => setShowModuleDialog(true)} data-testid="button-add-module-mobile">
+            <Plus className="w-4 h-4" />
+          </Button>
         </div>
 
         <div className="hidden md:block">
@@ -518,18 +591,16 @@ function AssistantTab({ project }: { project: any }) {
                 );
               })}
             </TabsList>
-            {lockedOptionalTabs.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-xl gap-1.5 shrink-0"
-                onClick={() => setShowModuleDialog(true)}
-                data-testid="button-add-module"
-              >
-                <Plus className="w-4 h-4" />
-                {t("project.addModules")}
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-xl gap-1.5 shrink-0"
+              onClick={() => setShowModuleDialog(true)}
+              data-testid="button-add-module"
+            >
+              <Plus className="w-4 h-4" />
+              {t("project.addModules")}
+            </Button>
           </div>
         </div>
 
@@ -538,62 +609,85 @@ function AssistantTab({ project }: { project: any }) {
             <DialogHeader>
               <DialogTitle>{t("project.availableModules")}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {lockedOptionalTabs.map(tab => {
-                const Icon = tab.icon;
-                const priceInfo = MODULE_PRICE_MAP[tab.key];
-                return (
-                  <div
-                    key={tab.key}
-                    className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border hover-elevate cursor-pointer"
-                    onClick={() => {
-                      if (priceInfo) {
-                        checkout.mutate({ pack: priceInfo.packKey });
-                      } else {
-                        setShowModuleDialog(false);
-                        navigate("/billing");
-                      }
-                    }}
-                    data-testid={`module-option-${tab.key}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-                        <Icon className="w-4 h-4 text-muted-foreground" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{tab.label}</span>
-                        {priceInfo && (
-                          <span className="text-xs text-muted-foreground">{priceInfo.price}</span>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      disabled={checkout.isPending}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (priceInfo) {
-                          checkout.mutate({ pack: priceInfo.packKey });
-                        } else {
-                          setShowModuleDialog(false);
-                          navigate("/billing");
-                        }
-                      }}
-                      data-testid={`button-unlock-${tab.key}`}
-                    >
-                      {checkout.isPending ? (
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Lock className="w-3.5 h-3.5" />
-                      )}
-                      <span className="ml-1">{priceInfo ? priceInfo.price : t("project.unlockModule")}</span>
-                    </Button>
-                  </div>
-                );
-              })}
-              {lockedOptionalTabs.length === 0 && (
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+              {!hasAnyLockedModules && (
                 <p className="text-sm text-muted-foreground text-center py-4">{t("project.allModulesUnlocked")}</p>
+              )}
+              {priorityLockedModules.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("project.recommendedModules")}</p>
+                  {priorityLockedModules.map(mod => {
+                    const Icon = mod.icon;
+                    const priceInfo = MODULE_PRICE_MAP[mod.key];
+                    const isLoading = checkoutLoadingKey === mod.key;
+                    return (
+                      <div
+                        key={mod.key}
+                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border hover-elevate cursor-pointer"
+                        onClick={() => handleModuleCheckout(mod.key)}
+                        data-testid={`module-option-${mod.key}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
+                            <Icon className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{t(mod.labelKey)}</span>
+                            {priceInfo && <span className="text-xs text-muted-foreground">{priceInfo.price}</span>}
+                          </div>
+                        </div>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          disabled={checkoutLoadingKey !== null}
+                          onClick={(e) => { e.stopPropagation(); handleModuleCheckout(mod.key); }}
+                          data-testid={`button-unlock-${mod.key}`}
+                        >
+                          {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
+                          <span className="ml-1">{priceInfo ? priceInfo.price : t("project.unlockModule")}</span>
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {otherLockedModules.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("project.otherModules")}</p>
+                  {otherLockedModules.map(mod => {
+                    const Icon = mod.icon;
+                    const priceInfo = MODULE_PRICE_MAP[mod.key];
+                    const isLoading = checkoutLoadingKey === mod.key;
+                    return (
+                      <div
+                        key={mod.key}
+                        className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border hover-elevate cursor-pointer"
+                        onClick={() => handleModuleCheckout(mod.key)}
+                        data-testid={`module-option-${mod.key}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
+                            <Icon className="w-4 h-4 text-muted-foreground" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{t(mod.labelKey)}</span>
+                            {priceInfo && <span className="text-xs text-muted-foreground">{priceInfo.price}</span>}
+                          </div>
+                        </div>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          disabled={checkoutLoadingKey !== null}
+                          onClick={(e) => { e.stopPropagation(); handleModuleCheckout(mod.key); }}
+                          data-testid={`button-unlock-${mod.key}`}
+                        >
+                          {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
+                          <span className="ml-1">{priceInfo ? priceInfo.price : t("project.unlockModule")}</span>
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </DialogContent>
@@ -1398,6 +1492,18 @@ function SingleSectionWrapper({
           variables={variables}
           extraContext={buildExtraContext()}
           section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "cover_page") {
+    return (
+      <div className="space-y-4">
+        <CoverPageModule
+          project={{ id: projectId, type: projectType, name: "" }}
+          section={section}
+          sections={sections}
         />
       </div>
     );

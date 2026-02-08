@@ -396,6 +396,10 @@ export const SECTION_KEYS = {
   FORMULAIRE: 'formulaire',
   QUESTIONNAIRE_ANALYSIS: 'questionnaire_analysis',
   FINANCIAL_SIMULATION: 'financial_simulation',
+  REMERCIEMENTS: 'remerciements',
+  ABSTRACT_RESUME: 'abstract_resume',
+  SIGLES_ACRONYMES: 'sigles_acronymes',
+  COVER_PAGE: 'cover_page',
 } as const;
 
 export const SECTION_ORDER = [
@@ -405,7 +409,8 @@ export const SECTION_ORDER = [
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
   'questionnaire', 'formulaire', 'guide_entretien', 'questionnaire_analysis', 'interview_simulation', 'data_analysis', 'confrontation', 'hypothesis_validation',
-  'financial_simulation', 'assisted_writing', 'bibliography', 'exports',
+  'financial_simulation', 'remerciements', 'abstract_resume', 'sigles_acronymes', 'cover_page',
+  'assisted_writing', 'bibliography', 'exports',
   'soutenance_ppt', 'soutenance_simulation', 'memoire_audit',
 ];
 
@@ -461,6 +466,10 @@ export const SECTION_LABELS: Record<string, string> = {
   confrontation: "Confrontation des résultats",
   hypothesis_validation: "Validation des hypothèses",
   formulaire: "Formulaire en ligne",
+  remerciements: "Page de remerciements",
+  abstract_resume: "Résumé / Abstract",
+  sigles_acronymes: "Sigles et acronymes",
+  cover_page: "Page de couverture",
 };
 
 // === IMPACT DEPENDENCIES (Module 17) ===

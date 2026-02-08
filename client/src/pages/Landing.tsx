@@ -14,7 +14,7 @@ import {
   ArrowRight, BookOpen, GraduationCap, Sparkles, BrainCircuit,
   FileText, Search, FlaskConical, CheckCircle2, Lightbulb, Map,
   BookMarked, Award, Briefcase, ClipboardList, ChevronDown, ChevronUp,
-  Loader2, Mic, BarChart3, FileCheck, Presentation, ShieldCheck, Package,
+  Loader2, Mic, BarChart3, FileCheck, Presentation, ShieldCheck, Package, PenTool,
   ChevronLeft, ChevronRight, Calendar, Clock,
 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -47,6 +47,12 @@ const OPTION_CATALOG = {
     { key: "soutenance_ppt", price: 29, fr: "PowerPoint de soutenance structuré", en: "Structured Defense PowerPoint" },
     { key: "soutenance_simulation", price: 29, fr: "Simulation de soutenance (questions jury)", en: "Defense Simulation (jury questions)" },
     { key: "audit", price: 49, fr: "Audit complet du mémoire", en: "Complete Dissertation Audit" },
+  ],
+  redaction: [
+    { key: "remerciements", price: 9, fr: "Page de remerciements", en: "Acknowledgments Page" },
+    { key: "abstract_resume", price: 9, fr: "Résumé / Abstract", en: "Abstract / Summary" },
+    { key: "sigles_acronymes", price: 9, fr: "Sigles et acronymes", en: "Abbreviations & Acronyms" },
+    { key: "cover_page", price: 15, fr: "Page de couverture", en: "Cover Page" },
   ],
   confort: [
     { key: "export_illimite", price: 19, fr: "Export illimité Word / PPT", en: "Unlimited Word / PPT Export" },
@@ -548,6 +554,7 @@ function PricingSection() {
     { catKey: "analyse", titleKey: "pricing.catAnalyse", icon: BarChart3, items: filterItems(OPTION_CATALOG.analyse), packKey: "pack_analyse" },
     { catKey: "revue", titleKey: "pricing.catRevue", icon: Search, items: filterItems(OPTION_CATALOG.revue), packKey: "pack_revue" },
     { catKey: "soutenance", titleKey: "pricing.catSoutenance", icon: Presentation, items: filterItems(OPTION_CATALOG.soutenance), packKey: "pack_soutenance" },
+    { catKey: "redaction", titleKey: "pricing.catRedaction", icon: PenTool, items: filterItems(OPTION_CATALOG.redaction) },
     { catKey: "confort", titleKey: "pricing.catConfort", icon: FileCheck, items: filterItems(OPTION_CATALOG.confort) },
     { catKey: "ia", titleKey: "pricing.catIA", icon: BrainCircuit, items: filterItems(OPTION_CATALOG.ia) },
   ].filter(cat => cat.items.length > 0);
