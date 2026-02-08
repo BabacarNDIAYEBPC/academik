@@ -15,9 +15,10 @@ import {
   FileText, Search, FlaskConical, CheckCircle2, Lightbulb, Map,
   BookMarked, Award, Briefcase, ClipboardList, ChevronDown, ChevronUp,
   Loader2, Mic, BarChart3, FileCheck, Presentation, ShieldCheck, Package,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Calendar, Clock,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { BLOG_ARTICLES } from "@/pages/Blog";
 
 const CORE_PACK_PRICE = 179;
 
@@ -113,6 +114,7 @@ export default function Landing() {
       <PricingSection />
       <TestimonialsSection />
       <FAQSection faqItems={faqItems} />
+      <BlogSection />
       <Footer />
     </div>
   );
@@ -827,6 +829,68 @@ function FAQSection({ faqItems }: { faqItems: { q: string; a: string }[] }) {
               </CardContent>
             </Card>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function BlogSection() {
+  const { lang } = useI18n();
+  const preview = BLOG_ARTICLES.slice(0, 3);
+
+  return (
+    <section className="py-20 bg-muted/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <Badge variant="secondary" className="mb-4">
+            <BookOpen className="w-3 h-3 mr-1" />
+            {lang === "fr" ? "Ressources" : "Resources"}
+          </Badge>
+          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-4" data-testid="text-blog-section-title">
+            {lang === "fr" ? "Guide de rédaction académique" : "Academic Writing Guide"}
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            {lang === "fr"
+              ? "Des articles méthodologiques pour vous accompagner à chaque étape de votre travail académique."
+              : "Methodological articles to guide you through every step of your academic work."}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {preview.map((article, i) => (
+            <Link key={article.slug} href={`/blog/${article.slug}`}>
+              <Card className="hover-elevate cursor-pointer overflow-visible h-full" data-testid={`blog-preview-card-${i}`}>
+                <CardContent className="p-6 flex flex-col gap-3 h-full">
+                  <h3 className="text-lg font-bold leading-snug">
+                    {lang === "fr" ? article.titleFr : article.titleEn}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">
+                    {lang === "fr" ? article.descFr : article.descEn}
+                  </p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(article.date).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-US", { day: "numeric", month: "short", year: "numeric" })}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {article.readMinutes} min
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+
+        <div className="text-center">
+          <Link href="/blog">
+            <Button variant="outline" data-testid="link-blog-all">
+              {lang === "fr" ? "Voir tous les articles" : "View all articles"}
+              <ArrowRight className="ml-2 w-4 h-4" />
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
