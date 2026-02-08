@@ -62,6 +62,8 @@ function getSectionsForProjectType(projectType: string): string[] {
       return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "memoire_professionnel":
       return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+    case "etude_de_cas":
+      return ["cs_fiche", "cs_contexte", "cs_probleme", "cs_cadre", "cs_donnees", "cs_options", "cs_recommandation", "cs_conclusion", "literature_review", "assisted_writing", "exports"];
     case "tfe":
       return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
@@ -123,6 +125,40 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
     }
     if (sections.includes("rs_conclusion")) {
       tabs.push({ key: "rs_conclusion", label: t("project.rsConclusion"), icon: Check, sectionKeys: ["rs_conclusion"] });
+    }
+  } else if (projectType === "etude_de_cas") {
+    if (sections.includes("cs_fiche")) {
+      tabs.push({ key: "cs_fiche", label: t("project.csFiche"), icon: FileText, sectionKeys: ["cs_fiche"] });
+    }
+    if (sections.includes("cs_contexte")) {
+      tabs.push({ key: "cs_contexte", label: t("project.csContexte"), icon: BookOpen, sectionKeys: ["cs_contexte"] });
+    }
+    if (sections.includes("cs_probleme")) {
+      tabs.push({ key: "cs_probleme", label: t("project.csProbleme"), icon: Target, sectionKeys: ["cs_probleme"] });
+    }
+    if (sections.includes("cs_cadre")) {
+      tabs.push({ key: "cs_cadre", label: t("project.csCadre"), icon: LayoutGrid, sectionKeys: ["cs_cadre"] });
+    }
+    if (sections.includes("cs_donnees")) {
+      tabs.push({ key: "cs_donnees", label: t("project.csDonnees"), icon: BarChart3, sectionKeys: ["cs_donnees"] });
+    }
+    if (sections.includes("cs_options")) {
+      tabs.push({ key: "cs_options", label: t("project.csOptions"), icon: GitBranch, sectionKeys: ["cs_options"] });
+    }
+    if (sections.includes("cs_recommandation")) {
+      tabs.push({ key: "cs_recommandation", label: t("project.csRecommandation"), icon: CheckSquare, sectionKeys: ["cs_recommandation"] });
+    }
+    if (sections.includes("cs_conclusion")) {
+      tabs.push({ key: "cs_conclusion", label: t("project.csConclusion"), icon: ShieldCheck, sectionKeys: ["cs_conclusion"] });
+    }
+    if (sections.includes("literature_review")) {
+      tabs.push({ key: "literature", label: t("project.literatureReview"), icon: BookMarked, sectionKeys: ["literature_review"] });
+    }
+    if (sections.includes("assisted_writing")) {
+      tabs.push({ key: "assisted_writing", label: t("project.assistedWriting"), icon: PenTool, sectionKeys: ["assisted_writing"] });
+    }
+    if (sections.includes("exports")) {
+      tabs.push({ key: "exports", label: t("project.exports"), icon: Download, sectionKeys: ["exports"] });
     }
   } else {
     if (projectType === "memoire_professionnel") {

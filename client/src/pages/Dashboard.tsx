@@ -27,6 +27,7 @@ export default function Dashboard() {
       case 'memoire_professionnel': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300';
       case 'tfe': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
       case 'vae': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
+      case 'etude_de_cas': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300';
       default: return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
     }
   };

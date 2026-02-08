@@ -62,6 +62,14 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   rs_conclusion: "rs_foundation",
   mp_structure: "foundation",
   mp_emergence: "foundation",
+  cs_fiche: "foundation",
+  cs_contexte: "foundation",
+  cs_probleme: "foundation",
+  cs_cadre: "foundation",
+  cs_donnees: "foundation",
+  cs_options: "foundation",
+  cs_recommandation: "foundation",
+  cs_conclusion: "foundation",
   vae_presentation: "vae_foundation",
   vae_parcours: "vae_foundation",
   vae_motivation: "vae_foundation",
@@ -634,6 +642,146 @@ RÈGLES:
 - Longueur: 400-600 mots
 - Ne PAS introduire de nouvelles informations
 - Cohérence avec l'introduction (effet miroir)`;
+
+    case "cs_fiche":
+      return `=== TÂCHE: FICHE DU CAS – ÉTUDE DE CAS ===
+À partir des réponses fournies par l'utilisateur, rédige une fiche synthétique et structurée du cas étudié.
+
+STRUCTURE ATTENDUE:
+1. **Titre du cas** : titre clair et descriptif
+2. **Zone géographique** : pays, région, zone concernée
+3. **Période** : dates clés, chronologie
+4. **Acteurs clés** : institutions, États, parties prenantes avec leur rôle
+5. **Sources principales** : documents, rapports, données de référence
+6. **Objectif de l'étude** : comprendre / décider / évaluer / proposer
+
+RÈGLES:
+- Format synthétique et professionnel
+- Longueur: 300-500 mots
+- Doit servir de référence rapide pour l'ensemble de l'étude de cas
+- Ne PAS inventer d'informations non fournies`;
+
+    case "cs_contexte":
+      return `=== TÂCHE: CONTEXTE ET DIAGNOSTIC – ÉTUDE DE CAS ===
+À partir des réponses fournies, rédige une analyse contextuelle complète du cas.
+
+STRUCTURE ATTENDUE:
+1. **Contexte historique et géopolitique** : toile de fond du cas
+2. **Contexte économique et social** : situation économique, enjeux sociaux
+3. **Faits déclencheurs** : événements qui ont provoqué ou aggravé la situation
+4. **Indicateurs clés** : données chiffrées (commerce, sécurité, flux, budget) si disponibles
+5. **Synthèse du diagnostic** : état des lieux global
+
+RÈGLES:
+- Style analytique et factuel
+- Longueur: 500-800 mots
+- Citer les sources et données mentionnées par l'utilisateur
+- Chronologie claire des événements`;
+
+    case "cs_probleme":
+      return `=== TÂCHE: PROBLÈME CENTRAL ET QUESTIONS D'ANALYSE – ÉTUDE DE CAS ===
+À partir des réponses fournies et du contexte (si validé), formule clairement le problème central et les questions d'analyse.
+
+STRUCTURE ATTENDUE:
+1. **Problème central** : formulation claire et concise (1-2 phrases)
+2. **Enjeux sous-jacents** : dimensions du problème (politique, économique, social, sécuritaire…)
+3. **Questions directrices** : 3 à 5 questions structurantes pour analyser le cas
+4. **Périmètre de l'analyse** : ce qui est inclus et exclu de l'étude
+
+RÈGLES:
+- Formulation précise et académique
+- Longueur: 300-500 mots
+- Les questions doivent guider l'analyse de manière logique
+- Cohérence avec le contexte précédemment établi`;
+
+    case "cs_cadre":
+      return `=== TÂCHE: CADRE D'ANALYSE – ÉTUDE DE CAS ===
+À partir de l'outil d'analyse choisi par l'utilisateur et de ses éléments de réponse, applique le cadre analytique au cas.
+
+OUTILS POSSIBLES:
+- **SWOT** : Forces / Faiblesses / Opportunités / Menaces - tableau + analyse narrative
+- **PESTEL** : Politique / Économique / Social / Technologique / Environnemental / Légal
+- **Analyse des acteurs** : cartographie des parties prenantes, intérêts, pouvoir, positionnement
+- **Scénarios** : 3 scénarios prospectifs (optimiste / central / pessimiste) avec probabilités et implications
+- **Matrice risques/impacts** : identification des risques, probabilité, impact, stratégies de mitigation
+
+RÈGLES:
+- Appliquer rigoureusement l'outil choisi
+- Longueur: 600-1000 mots
+- Inclure des tableaux ou matrices structurées (en markdown)
+- Lier chaque élément aux données du cas
+- Si l'outil n'est pas précisé, utiliser SWOT par défaut`;
+
+    case "cs_donnees":
+      return `=== TÂCHE: DONNÉES ET PREUVES – ÉTUDE DE CAS ===
+À partir des réponses fournies, structure les données et preuves du cas.
+
+STRUCTURE ATTENDUE:
+1. **Tableau des faits clés** : Format markdown avec colonnes : Fait | Source | Impact | Fiabilité
+2. **Analyse des données** : interprétation des faits et leur signification
+3. **Données contradictoires** : identification des points de tension ou d'incertitude
+4. **Limites des données** : biais possibles, données manquantes
+
+RÈGLES:
+- Utiliser des tableaux markdown pour la présentation structurée
+- Longueur: 400-700 mots
+- Évaluer la fiabilité de chaque source (haute / moyenne / faible)
+- Séparer faits établis et interprétations`;
+
+    case "cs_options":
+      return `=== TÂCHE: OPTIONS STRATÉGIQUES – ÉTUDE DE CAS ===
+À partir des réponses fournies et de l'analyse précédente, présente les options stratégiques.
+
+STRUCTURE ATTENDUE:
+Pour chaque option (A, B, C) :
+1. **Description** : en quoi consiste l'option
+2. **Coûts** : ressources nécessaires (financières, humaines, politiques)
+3. **Bénéfices attendus** : résultats escomptés
+4. **Risques** : ce qui pourrait mal tourner
+5. **Conditions de réussite** : facteurs clés de succès
+
+Suivi d'un **tableau comparatif** des options (markdown).
+
+RÈGLES:
+- Présentation équilibrée et objective de chaque option
+- Longueur: 600-900 mots
+- Chaque option doit être réaliste et ancrée dans le contexte du cas
+- Inclure un tableau comparatif synthétique`;
+
+    case "cs_recommandation":
+      return `=== TÂCHE: RECOMMANDATION – ÉTUDE DE CAS ===
+À partir des options analysées et du contexte du cas, formule une recommandation argumentée.
+
+STRUCTURE ATTENDUE:
+1. **Recommandation principale** : choix argumenté parmi les options
+2. **Justification** : pourquoi cette option est privilégiée (lien avec l'analyse)
+3. **Plan d'action** :
+   - Court terme (0-6 mois) : actions immédiates
+   - Moyen terme (6-24 mois) : consolidation
+4. **KPIs de suivi** : 3-5 indicateurs mesurables pour évaluer le succès
+5. **Conditions de mise en œuvre** : prérequis, acteurs responsables
+
+RÈGLES:
+- Argumentaire logique basé sur l'analyse précédente
+- Longueur: 500-700 mots
+- KPIs spécifiques, mesurables et temporellement définis
+- Plan d'action concret et réaliste`;
+
+    case "cs_conclusion":
+      return `=== TÂCHE: CONCLUSION ET LIMITES – ÉTUDE DE CAS ===
+À partir de l'ensemble du cas et des réponses fournies, rédige une conclusion synthétique.
+
+STRUCTURE ATTENDUE:
+1. **Synthèse des enseignements** : ce que le cas nous apprend
+2. **Limites de l'analyse** : biais, données manquantes, hypothèses non vérifiées
+3. **Points de vigilance** : éléments à surveiller dans le futur
+4. **Ouverture** : pistes de recherche ou d'analyse complémentaires
+
+RÈGLES:
+- Ton réflexif et nuancé
+- Longueur: 400-600 mots
+- Ne pas introduire de nouvelles données
+- Cohérence avec l'ensemble des sections précédentes`;
 
     case "mp_structure":
       return `=== TÂCHE: PRÉSENTATION DE LA STRUCTURE PROFESSIONNELLE ===

@@ -36,7 +36,7 @@ const STRUCTURE_TYPE_KEYS = [
   "hopital", "entreprise_privee", "association", "administration", "autre",
 ];
 
-const PROJECT_TYPE_KEYS = ["memoire", "memoire_professionnel", "tfe", "vae", "rapport_stage", "these"];
+const PROJECT_TYPE_KEYS = ["memoire", "memoire_professionnel", "tfe", "vae", "rapport_stage", "etude_de_cas", "these"];
 
 const FINALITY_KEYS = ["academique", "professionnelle", "mixte"];
 

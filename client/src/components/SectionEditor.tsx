@@ -31,6 +31,7 @@ import {
 import InternshipQuestionnaire, { isInternshipReportSection, buildInternshipContext } from "@/components/InternshipQuestionnaire";
 import VaeQuestionnaire, { isVaeSection, buildVaeContext } from "@/components/VaeQuestionnaire";
 import MemoireProQuestionnaire, { isMemoireProSection, buildMemoireProContext } from "@/components/MemoireProQuestionnaire";
+import CaseStudyQuestionnaire, { isCaseStudySection, buildCaseStudyContext } from "@/components/CaseStudyQuestionnaire";
 import {
   Dialog,
   DialogContent,
@@ -102,7 +103,8 @@ export default function SectionEditor({
   const isInternshipSection = isInternshipReportSection(sectionKey);
   const isVaeSec = isVaeSection(sectionKey);
   const isMpSec = isMemoireProSection(sectionKey);
-  const isQuestionnaireSection = isInternshipSection || isVaeSec || isMpSec;
+  const isCsSec = isCaseStudySection(sectionKey);
+  const isQuestionnaireSection = isInternshipSection || isVaeSec || isMpSec || isCsSec;
   const savedQuestionnaireAnswers = (section?.config as any)?.questionnaireAnswers as Record<string, string> | undefined;
   const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>(savedQuestionnaireAnswers || {});
 
@@ -382,6 +384,44 @@ export default function SectionEditor({
                     });
                   }
                   const context = buildMemoireProContext(sectionKey, answers);
+                  generateMutation.mutate(
+                    {
+                      projectId,
+                      sectionKey,
+                      mode: hasContent ? "similar" as const : "initial" as const,
+                      extraContext: context,
+                      config,
+                    },
+                    {
+                      onSuccess: () => {
+                        setShowQuestionnaire(false);
+                        toast({ title: t("section.contentGenerated"), description: `${label} ${t("section.generatedSuccess")}` });
+                      },
+                      onError: (err: any) => {
+                        toast({ title: t("section.error"), description: err.message || t("section.generationFailed"), variant: "destructive" });
+                      },
+                    }
+                  );
+                }}
+                isPending={isPending}
+                savedAnswers={questionnaireAnswers}
+                onSaveAnswers={(answers) => {
+                  setQuestionnaireAnswers(answers);
+                }}
+              />
+            ) : isCsSec ? (
+              <CaseStudyQuestionnaire
+                sectionKey={sectionKey}
+                onGenerate={(answers) => {
+                  setQuestionnaireAnswers(answers);
+                  if (section) {
+                    saveConfigMutation.mutate({
+                      sectionId: section.id,
+                      config: { ...sectionConfig, questionnaireAnswers: answers },
+                      projectId,
+                    });
+                  }
+                  const context = buildCaseStudyContext(sectionKey, answers);
                   generateMutation.mutate(
                     {
                       projectId,
