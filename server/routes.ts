@@ -51,6 +51,15 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   soutenance_ppt: "soutenance_ppt",
   soutenance_simulation: "soutenance_simulation",
   memoire_audit: "audit",
+  rs_cover_page: "rs_foundation",
+  rs_acknowledgements: "rs_foundation",
+  rs_introduction: "rs_foundation",
+  rs_company: "rs_foundation",
+  rs_internship: "rs_foundation",
+  rs_missions: "rs_foundation",
+  rs_analysis: "rs_foundation",
+  rs_contributions: "rs_foundation",
+  rs_conclusion: "rs_foundation",
 };
 
 async function getModuleVisibility(): Promise<Record<string, boolean>> {
@@ -469,6 +478,154 @@ En t'appuyant sur la méthodologie et les outils de collecte:
 5. **Présentation des résultats** : format et structure attendus
 
 Structure ta réponse en Markdown.`;
+
+    case "rs_cover_page":
+      return `=== TÂCHE: PAGE DE GARDE DU RAPPORT DE STAGE ===
+Génère une page de garde professionnelle et structurée pour un rapport de stage, à partir des informations fournies par l'étudiant.
+
+STRUCTURE:
+- Nom de l'établissement de formation
+- Intitulé de la formation / filière
+- TITRE DU RAPPORT en majuscules
+- Nom et prénom de l'étudiant
+- Tuteur en entreprise
+- Tuteur académique
+- Année universitaire
+- Période du stage
+
+Présente ces informations de manière sobre, professionnelle et bien structurée avec des séparations claires.
+N'ajoute AUCUN contenu supplémentaire (pas d'introduction, pas de résumé).`;
+
+    case "rs_acknowledgements":
+      return `=== TÂCHE: REMERCIEMENTS DU RAPPORT DE STAGE ===
+À partir des informations fournies par l'étudiant, rédige des remerciements professionnels et sincères.
+
+RÈGLES:
+- Ton formel mais chaleureux
+- Structure par catégorie (entreprise, formation, entourage)
+- Chaque personne ou groupe doit être remercié avec une raison précise
+- Style académique, sobre, sans excès d'émotion
+- Longueur: 300-500 mots`;
+
+    case "rs_introduction":
+      return `=== TÂCHE: INTRODUCTION DU RAPPORT DE STAGE ===
+À partir des réponses fournies, rédige une introduction générale complète et académique.
+
+STRUCTURE ATTENDUE:
+1. **Accroche** : mise en contexte du domaine ou du secteur
+2. **Cadre du stage** : formation, année, objectif pédagogique
+3. **Présentation de l'entreprise** (brève) : nom, secteur
+4. **Motivations** : pourquoi cette entreprise, ce domaine
+5. **Objectifs du stage** : ce que l'étudiant cherche à atteindre
+6. **Annonce du plan** : structure du rapport
+
+RÈGLES:
+- Style académique, fluide, professionnel
+- Longueur: 500-800 mots
+- PAS de liste à puces, texte continu structuré en paragraphes`;
+
+    case "rs_company":
+      return `=== TÂCHE: PRÉSENTATION DE L'ENTREPRISE ===
+À partir des informations fournies, rédige une présentation complète et structurée de l'entreprise d'accueil.
+
+STRUCTURE ATTENDUE:
+1. **Identité de l'entreprise** : nom, statut juridique, date de création, siège
+2. **Secteur d'activité** : domaine, activité principale, produits/services
+3. **Taille et organisation** : nombre d'employés, organigramme simplifié
+4. **Positionnement** : clients/usagers, marché
+5. **Organisation interne** : principaux services et leurs rôles
+6. **Service d'accueil** : description du service où le stage a eu lieu
+
+RÈGLES:
+- Style académique et descriptif
+- Longueur: 600-1000 mots
+- Inclure des sous-titres Markdown pour chaque partie
+- Données factuelles, pas d'opinions personnelles dans cette section`;
+
+    case "rs_internship":
+      return `=== TÂCHE: PRÉSENTATION DU STAGE ===
+À partir des réponses fournies, rédige une présentation détaillée du stage.
+
+STRUCTURE ATTENDUE:
+1. **Cadre du stage** : intitulé du poste, durée, dates
+2. **Objectifs** : objectifs fixés par l'entreprise et objectifs personnels
+3. **Missions confiées** : vue d'ensemble des responsabilités
+4. **Outils et méthodes** : technologies, logiciels, méthodologies utilisés
+5. **Encadrement** : tuteur, organisation du suivi
+
+RÈGLES:
+- Style professionnel et factuel
+- Longueur: 400-700 mots
+- Transition naturelle vers la section "Missions réalisées"`;
+
+    case "rs_missions":
+      return `=== TÂCHE: MISSIONS RÉALISÉES ===
+À partir des réponses fournies, rédige une description détaillée et structurée des missions réalisées pendant le stage.
+
+STRUCTURE ATTENDUE:
+1. **Mission principale** : description détaillée, objectifs, méthodologie, résultats
+2. **Missions secondaires** : pour chacune, contexte, actions, résultats
+3. **Organisation du travail** : rythme, planification, autonomie
+4. **Responsabilités** : niveau de responsabilité, confiance accordée
+5. **Travail en équipe** : collaboration, dynamique d'équipe
+
+RÈGLES:
+- Style narratif et analytique (pas une simple liste)
+- Longueur: 800-1200 mots
+- Montrer la progression et l'apprentissage
+- Utiliser des exemples concrets`;
+
+    case "rs_analysis":
+      return `=== TÂCHE: ANALYSE D'UNE SITUATION PROFESSIONNELLE ===
+À partir des réponses fournies, rédige une analyse approfondie d'une situation professionnelle marquante du stage.
+
+STRUCTURE ATTENDUE:
+1. **Description de la situation** : contexte précis, acteurs impliqués
+2. **Enjeux** : professionnels, organisationnels, relationnels
+3. **Actions menées** : ce qui a été fait, décisions prises
+4. **Résultats obtenus** : impacts mesurables ou observables
+5. **Difficultés rencontrées** : obstacles, contraintes
+6. **Solutions apportées** : comment les difficultés ont été surmontées
+7. **Bilan réflexif** : leçons tirées, ce qui serait fait différemment
+
+RÈGLES:
+- Style réflexif et analytique
+- Longueur: 600-1000 mots
+- Montrer la capacité de prise de recul et d'analyse critique
+- Relier à des concepts ou compétences de la formation`;
+
+    case "rs_contributions":
+      return `=== TÂCHE: APPORTS DU STAGE ===
+À partir des réponses fournies, rédige une section sur les apports personnels et professionnels du stage.
+
+STRUCTURE ATTENDUE:
+1. **Compétences professionnelles acquises** : techniques, méthodologiques, organisationnelles
+2. **Connaissances du métier et du secteur** : compréhension du domaine, réalités professionnelles
+3. **Développement personnel** : qualités renforcées, prises de conscience, maturité
+4. **Articulation formation-terrain** : liens entre les enseignements et la pratique
+
+RÈGLES:
+- Style réflexif et mature
+- Longueur: 500-800 mots
+- Illustrer avec des exemples concrets du stage
+- Montrer une vraie prise de recul`;
+
+    case "rs_conclusion":
+      return `=== TÂCHE: CONCLUSION DU RAPPORT DE STAGE ===
+À partir des réponses fournies et du contexte global du rapport, rédige une conclusion complète.
+
+STRUCTURE ATTENDUE:
+1. **Bilan synthétique** : résumé de l'expérience, principaux enseignements
+2. **Atteinte des objectifs** : rappel des objectifs initiaux et degré de réalisation
+3. **Impact sur le projet professionnel** : comment le stage influence les choix futurs
+4. **Perspectives** : suite envisagée (études, emploi, spécialisation)
+5. **Ouverture** : réflexion plus large sur le domaine ou le métier
+
+RÈGLES:
+- Style sobre et mature
+- Longueur: 400-600 mots
+- Ne PAS introduire de nouvelles informations
+- Cohérence avec l'introduction (effet miroir)`;
 
     default:
       return `=== TÂCHE: GÉNÉRATION DE CONTENU ===\nGénère le contenu approprié pour la section "${sectionKey}".`;

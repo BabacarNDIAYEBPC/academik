@@ -63,6 +63,15 @@ export const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   soutenance_ppt: "soutenance_ppt",
   soutenance_simulation: "soutenance_simulation",
   memoire_audit: "audit",
+  rs_cover_page: "rs_foundation",
+  rs_acknowledgements: "rs_foundation",
+  rs_introduction: "rs_foundation",
+  rs_company: "rs_foundation",
+  rs_internship: "rs_foundation",
+  rs_missions: "rs_foundation",
+  rs_analysis: "rs_foundation",
+  rs_contributions: "rs_foundation",
+  rs_conclusion: "rs_foundation",
 };
 
 export function isSectionLocked(entitlements: string[] | undefined, sectionKey: string, moduleVisibility?: Record<string, boolean>, isAdmin?: boolean): boolean {

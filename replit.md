@@ -48,6 +48,16 @@ The application follows a client-server architecture.
     -   **Subscription Tracking**: Visual progress bar showing days remaining in current period, color-coded warnings (orange when < 7 days, red when expired). Auto-payment notification section with next debit date.
     -   **Super Admin Console**: Full administration dashboard for managing users, plans, AI settings, payments, and audit logs.
 
+## Rapport de Stage Module
+- **Questionnaire-based approach**: Each section has guided questions (3-10 per section). Users answer all questions before generating content.
+- **9 dedicated sections**: rs_cover_page, rs_acknowledgements, rs_introduction, rs_company, rs_internship, rs_missions, rs_analysis, rs_contributions, rs_conclusion
+- **Separate flow**: Rapport de Stage has its own tabs in ProjectDetails.tsx, completely separate from Mémoire/TFE academic sections
+- **Component**: `InternshipQuestionnaire.tsx` - Step-by-step question flow with progress tracking
+- **Integration**: When all questions are answered, answers are sent as `extraContext` to the generate endpoint
+- **Entitlement**: All rs_ sections map to `rs_foundation` entitlement
+- **AI Prompts**: Each rs_ section has dedicated French prompts in `getSectionTask()` in routes.ts
+- **i18n**: Full FR/EN translations under `internshipReport.*` in i18n.tsx
+
 ## Super Admin Console
 - Route: /admin (protected by SUPER_ADMIN_IDS env var, comma-separated user IDs)
 - User Management: List all users with search, view quotas/projects, add credits, modify quotas, export CSV

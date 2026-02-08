@@ -17,6 +17,7 @@ import {
   useUpdateSectionStatus,
   useStatusHistory,
   useClearNeedsReview,
+  useSaveSectionConfig,
 } from "@/hooks/use-sections";
 import { useI18n } from "@/lib/i18n";
 import { SECTION_LABELS, SECTION_STATUS_LABELS } from "@shared/schema";
@@ -27,6 +28,7 @@ import {
   Loader2, Save, X, ArrowLeft, Copy, RotateCcw, Clock, Send,
   FileCheck, Archive, CircleDot, GitCompareArrows,
 } from "lucide-react";
+import InternshipQuestionnaire, { isInternshipReportSection, buildInternshipContext } from "@/components/InternshipQuestionnaire";
 import {
   Dialog,
   DialogContent,
@@ -91,11 +93,17 @@ export default function SectionEditor({
   const [showHistory, setShowHistory] = useState(false);
   const [showStatusTimeline, setShowStatusTimeline] = useState(false);
   const [showRegenerateChoice, setShowRegenerateChoice] = useState(false);
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const { toast } = useToast();
   const { t, lang } = useI18n();
 
+  const isInternshipSection = isInternshipReportSection(sectionKey);
+  const savedQuestionnaireAnswers = (section?.config as any)?.questionnaireAnswers as Record<string, string> | undefined;
+  const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>(savedQuestionnaireAnswers || {});
+
   const generateMutation = useGenerateSection();
   const saveMutation = useSaveManual();
+  const saveConfigMutation = useSaveSectionConfig();
   const validateMutation = useValidateSection();
   const unvalidateMutation = useUnvalidateSection();
   const activateVersionMutation = useActivateVersion();
@@ -279,7 +287,47 @@ export default function SectionEditor({
             </div>
           )}
 
-          {!isPending && !hasContent && !isEditing && (
+          {!isPending && ((!hasContent && !isEditing) || showQuestionnaire) && isInternshipSection && (
+            <InternshipQuestionnaire
+              sectionKey={sectionKey}
+              onGenerate={(answers) => {
+                setQuestionnaireAnswers(answers);
+                if (section) {
+                  saveConfigMutation.mutate({
+                    sectionId: section.id,
+                    config: { ...sectionConfig, questionnaireAnswers: answers },
+                    projectId,
+                  });
+                }
+                const context = buildInternshipContext(sectionKey, answers);
+                generateMutation.mutate(
+                  {
+                    projectId,
+                    sectionKey,
+                    mode: hasContent ? "similar" as const : "initial" as const,
+                    extraContext: context,
+                    config,
+                  },
+                  {
+                    onSuccess: () => {
+                      setShowQuestionnaire(false);
+                      toast({ title: t("section.contentGenerated"), description: `${label} ${t("section.generatedSuccess")}` });
+                    },
+                    onError: (err: any) => {
+                      toast({ title: t("section.error"), description: err.message || t("section.generationFailed"), variant: "destructive" });
+                    },
+                  }
+                );
+              }}
+              isPending={isPending}
+              savedAnswers={questionnaireAnswers}
+              onSaveAnswers={(answers) => {
+                setQuestionnaireAnswers(answers);
+              }}
+            />
+          )}
+
+          {!isPending && !hasContent && !isEditing && !isInternshipSection && (
             <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
               <Sparkles className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm mb-4">{t("section.noContentForSection")}</p>
@@ -306,9 +354,15 @@ export default function SectionEditor({
                 <Button variant="outline" size="sm" onClick={startEditing} data-testid={`button-edit-${sectionKey}`}>
                   <Pencil className="w-4 h-4 mr-1" /> {t("section.edit")}
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => setShowRegenerateChoice(true)} data-testid={`button-regenerate-${sectionKey}`}>
-                  <RefreshCw className="w-4 h-4 mr-1" /> {t("section.change")}
-                </Button>
+                {isInternshipSection ? (
+                  <Button variant="outline" size="sm" onClick={() => setShowQuestionnaire(true)} data-testid={`button-reanswer-${sectionKey}`}>
+                    <RefreshCw className="w-4 h-4 mr-1" /> {t("section.change")}
+                  </Button>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => setShowRegenerateChoice(true)} data-testid={`button-regenerate-${sectionKey}`}>
+                    <RefreshCw className="w-4 h-4 mr-1" /> {t("section.change")}
+                  </Button>
+                )}
                 {currentStatus !== "validated" && currentStatus !== "final_version" ? (
                   <Button size="sm" onClick={handleValidate} data-testid={`button-validate-${sectionKey}`}>
                     <Check className="w-4 h-4 mr-1" /> {t("section.validateThisVersion")}

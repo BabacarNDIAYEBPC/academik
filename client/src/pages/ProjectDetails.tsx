@@ -43,6 +43,7 @@ import {
   MessageSquare, BarChart3, PenTool, Library, Download,
   Presentation, Mic, ShieldCheck, GitBranch, Clock,
   CircleDot, AlertTriangle, RefreshCw,
+  Building2, UserCheck, Target, Search, Heart, FileCheck,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -63,7 +64,7 @@ function getSectionsForProjectType(projectType: string): string[] {
     case "vae":
       return ["vae_competencies", "plan", "assisted_writing", "exports", "memoire_audit"];
     case "rapport_stage":
-      return ["subject", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["rs_cover_page", "rs_acknowledgements", "rs_introduction", "rs_company", "rs_internship", "rs_missions", "rs_analysis", "rs_contributions", "rs_conclusion", "assisted_writing", "bibliography", "exports", "memoire_audit"];
     default:
       return ["subject", "plan", "methodology", "assisted_writing", "exports", "memoire_audit"];
   }
@@ -73,50 +74,88 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
   const sections = getSectionsForProjectType(projectType);
   const tabs: { key: string; label: string; icon: any; sectionKeys: string[] }[] = [];
 
-  const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "construction_sujet", "vae_competencies"].includes(s));
-  if (foundationKeys.length > 0) {
-    const icon = projectType === "tfe" ? ClipboardList : projectType === "vae" ? Award : projectType === "rapport_stage" ? Briefcase : BookOpen;
-    tabs.push({ key: "foundations", label: t("project.foundations"), icon, sectionKeys: foundationKeys });
-  }
+  if (projectType === "rapport_stage") {
+    if (sections.includes("rs_cover_page")) {
+      tabs.push({ key: "rs_cover_page", label: t("project.rsCoverPage"), icon: FileCheck, sectionKeys: ["rs_cover_page"] });
+    }
+    if (sections.includes("rs_acknowledgements")) {
+      tabs.push({ key: "rs_acknowledgements", label: t("project.rsAcknowledgements"), icon: Heart, sectionKeys: ["rs_acknowledgements"] });
+    }
+    if (sections.includes("rs_introduction")) {
+      tabs.push({ key: "rs_introduction", label: t("project.rsIntroduction"), icon: BookOpen, sectionKeys: ["rs_introduction"] });
+    }
+    if (sections.includes("rs_company")) {
+      tabs.push({ key: "rs_company", label: t("project.rsCompany"), icon: Building2, sectionKeys: ["rs_company"] });
+    }
+    if (sections.includes("rs_internship")) {
+      tabs.push({ key: "rs_internship", label: t("project.rsInternship"), icon: Briefcase, sectionKeys: ["rs_internship"] });
+    }
+    if (sections.includes("rs_missions")) {
+      tabs.push({ key: "rs_missions", label: t("project.rsMissions"), icon: Target, sectionKeys: ["rs_missions"] });
+    }
+    if (sections.includes("rs_analysis")) {
+      tabs.push({ key: "rs_analysis", label: t("project.rsAnalysis"), icon: Search, sectionKeys: ["rs_analysis"] });
+    }
+    if (sections.includes("rs_contributions")) {
+      tabs.push({ key: "rs_contributions", label: t("project.rsContributions"), icon: UserCheck, sectionKeys: ["rs_contributions"] });
+    }
+    if (sections.includes("rs_conclusion")) {
+      tabs.push({ key: "rs_conclusion", label: t("project.rsConclusion"), icon: Check, sectionKeys: ["rs_conclusion"] });
+    }
+  } else {
+    const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "construction_sujet", "vae_competencies"].includes(s));
+    if (foundationKeys.length > 0) {
+      const icon = projectType === "tfe" ? ClipboardList : projectType === "vae" ? Award : BookOpen;
+      tabs.push({ key: "foundations", label: t("project.foundations"), icon, sectionKeys: foundationKeys });
+    }
 
-  if (sections.includes("plan")) {
-    tabs.push({ key: "plan", label: t("project.plan"), icon: Map, sectionKeys: ["plan"] });
-  }
+    if (sections.includes("plan")) {
+      tabs.push({ key: "plan", label: t("project.plan"), icon: Map, sectionKeys: ["plan"] });
+    }
 
-  if (sections.includes("conceptual_framework")) {
-    tabs.push({ key: "framework", label: t("project.conceptualFramework"), icon: Lightbulb, sectionKeys: ["conceptual_framework"] });
-  }
+    if (sections.includes("conceptual_framework")) {
+      tabs.push({ key: "framework", label: t("project.conceptualFramework"), icon: Lightbulb, sectionKeys: ["conceptual_framework"] });
+    }
 
-  if (sections.includes("literature_review")) {
-    tabs.push({ key: "literature", label: t("project.literatureReview"), icon: BookMarked, sectionKeys: ["literature_review"] });
-  }
+    if (sections.includes("literature_review")) {
+      tabs.push({ key: "literature", label: t("project.literatureReview"), icon: BookMarked, sectionKeys: ["literature_review"] });
+    }
 
-  if (sections.includes("methodology")) {
-    tabs.push({ key: "methodology", label: t("project.methodology"), icon: FlaskConical, sectionKeys: ["methodology"] });
-  }
+    if (sections.includes("methodology")) {
+      tabs.push({ key: "methodology", label: t("project.methodology"), icon: FlaskConical, sectionKeys: ["methodology"] });
+    }
 
-  if (sections.includes("questionnaire")) {
-    tabs.push({ key: "questionnaire", label: t("project.questionnaire"), icon: ClipboardList, sectionKeys: ["questionnaire"] });
-  }
+    if (sections.includes("questionnaire")) {
+      tabs.push({ key: "questionnaire", label: t("project.questionnaire"), icon: ClipboardList, sectionKeys: ["questionnaire"] });
+    }
 
-  if (sections.includes("guide_entretien")) {
-    tabs.push({ key: "guide_entretien", label: t("project.interviewGuide"), icon: FileText, sectionKeys: ["guide_entretien"] });
-  }
+    if (sections.includes("guide_entretien")) {
+      tabs.push({ key: "guide_entretien", label: t("project.interviewGuide"), icon: FileText, sectionKeys: ["guide_entretien"] });
+    }
 
-  if (sections.includes("questionnaire_analysis")) {
-    tabs.push({ key: "questionnaire_analysis", label: t("project.questionnaireAnalysis"), icon: BarChart3, sectionKeys: ["questionnaire_analysis"] });
-  }
+    if (sections.includes("questionnaire_analysis")) {
+      tabs.push({ key: "questionnaire_analysis", label: t("project.questionnaireAnalysis"), icon: BarChart3, sectionKeys: ["questionnaire_analysis"] });
+    }
 
-  if (sections.includes("interview_simulation")) {
-    tabs.push({ key: "interview_simulation", label: t("project.interviewSimulation"), icon: MessageSquare, sectionKeys: ["interview_simulation"] });
-  }
+    if (sections.includes("interview_simulation")) {
+      tabs.push({ key: "interview_simulation", label: t("project.interviewSimulation"), icon: MessageSquare, sectionKeys: ["interview_simulation"] });
+    }
 
-  if (sections.includes("data_analysis")) {
-    tabs.push({ key: "data_analysis", label: t("project.dataVisualization"), icon: BarChart3, sectionKeys: ["data_analysis"] });
-  }
+    if (sections.includes("data_analysis")) {
+      tabs.push({ key: "data_analysis", label: t("project.dataVisualization"), icon: BarChart3, sectionKeys: ["data_analysis"] });
+    }
 
-  if (sections.includes("financial_simulation")) {
-    tabs.push({ key: "financial_simulation", label: t("project.financialSimulation"), icon: BarChart3, sectionKeys: ["financial_simulation"] });
+    if (sections.includes("financial_simulation")) {
+      tabs.push({ key: "financial_simulation", label: t("project.financialSimulation"), icon: BarChart3, sectionKeys: ["financial_simulation"] });
+    }
+
+    if (sections.includes("soutenance_ppt")) {
+      tabs.push({ key: "soutenance_ppt", label: t("project.soutenancePPT"), icon: Presentation, sectionKeys: ["soutenance_ppt"] });
+    }
+
+    if (sections.includes("soutenance_simulation")) {
+      tabs.push({ key: "soutenance_simulation", label: t("project.soutenanceOral"), icon: Mic, sectionKeys: ["soutenance_simulation"] });
+    }
   }
 
   if (sections.includes("assisted_writing")) {
@@ -129,14 +168,6 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
 
   if (sections.includes("exports")) {
     tabs.push({ key: "exports", label: t("project.exportTab"), icon: Download, sectionKeys: ["exports"] });
-  }
-
-  if (sections.includes("soutenance_ppt")) {
-    tabs.push({ key: "soutenance_ppt", label: t("project.soutenancePPT"), icon: Presentation, sectionKeys: ["soutenance_ppt"] });
-  }
-
-  if (sections.includes("soutenance_simulation")) {
-    tabs.push({ key: "soutenance_simulation", label: t("project.soutenanceOral"), icon: Mic, sectionKeys: ["soutenance_simulation"] });
   }
 
   if (sections.includes("memoire_audit")) {

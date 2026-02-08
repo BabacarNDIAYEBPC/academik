@@ -308,10 +308,20 @@ export const SECTION_KEYS = {
   SOUTENANCE_PPT: 'soutenance_ppt',
   SOUTENANCE_SIMULATION: 'soutenance_simulation',
   MEMOIRE_AUDIT: 'memoire_audit',
+  RS_COVER_PAGE: 'rs_cover_page',
+  RS_ACKNOWLEDGEMENTS: 'rs_acknowledgements',
+  RS_INTRODUCTION: 'rs_introduction',
+  RS_COMPANY: 'rs_company',
+  RS_INTERNSHIP: 'rs_internship',
+  RS_MISSIONS: 'rs_missions',
+  RS_ANALYSIS: 'rs_analysis',
+  RS_CONTRIBUTIONS: 'rs_contributions',
+  RS_CONCLUSION: 'rs_conclusion',
 } as const;
 
 export const SECTION_ORDER = [
   'subject', 'problematic', 'hypotheses', 'situation_appel', 'construction_sujet', 'vae_competencies',
+  'rs_cover_page', 'rs_acknowledgements', 'rs_introduction', 'rs_company', 'rs_internship', 'rs_missions', 'rs_analysis', 'rs_contributions', 'rs_conclusion',
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
   'questionnaire', 'guide_entretien', 'interview_simulation', 'data_analysis',
@@ -343,6 +353,15 @@ export const SECTION_LABELS: Record<string, string> = {
   soutenance_ppt: "PowerPoint de soutenance",
   soutenance_simulation: "Simulation de soutenance",
   memoire_audit: "Audit de mémoire",
+  rs_cover_page: "Page de garde",
+  rs_acknowledgements: "Remerciements",
+  rs_introduction: "Introduction",
+  rs_company: "Présentation de l'entreprise",
+  rs_internship: "Présentation du stage",
+  rs_missions: "Missions réalisées",
+  rs_analysis: "Analyse d'une situation professionnelle",
+  rs_contributions: "Apports du stage",
+  rs_conclusion: "Conclusion",
 };
 
 // === IMPACT DEPENDENCIES (Module 17) ===
@@ -353,6 +372,11 @@ export const SECTION_DEPENDENCIES: Record<string, string[]> = {
   problematic: ['hypotheses', 'plan', 'conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'financial_simulation', 'questionnaire_analysis', 'soutenance_ppt', 'memoire_audit'],
   hypotheses: ['plan', 'conceptual_framework', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'financial_simulation', 'questionnaire_analysis', 'soutenance_ppt', 'memoire_audit'],
   plan: ['conceptual_framework', 'theoretical_framework', 'literature_review', 'methodology', 'questionnaire', 'guide_entretien', 'data_analysis', 'financial_simulation', 'questionnaire_analysis', 'assisted_writing', 'soutenance_ppt', 'memoire_audit'],
+  rs_company: ['rs_internship', 'rs_missions', 'rs_analysis', 'rs_contributions', 'rs_conclusion'],
+  rs_internship: ['rs_missions', 'rs_analysis', 'rs_contributions', 'rs_conclusion'],
+  rs_missions: ['rs_analysis', 'rs_contributions', 'rs_conclusion'],
+  rs_analysis: ['rs_contributions', 'rs_conclusion'],
+  rs_contributions: ['rs_conclusion'],
 };
 
 // === SCHEMAS ===
