@@ -60,6 +60,12 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   rs_analysis: "rs_foundation",
   rs_contributions: "rs_foundation",
   rs_conclusion: "rs_foundation",
+  vae_presentation: "vae_foundation",
+  vae_parcours: "vae_foundation",
+  vae_motivation: "vae_foundation",
+  vae_cartographie: "vae_foundation",
+  vae_bloc_demo: "vae_foundation",
+  vae_synthese: "vae_foundation",
 };
 
 async function getModuleVisibility(): Promise<Record<string, boolean>> {
@@ -626,6 +632,117 @@ RÈGLES:
 - Longueur: 400-600 mots
 - Ne PAS introduire de nouvelles informations
 - Cohérence avec l'introduction (effet miroir)`;
+
+    case "vae_presentation":
+      return `=== TÂCHE: PRÉSENTATION DU CANDIDAT VAE ===
+À partir des réponses fournies, rédige une présentation complète du candidat pour le dossier VAE.
+
+STRUCTURE ATTENDUE:
+1. **Identité et situation actuelle** : présentation personnelle et poste actuel
+2. **Diplôme visé** : intitulé exact, niveau, organisme certificateur
+3. **Ancienneté et expertise** : nombre d'années d'expérience dans le domaine
+4. **Formation initiale** : parcours académique antérieur
+
+RÈGLES:
+- Style professionnel et factuel, à la première personne
+- Longueur: 300-500 mots
+- Mettre en valeur la cohérence entre le parcours et le diplôme visé
+- Ne PAS inventer d'informations non fournies par le candidat`;
+
+    case "vae_parcours":
+      return `=== TÂCHE: PARCOURS PROFESSIONNEL VAE ===
+À partir des réponses fournies, rédige une présentation détaillée et structurée du parcours professionnel du candidat.
+
+STRUCTURE ATTENDUE:
+1. **Chronologie professionnelle** : expériences listées chronologiquement avec postes, entreprises, durées
+2. **Responsabilités clés** : missions et responsabilités les plus significatives
+3. **Compétences managériales** : encadrement, gestion d'équipe si applicable
+4. **Formations complémentaires** : formations continues, certifications, perfectionnements
+5. **Compétences transversales** : soft skills, outils maîtrisés, méthodes
+
+RÈGLES:
+- Style narratif professionnel, à la première personne
+- Longueur: 600-900 mots
+- Valoriser la progression et la montée en compétences
+- Chaque expérience doit démontrer un apport au profil global
+- Inclure les expériences bénévoles/associatives si pertinentes`;
+
+    case "vae_motivation":
+      return `=== TÂCHE: MOTIVATION ET PROJET VAE ===
+À partir des réponses fournies, rédige une lettre de motivation structurée pour la démarche VAE.
+
+STRUCTURE ATTENDUE:
+1. **Genèse de la démarche** : comment et pourquoi le candidat entreprend cette VAE
+2. **Adéquation parcours-diplôme** : en quoi l'expérience correspond au référentiel
+3. **Objectifs professionnels** : projections à court et moyen/long terme
+4. **Impact attendu** : ce que la validation changerait concrètement
+5. **Engagement personnel** : détermination et investissement dans la démarche
+
+RÈGLES:
+- Style sincère et motivé, à la première personne
+- Longueur: 400-600 mots
+- Montrer la cohérence entre le passé, le présent et le projet futur
+- Éviter les formulations génériques ou clichés`;
+
+    case "vae_cartographie":
+      return `=== TÂCHE: CARTOGRAPHIE DES COMPÉTENCES VAE ===
+À partir des réponses fournies et du référentiel si disponible dans les documents, réalise une cartographie des compétences du candidat.
+
+STRUCTURE ATTENDUE:
+1. **Tableau de synthèse** : pour chaque bloc de compétences du référentiel, indiquer:
+   - Intitulé du bloc
+   - Compétences associées
+   - Expériences professionnelles correspondantes
+   - Niveau de maîtrise estimé (Acquis / En cours / Partiel)
+2. **Analyse des correspondances** : points forts du candidat par rapport au référentiel
+3. **Zones à consolider** : blocs moins couverts et pistes de renforcement
+
+RÈGLES:
+- Présenter sous forme de tableau structuré en Markdown
+- Être factuel et objectif
+- Longueur: 500-800 mots
+- Si le référentiel n'est pas disponible, proposer une structure générique basée sur le diplôme visé
+- Identifier clairement les points forts et les axes d'amélioration`;
+
+    case "vae_bloc_demo":
+      return `=== TÂCHE: DÉMONSTRATION PAR BLOC DE COMPÉTENCES VAE ===
+À partir des réponses fournies, rédige une démonstration détaillée des compétences pour le bloc en cours.
+
+STRUCTURE ATTENDUE:
+1. **Tableau récapitulatif** : compétences du bloc avec indicateurs de maîtrise
+2. **Situation professionnelle détaillée** :
+   - Contexte : cadre, enjeux, acteurs impliqués
+   - Actions menées : rôle précis du candidat, méthodologie, étapes
+   - Résultats obtenus : indicateurs chiffrés, livrables, impacts
+3. **Analyse réflexive** :
+   - Retour d'expérience : réussites, difficultés, apprentissages
+   - Transferabilité : comment ces compétences s'appliquent ailleurs
+   - Évolution : ce que le candidat ferait différemment aujourd'hui
+
+RÈGLES:
+- Style démonstratif et factuel, à la première personne
+- Longueur: 600-1000 mots par bloc
+- Chaque compétence doit être illustrée par un exemple concret
+- Utiliser la méthode STAR (Situation, Tâche, Action, Résultat) implicitement
+- Ne PAS inventer de situations non mentionnées par le candidat`;
+
+    case "vae_synthese":
+      return `=== TÂCHE: SYNTHÈSE ET PERSPECTIVES VAE ===
+À partir des réponses fournies et du contexte global du dossier, rédige une synthèse conclusive.
+
+STRUCTURE ATTENDUE:
+1. **Bilan global** : résumé du parcours au regard du diplôme visé
+2. **Points forts démontrés** : compétences les plus solides avec preuves
+3. **Axes de progression** : domaines à renforcer et plan d'action
+4. **Projection professionnelle** : comment la validation s'inscrit dans le projet de vie
+5. **Message au jury** : réflexion personnelle et engagement
+
+RÈGLES:
+- Style sobre et réflexif, à la première personne
+- Longueur: 400-600 mots
+- Cohérence avec l'ensemble du dossier
+- Ton positif mais réaliste
+- Ne PAS répéter mot pour mot les sections précédentes`;
 
     default:
       return `=== TÂCHE: GÉNÉRATION DE CONTENU ===\nGénère le contenu approprié pour la section "${sectionKey}".`;

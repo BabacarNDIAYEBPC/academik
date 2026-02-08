@@ -44,6 +44,7 @@ import {
   Presentation, Mic, ShieldCheck, GitBranch, Clock,
   CircleDot, AlertTriangle, RefreshCw,
   Building2, UserCheck, Target, Search, Heart, FileCheck,
+  User, Route, Compass, LayoutGrid, Layers, CheckSquare,
 } from "lucide-react";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -62,7 +63,7 @@ function getSectionsForProjectType(projectType: string): string[] {
     case "tfe":
       return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
-      return ["vae_competencies", "plan", "assisted_writing", "exports", "memoire_audit"];
+      return ["vae_presentation", "vae_parcours", "vae_motivation", "vae_cartographie", "vae_bloc_demo", "vae_synthese", "assisted_writing", "exports"];
     case "rapport_stage":
       return ["rs_cover_page", "rs_acknowledgements", "rs_introduction", "rs_company", "rs_internship", "rs_missions", "rs_analysis", "rs_contributions", "rs_conclusion", "assisted_writing", "bibliography", "exports", "memoire_audit"];
     default:
@@ -74,7 +75,26 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
   const sections = getSectionsForProjectType(projectType);
   const tabs: { key: string; label: string; icon: any; sectionKeys: string[] }[] = [];
 
-  if (projectType === "rapport_stage") {
+  if (projectType === "vae") {
+    if (sections.includes("vae_presentation")) {
+      tabs.push({ key: "vae_presentation", label: t("project.vaePresentation"), icon: User, sectionKeys: ["vae_presentation"] });
+    }
+    if (sections.includes("vae_parcours")) {
+      tabs.push({ key: "vae_parcours", label: t("project.vaeParcours"), icon: Route, sectionKeys: ["vae_parcours"] });
+    }
+    if (sections.includes("vae_motivation")) {
+      tabs.push({ key: "vae_motivation", label: t("project.vaeMotivation"), icon: Compass, sectionKeys: ["vae_motivation"] });
+    }
+    if (sections.includes("vae_cartographie")) {
+      tabs.push({ key: "vae_cartographie", label: t("project.vaeCartographie"), icon: LayoutGrid, sectionKeys: ["vae_cartographie"] });
+    }
+    if (sections.includes("vae_bloc_demo")) {
+      tabs.push({ key: "vae_bloc_demo", label: t("project.vaeBlocDemo"), icon: Layers, sectionKeys: ["vae_bloc_demo"] });
+    }
+    if (sections.includes("vae_synthese")) {
+      tabs.push({ key: "vae_synthese", label: t("project.vaeSynthese"), icon: CheckSquare, sectionKeys: ["vae_synthese"] });
+    }
+  } else if (projectType === "rapport_stage") {
     if (sections.includes("rs_cover_page")) {
       tabs.push({ key: "rs_cover_page", label: t("project.rsCoverPage"), icon: FileCheck, sectionKeys: ["rs_cover_page"] });
     }

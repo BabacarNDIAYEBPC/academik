@@ -58,6 +58,17 @@ The application follows a client-server architecture.
 - **AI Prompts**: Each rs_ section has dedicated French prompts in `getSectionTask()` in routes.ts
 - **i18n**: Full FR/EN translations under `internshipReport.*` in i18n.tsx
 
+## VAE Module (Validation des Acquis de l'Expérience)
+- **Questionnaire-based approach**: Each section has guided questions (3-7 per section). Users answer all questions before generating content.
+- **6 dedicated sections**: vae_presentation, vae_parcours, vae_motivation, vae_cartographie, vae_bloc_demo, vae_synthese
+- **Separate flow**: VAE has its own tabs in ProjectDetails.tsx, completely separate from Mémoire/TFE academic sections
+- **Component**: `VaeQuestionnaire.tsx` - Step-by-step question flow with progress tracking (same pattern as InternshipQuestionnaire)
+- **Integration**: When all questions are answered, answers are sent as `extraContext` to the generate endpoint
+- **Entitlement**: All vae_ sections map to `vae_foundation` entitlement
+- **AI Prompts**: Each vae_ section has dedicated French prompts in `getSectionTask()` in routes.ts
+- **i18n**: Full FR/EN translations under `vaeModule.*` in i18n.tsx
+- **Key features**: AI cartography maps experiences to competency blocks, bloc demonstration with table + narrative + reflexive analysis
+
 ## Super Admin Console
 - Route: /admin (protected by SUPER_ADMIN_IDS env var, comma-separated user IDs)
 - User Management: List all users with search, view quotas/projects, add credits, modify quotas, export CSV

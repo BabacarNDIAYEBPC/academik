@@ -29,6 +29,7 @@ import {
   FileCheck, Archive, CircleDot, GitCompareArrows,
 } from "lucide-react";
 import InternshipQuestionnaire, { isInternshipReportSection, buildInternshipContext } from "@/components/InternshipQuestionnaire";
+import VaeQuestionnaire, { isVaeSection, buildVaeContext } from "@/components/VaeQuestionnaire";
 import {
   Dialog,
   DialogContent,
@@ -98,6 +99,8 @@ export default function SectionEditor({
   const { t, lang } = useI18n();
 
   const isInternshipSection = isInternshipReportSection(sectionKey);
+  const isVaeSec = isVaeSection(sectionKey);
+  const isQuestionnaireSection = isInternshipSection || isVaeSec;
   const savedQuestionnaireAnswers = (section?.config as any)?.questionnaireAnswers as Record<string, string> | undefined;
   const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>(savedQuestionnaireAnswers || {});
 
@@ -287,47 +290,87 @@ export default function SectionEditor({
             </div>
           )}
 
-          {!isPending && ((!hasContent && !isEditing) || showQuestionnaire) && isInternshipSection && (
-            <InternshipQuestionnaire
-              sectionKey={sectionKey}
-              onGenerate={(answers) => {
-                setQuestionnaireAnswers(answers);
-                if (section) {
-                  saveConfigMutation.mutate({
-                    sectionId: section.id,
-                    config: { ...sectionConfig, questionnaireAnswers: answers },
-                    projectId,
-                  });
-                }
-                const context = buildInternshipContext(sectionKey, answers);
-                generateMutation.mutate(
-                  {
-                    projectId,
-                    sectionKey,
-                    mode: hasContent ? "similar" as const : "initial" as const,
-                    extraContext: context,
-                    config,
-                  },
-                  {
-                    onSuccess: () => {
-                      setShowQuestionnaire(false);
-                      toast({ title: t("section.contentGenerated"), description: `${label} ${t("section.generatedSuccess")}` });
-                    },
-                    onError: (err: any) => {
-                      toast({ title: t("section.error"), description: err.message || t("section.generationFailed"), variant: "destructive" });
-                    },
+          {!isPending && ((!hasContent && !isEditing) || showQuestionnaire) && isQuestionnaireSection && (
+            isInternshipSection ? (
+              <InternshipQuestionnaire
+                sectionKey={sectionKey}
+                onGenerate={(answers) => {
+                  setQuestionnaireAnswers(answers);
+                  if (section) {
+                    saveConfigMutation.mutate({
+                      sectionId: section.id,
+                      config: { ...sectionConfig, questionnaireAnswers: answers },
+                      projectId,
+                    });
                   }
-                );
-              }}
-              isPending={isPending}
-              savedAnswers={questionnaireAnswers}
-              onSaveAnswers={(answers) => {
-                setQuestionnaireAnswers(answers);
-              }}
-            />
+                  const context = buildInternshipContext(sectionKey, answers);
+                  generateMutation.mutate(
+                    {
+                      projectId,
+                      sectionKey,
+                      mode: hasContent ? "similar" as const : "initial" as const,
+                      extraContext: context,
+                      config,
+                    },
+                    {
+                      onSuccess: () => {
+                        setShowQuestionnaire(false);
+                        toast({ title: t("section.contentGenerated"), description: `${label} ${t("section.generatedSuccess")}` });
+                      },
+                      onError: (err: any) => {
+                        toast({ title: t("section.error"), description: err.message || t("section.generationFailed"), variant: "destructive" });
+                      },
+                    }
+                  );
+                }}
+                isPending={isPending}
+                savedAnswers={questionnaireAnswers}
+                onSaveAnswers={(answers) => {
+                  setQuestionnaireAnswers(answers);
+                }}
+              />
+            ) : (
+              <VaeQuestionnaire
+                sectionKey={sectionKey}
+                onGenerate={(answers) => {
+                  setQuestionnaireAnswers(answers);
+                  if (section) {
+                    saveConfigMutation.mutate({
+                      sectionId: section.id,
+                      config: { ...sectionConfig, questionnaireAnswers: answers },
+                      projectId,
+                    });
+                  }
+                  const context = buildVaeContext(sectionKey, answers);
+                  generateMutation.mutate(
+                    {
+                      projectId,
+                      sectionKey,
+                      mode: hasContent ? "similar" as const : "initial" as const,
+                      extraContext: context,
+                      config,
+                    },
+                    {
+                      onSuccess: () => {
+                        setShowQuestionnaire(false);
+                        toast({ title: t("section.contentGenerated"), description: `${label} ${t("section.generatedSuccess")}` });
+                      },
+                      onError: (err: any) => {
+                        toast({ title: t("section.error"), description: err.message || t("section.generationFailed"), variant: "destructive" });
+                      },
+                    }
+                  );
+                }}
+                isPending={isPending}
+                savedAnswers={questionnaireAnswers}
+                onSaveAnswers={(answers) => {
+                  setQuestionnaireAnswers(answers);
+                }}
+              />
+            )
           )}
 
-          {!isPending && !hasContent && !isEditing && !isInternshipSection && (
+          {!isPending && !hasContent && !isEditing && !isQuestionnaireSection && (
             <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
               <Sparkles className="w-8 h-8 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm mb-4">{t("section.noContentForSection")}</p>
@@ -354,7 +397,7 @@ export default function SectionEditor({
                 <Button variant="outline" size="sm" onClick={startEditing} data-testid={`button-edit-${sectionKey}`}>
                   <Pencil className="w-4 h-4 mr-1" /> {t("section.edit")}
                 </Button>
-                {isInternshipSection ? (
+                {isQuestionnaireSection ? (
                   <Button variant="outline" size="sm" onClick={() => setShowQuestionnaire(true)} data-testid={`button-reanswer-${sectionKey}`}>
                     <RefreshCw className="w-4 h-4 mr-1" /> {t("section.change")}
                   </Button>
