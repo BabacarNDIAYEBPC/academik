@@ -2074,6 +2074,8 @@ const translations = {
     chooseFinality: { fr: "Choisir la finalité...", en: "Choose purpose..." },
     variableModified: { fr: "Variable modifiée", en: "Variable modified" },
     variableModifiedDesc: { fr: "La modification sera prise en compte lors de la prochaine génération.", en: "The change will be applied in the next generation." },
+    variableModifiedKeepDesc: { fr: "Variable mise à jour. Le contenu existant a été conservé.", en: "Variable updated. Existing content has been kept." },
+    keepContent: { fr: "Garder mon contenu", en: "Keep my content" },
     noContent: { fr: "Aucun contenu", en: "No content" },
     generateBeforeExport: { fr: "Générez du contenu avant d'exporter.", en: "Generate content before exporting." },
     exportSuccess: { fr: "Export réussi", en: "Export successful" },

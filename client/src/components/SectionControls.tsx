@@ -317,16 +317,18 @@ export default function SectionControls({
     }
   };
 
-  const confirmFundamentalChange = () => {
+  const confirmFundamentalChange = (keepContent: boolean = false) => {
     if (!pendingChange) return;
     onVariablesChange({ ...variables, [pendingChange.key]: pendingChange.value });
-    if (onFundamentalChange) {
+    if (!keepContent && onFundamentalChange) {
       onFundamentalChange(pendingChange.key, pendingChange.value);
     }
     setPendingChange(null);
     toast({
       title: t("sectionControls.variableModified"),
-      description: t("sectionControls.variableModifiedDesc"),
+      description: keepContent
+        ? (t("sectionControls.variableModifiedKeepDesc"))
+        : t("sectionControls.variableModifiedDesc"),
     });
   };
 
@@ -597,11 +599,14 @@ export default function SectionControls({
           <p className="text-sm text-muted-foreground">
             {t("sectionControls.fundamentalVarNote")}
           </p>
-          <DialogFooter className="gap-2">
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
             <Button variant="outline" onClick={() => setPendingChange(null)} data-testid="button-cancel-var-change">
               {t("common.cancel")}
             </Button>
-            <Button onClick={confirmFundamentalChange} data-testid="button-confirm-var-change">
+            <Button variant="secondary" onClick={() => confirmFundamentalChange(true)} data-testid="button-keep-var-change">
+              {t("sectionControls.keepContent")}
+            </Button>
+            <Button onClick={() => confirmFundamentalChange(false)} data-testid="button-confirm-var-change">
               {t("sectionControls.confirmChange")}
             </Button>
           </DialogFooter>

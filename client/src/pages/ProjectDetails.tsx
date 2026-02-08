@@ -29,7 +29,6 @@ import HypothesisValidationModule from "@/components/HypothesisValidationModule"
 import CoverPageModule from "@/components/CoverPageModule";
 import TfeFoundationsModule from "@/components/TfeFoundationsModule";
 import MemoirImportField from "@/components/MemoirImportField";
-import VariablesPanel from "@/components/VariablesPanel";
 import { useSaveSectionConfig } from "@/hooks/use-sections";
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -951,7 +950,7 @@ function ModuleSections({
   sections: ProjectSection[];
 }) {
   const [correctionPrompts, setCorrectionPrompts] = useState<Record<string, string>>({});
-  const [variableOverrides, setVariableOverrides] = useState<Record<string, SectionVariables>>({});
+  const [globalVariableOverrides, setGlobalVariableOverrides] = useState<SectionVariables>({});
   const [filterStates, setFilterStates] = useState<Record<string, Record<string, boolean>>>({});
   const [litConfigs, setLitConfigs] = useState<Record<string, LiteratureConfig>>({});
   const { data: validatedContents } = useValidatedContents(project.id);
@@ -1041,7 +1040,7 @@ function ModuleSections({
 
       {sectionKeys.map(key => {
         const section = sections.find(s => s.key === key);
-        const mergedVars = { ...defaultVars, ...variableOverrides[key] };
+        const mergedVars = { ...defaultVars, ...globalVariableOverrides };
 
         const allSectionKeys = getSectionsForProjectType(project.type);
         const currentGlobalIndex = allSectionKeys.indexOf(key);
@@ -1066,7 +1065,7 @@ function ModuleSections({
             sections={sections}
             sectionKeys={allSectionKeys}
             variables={mergedVars}
-            onVariablesChange={(vars) => setVariableOverrides(prev => ({ ...prev, [key]: vars }))}
+            onVariablesChange={(vars) => setGlobalVariableOverrides(vars)}
             filters={filterStates[key] || {}}
             onFiltersChange={(f) => setFilterStates(prev => ({ ...prev, [key]: f }))}
             correctionPrompt={correctionPrompts[key] || ""}
