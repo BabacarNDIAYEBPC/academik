@@ -34,7 +34,7 @@ The application uses a client-server architecture.
     - **Étude de Cas**: Questionnaire-based with 8 dedicated sections for structured analysis, including analysis tool selection. Includes PPT Soutenance, Oral, Biblio, and Audit.
     - **VAE (Validation des Acquis de l'Expérience)**: Questionnaire-based with 6 dedicated sections, including AI-powered competency mapping. Includes PPT Soutenance, Oral, and Biblio.
     - **Confrontation**: Dedicated section for hypothesis confrontation and validation against research results.
-    - **Formulaire**: Placeholder for online form builder (Google Forms-like) feature.
+    - **Formulaire**: Full online form builder (Google Forms-like) with question types (text, textarea, MCQ, Likert, yes/no, number, email), public shareable links, response collection, and response dashboard. Database tables: forms, form_questions, form_responses, form_answers. Public form page at /f/:publicId (no auth required). Available as purchasable module for all project types.
 - **Internationalization (i18n)**: Custom React context-based system for French and English support across the application.
 - **SEO & Google Indexing**: Utilizes an SEO component for dynamic metadata, `robots.txt` for crawl control, `sitemap.xml` for site structure, and JSON-LD for structured data.
 

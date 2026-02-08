@@ -260,6 +260,74 @@ export const insertDunningEmailLogSchema = createInsertSchema(dunningEmailLogs).
 export type InsertDunningEmailLog = z.infer<typeof insertDunningEmailLogSchema>;
 export type DunningEmailLog = typeof dunningEmailLogs.$inferSelect;
 
+// === FORMS (Formulaire en ligne) ===
+export const forms = pgTable("forms", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  publicId: varchar("public_id").notNull().unique(),
+  status: text("status").notNull().default("draft"),
+  settings: jsonb("settings"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const formQuestions = pgTable("form_questions", {
+  id: serial("id").primaryKey(),
+  formId: integer("form_id").notNull(),
+  type: text("type").notNull(),
+  label: text("label").notNull(),
+  description: text("description"),
+  options: jsonb("options"),
+  required: boolean("required").notNull().default(false),
+  order: integer("order").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const formResponses = pgTable("form_responses", {
+  id: serial("id").primaryKey(),
+  formId: integer("form_id").notNull(),
+  respondentId: varchar("respondent_id"),
+  metadata: jsonb("metadata"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+});
+
+export const formAnswers = pgTable("form_answers", {
+  id: serial("id").primaryKey(),
+  responseId: integer("response_id").notNull(),
+  questionId: integer("question_id").notNull(),
+  value: jsonb("value"),
+});
+
+export const insertFormSchema = createInsertSchema(forms).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertForm = z.infer<typeof insertFormSchema>;
+export type Form = typeof forms.$inferSelect;
+
+export const insertFormQuestionSchema = createInsertSchema(formQuestions).omit({ id: true, createdAt: true });
+export type InsertFormQuestion = z.infer<typeof insertFormQuestionSchema>;
+export type FormQuestion = typeof formQuestions.$inferSelect;
+
+export const insertFormResponseSchema = createInsertSchema(formResponses).omit({ id: true, submittedAt: true });
+export type InsertFormResponse = z.infer<typeof insertFormResponseSchema>;
+export type FormResponse = typeof formResponses.$inferSelect;
+
+export const insertFormAnswerSchema = createInsertSchema(formAnswers).omit({ id: true });
+export type InsertFormAnswer = z.infer<typeof insertFormAnswerSchema>;
+export type FormAnswer = typeof formAnswers.$inferSelect;
+
+export const FORM_QUESTION_TYPES = {
+  TEXT: 'text',
+  TEXTAREA: 'textarea',
+  MCQ: 'mcq',
+  MCQ_MULTIPLE: 'mcq_multiple',
+  LIKERT: 'likert',
+  YES_NO: 'yes_no',
+  NUMBER: 'number',
+  EMAIL: 'email',
+} as const;
+
 // === SECTION STATUSES ===
 export const SECTION_STATUSES = {
   DRAFT: 'draft',
@@ -323,6 +391,10 @@ export const SECTION_KEYS = {
   RS_ANALYSIS: 'rs_analysis',
   RS_CONTRIBUTIONS: 'rs_contributions',
   RS_CONCLUSION: 'rs_conclusion',
+  CONFRONTATION: 'confrontation',
+  FORMULAIRE: 'formulaire',
+  QUESTIONNAIRE_ANALYSIS: 'questionnaire_analysis',
+  FINANCIAL_SIMULATION: 'financial_simulation',
 } as const;
 
 export const SECTION_ORDER = [
@@ -331,8 +403,8 @@ export const SECTION_ORDER = [
   'rs_cover_page', 'rs_acknowledgements', 'rs_introduction', 'rs_company', 'rs_internship', 'rs_missions', 'rs_analysis', 'rs_contributions', 'rs_conclusion',
   'plan', 'conceptual_framework', 'theoretical_framework',
   'literature_review', 'methodology',
-  'questionnaire', 'guide_entretien', 'interview_simulation', 'data_analysis',
-  'assisted_writing', 'bibliography', 'exports',
+  'questionnaire', 'formulaire', 'guide_entretien', 'questionnaire_analysis', 'interview_simulation', 'data_analysis', 'confrontation',
+  'financial_simulation', 'assisted_writing', 'bibliography', 'exports',
   'soutenance_ppt', 'soutenance_simulation', 'memoire_audit',
 ];
 

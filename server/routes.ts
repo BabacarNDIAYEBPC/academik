@@ -9,6 +9,7 @@ import { registerChatRoutes } from "./replit_integrations/chat";
 import OpenAI from "openai";
 import multer from "multer";
 import mammoth from "mammoth";
+import crypto from "crypto";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -5270,6 +5271,326 @@ Réponds en JSON:
     } catch (err: any) {
       console.error("Export Document Error:", err);
       res.status(500).json({ message: err.message || "Erreur lors de l'export du document" });
+    }
+  });
+
+  // === FORMS API ===
+
+  app.get("/api/projects/:projectId/forms", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const projectId = parseInt(req.params.projectId);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(404).json({ message: "Projet non trouvé" });
+      const formsList = await storage.getFormsByProject(projectId);
+      const formsWithCounts = await Promise.all(formsList.map(async (f) => {
+        const responseCount = await storage.getFormResponseCount(f.id);
+        return { ...f, responseCount };
+      }));
+      res.json(formsWithCounts);
+    } catch (err: any) {
+      console.error("List Forms Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la récupération des formulaires" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/forms", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const projectId = parseInt(req.params.projectId);
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) return res.status(404).json({ message: "Projet non trouvé" });
+      const body = z.object({
+        title: z.string().min(1),
+        description: z.string().optional(),
+      }).parse(req.body);
+      const publicId = crypto.randomUUID().replace(/-/g, "").substring(0, 12);
+      const form = await storage.createForm({
+        projectId,
+        userId,
+        title: body.title,
+        description: body.description || null,
+        publicId,
+        status: "draft",
+        settings: null,
+      });
+      res.status(201).json(form);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Données invalides", errors: err.errors });
+      console.error("Create Form Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la création du formulaire" });
+    }
+  });
+
+  app.get("/api/forms/:formId", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const questions = await storage.getFormQuestions(formId);
+      const responseCount = await storage.getFormResponseCount(formId);
+      res.json({ ...form, questions, responseCount });
+    } catch (err: any) {
+      console.error("Get Form Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la récupération du formulaire" });
+    }
+  });
+
+  app.patch("/api/forms/:formId", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const body = z.object({
+        title: z.string().min(1).optional(),
+        description: z.string().nullable().optional(),
+        status: z.enum(["draft", "published", "closed"]).optional(),
+      }).parse(req.body);
+      const updated = await storage.updateForm(formId, body);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Données invalides", errors: err.errors });
+      console.error("Update Form Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la mise à jour du formulaire" });
+    }
+  });
+
+  app.delete("/api/forms/:formId", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      await storage.deleteForm(formId);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Delete Form Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la suppression du formulaire" });
+    }
+  });
+
+  app.post("/api/forms/:formId/questions", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const body = z.object({
+        type: z.string().min(1),
+        label: z.string().min(1),
+        description: z.string().optional(),
+        options: z.any().optional(),
+        required: z.boolean().optional(),
+      }).parse(req.body);
+      const existingQuestions = await storage.getFormQuestions(formId);
+      const maxOrder = existingQuestions.reduce((max, q) => Math.max(max, q.order), -1);
+      const question = await storage.createFormQuestion({
+        formId,
+        type: body.type,
+        label: body.label,
+        description: body.description || null,
+        options: body.options || null,
+        required: body.required ?? false,
+        order: maxOrder + 1,
+      });
+      res.status(201).json(question);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Données invalides", errors: err.errors });
+      console.error("Add Question Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de l'ajout de la question" });
+    }
+  });
+
+  app.patch("/api/forms/:formId/questions/:questionId", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const questionId = parseInt(req.params.questionId);
+      const body = z.object({
+        type: z.string().min(1).optional(),
+        label: z.string().min(1).optional(),
+        description: z.string().nullable().optional(),
+        options: z.any().optional(),
+        required: z.boolean().optional(),
+      }).parse(req.body);
+      const updated = await storage.updateFormQuestion(questionId, body);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Données invalides", errors: err.errors });
+      console.error("Update Question Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la mise à jour de la question" });
+    }
+  });
+
+  app.delete("/api/forms/:formId/questions/:questionId", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const questionId = parseInt(req.params.questionId);
+      await storage.deleteFormQuestion(questionId);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Delete Question Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la suppression de la question" });
+    }
+  });
+
+  app.post("/api/forms/:formId/questions/reorder", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const body = z.object({
+        questionIds: z.array(z.number()),
+      }).parse(req.body);
+      await storage.reorderFormQuestions(formId, body.questionIds);
+      const questions = await storage.getFormQuestions(formId);
+      res.json(questions);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Données invalides", errors: err.errors });
+      console.error("Reorder Questions Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la réorganisation des questions" });
+    }
+  });
+
+  app.get("/api/forms/:formId/responses", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const responses = await storage.getFormResponses(formId);
+      const allAnswers = await storage.getFormAllAnswers(formId);
+      const responsesWithAnswers = responses.map(r => ({
+        ...r,
+        answers: allAnswers.filter(a => a.responseId === r.id),
+      }));
+      res.json(responsesWithAnswers);
+    } catch (err: any) {
+      console.error("Get Responses Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la récupération des réponses" });
+    }
+  });
+
+  app.delete("/api/forms/:formId/responses/:responseId", async (req, res) => {
+    try {
+      const userId = getUserId(req);
+      if (!userId) return res.status(401).json({ message: "Non authentifié" });
+      const formId = parseInt(req.params.formId);
+      const form = await storage.getForm(formId);
+      if (!form || form.userId !== userId) return res.status(404).json({ message: "Formulaire non trouvé" });
+      const responseId = parseInt(req.params.responseId);
+      await storage.deleteFormResponse(responseId);
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error("Delete Response Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la suppression de la réponse" });
+    }
+  });
+
+  app.get("/api/public/forms/:publicId", async (req, res) => {
+    try {
+      const form = await storage.getFormByPublicId(req.params.publicId);
+      if (!form || form.status !== "published") return res.status(404).json({ message: "Formulaire non trouvé" });
+      const questions = await storage.getFormQuestions(form.id);
+      res.json({ id: form.id, title: form.title, description: form.description, publicId: form.publicId, questions });
+    } catch (err: any) {
+      console.error("Public Get Form Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la récupération du formulaire" });
+    }
+  });
+
+  app.post("/api/public/forms/:publicId/submit", async (req, res) => {
+    try {
+      const form = await storage.getFormByPublicId(req.params.publicId);
+      if (!form || form.status !== "published") return res.status(404).json({ message: "Formulaire non trouvé" });
+      const body = z.object({
+        answers: z.array(z.object({
+          questionId: z.number(),
+          value: z.any(),
+        })),
+        metadata: z.any().optional(),
+      }).parse(req.body);
+      const questions = await storage.getFormQuestions(form.id);
+      const questionIds = new Set(questions.map(q => q.id));
+      for (const answer of body.answers) {
+        if (!questionIds.has(answer.questionId)) {
+          return res.status(400).json({ message: `Question invalide: ${answer.questionId}` });
+        }
+      }
+      const requiredQuestions = questions.filter(q => q.required);
+      for (const rq of requiredQuestions) {
+        const answer = body.answers.find(a => a.questionId === rq.id);
+        if (!answer || answer.value === null || answer.value === undefined || answer.value === "") {
+          return res.status(400).json({ message: `La question "${rq.label}" est obligatoire` });
+        }
+      }
+      const questionMap = new Map(questions.map(q => [q.id, q]));
+      for (const answer of body.answers) {
+        const q = questionMap.get(answer.questionId);
+        if (!q) continue;
+        const val = answer.value;
+        if (val === null || val === undefined || val === "") continue;
+        if (q.type === "email" && typeof val === "string") {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(val)) {
+            return res.status(400).json({ message: `La question "${q.label}" doit contenir un email valide` });
+          }
+        }
+        if (q.type === "number") {
+          if (isNaN(Number(val))) {
+            return res.status(400).json({ message: `La question "${q.label}" doit contenir un nombre valide` });
+          }
+          answer.value = Number(val);
+        }
+        if (q.type === "yes_no" && typeof val === "string") {
+          if (!["oui", "non", "yes", "no"].includes(val.toLowerCase())) {
+            return res.status(400).json({ message: `La question "${q.label}" doit être Oui ou Non` });
+          }
+        }
+        if ((q.type === "mcq" || q.type === "likert") && typeof val === "string") {
+          const options = (q.options as string[]) || [];
+          if (options.length > 0 && !options.includes(val)) {
+            return res.status(400).json({ message: `Réponse invalide pour "${q.label}"` });
+          }
+        }
+        if (q.type === "mcq_multiple" && Array.isArray(val)) {
+          const options = (q.options as string[]) || [];
+          if (options.length > 0) {
+            for (const v of val) {
+              if (!options.includes(v)) {
+                return res.status(400).json({ message: `Réponse invalide pour "${q.label}"` });
+              }
+            }
+          }
+        }
+      }
+      const response = await storage.createFormResponse(
+        { formId: form.id, respondentId: null, metadata: body.metadata || null },
+        body.answers.map(a => ({ responseId: 0, questionId: a.questionId, value: a.value }))
+      );
+      res.status(201).json(response);
+    } catch (err: any) {
+      if (err instanceof z.ZodError) return res.status(400).json({ message: "Données invalides", errors: err.errors });
+      console.error("Public Submit Form Error:", err);
+      res.status(500).json({ message: err.message || "Erreur lors de la soumission du formulaire" });
     }
   });
 

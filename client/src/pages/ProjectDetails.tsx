@@ -23,6 +23,7 @@ import ExportsModule from "@/components/ExportsModule";
 import SoutenancePPTModule from "@/components/SoutenancePPTModule";
 import SoutenanceSimulationModule from "@/components/SoutenanceSimulationModule";
 import AuditMemoireModule from "@/components/AuditMemoireModule";
+import FormulaireModule from "@/components/FormulaireModule";
 import TfeFoundationsModule from "@/components/TfeFoundationsModule";
 import MemoirImportField from "@/components/MemoirImportField";
 import VariablesPanel from "@/components/VariablesPanel";
@@ -1249,6 +1250,17 @@ function SingleSectionWrapper({
           projectType={projectType}
           variables={variables}
           extraContext={buildExtraContext()}
+          section={section}
+        />
+      </div>
+    );
+  }
+
+  if (sectionKey === "formulaire") {
+    return (
+      <div className="space-y-4">
+        <FormulaireModule
+          projectId={projectId}
           section={section}
         />
       </div>
