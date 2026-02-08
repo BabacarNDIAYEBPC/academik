@@ -92,7 +92,7 @@ export default function Landing() {
     "applicationCategory": "EducationalApplication",
     "operatingSystem": "Web",
     "offers": { "@type": "Offer", "price": "179", "priceCurrency": "EUR" },
-    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "ratingCount": "127", "bestRating": "5" },
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.95", "reviewCount": "238", "ratingCount": "238", "bestRating": "5", "worstRating": "1" },
     "creator": {
       "@type": "Organization",
       "name": "Performance Consulting Groupe SAS",
