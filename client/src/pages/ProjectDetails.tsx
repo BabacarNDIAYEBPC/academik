@@ -1381,15 +1381,12 @@ function SingleSectionWrapper({
     />
   );
 
-  const variablesField = (
-    <VariablesPanel variables={variables} readOnly />
-  );
 
   if (sectionKey === "literature_review" && literatureConfig && onLiteratureConfigChange) {
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <LiteratureReviewModule
           projectId={projectId}
           projectType={projectType}
@@ -1407,7 +1404,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <ConceptualFrameworkModule
           projectId={projectId}
           projectType={projectType}
@@ -1423,7 +1420,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <MethodologyModule
           projectId={projectId}
           projectType={projectType}
@@ -1439,7 +1436,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <QuestionnaireModule
           projectId={projectId}
           projectType={projectType}
@@ -1466,7 +1463,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <GuideEntretienModule
           projectId={projectId}
           projectType={projectType}
@@ -1483,7 +1480,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <InterviewSimulationModule
           projectId={projectId}
           projectType={projectType}
@@ -1500,7 +1497,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <DataAnalysisModule
           projectId={projectId}
           projectType={projectType}
@@ -1516,7 +1513,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <ConfrontationModule
           projectId={projectId}
           projectType={projectType}
@@ -1532,7 +1529,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <HypothesisValidationModule
           projectId={projectId}
           projectType={projectType}
@@ -1560,7 +1557,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <FinancialSimulationModule
           projectId={projectId}
           projectType={projectType}
@@ -1577,7 +1574,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <QuestionnaireAnalysisModule
           projectId={projectId}
           projectType={projectType}
@@ -1594,7 +1591,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <AssistedWritingModule
           projectId={projectId}
           projectType={projectType}
@@ -1610,7 +1607,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <BibliographyModule
           projectId={projectId}
           projectType={projectType}
@@ -1626,7 +1623,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <SoutenancePPTModule
           projectId={projectId}
           projectType={projectType}
@@ -1642,7 +1639,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <SoutenanceSimulationModule
           projectId={projectId}
           projectType={projectType}
@@ -1658,7 +1655,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <AuditMemoireModule
           projectId={projectId}
           projectType={projectType}
@@ -1674,7 +1671,7 @@ function SingleSectionWrapper({
     return (
       <div className="space-y-4">
         {memoirField}
-        {variablesField}
+
         <ExportsModule
           projectId={projectId}
           projectType={projectType}
@@ -1689,7 +1686,6 @@ function SingleSectionWrapper({
   return (
     <div className="space-y-4">
       {memoirField}
-      {variablesField}
       <SectionEditor
         projectId={projectId}
         sectionKey={sectionKey}
