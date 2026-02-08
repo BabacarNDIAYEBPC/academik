@@ -35,6 +35,8 @@ The application uses a client-server architecture.
     - **VAE (Validation des Acquis de l'Expérience)**: Questionnaire-based with 6 dedicated sections, including AI-powered competency mapping. Includes PPT Soutenance, Oral, and Biblio.
     - **Confrontation**: Dedicated section for hypothesis confrontation and validation against research results.
     - **Formulaire**: Full online form builder (Google Forms-like) with question types (text, textarea, MCQ, Likert, yes/no, number, email), public shareable links, response collection, and response dashboard. Database tables: forms, form_questions, form_responses, form_answers. Public form page at /f/:publicId (no auth required). Available as purchasable module for all project types.
+    - **Dépouillement** (section key: questionnaire_analysis): Cross-tabulation module with auto-sync from Formulaire responses. Generates tableaux croisés, charts (bar, pie, line, area, radar), and AI-powered quantitative analysis. Data can be imported from CSV/Excel or synced from Formulaire module. Uses `useAnalyzeQuantitative` hook.
+    - **Analyse** (section key: data_analysis): Multi-tab analysis module with Qualitative (verbatim analysis), Dépouillement (tri plat, tri croisé, analyse thématique via questionnaire-analysis API), Confrontation, and Hypothesis Validation tabs.
 - **Internationalization (i18n)**: Custom React context-based system for French and English support across the application.
 - **SEO & Google Indexing**: Utilizes an SEO component for dynamic metadata, `robots.txt` for crawl control, `sitemap.xml` for site structure, and JSON-LD for structured data.
 

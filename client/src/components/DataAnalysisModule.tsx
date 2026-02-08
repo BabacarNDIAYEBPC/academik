@@ -8,9 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import {
   useAnalyzeQualitative,
-  useAnalyzeQuantitative,
   useConfrontResults,
   useValidateHypotheses,
   useSaveSectionConfig,
@@ -25,18 +26,6 @@ import {
 } from "lucide-react";
 import { exportToWord } from "@/lib/export-utils";
 import { useI18n } from "@/lib/i18n";
-import {
-  BarChart, PieChart, Bar, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
-  LineChart, Line, Area, AreaChart,
-} from "recharts";
-
-const CHART_COLORS = [
-  "#2563EB", "#F97316", "#10B981", "#EF4444", "#8B5CF6",
-  "#EC4899", "#14B8A6", "#F59E0B", "#6366F1", "#06B6D4",
-  "#84CC16", "#0EA5E9",
-];
 
 function RichTextDisplay({ content, className }: { content: string; className?: string }) {
   const rendered = useMemo(() => {
@@ -177,213 +166,20 @@ interface VerbatimEntry {
   date: string;
 }
 
-interface CrossTabGroup {
-  id: string;
-  title: string;
-  headers: string[];
-  rows: Record<string, string>[];
-  chartType: string;
-}
-
 interface SavedState {
   verbatims: VerbatimEntry[];
   qualitativeResult: string;
-  quantitativeData: string;
-  quantitativeResult: string;
+  depouillementData: string;
+  depouillementResult: string;
   confrontResult: string;
   validationResult: string;
   analysisMode: string;
-  quantitativeType: string;
+  depouillementType: string;
   contextInstructions: string;
   confrontImportedData: string;
   validationImportedDoc: string;
-}
-
-function generateCrossTabsFromData(rawHeaders: string[], rawRows: Record<string, string>[]): CrossTabGroup[] {
-  if (rawHeaders.length < 2 || rawRows.length === 0) return [];
-
-  const isNumericColumn = (col: string) => {
-    const vals = rawRows.map(r => r[col] || "").filter(v => v.trim() !== "");
-    if (vals.length === 0) return false;
-    const numCount = vals.filter(v => !isNaN(parseNumericValue(v))).length;
-    return numCount / vals.length > 0.7;
-  };
-
-  const categoricalCols = rawHeaders.filter(h => !isNumericColumn(h));
-  const numericCols = rawHeaders.filter(h => isNumericColumn(h));
-
-  const groups: CrossTabGroup[] = [];
-  const chartTypes = ["bar", "stacked", "pie", "line", "area", "radar"];
-  let chartIdx = 0;
-
-  if (categoricalCols.length >= 2) {
-    for (let a = 0; a < categoricalCols.length && a < 3; a++) {
-      for (let b = a + 1; b < categoricalCols.length && b < 4; b++) {
-        const colA = categoricalCols[a];
-        const colB = categoricalCols[b];
-        const valuesA = Array.from(new Set(rawRows.map(r => r[colA] || "").filter(Boolean)));
-        const valuesB = Array.from(new Set(rawRows.map(r => r[colB] || "").filter(Boolean)));
-        if (valuesA.length < 2 || valuesA.length > 15 || valuesB.length < 2 || valuesB.length > 15) continue;
-
-        const crossHeaders = [colA, ...valuesB, "Total"];
-        const crossRows: Record<string, string>[] = valuesA.map(va => {
-          const row: Record<string, string> = { [colA]: va };
-          let total = 0;
-          valuesB.forEach(vb => {
-            const count = rawRows.filter(r => r[colA] === va && r[colB] === vb).length;
-            row[vb] = count.toString();
-            total += count;
-          });
-          row["Total"] = total.toString();
-          return row;
-        });
-        const totalRow: Record<string, string> = { [colA]: "Total" };
-        let grandTotal = 0;
-        valuesB.forEach(vb => {
-          const colTotal = rawRows.filter(r => r[colB] === vb).length;
-          totalRow[vb] = colTotal.toString();
-          grandTotal += colTotal;
-        });
-        totalRow["Total"] = grandTotal.toString();
-        crossRows.push(totalRow);
-
-        groups.push({
-          id: `cross-${a}-${b}`,
-          title: `${colA} et ${colB}`,
-          headers: crossHeaders,
-          rows: crossRows,
-          chartType: chartTypes[chartIdx % chartTypes.length],
-        });
-        chartIdx++;
-      }
-    }
-  }
-
-  if (categoricalCols.length >= 1 && numericCols.length >= 1) {
-    for (let c = 0; c < categoricalCols.length && c < 3; c++) {
-      const catCol = categoricalCols[c];
-      const catValues = Array.from(new Set(rawRows.map(r => r[catCol] || "").filter(Boolean)));
-      if (catValues.length < 2 || catValues.length > 15) continue;
-
-      const relevantNumCols = numericCols.slice(0, 4);
-      const crossHeaders = [catCol, ...relevantNumCols];
-      const crossRows: Record<string, string>[] = catValues.map(cv => {
-        const row: Record<string, string> = { [catCol]: cv };
-        const matching = rawRows.filter(r => r[catCol] === cv);
-        relevantNumCols.forEach(nc => {
-          const vals = matching.map(r => parseNumericValue(r[nc] || "0"));
-          const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
-          row[nc] = avg % 1 === 0 ? avg.toString() : avg.toFixed(1);
-        });
-        return row;
-      });
-
-      groups.push({
-        id: `cat-num-${c}`,
-        title: `${catCol} par ${relevantNumCols.join(", ")}`,
-        headers: crossHeaders,
-        rows: crossRows,
-        chartType: chartTypes[chartIdx % chartTypes.length],
-      });
-      chartIdx++;
-    }
-  }
-
-  if (groups.length === 0 && rawHeaders.length >= 2) {
-    groups.push({
-      id: "raw-data",
-      title: `${rawHeaders[0]} - Données brutes`,
-      headers: rawHeaders,
-      rows: rawRows,
-      chartType: "bar",
-    });
-  }
-
-  return groups;
-}
-
-function extractCrossTabsFromResult(resultText: string): CrossTabGroup[] {
-  if (!resultText.trim()) return [];
-  const groups: CrossTabGroup[] = [];
-  const sections = resultText.split(/(?=^#{1,3}\s)/m);
-  const chartTypes = ["bar", "stacked", "pie", "line", "area", "radar"];
-
-  sections.forEach((sec, idx) => {
-    const titleMatch = sec.match(/^#{1,3}\s+(.+)$/m);
-    const lines = sec.split("\n");
-    let headerLine = "";
-    const dataLines: string[] = [];
-    let foundSeparator = false;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line.startsWith("|")) { if (foundSeparator) break; continue; }
-      if (/^\|[\s:|-]+\|$/.test(line)) {
-        foundSeparator = true;
-        if (i > 0) {
-          const prev = lines[i - 1].trim();
-          if (prev.startsWith("|")) headerLine = prev;
-        }
-        continue;
-      }
-      if (foundSeparator) {
-        dataLines.push(line);
-      } else if (!headerLine) {
-        headerLine = line;
-      }
-    }
-
-    if (headerLine && dataLines.length >= 1) {
-      const headerCells = headerLine.split("|").filter(Boolean).map(c => c.trim());
-      const dataRows = dataLines.map(line => {
-        const cells = line.split("|").filter(Boolean).map(c => c.trim());
-        const row: Record<string, string> = {};
-        headerCells.forEach((h, i) => { row[h] = cells[i] || ""; });
-        return row;
-      });
-
-      groups.push({
-        id: `result-${idx}`,
-        title: titleMatch ? titleMatch[1].replace(/\*\*/g, "").trim() : `Tableau ${idx + 1}`,
-        headers: headerCells,
-        rows: dataRows,
-        chartType: chartTypes[groups.length % chartTypes.length],
-      });
-    }
-  });
-
-  return groups;
-}
-
-function detectDelimiter(firstLine: string): string {
-  const semicolonCount = (firstLine.match(/;/g) || []).length;
-  const commaCount = (firstLine.match(/,/g) || []).length;
-  const tabCount = (firstLine.match(/\t/g) || []).length;
-  if (tabCount >= semicolonCount && tabCount >= commaCount && tabCount > 0) return "\t";
-  if (semicolonCount >= commaCount) return ";";
-  return ",";
-}
-
-function parseCsvData(csvText: string): { headers: string[]; rows: Record<string, string>[] } {
-  const lines = csvText.trim().split("\n").filter(l => l.trim());
-  if (lines.length < 2) return { headers: [], rows: [] };
-  const delimiter = detectDelimiter(lines[0]);
-  const headers = lines[0].split(delimiter).map(h => h.trim().replace(/^["']|["']$/g, ""));
-  const rows = lines.slice(1).map(line => {
-    const values = line.split(delimiter).map(v => v.trim().replace(/^["']|["']$/g, ""));
-    const row: Record<string, string> = {};
-    headers.forEach((h, i) => {
-      row[h] = values[i] || "";
-    });
-    return row;
-  });
-  return { headers, rows };
-}
-
-function parseNumericValue(val: string): number {
-  const cleaned = val.replace(/[%\s]/g, "").replace(",", ".");
-  const num = parseFloat(cleaned);
-  return isNaN(num) ? 0 : num;
+  respondentCount: number;
+  depouillementInstructions: string;
 }
 
 function ResultDisplay({ label, value, onChange, testId }: { label: string; value: string; onChange: (v: string) => void; testId: string }) {
@@ -418,13 +214,6 @@ function ResultDisplay({ label, value, onChange, testId }: { label: string; valu
   );
 }
 
-function getValueColor(value: number, min: number, max: number): string {
-  if (max === min) return "hsl(220, 60%, 95%)";
-  const ratio = (value - min) / (max - min);
-  const lightness = 95 - ratio * 40;
-  return `hsl(220, 60%, ${lightness}%)`;
-}
-
 export default function DataAnalysisModule({
   projectId,
   projectType,
@@ -436,22 +225,28 @@ export default function DataAnalysisModule({
   const [verbatims, setVerbatims] = useState<VerbatimEntry[]>([]);
   const [analysisMode, setAnalysisMode] = useState("global");
   const [qualitativeResult, setQualitativeResult] = useState("");
-  const [quantitativeData, setQuantitativeData] = useState("");
-  const [quantitativeType, setQuantitativeType] = useState("cross_tab");
-  const [quantitativeResult, setQuantitativeResult] = useState("");
+  const [depouillementData, setDepouillementData] = useState("");
+  const [depouillementType, setDepouillementType] = useState("depouillement");
+  const [depouillementResult, setDepouillementResult] = useState("");
   const [confrontResult, setConfrontResult] = useState("");
   const [validationResult, setValidationResult] = useState("");
   const [contextInstructions, setContextInstructions] = useState("");
   const [confrontImportedData, setConfrontImportedData] = useState("");
   const [validationImportedDoc, setValidationImportedDoc] = useState("");
   const [uploadingValidationDoc, setUploadingValidationDoc] = useState(false);
-  const [chartTypeOverrides, setChartTypeOverrides] = useState<Record<string, string>>({});
+  const [respondentCount, setRespondentCount] = useState(30);
+  const [depouillementInstructions, setDepouillementInstructions] = useState("");
   const [stateLoaded, setStateLoaded] = useState(false);
 
   const { toast } = useToast();
   const { t } = useI18n();
   const qualitativeMutation = useAnalyzeQualitative();
-  const quantitativeMutation = useAnalyzeQuantitative();
+  const depouillementMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", `/api/sections/questionnaire-analysis/generate`, data);
+      return res.json();
+    },
+  });
   const confrontMutation = useConfrontResults();
   const validateHypMutation = useValidateHypotheses();
   const saveConfigMutation = useSaveSectionConfig();
@@ -460,10 +255,10 @@ export default function DataAnalysisModule({
 
   const combinedContext = [extraContext, contextInstructions].filter(Boolean).join("\n");
 
-  const stateRef = useRef({ verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc });
+  const stateRef = useRef({ verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions });
   useEffect(() => {
-    stateRef.current = { verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc };
-  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc]);
+    stateRef.current = { verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions };
+  }, [verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions]);
 
   const doSave = useCallback(() => {
     if (!section) return;
@@ -471,15 +266,17 @@ export default function DataAnalysisModule({
     const state: SavedState = {
       verbatims: s.verbatims,
       qualitativeResult: s.qualitativeResult,
-      quantitativeData: s.quantitativeData,
-      quantitativeResult: s.quantitativeResult,
+      depouillementData: s.depouillementData,
+      depouillementResult: s.depouillementResult,
       confrontResult: s.confrontResult,
       validationResult: s.validationResult,
       analysisMode: s.analysisMode,
-      quantitativeType: s.quantitativeType,
+      depouillementType: s.depouillementType,
       contextInstructions: s.contextInstructions,
       confrontImportedData: s.confrontImportedData,
       validationImportedDoc: s.validationImportedDoc,
+      respondentCount: s.respondentCount,
+      depouillementInstructions: s.depouillementInstructions,
     };
     saveConfigMutation.mutate({
       sectionId: section.id,
@@ -495,15 +292,17 @@ export default function DataAnalysisModule({
       const s = cfg.dataAnalysisState as SavedState;
       if (s.verbatims) setVerbatims(s.verbatims);
       if (s.qualitativeResult) setQualitativeResult(s.qualitativeResult);
-      if (s.quantitativeData) setQuantitativeData(s.quantitativeData);
-      if (s.quantitativeResult) setQuantitativeResult(s.quantitativeResult);
+      if (s.depouillementData) setDepouillementData(s.depouillementData);
+      if (s.depouillementResult) setDepouillementResult(s.depouillementResult);
       if (s.confrontResult) setConfrontResult(s.confrontResult);
       if (s.validationResult) setValidationResult(s.validationResult);
       if (s.analysisMode) setAnalysisMode(s.analysisMode);
-      if (s.quantitativeType) setQuantitativeType(s.quantitativeType);
+      if (s.depouillementType) setDepouillementType(s.depouillementType);
       if (s.contextInstructions) setContextInstructions(s.contextInstructions);
       if (s.confrontImportedData) setConfrontImportedData(s.confrontImportedData);
       if (s.validationImportedDoc) setValidationImportedDoc(s.validationImportedDoc);
+      if (s.respondentCount) setRespondentCount(s.respondentCount);
+      if (s.depouillementInstructions) setDepouillementInstructions(s.depouillementInstructions);
     }
     setStateLoaded(true);
   }, [section, stateLoaded]);
@@ -518,67 +317,7 @@ export default function DataAnalysisModule({
     if (!stateLoaded) return;
     const timer = setTimeout(doSave, 3000);
     return () => clearTimeout(timer);
-  }, [verbatims, qualitativeResult, quantitativeData, quantitativeResult, confrontResult, validationResult, analysisMode, quantitativeType, contextInstructions, confrontImportedData, validationImportedDoc, stateLoaded, doSave]);
-
-  const parsedData = useMemo(() => {
-    if (!quantitativeData.trim()) return null;
-    const { headers, rows } = parseCsvData(quantitativeData);
-    if (headers.length < 2 || rows.length === 0) return null;
-    return { headers, rows };
-  }, [quantitativeData]);
-
-  const crossTabGroups = useMemo((): CrossTabGroup[] => {
-    const fromResult = extractCrossTabsFromResult(quantitativeResult);
-    if (fromResult.length > 0) return fromResult;
-    if (parsedData) return generateCrossTabsFromData(parsedData.headers, parsedData.rows);
-    return [];
-  }, [quantitativeResult, parsedData]);
-
-  const getGroupChartType = (group: CrossTabGroup) => chartTypeOverrides[group.id] || group.chartType;
-
-  const getGroupChartData = (group: CrossTabGroup) => {
-    const { headers, rows } = group;
-    const dataRows = rows.filter(r => r[headers[0]] !== "Total");
-    return dataRows.map(row => {
-      const entry: Record<string, any> = { name: row[headers[0]] || "" };
-      for (let i = 1; i < headers.length; i++) {
-        if (headers[i] === "Total") continue;
-        entry[headers[i]] = parseNumericValue(row[headers[i]] || "0");
-      }
-      return entry;
-    });
-  };
-
-  const getGroupPieData = (group: CrossTabGroup) => {
-    const { headers, rows } = group;
-    const dataRows = rows.filter(r => r[headers[0]] !== "Total");
-    if (headers.length < 2) return [];
-    const valueCol = headers.find(h => h !== headers[0] && h !== "Total") || headers[1];
-    return dataRows.map(row => ({
-      name: row[headers[0]] || "",
-      value: parseNumericValue(row[valueCol] || "0"),
-    }));
-  };
-
-  const getGroupNumericStats = (group: CrossTabGroup) => {
-    let min = Infinity, max = -Infinity;
-    const { headers, rows } = group;
-    for (const row of rows) {
-      for (let i = 1; i < headers.length; i++) {
-        if (headers[i] === "Total") continue;
-        const val = parseNumericValue(row[headers[i]] || "0");
-        if (val < min) min = val;
-        if (val > max) max = val;
-      }
-    }
-    if (!isFinite(min)) min = 0;
-    if (!isFinite(max)) max = 100;
-    return { min, max };
-  };
-
-  const getGroupDataHeaders = (group: CrossTabGroup) => {
-    return group.headers.filter(h => h !== "Total");
-  };
+  }, [verbatims, qualitativeResult, depouillementData, depouillementResult, confrontResult, validationResult, analysisMode, depouillementType, contextInstructions, confrontImportedData, validationImportedDoc, respondentCount, depouillementInstructions, stateLoaded, doSave]);
 
   const addVerbatim = () => {
     setVerbatims(prev => [...prev, {
@@ -618,16 +357,26 @@ export default function DataAnalysisModule({
     );
   };
 
-  const handleQuantitativeAnalysis = () => {
-    if (!quantitativeData.trim()) {
+  const handleDepouillementAnalysis = () => {
+    if (!depouillementData.trim()) {
       toast({ title: t("modules.dataAnalysis.dataRequired"), description: t("modules.dataAnalysis.pasteQuantitativeData"), variant: "destructive" });
       return;
     }
-    quantitativeMutation.mutate(
-      { projectId, data: quantitativeData, analysisType: quantitativeType as any, extraContext: combinedContext || undefined },
+    const combinedCtx = [extraContext, contextInstructions, depouillementInstructions].filter(Boolean).join("\n");
+    depouillementMutation.mutate(
       {
-        onSuccess: (data) => {
-          setQuantitativeResult(data.content);
+        projectId,
+        analysisType: depouillementType,
+        respondentCount,
+        responseData: depouillementData,
+        extraContext: combinedCtx || undefined,
+        variables,
+        projectType,
+      },
+      {
+        onSuccess: (data: any) => {
+          const result = data.content || "";
+          setDepouillementResult(result);
           toast({ title: t("modules.dataAnalysis.analysisComplete"), description: t("modules.dataAnalysis.quantitativeGenerated") });
         },
         onError: (error: any) => {
@@ -638,7 +387,7 @@ export default function DataAnalysisModule({
   };
 
   const handleConfront = () => {
-    const allResults = [qualitativeResult, quantitativeResult, confrontImportedData].filter(Boolean).join("\n\n---\n\n");
+    const allResults = [qualitativeResult, depouillementResult, confrontImportedData].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
       toast({ title: t("modules.dataAnalysis.resultsRequired"), description: t("modules.dataAnalysis.generateAnalysisFirst"), variant: "destructive" });
       return;
@@ -698,7 +447,7 @@ export default function DataAnalysisModule({
   };
 
   const handleValidateHypotheses = () => {
-    const allResults = [qualitativeResult, quantitativeResult, confrontResult, validationImportedDoc].filter(Boolean).join("\n\n---\n\n");
+    const allResults = [qualitativeResult, depouillementResult, confrontResult, validationImportedDoc].filter(Boolean).join("\n\n---\n\n");
     if (!allResults) {
       toast({ title: t("modules.dataAnalysis.resultsRequired"), description: t("modules.dataAnalysis.importOrAnalyzeFirst"), variant: "destructive" });
       return;
@@ -786,7 +535,7 @@ export default function DataAnalysisModule({
   const handleExport = () => {
     const sections = [];
     if (qualitativeResult) sections.push({ label: t("modules.dataAnalysis.qualitativeExport"), content: qualitativeResult });
-    if (quantitativeResult) sections.push({ label: t("modules.dataAnalysis.quantitativeExport"), content: quantitativeResult });
+    if (depouillementResult) sections.push({ label: t("modules.dataAnalysis.quantitativeExport"), content: depouillementResult });
     if (confrontResult) sections.push({ label: t("modules.dataAnalysis.confrontExport"), content: confrontResult });
     if (validationResult) sections.push({ label: t("modules.dataAnalysis.validationExport"), content: validationResult });
     if (sections.length === 0) {
@@ -844,7 +593,7 @@ export default function DataAnalysisModule({
               <BookOpen className="w-4 h-4" />{t("modules.dataAnalysis.qualitativeTab")}
             </TabsTrigger>
             <TabsTrigger value="quantitative" className="gap-1" data-testid="tab-quantitative">
-              <BarChart3 className="w-4 h-4" />{t("modules.dataAnalysis.quantitativeTab")}
+              <BarChart3 className="w-4 h-4" />Dépouillement
             </TabsTrigger>
             <TabsTrigger value="confront" className="gap-1" data-testid="tab-confront">
               <FlaskConical className="w-4 h-4" />{t("modules.dataAnalysis.confrontTab")}
@@ -971,274 +720,68 @@ export default function DataAnalysisModule({
               <p className="text-xs text-muted-foreground">
                 {t("modules.dataAnalysis.quantitativeDataDesc")}
               </p>
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const input = document.createElement("input");
-                    input.type = "file";
-                    input.accept = ".xlsx,.xls,.csv";
-                    input.onchange = async (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (!file) return;
-                      try {
-                        if (file.name.endsWith(".csv")) {
-                          const text = await file.text();
-                          setQuantitativeData(text);
-                          toast({ title: t("modules.dataAnalysis.csvImported"), description: `${file.name}` });
-                        } else {
-                          const XLSX = await import("xlsx");
-                          const buffer = await file.arrayBuffer();
-                          const workbook = XLSX.read(buffer, { type: "array" });
-                          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                          const csvData = XLSX.utils.sheet_to_csv(firstSheet, { FS: ";" });
-                          setQuantitativeData(csvData);
-                          toast({ title: t("modules.dataAnalysis.excelImported"), description: `${file.name} (${workbook.SheetNames[0]})` });
-                        }
-                      } catch (err: any) {
-                        toast({ title: t("modules.dataAnalysis.importError"), description: err.message, variant: "destructive" });
-                      }
-                    };
-                    input.click();
-                  }}
-                  data-testid="button-import-excel"
-                >
-                  <Upload className="w-4 h-4 mr-1" /> {t("modules.dataAnalysis.importExcelCsv")}
-                </Button>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>{t("modules.dataAnalysis.analysisTypeLabel")}</Label>
+                  <Select value={depouillementType} onValueChange={setDepouillementType}>
+                    <SelectTrigger data-testid="select-depouillement-type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="depouillement">{t("modules.questionnaireAnalysis.typeDepouillement")}</SelectItem>
+                      <SelectItem value="tri_plat">{t("modules.questionnaireAnalysis.typeTriPlat")}</SelectItem>
+                      <SelectItem value="tri_croise">{t("modules.questionnaireAnalysis.typeTriCroise")}</SelectItem>
+                      <SelectItem value="analyse_thematique">{t("modules.questionnaireAnalysis.typeThematique")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Nombre de répondants</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={respondentCount}
+                    onChange={e => setRespondentCount(parseInt(e.target.value) || 1)}
+                    data-testid="input-respondent-count"
+                  />
+                </div>
               </div>
+
               <Textarea
-                value={quantitativeData}
-                onChange={e => setQuantitativeData(e.target.value)}
-                placeholder={"Question;Réponse 1;Réponse 2;Réponse 3\nQ1;45%;30%;25%\nQ2;60%;25%;15%\n..."}
-                className="min-h-[200px] text-sm font-mono"
-                data-testid="textarea-quantitative-data"
+                value={depouillementData}
+                onChange={e => setDepouillementData(e.target.value)}
+                placeholder="Collez ici les données de réponses (questions et réponses)..."
+                className="min-h-[200px] text-sm"
+                data-testid="textarea-depouillement-data"
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
-              <div className="space-y-1.5 w-full sm:w-auto">
-                <Label>{t("modules.dataAnalysis.analysisTypeLabel")}</Label>
-                <Select value={quantitativeType} onValueChange={setQuantitativeType}>
-                  <SelectTrigger className="w-full sm:w-[320px]" data-testid="select-quantitative-type"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cross_tab">{t("modules.dataAnalysis.crossTab")}</SelectItem>
-                    <SelectItem value="cross_chart">{t("modules.dataAnalysis.crossChart")}</SelectItem>
-                    <SelectItem value="trends">{t("modules.dataAnalysis.trends")}</SelectItem>
-                    <SelectItem value="interpretation">{t("modules.dataAnalysis.interpretation")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button
-                onClick={handleQuantitativeAnalysis}
-                disabled={quantitativeMutation.isPending || !quantitativeData.trim()}
-                className="mt-auto"
-                data-testid="button-analyze-quantitative"
-              >
-                {quantitativeMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
-                {t("modules.dataAnalysis.analyzeData")}
-              </Button>
+            <div className="space-y-1.5">
+              <Label>Instructions spécifiques</Label>
+              <Textarea
+                value={depouillementInstructions}
+                onChange={e => setDepouillementInstructions(e.target.value)}
+                placeholder="Instructions supplémentaires pour l'analyse..."
+                className="min-h-[80px] text-sm"
+                data-testid="textarea-depouillement-instructions"
+              />
             </div>
 
-            {quantitativeResult && (
+            <Button
+              onClick={handleDepouillementAnalysis}
+              disabled={depouillementMutation.isPending || !depouillementData.trim()}
+              data-testid="button-analyze-depouillement"
+            >
+              {depouillementMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+              {t("modules.dataAnalysis.analyzeData")}
+            </Button>
+
+            {depouillementResult && (
               <ResultDisplay
                 label={t("modules.dataAnalysis.quantitativeResultLabel")}
-                value={quantitativeResult}
-                onChange={setQuantitativeResult}
-                testId="quantitative-result"
+                value={depouillementResult}
+                onChange={setDepouillementResult}
+                testId="depouillement-result"
               />
-            )}
-
-            {crossTabGroups.length > 0 && (
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-[#00BCD4]" />
-                    <Label className="text-base font-bold">{t("modules.dataAnalysis.crossTabTitle")}</Label>
-                    <Badge variant="outline" className="text-xs">{crossTabGroups.length} {t("modules.dataAnalysis.tableCount")}</Badge>
-                  </div>
-                </div>
-
-                {crossTabGroups.map((group) => {
-                  const stats = getGroupNumericStats(group);
-                  const dataHeaders = getGroupDataHeaders(group);
-                  const currentChartType = getGroupChartType(group);
-                  const cData = getGroupChartData(group);
-                  const pData = getGroupPieData(group);
-                  const hasNumericData = cData.some(entry => dataHeaders.slice(1).some(h => (entry[h] as number) > 0));
-
-                  return (
-                    <div key={group.id} className="space-y-4 pb-6 border-b border-slate-200 dark:border-slate-700 last:border-b-0 last:pb-0">
-                      <h4 className="text-sm font-bold text-foreground flex items-center gap-2" data-testid={`text-crosstab-title-${group.id}`}>
-                        <span className="w-2 h-2 rounded-full bg-[#00BCD4]" />
-                        {group.title}
-                      </h4>
-
-                      <div className="overflow-x-auto rounded-md border border-slate-200 dark:border-slate-700">
-                        <table className="w-full text-sm border-collapse" data-testid={`table-cross-tab-${group.id}`}>
-                          <thead>
-                            <tr>
-                              {group.headers.map((h, i) => (
-                                <th key={i} className="text-left px-2 py-2 md:px-4 md:py-3 font-bold text-xs uppercase tracking-wider whitespace-nowrap text-white bg-[#00BCD4] border-r border-[#00ACC1] last:border-r-0">
-                                  {h}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {group.rows.map((row, ri) => {
-                              const isTotal = row[group.headers[0]] === "Total";
-                              return (
-                                <tr
-                                  key={ri}
-                                  className={isTotal
-                                    ? "bg-[#00BCD4]/10 dark:bg-[#00BCD4]/20 border-t-2 border-[#00BCD4]"
-                                    : `border-b border-slate-200 dark:border-slate-700 ${ri % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50/80 dark:bg-slate-800/30"}`
-                                  }
-                                  data-testid={`table-row-${group.id}-${ri}`}
-                                >
-                                  {group.headers.map((h, ci) => {
-                                    const val = row[h] || "";
-                                    const numVal = parseNumericValue(val);
-                                    const isNumeric = ci > 0 && val.trim() !== "" && !isNaN(numVal);
-                                    return (
-                                      <td
-                                        key={ci}
-                                        className={`px-2 py-1.5 md:px-4 md:py-2.5 text-xs whitespace-nowrap border-r border-slate-100 dark:border-slate-800 last:border-r-0 ${
-                                          isTotal ? "font-bold text-foreground" : ci === 0 ? "font-semibold text-foreground" : "text-foreground"
-                                        }`}
-                                        style={isNumeric && !isTotal ? {
-                                          backgroundColor: getValueColor(numVal, stats.min, stats.max),
-                                          color: "#1E293B",
-                                          fontVariantNumeric: "tabular-nums",
-                                          textAlign: "right",
-                                        } : { fontVariantNumeric: ci > 0 ? "tabular-nums" : undefined, textAlign: ci > 0 ? "right" : undefined }}
-                                      >
-                                        {val}
-                                      </td>
-                                    );
-                                  })}
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {hasNumericData && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t("modules.dataAnalysis.chartLabel")} : {group.title}</p>
-                          <Select
-                            value={currentChartType}
-                            onValueChange={(val) => setChartTypeOverrides(prev => ({ ...prev, [group.id]: val }))}
-                          >
-                            <SelectTrigger className="w-full sm:w-[200px]" data-testid={`select-chart-type-${group.id}`}><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="bar">{t("modules.dataAnalysis.barChart")}</SelectItem>
-                              <SelectItem value="stacked">{t("modules.dataAnalysis.stackedBar")}</SelectItem>
-                              <SelectItem value="pie">{t("modules.dataAnalysis.pieChart")}</SelectItem>
-                              <SelectItem value="line">{t("modules.dataAnalysis.lineChart")}</SelectItem>
-                              <SelectItem value="area">{t("modules.dataAnalysis.areaChart")}</SelectItem>
-                              <SelectItem value="radar">{t("modules.dataAnalysis.radarChart")}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden" data-testid={`chart-container-${group.id}`}>
-                          <div className="h-[280px] sm:h-[380px] p-3 sm:p-5 pb-2">
-                            {currentChartType === "pie" ? (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                  <Pie
-                                    data={pData}
-                                    cx="50%"
-                                    cy="45%"
-                                    labelLine={{ stroke: "#94A3B8" }}
-                                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                                    outerRadius={120}
-                                    innerRadius={45}
-                                    dataKey="value"
-                                    strokeWidth={2}
-                                    stroke="#fff"
-                                  >
-                                    {pData.map((_, index) => (
-                                      <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} formatter={(value: number) => [value.toFixed(1), ""]} />
-                                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="square" iconSize={10} wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }} />
-                                </PieChart>
-                              </ResponsiveContainer>
-                            ) : currentChartType === "radar" ? (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={cData}>
-                                  <PolarGrid stroke="#CBD5E1" />
-                                  <PolarAngleAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} />
-                                  <PolarRadiusAxis tick={{ fontSize: 10, fill: "#94A3B8" }} />
-                                  {dataHeaders.slice(1).map((header, i) => (
-                                    <Radar key={header} name={header} dataKey={header} stroke={CHART_COLORS[i % CHART_COLORS.length]} fill={CHART_COLORS[i % CHART_COLORS.length]} fillOpacity={0.15} strokeWidth={2} />
-                                  ))}
-                                  <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} />
-                                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="square" iconSize={10} wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }} />
-                                </RadarChart>
-                              </ResponsiveContainer>
-                            ) : currentChartType === "line" ? (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={cData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
-                                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
-                                  <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
-                                  <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} />
-                                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="square" iconSize={10} wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }} />
-                                  {dataHeaders.slice(1).map((header, i) => (
-                                    <Line key={header} type="monotone" dataKey={header} stroke={CHART_COLORS[i % CHART_COLORS.length]} strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} activeDot={{ r: 6, strokeWidth: 2 }} />
-                                  ))}
-                                </LineChart>
-                              </ResponsiveContainer>
-                            ) : currentChartType === "area" ? (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={cData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
-                                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
-                                  <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={{ stroke: "#CBD5E1" }} />
-                                  <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} />
-                                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="square" iconSize={10} wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }} />
-                                  {dataHeaders.slice(1).map((header, i) => (
-                                    <Area key={header} type="monotone" dataKey={header} stroke={CHART_COLORS[i % CHART_COLORS.length]} fill={CHART_COLORS[i % CHART_COLORS.length]} fillOpacity={0.2} strokeWidth={2} stackId="1" />
-                                  ))}
-                                </AreaChart>
-                              </ResponsiveContainer>
-                            ) : (
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={cData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }} barCategoryGap="20%">
-                                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
-                                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#475569" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={false} />
-                                  <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={{ stroke: "#CBD5E1" }} tickLine={false} allowDecimals={false} />
-                                  <Tooltip contentStyle={{ borderRadius: "6px", border: "1px solid #E2E8F0", boxShadow: "0 2px 8px rgba(0,0,0,0.08)", fontSize: "12px" }} cursor={{ fill: "rgba(0,0,0,0.03)" }} />
-                                  <Legend layout="vertical" align="right" verticalAlign="middle" iconType="square" iconSize={10} wrapperStyle={{ fontSize: "12px", lineHeight: "24px", paddingLeft: "20px" }} />
-                                  {dataHeaders.slice(1).map((header, i) => (
-                                    <Bar key={header} dataKey={header} fill={CHART_COLORS[i % CHART_COLORS.length]} stackId={currentChartType === "stacked" ? "stack" : undefined} radius={currentChartType === "stacked" ? undefined : [2, 2, 0, 0]} maxBarSize={60} />
-                                  ))}
-                                </BarChart>
-                              </ResponsiveContainer>
-                            )}
-                          </div>
-                          <div className="px-5 pb-3 pt-1 text-center">
-                            <p className="text-xs font-medium text-muted-foreground" data-testid={`text-chart-title-${group.id}`}>
-                              {group.title}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      )}
-                      {!hasNumericData && (
-                        <p className="text-xs text-muted-foreground italic py-2">{t("modules.dataAnalysis.noNumericData")}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
             )}
           </TabsContent>
 
@@ -1249,8 +792,8 @@ export default function DataAnalysisModule({
               </p>
               <div className="flex gap-2 flex-wrap">
                 {qualitativeResult && <Badge variant="default" className="bg-green-600/10 text-green-600 border-green-600/20">{t("modules.dataAnalysis.qualitativeAvailable")}</Badge>}
-                {quantitativeResult && <Badge variant="default" className="bg-blue-600/10 text-blue-600 border-blue-600/20">{t("modules.dataAnalysis.quantitativeAvailable")}</Badge>}
-                {!qualitativeResult && !quantitativeResult && (
+                {depouillementResult && <Badge variant="default" className="bg-blue-600/10 text-blue-600 border-blue-600/20">{t("modules.dataAnalysis.quantitativeAvailable")}</Badge>}
+                {!qualitativeResult && !depouillementResult && (
                   <Badge variant="outline" className="text-muted-foreground">{t("modules.dataAnalysis.noAnalysisAvailable")}</Badge>
                 )}
               </div>
@@ -1301,7 +844,7 @@ export default function DataAnalysisModule({
 
             <Button
               onClick={handleConfront}
-              disabled={confrontMutation.isPending || (!qualitativeResult && !quantitativeResult && !confrontImportedData)}
+              disabled={confrontMutation.isPending || (!qualitativeResult && !depouillementResult && !confrontImportedData)}
               data-testid="button-confront"
             >
               {confrontMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FlaskConical className="w-4 h-4 mr-2" />}
@@ -1337,7 +880,7 @@ export default function DataAnalysisModule({
               </div>
               <div className="flex gap-2 flex-wrap">
                 {qualitativeResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.qualitativeTab")}</Badge>}
-                {quantitativeResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.quantitativeTab")}</Badge>}
+                {depouillementResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.quantitativeTab")}</Badge>}
                 {confrontResult && <Badge variant="outline" className="text-xs">{t("modules.dataAnalysis.confrontTab")}</Badge>}
                 {validationImportedDoc && (
                   <Badge variant="secondary" className="text-xs">
@@ -1368,7 +911,7 @@ export default function DataAnalysisModule({
 
             <Button
               onClick={handleValidateHypotheses}
-              disabled={validateHypMutation.isPending || (!qualitativeResult && !quantitativeResult && !confrontResult && !validationImportedDoc)}
+              disabled={validateHypMutation.isPending || (!qualitativeResult && !depouillementResult && !confrontResult && !validationImportedDoc)}
               data-testid="button-validate-hypotheses"
             >
               {validateHypMutation.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
