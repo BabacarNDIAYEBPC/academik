@@ -27,11 +27,14 @@ The application uses a client-server architecture.
     - **Invoice System**: Auto-generates and stores invoices for all purchases, available for download in HTML.
     - **Subscription Tracking**: Visual progress bar for subscription status and auto-payment notifications.
     - **Super Admin Console**: Provides comprehensive administration for users, plans, AI settings, payments, and audit logs, including module visibility toggling.
+- **Modular Menu System**: Tab menu uses core + optional module architecture. Core tabs (Fondements, Plan, Cadre conceptuel, Revue, Méthodo, Rédaction, Export) are always visible. Optional modules (Questionnaire, Formulaire, Guide d'entretien, Dépouillement, Simulation, Analyse, Confrontation, Finance, PPT Soutenance, Oral, Biblio, Audit) auto-appear when paid, with "+ Modules" button showing remaining locked modules and redirecting to billing. Mobile uses Select dropdown + "+" button.
 - **Specific Modules**:
-    - **Rapport de Stage**: Questionnaire-based approach with 9 dedicated sections and separate workflow.
+    - **Rapport de Stage**: Questionnaire-based approach with 9 dedicated sections and separate workflow. Includes PPT Soutenance and Oral.
     - **Mémoire Professionnel**: Questionnaire-based with 2 dedicated sections followed by standard academic sections, focusing on professional context.
-    - **Étude de Cas**: Questionnaire-based with 8 dedicated sections for structured analysis, including analysis tool selection.
-    - **VAE (Validation des Acquis de l'Expérience)**: Questionnaire-based with 6 dedicated sections, including AI-powered competency mapping.
+    - **Étude de Cas**: Questionnaire-based with 8 dedicated sections for structured analysis, including analysis tool selection. Includes PPT Soutenance, Oral, Biblio, and Audit.
+    - **VAE (Validation des Acquis de l'Expérience)**: Questionnaire-based with 6 dedicated sections, including AI-powered competency mapping. Includes PPT Soutenance, Oral, and Biblio.
+    - **Confrontation**: Dedicated section for hypothesis confrontation and validation against research results.
+    - **Formulaire**: Placeholder for online form builder (Google Forms-like) feature.
 - **Internationalization (i18n)**: Custom React context-based system for French and English support across the application.
 - **SEO & Google Indexing**: Utilizes an SEO component for dynamic metadata, `robots.txt` for crawl control, `sitemap.xml` for site structure, and JSON-LD for structured data.
 

@@ -70,6 +70,8 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   cs_options: "foundation",
   cs_recommandation: "foundation",
   cs_conclusion: "foundation",
+  confrontation: "confrontation",
+  formulaire: "formulaire",
   vae_presentation: "vae_foundation",
   vae_parcours: "vae_foundation",
   vae_motivation: "vae_foundation",

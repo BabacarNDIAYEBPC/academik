@@ -385,6 +385,8 @@ export const SECTION_LABELS: Record<string, string> = {
   rs_analysis: "Analyse d'une situation professionnelle",
   rs_contributions: "Apports du stage",
   rs_conclusion: "Conclusion",
+  confrontation: "Confrontation & validation",
+  formulaire: "Formulaire en ligne",
 };
 
 // === IMPACT DEPENDENCIES (Module 17) ===

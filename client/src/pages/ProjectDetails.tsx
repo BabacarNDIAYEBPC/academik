@@ -59,189 +59,204 @@ function getSectionsForProjectType(projectType: string): string[] {
   switch (projectType) {
     case "memoire":
     case "these":
-      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "memoire_professionnel":
-      return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "etude_de_cas":
-      return ["cs_fiche", "cs_contexte", "cs_probleme", "cs_cadre", "cs_donnees", "cs_options", "cs_recommandation", "cs_conclusion", "literature_review", "assisted_writing", "exports"];
+      return ["cs_fiche", "cs_contexte", "cs_probleme", "cs_cadre", "cs_donnees", "cs_options", "cs_recommandation", "cs_conclusion", "literature_review", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
-      return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+      return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "confrontation", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
-      return ["vae_presentation", "vae_parcours", "vae_motivation", "vae_cartographie", "vae_bloc_demo", "vae_synthese", "assisted_writing", "exports"];
+      return ["vae_presentation", "vae_parcours", "vae_motivation", "vae_cartographie", "vae_bloc_demo", "vae_synthese", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation"];
     case "rapport_stage":
-      return ["rs_cover_page", "rs_acknowledgements", "rs_introduction", "rs_company", "rs_internship", "rs_missions", "rs_analysis", "rs_contributions", "rs_conclusion", "assisted_writing", "bibliography", "exports", "memoire_audit"];
+      return ["rs_cover_page", "rs_acknowledgements", "rs_introduction", "rs_company", "rs_internship", "rs_missions", "rs_analysis", "rs_contributions", "rs_conclusion", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     default:
       return ["subject", "plan", "methodology", "assisted_writing", "exports", "memoire_audit"];
   }
 }
 
+const OPTIONAL_MODULE_KEYS = new Set([
+  "questionnaire", "formulaire", "guide_entretien", "questionnaire_analysis",
+  "interview_simulation", "data_analysis", "confrontation", "financial_simulation",
+  "soutenance_ppt", "soutenance_simulation", "bibliography", "memoire_audit",
+]);
+
+type ModuleTab = { key: string; label: string; icon: any; sectionKeys: string[]; isOptional: boolean };
+
 function getModuleTabs(projectType: string, t: (path: string) => string) {
   const sections = getSectionsForProjectType(projectType);
-  const tabs: { key: string; label: string; icon: any; sectionKeys: string[] }[] = [];
+  const tabs: ModuleTab[] = [];
+
+  const push = (key: string, label: string, icon: any, sectionKeys: string[]) => {
+    tabs.push({ key, label, icon, sectionKeys, isOptional: OPTIONAL_MODULE_KEYS.has(key) });
+  };
 
   if (projectType === "vae") {
     if (sections.includes("vae_presentation")) {
-      tabs.push({ key: "vae_presentation", label: t("project.vaePresentation"), icon: User, sectionKeys: ["vae_presentation"] });
+      push("vae_presentation", t("project.vaePresentation"), User, ["vae_presentation"]);
     }
     if (sections.includes("vae_parcours")) {
-      tabs.push({ key: "vae_parcours", label: t("project.vaeParcours"), icon: Route, sectionKeys: ["vae_parcours"] });
+      push("vae_parcours", t("project.vaeParcours"), Route, ["vae_parcours"]);
     }
     if (sections.includes("vae_motivation")) {
-      tabs.push({ key: "vae_motivation", label: t("project.vaeMotivation"), icon: Compass, sectionKeys: ["vae_motivation"] });
+      push("vae_motivation", t("project.vaeMotivation"), Compass, ["vae_motivation"]);
     }
     if (sections.includes("vae_cartographie")) {
-      tabs.push({ key: "vae_cartographie", label: t("project.vaeCartographie"), icon: LayoutGrid, sectionKeys: ["vae_cartographie"] });
+      push("vae_cartographie", t("project.vaeCartographie"), LayoutGrid, ["vae_cartographie"]);
     }
     if (sections.includes("vae_bloc_demo")) {
-      tabs.push({ key: "vae_bloc_demo", label: t("project.vaeBlocDemo"), icon: Layers, sectionKeys: ["vae_bloc_demo"] });
+      push("vae_bloc_demo", t("project.vaeBlocDemo"), Layers, ["vae_bloc_demo"]);
     }
     if (sections.includes("vae_synthese")) {
-      tabs.push({ key: "vae_synthese", label: t("project.vaeSynthese"), icon: CheckSquare, sectionKeys: ["vae_synthese"] });
+      push("vae_synthese", t("project.vaeSynthese"), CheckSquare, ["vae_synthese"]);
     }
   } else if (projectType === "rapport_stage") {
     if (sections.includes("rs_cover_page")) {
-      tabs.push({ key: "rs_cover_page", label: t("project.rsCoverPage"), icon: FileCheck, sectionKeys: ["rs_cover_page"] });
+      push("rs_cover_page", t("project.rsCoverPage"), FileCheck, ["rs_cover_page"]);
     }
     if (sections.includes("rs_acknowledgements")) {
-      tabs.push({ key: "rs_acknowledgements", label: t("project.rsAcknowledgements"), icon: Heart, sectionKeys: ["rs_acknowledgements"] });
+      push("rs_acknowledgements", t("project.rsAcknowledgements"), Heart, ["rs_acknowledgements"]);
     }
     if (sections.includes("rs_introduction")) {
-      tabs.push({ key: "rs_introduction", label: t("project.rsIntroduction"), icon: BookOpen, sectionKeys: ["rs_introduction"] });
+      push("rs_introduction", t("project.rsIntroduction"), BookOpen, ["rs_introduction"]);
     }
     if (sections.includes("rs_company")) {
-      tabs.push({ key: "rs_company", label: t("project.rsCompany"), icon: Building2, sectionKeys: ["rs_company"] });
+      push("rs_company", t("project.rsCompany"), Building2, ["rs_company"]);
     }
     if (sections.includes("rs_internship")) {
-      tabs.push({ key: "rs_internship", label: t("project.rsInternship"), icon: Briefcase, sectionKeys: ["rs_internship"] });
+      push("rs_internship", t("project.rsInternship"), Briefcase, ["rs_internship"]);
     }
     if (sections.includes("rs_missions")) {
-      tabs.push({ key: "rs_missions", label: t("project.rsMissions"), icon: Target, sectionKeys: ["rs_missions"] });
+      push("rs_missions", t("project.rsMissions"), Target, ["rs_missions"]);
     }
     if (sections.includes("rs_analysis")) {
-      tabs.push({ key: "rs_analysis", label: t("project.rsAnalysis"), icon: Search, sectionKeys: ["rs_analysis"] });
+      push("rs_analysis", t("project.rsAnalysis"), Search, ["rs_analysis"]);
     }
     if (sections.includes("rs_contributions")) {
-      tabs.push({ key: "rs_contributions", label: t("project.rsContributions"), icon: UserCheck, sectionKeys: ["rs_contributions"] });
+      push("rs_contributions", t("project.rsContributions"), UserCheck, ["rs_contributions"]);
     }
     if (sections.includes("rs_conclusion")) {
-      tabs.push({ key: "rs_conclusion", label: t("project.rsConclusion"), icon: Check, sectionKeys: ["rs_conclusion"] });
+      push("rs_conclusion", t("project.rsConclusion"), Check, ["rs_conclusion"]);
     }
   } else if (projectType === "etude_de_cas") {
     if (sections.includes("cs_fiche")) {
-      tabs.push({ key: "cs_fiche", label: t("project.csFiche"), icon: FileText, sectionKeys: ["cs_fiche"] });
+      push("cs_fiche", t("project.csFiche"), FileText, ["cs_fiche"]);
     }
     if (sections.includes("cs_contexte")) {
-      tabs.push({ key: "cs_contexte", label: t("project.csContexte"), icon: BookOpen, sectionKeys: ["cs_contexte"] });
+      push("cs_contexte", t("project.csContexte"), BookOpen, ["cs_contexte"]);
     }
     if (sections.includes("cs_probleme")) {
-      tabs.push({ key: "cs_probleme", label: t("project.csProbleme"), icon: Target, sectionKeys: ["cs_probleme"] });
+      push("cs_probleme", t("project.csProbleme"), Target, ["cs_probleme"]);
     }
     if (sections.includes("cs_cadre")) {
-      tabs.push({ key: "cs_cadre", label: t("project.csCadre"), icon: LayoutGrid, sectionKeys: ["cs_cadre"] });
+      push("cs_cadre", t("project.csCadre"), LayoutGrid, ["cs_cadre"]);
     }
     if (sections.includes("cs_donnees")) {
-      tabs.push({ key: "cs_donnees", label: t("project.csDonnees"), icon: BarChart3, sectionKeys: ["cs_donnees"] });
+      push("cs_donnees", t("project.csDonnees"), BarChart3, ["cs_donnees"]);
     }
     if (sections.includes("cs_options")) {
-      tabs.push({ key: "cs_options", label: t("project.csOptions"), icon: GitBranch, sectionKeys: ["cs_options"] });
+      push("cs_options", t("project.csOptions"), GitBranch, ["cs_options"]);
     }
     if (sections.includes("cs_recommandation")) {
-      tabs.push({ key: "cs_recommandation", label: t("project.csRecommandation"), icon: CheckSquare, sectionKeys: ["cs_recommandation"] });
+      push("cs_recommandation", t("project.csRecommandation"), CheckSquare, ["cs_recommandation"]);
     }
     if (sections.includes("cs_conclusion")) {
-      tabs.push({ key: "cs_conclusion", label: t("project.csConclusion"), icon: ShieldCheck, sectionKeys: ["cs_conclusion"] });
+      push("cs_conclusion", t("project.csConclusion"), ShieldCheck, ["cs_conclusion"]);
     }
     if (sections.includes("literature_review")) {
-      tabs.push({ key: "literature", label: t("project.literatureReview"), icon: BookMarked, sectionKeys: ["literature_review"] });
-    }
-    if (sections.includes("assisted_writing")) {
-      tabs.push({ key: "assisted_writing", label: t("project.assistedWriting"), icon: PenTool, sectionKeys: ["assisted_writing"] });
-    }
-    if (sections.includes("exports")) {
-      tabs.push({ key: "exports", label: t("project.exports"), icon: Download, sectionKeys: ["exports"] });
+      push("literature", t("project.literatureReview"), BookMarked, ["literature_review"]);
     }
   } else {
     if (projectType === "memoire_professionnel") {
       if (sections.includes("mp_structure")) {
-        tabs.push({ key: "mp_structure", label: t("project.mpStructure"), icon: Building2, sectionKeys: ["mp_structure"] });
+        push("mp_structure", t("project.mpStructure"), Building2, ["mp_structure"]);
       }
       if (sections.includes("mp_emergence")) {
-        tabs.push({ key: "mp_emergence", label: t("project.mpEmergence"), icon: Lightbulb, sectionKeys: ["mp_emergence"] });
+        push("mp_emergence", t("project.mpEmergence"), Lightbulb, ["mp_emergence"]);
       }
     }
 
     const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "construction_sujet", "vae_competencies"].includes(s));
     if (foundationKeys.length > 0) {
       const icon = projectType === "tfe" ? ClipboardList : BookOpen;
-      tabs.push({ key: "foundations", label: t("project.foundations"), icon, sectionKeys: foundationKeys });
+      push("foundations", t("project.foundations"), icon, foundationKeys);
     }
 
     if (sections.includes("plan")) {
-      tabs.push({ key: "plan", label: t("project.plan"), icon: Map, sectionKeys: ["plan"] });
+      push("plan", t("project.plan"), Map, ["plan"]);
     }
 
     if (sections.includes("conceptual_framework")) {
-      tabs.push({ key: "framework", label: t("project.conceptualFramework"), icon: Lightbulb, sectionKeys: ["conceptual_framework"] });
+      push("framework", t("project.conceptualFramework"), Lightbulb, ["conceptual_framework"]);
     }
 
     if (sections.includes("literature_review")) {
-      tabs.push({ key: "literature", label: t("project.literatureReview"), icon: BookMarked, sectionKeys: ["literature_review"] });
+      push("literature", t("project.literatureReview"), BookMarked, ["literature_review"]);
     }
 
     if (sections.includes("methodology")) {
-      tabs.push({ key: "methodology", label: t("project.methodology"), icon: FlaskConical, sectionKeys: ["methodology"] });
+      push("methodology", t("project.methodology"), FlaskConical, ["methodology"]);
     }
 
     if (sections.includes("questionnaire")) {
-      tabs.push({ key: "questionnaire", label: t("project.questionnaire"), icon: ClipboardList, sectionKeys: ["questionnaire"] });
+      push("questionnaire", t("project.questionnaire"), ClipboardList, ["questionnaire"]);
     }
 
     if (sections.includes("guide_entretien")) {
-      tabs.push({ key: "guide_entretien", label: t("project.interviewGuide"), icon: FileText, sectionKeys: ["guide_entretien"] });
+      push("guide_entretien", t("project.interviewGuide"), FileText, ["guide_entretien"]);
+    }
+
+    if (sections.includes("formulaire")) {
+      push("formulaire", t("project.formulaire"), ClipboardList, ["formulaire"]);
     }
 
     if (sections.includes("questionnaire_analysis")) {
-      tabs.push({ key: "questionnaire_analysis", label: t("project.questionnaireAnalysis"), icon: BarChart3, sectionKeys: ["questionnaire_analysis"] });
+      push("questionnaire_analysis", t("project.questionnaireAnalysis"), BarChart3, ["questionnaire_analysis"]);
     }
 
     if (sections.includes("interview_simulation")) {
-      tabs.push({ key: "interview_simulation", label: t("project.interviewSimulation"), icon: MessageSquare, sectionKeys: ["interview_simulation"] });
+      push("interview_simulation", t("project.interviewSimulation"), MessageSquare, ["interview_simulation"]);
     }
 
     if (sections.includes("data_analysis")) {
-      tabs.push({ key: "data_analysis", label: t("project.dataVisualization"), icon: BarChart3, sectionKeys: ["data_analysis"] });
+      push("data_analysis", t("project.dataVisualization"), BarChart3, ["data_analysis"]);
+    }
+
+    if (sections.includes("confrontation")) {
+      push("confrontation", t("project.confrontation"), GitBranch, ["confrontation"]);
     }
 
     if (sections.includes("financial_simulation")) {
-      tabs.push({ key: "financial_simulation", label: t("project.financialSimulation"), icon: BarChart3, sectionKeys: ["financial_simulation"] });
+      push("financial_simulation", t("project.financialSimulation"), BarChart3, ["financial_simulation"]);
     }
 
-    if (sections.includes("soutenance_ppt")) {
-      tabs.push({ key: "soutenance_ppt", label: t("project.soutenancePPT"), icon: Presentation, sectionKeys: ["soutenance_ppt"] });
-    }
-
-    if (sections.includes("soutenance_simulation")) {
-      tabs.push({ key: "soutenance_simulation", label: t("project.soutenanceOral"), icon: Mic, sectionKeys: ["soutenance_simulation"] });
-    }
   }
 
   if (sections.includes("assisted_writing")) {
-    tabs.push({ key: "assisted_writing", label: t("project.assistedWriting"), icon: PenTool, sectionKeys: ["assisted_writing"] });
+    push("assisted_writing", t("project.assistedWriting"), PenTool, ["assisted_writing"]);
   }
 
   if (sections.includes("bibliography")) {
-    tabs.push({ key: "bibliography", label: t("project.bibliography"), icon: Library, sectionKeys: ["bibliography"] });
+    push("bibliography", t("project.bibliography"), Library, ["bibliography"]);
   }
 
   if (sections.includes("exports")) {
-    tabs.push({ key: "exports", label: t("project.exportTab"), icon: Download, sectionKeys: ["exports"] });
+    push("exports", t("project.exportTab"), Download, ["exports"]);
+  }
+
+  if (sections.includes("soutenance_ppt")) {
+    push("soutenance_ppt", t("project.soutenancePPT"), Presentation, ["soutenance_ppt"]);
+  }
+
+  if (sections.includes("soutenance_simulation")) {
+    push("soutenance_simulation", t("project.soutenanceOral"), Mic, ["soutenance_simulation"]);
   }
 
   if (sections.includes("memoire_audit")) {
-    tabs.push({ key: "memoire_audit", label: t("project.audit"), icon: ShieldCheck, sectionKeys: ["memoire_audit"] });
+    push("memoire_audit", t("project.audit"), ShieldCheck, ["memoire_audit"]);
   }
 
-  tabs.push({ key: "workflow", label: t("project.workflow"), icon: GitBranch, sectionKeys: [] });
+  push("workflow", t("project.workflow"), GitBranch, []);
 
   return tabs;
 }
@@ -374,13 +389,21 @@ function AssistantTab({ project }: { project: any }) {
   const { data: adminCheck } = useAdminCheck();
   const isAdmin = adminCheck?.isAdmin === true;
   const moduleTabs = useMemo(() => getModuleTabs(project.type, t), [project.type, t]);
-  const [activeModule, setActiveModule] = useState(moduleTabs[0]?.key || "foundations");
+  const [showModuleDialog, setShowModuleDialog] = useState(false);
 
   const isTabLocked = useCallback((tab: { sectionKeys: string[] }) => {
     if (isAdmin) return false;
     if (tab.sectionKeys.length === 0) return false;
     return tab.sectionKeys.every(key => isSectionLocked(entData?.entitlements, key, moduleVis, isAdmin));
   }, [entData?.entitlements, moduleVis, isAdmin]);
+
+  const coreTabs = useMemo(() => moduleTabs.filter(t => !t.isOptional), [moduleTabs]);
+  const optionalTabs = useMemo(() => moduleTabs.filter(t => t.isOptional), [moduleTabs]);
+  const unlockedOptionalTabs = useMemo(() => optionalTabs.filter(t => !isTabLocked(t)), [optionalTabs, isTabLocked]);
+  const lockedOptionalTabs = useMemo(() => optionalTabs.filter(t => isTabLocked(t)), [optionalTabs, isTabLocked]);
+  const visibleTabs = useMemo(() => [...coreTabs, ...unlockedOptionalTabs], [coreTabs, unlockedOptionalTabs]);
+
+  const [activeModule, setActiveModule] = useState(visibleTabs[0]?.key || "foundations");
 
   const getSectionData = (key: string) => {
     if (!sections) return { section: undefined, activeVersion: undefined };
@@ -409,92 +432,125 @@ function AssistantTab({ project }: { project: any }) {
       </div>
 
       <Tabs value={activeModule} onValueChange={setActiveModule}>
-        <div className="md:hidden mb-4">
+        <div className="md:hidden mb-4 flex gap-2">
           <Select value={activeModule} onValueChange={setActiveModule}>
-            <SelectTrigger className="w-full" data-testid="select-module-mobile">
+            <SelectTrigger className="flex-1" data-testid="select-module-mobile">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {moduleTabs.map(tab => {
-                const tabLocked = isTabLocked(tab);
+              {visibleTabs.map(tab => {
                 const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
                 const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
                 const isWorkflow = tab.key === "workflow";
                 return (
-                  <SelectItem key={tab.key} value={tab.key} disabled={tabLocked} data-testid={`select-module-option-${tab.key}`}>
+                  <SelectItem key={tab.key} value={tab.key} data-testid={`select-module-option-${tab.key}`}>
                     <span className="flex items-center gap-2">
-                      {tabLocked && <Lock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />}
+                      {tab.isOptional && <Badge variant="secondary" className="text-[10px] px-1 py-0">{t("project.moduleLabel")}</Badge>}
                       {tab.label}
-                      {!tabLocked && allValidated && !isWorkflow && <Check className="w-3 h-3 text-green-500 shrink-0" />}
+                      {allValidated && !isWorkflow && <Check className="w-3 h-3 text-green-500 shrink-0" />}
                     </span>
                   </SelectItem>
                 );
               })}
             </SelectContent>
           </Select>
+          {lockedOptionalTabs.length > 0 && (
+            <Button variant="outline" size="icon" onClick={() => setShowModuleDialog(true)} data-testid="button-add-module-mobile">
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
         </div>
 
         <div className="hidden md:block">
-          <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-auto">
-            {moduleTabs.map(tab => {
-              const Icon = tab.icon;
-              const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
-              const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
-              const hasContent = tabSections.some(s => s.activeVersionId);
-              const isWorkflow = tab.key === "workflow";
-              const tabLocked = isTabLocked(tab);
+          <div className="flex items-start gap-2 flex-wrap">
+            <TabsList className="bg-background/50 border border-border p-1 rounded-xl h-auto flex-wrap gap-1 w-auto">
+              {visibleTabs.map(tab => {
+                const Icon = tab.icon;
+                const tabSections = tab.sectionKeys.map(k => sections?.find((s: ProjectSection) => s.key === k)).filter(Boolean) as ProjectSection[];
+                const allValidated = tabSections.length > 0 && tabSections.every(s => s.status === "validated" || s.status === "final_version");
+                const hasContent = tabSections.some(s => s.activeVersionId);
+                const isWorkflow = tab.key === "workflow";
 
-              let dotColor = "bg-yellow-400 dark:bg-yellow-500";
-              if (isWorkflow) dotColor = "bg-blue-500";
-              else if (allValidated) dotColor = "bg-green-500";
-              else if (hasContent) dotColor = "bg-yellow-400 dark:bg-yellow-500";
+                let dotColor = "bg-yellow-400 dark:bg-yellow-500";
+                if (isWorkflow) dotColor = "bg-blue-500";
+                else if (allValidated) dotColor = "bg-green-500";
+                else if (hasContent) dotColor = "bg-yellow-400 dark:bg-yellow-500";
 
-              return (
-                <TabsTrigger
-                  key={tab.key}
-                  value={tab.key}
-                  disabled={tabLocked}
-                  className={`py-2 px-4 rounded-lg transition-all gap-2 text-sm whitespace-nowrap ${
-                    tabLocked
-                      ? ""
-                      : "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  }`}
-                  data-testid={`tab-module-${tab.key}`}
-                >
-                  {tabLocked ? (
-                    <Lock className="w-4 h-4 shrink-0 text-muted-foreground" />
-                  ) : (
+                return (
+                  <TabsTrigger
+                    key={tab.key}
+                    value={tab.key}
+                    className="py-2 px-4 rounded-lg transition-all gap-2 text-sm whitespace-nowrap data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                    data-testid={`tab-module-${tab.key}`}
+                  >
                     <Icon className="w-4 h-4 shrink-0" />
-                  )}
-                  {tab.label}
-                  {tabLocked ? (
-                    <span className="sr-only">{t("project.lockedLabel")}</span>
-                  ) : allValidated && !isWorkflow ? (
-                    <Check className="w-3 h-3 text-green-500 shrink-0" />
-                  ) : (
-                    <div className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
-                  )}
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+                    {tab.label}
+                    {allValidated && !isWorkflow ? (
+                      <Check className="w-3 h-3 text-green-500 shrink-0" />
+                    ) : (
+                      <div className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
+                    )}
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+            {lockedOptionalTabs.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-xl gap-1.5 shrink-0"
+                onClick={() => setShowModuleDialog(true)}
+                data-testid="button-add-module"
+              >
+                <Plus className="w-4 h-4" />
+                {t("project.addModules")}
+              </Button>
+            )}
+          </div>
         </div>
 
-        {moduleTabs.map(tab => {
-          const tabLocked = isTabLocked(tab);
+        <Dialog open={showModuleDialog} onOpenChange={setShowModuleDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t("project.availableModules")}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {lockedOptionalTabs.map(tab => {
+                const Icon = tab.icon;
+                return (
+                  <div
+                    key={tab.key}
+                    className="flex items-center justify-between gap-3 p-3 rounded-lg border border-border hover-elevate cursor-pointer"
+                    onClick={() => {
+                      setShowModuleDialog(false);
+                      navigate("/billing");
+                    }}
+                    data-testid={`module-option-${tab.key}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                      <span className="text-sm font-medium">{tab.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                      <Badge variant="secondary" className="text-[10px]">{t("project.unlockModule")}</Badge>
+                    </div>
+                  </div>
+                );
+              })}
+              {lockedOptionalTabs.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">{t("project.allModulesUnlocked")}</p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {visibleTabs.map(tab => {
           return (
             <TabsContent key={tab.key} value={tab.key} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 mt-6">
-              {tabLocked ? (
-                <Card>
-                  <CardContent className="flex flex-col items-center justify-center py-12 text-center gap-4">
-                    <Lock className="w-10 h-10 text-muted-foreground" />
-                    <p className="text-muted-foreground max-w-md">{t("project.moduleLockedMessage")}</p>
-                    <Button variant="default" onClick={() => navigate("/billing")} data-testid="button-go-to-billing">
-                      {t("project.goToBilling")}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ) : tab.key === "workflow" ? (
+              {tab.key === "workflow" ? (
                 <WorkflowOverview project={project} sections={sections || []} />
               ) : sectionsLoading ? (
                 <Skeleton className="h-48 w-full" />
