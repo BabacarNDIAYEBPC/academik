@@ -762,12 +762,17 @@ const translations = {
   seo: {
     landingTitle: { fr: "Academik - Assistant de rédaction académique IA", en: "Academik - AI Academic Writing Assistant" },
     landingDescription: { fr: "Academik vous accompagne de A à Z dans la rédaction de votre mémoire, TFE, VAE ou rapport de stage. Structuration, analyse et rédaction assistées par IA.", en: "Academik supports you from A to Z in writing your dissertation, thesis, VAE or internship report. AI-assisted structuring, analysis and writing." },
-    landingKeywords: { fr: "rédaction académique, mémoire, TFE, VAE, rapport de stage, IA, intelligence artificielle, aide rédaction, assistant académique", en: "academic writing, dissertation, thesis, VAE, internship report, AI, artificial intelligence, writing help, academic assistant" },
+    landingKeywords: { fr: "rédaction académique, mémoire, TFE, VAE, rapport de stage, IA, intelligence artificielle, aide rédaction, assistant académique, thèse, méthodologie", en: "academic writing, dissertation, thesis, VAE, internship report, AI, artificial intelligence, writing help, academic assistant, methodology" },
     dashboardTitle: { fr: "Tableau de bord - Academik", en: "Dashboard - Academik" },
+    dashboardDescription: { fr: "Gérez vos projets académiques, suivez votre progression et accédez à tous vos travaux de rédaction depuis votre tableau de bord Academik.", en: "Manage your academic projects, track progress and access all your writing work from your Academik dashboard." },
     newProjectTitle: { fr: "Nouveau Projet - Academik", en: "New Project - Academik" },
+    newProjectDescription: { fr: "Créez un nouveau projet de rédaction académique : mémoire, TFE infirmier, VAE, thèse ou rapport de stage avec l'assistant IA Academik.", en: "Create a new academic writing project: dissertation, nursing thesis, VAE, thesis or internship report with the Academik AI assistant." },
     settingsTitle: { fr: "Paramètres - Academik", en: "Settings - Academik" },
+    settingsDescription: { fr: "Personnalisez votre expérience Academik : préférences de langue, clé API OpenAI et paramètres de votre compte.", en: "Customize your Academik experience: language preferences, OpenAI API key and account settings." },
     billingTitle: { fr: "Facturation - Academik", en: "Billing - Academik" },
+    billingDescription: { fr: "Consultez vos achats, activez des modules et gérez votre abonnement Academik. Pack fondamental et options à la carte.", en: "View your purchases, activate modules and manage your Academik subscription. Core pack and à la carte options." },
     projectTitle: { fr: "Projet - Academik", en: "Project - Academik" },
+    projectDescription: { fr: "Rédigez et structurez votre travail académique section par section avec l'aide de l'intelligence artificielle Academik.", en: "Write and structure your academic work section by section with the help of Academik artificial intelligence." },
     adminTitle: { fr: "Administration - Academik", en: "Administration - Academik" },
   },
   modules: {

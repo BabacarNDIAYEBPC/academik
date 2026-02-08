@@ -826,7 +826,7 @@ export default function Billing() {
 
   return (
     <Layout>
-      <SEO titleKey="seo.billingTitle" />
+      <SEO titleKey="seo.billingTitle" descriptionKey="seo.billingDescription" canonicalPath="/billing" />
       <div className="space-y-6" data-testid="page-billing">
         <div>
           <h1 className="text-2xl font-bold" data-testid="text-billing-title">{t("billing.billingAndQuotas")}</h1>

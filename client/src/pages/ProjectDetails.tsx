@@ -169,7 +169,7 @@ export default function ProjectDetails() {
 
   return (
     <Layout>
-      <SEO titleKey="seo.projectTitle" />
+      <SEO titleKey="seo.projectTitle" descriptionKey="seo.projectDescription" canonicalPath={`/projects/${project.id}`} />
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2 flex-wrap">
           <Badge variant="outline" className="uppercase tracking-wider text-xs font-semibold" data-testid="badge-project-type">

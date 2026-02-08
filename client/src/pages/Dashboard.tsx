@@ -39,7 +39,7 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <SEO titleKey="seo.dashboardTitle" />
+      <SEO titleKey="seo.dashboardTitle" descriptionKey="seo.dashboardDescription" canonicalPath="/dashboard" />
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight" data-testid="text-dashboard-title">{t("dashboard.title")}</h1>

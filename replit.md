@@ -61,6 +61,16 @@ The application follows a client-server architecture.
 - Module Visibility: Admin can toggle visibility of 25 modules across 7 categories (core, collecte, analyse, revue, production, soutenance, ia). Disabled modules are hidden from ProjectDetails tabs, Billing page options, and Landing page pricing. Stored as JSON in admin_settings (key: "module_visibility"). Public API: GET /api/modules/visibility. Defaults to all visible when no settings exist.
 - Components: client/src/components/admin/ (AdminDashboard, AdminUsers, AdminPlans, AdminPayments, AdminAISettings, AdminLogs, AdminModules)
 
+## SEO & Google Indexing
+- **SEO Component**: `client/src/components/SEO.tsx` - Sets title, meta description, keywords, canonical URL, Open Graph tags (title, description, image, url, type, site_name, locale), Twitter Card tags (summary_large_image), and JSON-LD structured data
+- **index.html**: Static fallback SEO tags for crawlers (OG, Twitter, JSON-LD SoftwareApplication schema, theme-color, apple-touch-icon)
+- **robots.txt**: Served at `/robots.txt` via Express - allows `/`, disallows `/dashboard`, `/projects`, `/settings`, `/billing`, `/admin`, `/api/`
+- **sitemap.xml**: Served at `/sitemap.xml` via Express - lists `https://academik.fr` with weekly changefreq
+- **OG Image**: `/images/og-image.png` (1200x630 social sharing image)
+- **JSON-LD**: SoftwareApplication schema with Organization creator (Performance Consulting Groupe SAS)
+- **All pages** have: unique title, meta description, canonical URL, OG/Twitter tags
+- **Domain**: academik.fr (canonical base URL hardcoded in SEO component)
+
 ## External Dependencies
 -   **OpenAI**: Used for AI content generation.
 -   **PostgreSQL**: Primary database for all application data.

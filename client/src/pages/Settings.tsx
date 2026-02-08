@@ -53,7 +53,7 @@ export default function Settings() {
 
   return (
     <Layout>
-      <SEO titleKey="seo.settingsTitle" />
+      <SEO titleKey="seo.settingsTitle" descriptionKey="seo.settingsDescription" canonicalPath="/settings" />
       <div className="max-w-2xl mx-auto py-8">
         <h1 className="text-3xl font-bold tracking-tight mb-2" data-testid="text-settings-title">{t("settings.title")}</h1>
         <p className="text-muted-foreground mb-8">{t("settings.subtitle")}</p>

@@ -5,53 +5,87 @@ interface SEOProps {
   titleKey: string;
   descriptionKey?: string;
   keywordsKey?: string;
+  canonicalPath?: string;
+  ogType?: string;
+  jsonLd?: Record<string, unknown>;
 }
 
-export function SEO({ titleKey, descriptionKey, keywordsKey }: SEOProps) {
+function setMeta(attr: string, attrValue: string, content: string) {
+  let el = document.querySelector(`meta[${attr}="${attrValue}"]`);
+  if (!el) {
+    el = document.createElement("meta");
+    el.setAttribute(attr, attrValue);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
+
+function setLink(rel: string, href: string) {
+  let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+  if (!el) {
+    el = document.createElement("link");
+    el.setAttribute("rel", rel);
+    document.head.appendChild(el);
+  }
+  el.setAttribute("href", href);
+}
+
+const BASE_URL = "https://academik.fr";
+const OG_IMAGE = `${BASE_URL}/images/og-image.png`;
+
+export function SEO({ titleKey, descriptionKey, keywordsKey, canonicalPath, ogType = "website", jsonLd }: SEOProps) {
   const { t, lang } = useI18n();
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.title = t(titleKey);
+    const title = t(titleKey);
+    document.title = title;
 
-    if (descriptionKey) {
-      let meta = document.querySelector('meta[name="description"]');
-      if (!meta) {
-        meta = document.createElement("meta");
-        meta.setAttribute("name", "description");
-        document.head.appendChild(meta);
+    const description = descriptionKey ? t(descriptionKey) : "";
+    const keywords = keywordsKey ? t(keywordsKey) : "";
+    const canonical = canonicalPath ? `${BASE_URL}${canonicalPath}` : BASE_URL;
+
+    if (description) {
+      setMeta("name", "description", description);
+    }
+    if (keywords) {
+      setMeta("name", "keywords", keywords);
+    }
+
+    setLink("canonical", canonical);
+
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:type", ogType);
+    setMeta("property", "og:url", canonical);
+    setMeta("property", "og:site_name", "Academik");
+    setMeta("property", "og:image", OG_IMAGE);
+    setMeta("property", "og:image:width", "1200");
+    setMeta("property", "og:image:height", "630");
+    setMeta("property", "og:locale", lang === "fr" ? "fr_FR" : "en_US");
+    if (description) {
+      setMeta("property", "og:description", description);
+    }
+
+    setMeta("name", "twitter:card", "summary_large_image");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:image", OG_IMAGE);
+    if (description) {
+      setMeta("name", "twitter:description", description);
+    }
+
+    let scriptEl = document.querySelector('script[data-seo-jsonld]') as HTMLScriptElement | null;
+    if (jsonLd) {
+      if (!scriptEl) {
+        scriptEl = document.createElement("script");
+        scriptEl.setAttribute("type", "application/ld+json");
+        scriptEl.setAttribute("data-seo-jsonld", "true");
+        document.head.appendChild(scriptEl);
       }
-      meta.setAttribute("content", t(descriptionKey));
+      scriptEl.textContent = JSON.stringify(jsonLd);
+    } else if (scriptEl) {
+      scriptEl.remove();
     }
-
-    if (keywordsKey) {
-      let meta = document.querySelector('meta[name="keywords"]');
-      if (!meta) {
-        meta = document.createElement("meta");
-        meta.setAttribute("name", "keywords");
-        document.head.appendChild(meta);
-      }
-      meta.setAttribute("content", t(keywordsKey));
-    }
-
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (!ogTitle) {
-      ogTitle = document.createElement("meta");
-      ogTitle.setAttribute("property", "og:title");
-      document.head.appendChild(ogTitle);
-    }
-    ogTitle.setAttribute("content", t(titleKey));
-
-    if (descriptionKey) {
-      let ogDesc = document.querySelector('meta[property="og:description"]');
-      if (!ogDesc) {
-        ogDesc = document.createElement("meta");
-        ogDesc.setAttribute("property", "og:description");
-        document.head.appendChild(ogDesc);
-      }
-      ogDesc.setAttribute("content", t(descriptionKey));
-    }
-  }, [t, lang, titleKey, descriptionKey, keywordsKey]);
+  }, [t, lang, titleKey, descriptionKey, keywordsKey, canonicalPath, ogType, jsonLd]);
 
   return null;
 }

@@ -211,7 +211,7 @@ export default function NewProject() {
 
   return (
     <Layout>
-      <SEO titleKey="seo.newProjectTitle" />
+      <SEO titleKey="seo.newProjectTitle" descriptionKey="seo.newProjectDescription" canonicalPath="/projects/new" />
       <div className="max-w-2xl mx-auto py-8">
         <Button variant="ghost" onClick={() => step > 1 ? setStep(step - 1) : setLocation('/')} className="mb-6" data-testid="button-back">
           <ArrowLeft className="mr-2 w-4 h-4" />

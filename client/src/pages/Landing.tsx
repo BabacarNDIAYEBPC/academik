@@ -66,7 +66,18 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
-      <SEO titleKey="seo.landingTitle" descriptionKey="seo.landingDescription" keywordsKey="seo.landingKeywords" />
+      <SEO titleKey="seo.landingTitle" descriptionKey="seo.landingDescription" keywordsKey="seo.landingKeywords" canonicalPath="/" ogType="website" jsonLd={{
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Academik",
+        "url": "https://academik.fr",
+        "description": t("seo.landingDescription"),
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "179", "priceCurrency": "EUR" },
+        "creator": { "@type": "Organization", "name": "Performance Consulting Groupe SAS" },
+        "inLanguage": ["fr", "en"]
+      }} />
       <Navbar />
       <HeroSection />
       <ProjectTypesBar />
