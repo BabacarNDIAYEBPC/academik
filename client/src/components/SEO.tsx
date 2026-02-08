@@ -8,6 +8,9 @@ interface SEOProps {
   canonicalPath?: string;
   ogType?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  directTitle?: string;
+  directDescription?: string;
+  directKeywords?: string;
 }
 
 function setMeta(attr: string, attrValue: string, content: string) {
@@ -37,16 +40,16 @@ function setLink(rel: string, href: string, attrs?: Record<string, string>) {
 const BASE_URL = "https://academik.fr";
 const OG_IMAGE = `${BASE_URL}/images/og-image.png`;
 
-export function SEO({ titleKey, descriptionKey, keywordsKey, canonicalPath, ogType = "website", jsonLd }: SEOProps) {
+export function SEO({ titleKey, descriptionKey, keywordsKey, canonicalPath, ogType = "website", jsonLd, directTitle, directDescription, directKeywords }: SEOProps) {
   const { t, lang } = useI18n();
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    const title = t(titleKey);
+    const title = directTitle || (titleKey ? t(titleKey) : "Academik");
     document.title = title;
 
-    const description = descriptionKey ? t(descriptionKey) : "";
-    const keywords = keywordsKey ? t(keywordsKey) : "";
+    const description = directDescription || (descriptionKey ? t(descriptionKey) : "");
+    const keywords = directKeywords || (keywordsKey ? t(keywordsKey) : "");
     const canonical = canonicalPath ? `${BASE_URL}${canonicalPath}` : BASE_URL;
 
     if (description) {
@@ -95,7 +98,7 @@ export function SEO({ titleKey, descriptionKey, keywordsKey, canonicalPath, ogTy
     } else if (scriptEl) {
       scriptEl.remove();
     }
-  }, [t, lang, titleKey, descriptionKey, keywordsKey, canonicalPath, ogType, jsonLd]);
+  }, [t, lang, titleKey, descriptionKey, keywordsKey, canonicalPath, ogType, jsonLd, directTitle, directDescription, directKeywords]);
 
   return null;
 }

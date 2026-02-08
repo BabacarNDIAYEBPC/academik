@@ -15,6 +15,7 @@ import ProjectDetails from "@/pages/ProjectDetails";
 import Settings from "@/pages/Settings";
 import Billing from "@/pages/Billing";
 import Admin from "@/pages/Admin";
+import Blog from "@/pages/Blog";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -56,6 +57,8 @@ function Router() {
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
       <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
+      <Route path="/blog/:slug" component={Blog} />
+      <Route path="/blog" component={Blog} />
       <Route component={NotFound} />
     </Switch>
   );

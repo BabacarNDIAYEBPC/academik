@@ -1,7 +1,7 @@
 # Academik
 
 ## Overview
-Academik (academik.fr) is an AI-powered academic writing assistant designed to support students and professionals in structuring, analyzing, and writing academic papers such as Mémoire, TFE, VAE, and Rapport de Stage. It provides section-based content generation with contextual memory, version history, and controlled regeneration capabilities. The project aims to streamline the academic writing process, offering a comprehensive tool for various academic document types.
+Academik (academik.fr) is a methodology software connected to academic platforms, designed to support students and professionals in structuring, analyzing, and writing academic papers such as Mémoire, TFE, VAE, and Rapport de Stage. It provides section-based content generation with contextual memory, version history, and controlled regeneration capabilities. The project aims to streamline the academic writing process, offering a comprehensive tool for various academic document types. Note: All user-facing text avoids AI/IA terminology - the product is positioned as a methodology tool, not an AI tool.
 
 ## Branding
 - App name: **Academik**
@@ -65,11 +65,33 @@ The application follows a client-server architecture.
 - **SEO Component**: `client/src/components/SEO.tsx` - Sets title, meta description, keywords, canonical URL, Open Graph tags (title, description, image, url, type, site_name, locale), Twitter Card tags (summary_large_image), and JSON-LD structured data
 - **index.html**: Static fallback SEO tags for crawlers (OG, Twitter, JSON-LD SoftwareApplication schema, theme-color, apple-touch-icon)
 - **robots.txt**: Served at `/robots.txt` via Express - allows `/`, disallows `/dashboard`, `/projects`, `/settings`, `/billing`, `/admin`, `/api/`
-- **sitemap.xml**: Served at `/sitemap.xml` via Express - lists `https://academik.fr` with weekly changefreq
+- **sitemap.xml**: Served at `/sitemap.xml` via Express - lists 8 URLs: home, /blog, and 6 blog article pages with hreflang alternates (fr/en/x-default)
 - **OG Image**: `/images/og-image.png` (1200x630 social sharing image)
 - **JSON-LD**: SoftwareApplication schema with Organization creator (Performance Consulting Groupe SAS)
 - **All pages** have: unique title, meta description, canonical URL, OG/Twitter tags
 - **Domain**: academik.fr (canonical base URL hardcoded in SEO component)
+
+## Blog Section
+- **Routes**: `/blog` (article list), `/blog/:slug` (individual article)
+- **Implementation**: Static content in `client/src/pages/Blog.tsx` (not database-driven, for SEO)
+- **Articles**: 6 SEO-optimized articles on academic writing methodology:
+  - comment-rediger-problematique-memoire
+  - structurer-plan-memoire
+  - cadre-theorique-conceptuel-memoire
+  - revue-litterature-methode
+  - methodologie-memoire-guide
+  - tfe-infirmier-guide-complet
+- **Bilingual**: Each article has FR and EN content
+- **JSON-LD**: BlogPosting schema on each article page
+- **SEO Component**: Uses `directTitle`/`directDescription`/`directKeywords` props for dynamic article content
+- **Landing footer**: Links to blog
+
+## Branding - AI/IA Removal
+- All user-facing text avoids "IA", "AI", "intelligence artificielle" terminology
+- Positioned as "logiciel de méthodologie connecté aux plateformes académiques"
+- Internal admin labels and OpenAI API technical code unchanged
+- SEO meta tags, JSON-LD, FAQ schemas updated accordingly
+- AggregateRating: 4.95/5 based on 238 reviews
 
 ## External Dependencies
 -   **OpenAI**: Used for AI content generation.

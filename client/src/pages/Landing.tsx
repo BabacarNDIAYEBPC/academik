@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,7 @@ const OPTION_CATALOG = {
   collecte: [
     { key: "questionnaire", price: 25, fr: "Questionnaire (collecte)", en: "Questionnaire (Collection)" },
     { key: "guide_entretien", price: 25, fr: "Guide d'entretien (collecte)", en: "Interview Guide (Collection)" },
-    { key: "simulation_entretien", price: 19, fr: "Simulation d'entretien IA", en: "AI Interview Simulation" },
+    { key: "simulation_entretien", price: 19, fr: "Simulation d'entretien guidée", en: "Guided Interview Simulation" },
     { key: "questionnaire_analysis", price: 29, fr: "Dépouillement du questionnaire", en: "Questionnaire Analysis" },
   ],
   analyse: [
@@ -48,8 +49,8 @@ const OPTION_CATALOG = {
     { key: "fusion_memoire", price: 19, fr: "Fusion mémoire en un document", en: "Merge Dissertation into One Document" },
   ],
   ia: [
-    { key: "words_20k", price: 19, fr: "+20 000 mots IA", en: "+20,000 AI Words" },
-    { key: "words_50k", price: 39, fr: "+50 000 mots IA", en: "+50,000 AI Words" },
+    { key: "words_20k", price: 19, fr: "+20 000 mots", en: "+20,000 Words" },
+    { key: "words_50k", price: 39, fr: "+50 000 mots", en: "+50,000 Words" },
     { key: "extra_project", price: 29, fr: "Projet supplémentaire", en: "Additional Project" },
   ],
 };
@@ -851,7 +852,12 @@ function Footer() {
                 : "An intelligent methodological assistant. No turnkey writing, no academic cheating."}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-center gap-3 flex-wrap">
+            <Link href="/blog">
+              <Button variant="ghost" size="sm" data-testid="link-footer-blog">
+                {lang === "fr" ? "Blog" : "Blog"}
+              </Button>
+            </Link>
             <a href="/api/login">
               <Button variant="outline" data-testid="button-footer-login">
                 {lang === "fr" ? "Se connecter" : "Sign In"}

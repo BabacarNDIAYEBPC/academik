@@ -123,7 +123,7 @@ const DOMAIN_LABELS: Record<string, string> = {
   education: "Éducation / Pédagogie",
   psychologie: "Psychologie",
   informatique: "Informatique / Numérique",
-  data_ia: "Data / Intelligence artificielle",
+  data_ia: "Data / Science des données",
   logistique: "Logistique / Supply chain",
   qualite: "Qualité / QHSE",
   comptabilite: "Comptabilité / Audit / Contrôle de gestion",
@@ -931,7 +931,7 @@ export async function registerRoutes(
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -962,7 +962,7 @@ export async function registerRoutes(
       if (err instanceof z.ZodError) {
         res.status(400).json({ message: err.errors[0].message });
       } else {
-        res.status(500).json({ message: err.message || "Erreur lors de la génération IA" });
+        res.status(500).json({ message: err.message || "Erreur lors de la génération" });
       }
     }
   });
@@ -1030,7 +1030,7 @@ export async function registerRoutes(
         return res.status(429).json({ 
           message: quotaCheck.reason === "words" 
             ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-            : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+            : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
           quotaExceeded: quotaCheck.reason,
           quota: quotaCheck.quota 
         });
@@ -1110,7 +1110,7 @@ export async function registerRoutes(
         return res.status(429).json({ 
           message: quotaCheck.reason === "words" 
             ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-            : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+            : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
           quotaExceeded: quotaCheck.reason,
           quota: quotaCheck.quota 
         });
@@ -1340,7 +1340,7 @@ Pour chaque hypothèse: énoncé clair, justification théorique, piste méthodo
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -1436,7 +1436,7 @@ Les articles doivent être:
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -1537,7 +1537,7 @@ Structure le mapping pour qu'il soit utilisable pour:
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -1590,7 +1590,7 @@ IMPORTANT: Produis uniquement la liste bibliographique formatée, sans explicati
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -1672,7 +1672,7 @@ RÈGLES DE FORMATAGE:
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -1767,7 +1767,7 @@ Produis uniquement la liste bibliographique formatée, triée par ordre alphabé
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -1845,7 +1845,7 @@ ${extraContext ? `\nInstructions: ${extraContext}` : ""}`;
       return res.status(429).json({ 
         message: quotaCheck.reason === "words" 
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer." 
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota 
       });
@@ -1941,7 +1941,7 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
       }
 
       if (result.rows.length === 0) {
-        return res.status(422).json({ message: "L'IA n'a pas pu générer un tableau structuré. Veuillez réessayer." });
+        return res.status(422).json({ message: "Le logiciel n'a pas pu générer un tableau structuré. Veuillez réessayer." });
       }
 
       res.json(result);
@@ -1967,7 +1967,7 @@ ${extraContext ? `\nInstructions supplémentaires: ${extraContext}` : ""}`;
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2086,7 +2086,7 @@ RÈGLES STRICTES:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2202,7 +2202,7 @@ RÈGLES STRICTES:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2304,7 +2304,7 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2414,7 +2414,7 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2530,7 +2530,7 @@ IMPORTANT:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2655,7 +2655,7 @@ IMPORTANT:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2760,7 +2760,7 @@ IMPORTANT:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2864,7 +2864,7 @@ IMPORTANT:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -2960,7 +2960,7 @@ IMPORTANT:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -3118,7 +3118,7 @@ IMPORTANT:
     questionnaire: { price: 2500, label: "Questionnaire (collecte)" },
     guide_entretien: { price: 2500, label: "Guide d'entretien (collecte)" },
     pack_collecte: { price: 4500, label: "Pack Collecte (questionnaire + guide)" },
-    simulation_entretien: { price: 1900, label: "Simulation d'entretien IA" },
+    simulation_entretien: { price: 1900, label: "Simulation d'entretien guidée" },
     data_visualization: { price: 2500, label: "Analyse et visualisation des données" },
     financial_simulation: { price: 2900, label: "Simulation financière" },
     questionnaire_analysis: { price: 2900, label: "Dépouillement du questionnaire" },
@@ -3135,8 +3135,8 @@ IMPORTANT:
     pack_soutenance: { price: 7900, label: "Pack Soutenance & Audit" },
     export_illimite: { price: 1900, label: "Export illimité Word / PPT" },
     fusion_memoire: { price: 1900, label: "Fusion mémoire en un document" },
-    words_20k: { price: 1900, label: "+20 000 mots IA" },
-    words_50k: { price: 3900, label: "+50 000 mots IA" },
+    words_20k: { price: 1900, label: "+20 000 mots" },
+    words_50k: { price: 3900, label: "+50 000 mots" },
     extra_project: { price: 2900, label: "Projet supplémentaire" },
   };
 
@@ -3307,7 +3307,7 @@ IMPORTANT:
   const SURPLUS_PRICING: Record<string, { price: number; amount: number; label: string; type: string }> = {
     words_5k: { price: 1900, amount: 5000, label: "+5 000 mots", type: "words" },
     words_10k: { price: 2900, amount: 10000, label: "+10 000 mots", type: "words" },
-    actions_50: { price: 900, amount: 50, label: "+50 actions IA", type: "actions" },
+    actions_50: { price: 900, amount: 50, label: "+50 actions", type: "actions" },
     project_1: { price: 900, amount: 1, label: "+1 projet actif", type: "projects" },
   };
 
@@ -3956,7 +3956,7 @@ IMPORTANT:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4054,7 +4054,7 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4153,7 +4153,7 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4277,7 +4277,7 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4375,7 +4375,7 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint. Achetez un pack supplémentaire pour continuer."
-          : "Quota d'actions IA mensuel atteint. Achetez un pack supplémentaire pour continuer.",
+          : "Quota d'actions mensuel atteint. Achetez un pack supplémentaire pour continuer.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4468,7 +4468,7 @@ IMPORTANT: Réponds en JSON valide sous cette forme exacte:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint."
-          : "Quota d'actions IA mensuel atteint.",
+          : "Quota d'actions mensuel atteint.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4549,7 +4549,7 @@ Réponds en JSON: { "slides": [{ "title": "...", "content": "...", "notes": "...
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint."
-          : "Quota d'actions IA mensuel atteint.",
+          : "Quota d'actions mensuel atteint.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4635,7 +4635,7 @@ Réponds en JSON:
       return res.status(429).json({
         message: quotaCheck.reason === "words"
           ? "Quota de mots mensuel atteint."
-          : "Quota d'actions IA mensuel atteint.",
+          : "Quota d'actions mensuel atteint.",
         quotaExceeded: quotaCheck.reason,
         quota: quotaCheck.quota
       });
@@ -4848,6 +4848,22 @@ Sitemap: https://academik.fr/sitemap.xml
 
   app.get("/sitemap.xml", (_req, res) => {
     const now = new Date().toISOString().split("T")[0];
+    const blogSlugs = [
+      "comment-rediger-problematique-memoire",
+      "structurer-plan-memoire",
+      "cadre-theorique-conceptuel-memoire",
+      "revue-litterature-methode",
+      "methodologie-memoire-guide",
+      "tfe-infirmier-guide-complet",
+    ];
+    const blogUrls = blogSlugs.map(slug => `  <url>
+    <loc>https://academik.fr/blog/${slug}</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/blog/${slug}" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/blog/${slug}" />
+    <lastmod>${now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`).join("\n");
     res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -4860,16 +4876,25 @@ Sitemap: https://academik.fr/sitemap.xml
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://academik.fr/blog</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/blog" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/blog" />
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+${blogUrls}
 </urlset>
 `);
   });
 
   app.get("/llms.txt", (_req, res) => {
     res.type("text/plain").send(`# Academik
-> Assistant de rédaction académique propulsé par l'intelligence artificielle
+> Logiciel de méthodologie académique connecté aux principales plateformes universitaires
 
 ## À propos
-Academik (https://academik.fr) est un assistant méthodologique intelligent qui accompagne les étudiants et professionnels dans la structuration, l'analyse et la rédaction de leurs travaux académiques.
+Academik (https://academik.fr) est un logiciel de méthodologie qui accompagne les étudiants et professionnels dans la structuration, l'analyse et la rédaction de leurs travaux académiques.
 
 ## Types de travaux supportés
 - Mémoire (Master, Licence)
@@ -4880,7 +4905,7 @@ Academik (https://academik.fr) est un assistant méthodologique intelligent qui 
 
 ## Fonctionnalités principales
 - Génération de contenu section par section avec mémoire contextuelle
-- Cadre théorique et conceptuel assisté par IA
+- Cadre théorique et conceptuel assisté
 - Revue de littérature automatisée
 - Plan de travail dynamique
 - Construction de problématique et hypothèses
@@ -4915,8 +4940,8 @@ Site web : https://academik.fr
       schema_version: "v1",
       name_for_human: "Academik",
       name_for_model: "academik",
-      description_for_human: "Assistant de rédaction académique IA pour mémoire, TFE, thèse, VAE et rapport de stage.",
-      description_for_model: "Academik is an AI-powered academic writing assistant that helps students and professionals structure, analyze, and write academic papers including dissertations, nursing theses (TFE), doctoral theses, VAE (prior learning assessment), and internship reports. It provides section-by-section content generation with contextual memory, version history, and controlled regeneration. Available in French and English.",
+      description_for_human: "Logiciel de rédaction académique pour mémoire, TFE, thèse, VAE et rapport de stage.",
+      description_for_model: "Academik is an academic writing software that helps students and professionals structure, analyze, and write academic papers including dissertations, nursing theses (TFE), doctoral theses, VAE (prior learning assessment), and internship reports. It provides section-by-section content generation with contextual memory, version history, and controlled regeneration. Connected to academic platforms like Google Scholar, PubMed, HAL. Available in French and English.",
       auth: { type: "none" },
       api: { type: "openapi", url: "https://academik.fr" },
       logo_url: "https://academik.fr/images/logo-512.png",
