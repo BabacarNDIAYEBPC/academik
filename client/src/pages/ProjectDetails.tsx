@@ -42,7 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   FileText, Sparkles, Trash2, Plus, File, Loader2, Lock, Upload,
-  BookOpen, ClipboardList, Award, Briefcase,
+  BookOpen, ClipboardList, Award, Briefcase, Package, BrainCircuit,
   Map, Lightbulb, BookMarked, FlaskConical, Check,
   MessageSquare, BarChart3, PenTool, Library, Download,
   Presentation, Mic, ShieldCheck, GitBranch, Clock,
@@ -405,7 +405,13 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const MODULE_PRICE_MAP: Record<string, { packKey: string; price: string }> = {
+const MODULE_PRICE_MAP: Record<string, { packKey: string; price: string; isPack?: boolean }> = {
+  core_pack: { packKey: "core_pack", price: "179 €", isPack: true },
+  foundation: { packKey: "foundation", price: "29 €" },
+  plan: { packKey: "plan", price: "25 €" },
+  conceptual: { packKey: "conceptual", price: "35 €" },
+  literature: { packKey: "literature", price: "49 €" },
+  methodology: { packKey: "methodology", price: "39 €" },
   questionnaire: { packKey: "questionnaire", price: "25 €" },
   guide_entretien: { packKey: "guide_entretien", price: "25 €" },
   questionnaire_analysis: { packKey: "questionnaire_analysis", price: "29 €" },
@@ -421,11 +427,21 @@ const MODULE_PRICE_MAP: Record<string, { packKey: string; price: string }> = {
   financial_simulation: { packKey: "financial_simulation", price: "29 €" },
   soutenance_ppt: { packKey: "soutenance_ppt", price: "29 €" },
   soutenance_simulation: { packKey: "soutenance_simulation", price: "29 €" },
-  bibliography: { packKey: "pack_revue", price: "59 €" },
+  bibliography: { packKey: "biblio_multinormes", price: "25 €" },
+  article_analysis: { packKey: "article_analysis", price: "29 €" },
+  article_confrontation: { packKey: "article_confrontation", price: "29 €" },
+  export_illimite: { packKey: "export_illimite", price: "19 €" },
+  fusion_memoire: { packKey: "fusion_memoire", price: "19 €" },
   memoire_audit: { packKey: "audit", price: "49 €" },
 };
 
 const ALL_OPTIONAL_MODULES: { key: string; labelKey: string; icon: any }[] = [
+  { key: "core_pack", labelKey: "project.packFondation", icon: Package },
+  { key: "foundation", labelKey: "project.foundation", icon: BrainCircuit },
+  { key: "plan", labelKey: "project.planAcademique", icon: FileText },
+  { key: "conceptual", labelKey: "project.conceptual", icon: Search },
+  { key: "literature", labelKey: "project.literatureReview", icon: BookMarked },
+  { key: "methodology", labelKey: "project.methodology", icon: FlaskConical },
   { key: "questionnaire", labelKey: "project.questionnaire", icon: ClipboardList },
   { key: "formulaire", labelKey: "project.formulaire", icon: ClipboardList },
   { key: "guide_entretien", labelKey: "project.interviewGuide", icon: FileText },
@@ -439,9 +455,13 @@ const ALL_OPTIONAL_MODULES: { key: string; labelKey: string; icon: any }[] = [
   { key: "abstract_resume", labelKey: "project.abstractResume", icon: FileText },
   { key: "sigles_acronymes", labelKey: "project.siglesAcronymes", icon: BookOpen },
   { key: "cover_page", labelKey: "project.coverPage", icon: Award },
+  { key: "article_analysis", labelKey: "project.articleAnalysis", icon: FileText },
+  { key: "article_confrontation", labelKey: "project.articleConfrontation", icon: GitBranch },
+  { key: "bibliography", labelKey: "project.bibliography", icon: Library },
+  { key: "export_illimite", labelKey: "project.exportIllimite", icon: FileCheck },
+  { key: "fusion_memoire", labelKey: "project.fusionMemoire", icon: FileText },
   { key: "soutenance_ppt", labelKey: "project.soutenancePPT", icon: Presentation },
   { key: "soutenance_simulation", labelKey: "project.soutenanceOral", icon: Mic },
-  { key: "bibliography", labelKey: "project.bibliography", icon: Library },
   { key: "memoire_audit", labelKey: "project.audit", icon: ShieldCheck },
 ];
 
@@ -472,8 +492,26 @@ function AssistantTab({ project }: { project: any }) {
 
   const projectSectionKeys = useMemo(() => new Set(getSectionsForProjectType(project.type)), [project.type]);
 
+  const ENTITLEMENT_MODULE_MAP: Record<string, string> = {
+    core_pack: "core_pack",
+    foundation: "foundation",
+    plan: "plan",
+    conceptual: "conceptual",
+    literature: "literature",
+    methodology: "methodology",
+    article_analysis: "article_analysis",
+    article_confrontation: "article_confrontation",
+    export_illimite: "export_illimite",
+    fusion_memoire: "fusion_memoire",
+  };
+
   const isModuleLocked = useCallback((moduleKey: string) => {
     if (isAdmin) return false;
+    const directEnt = ENTITLEMENT_MODULE_MAP[moduleKey];
+    if (directEnt) {
+      const ents = entData?.entitlements || [];
+      return !ents.includes(directEnt);
+    }
     return isSectionLocked(entData?.entitlements, moduleKey, moduleVis, isAdmin);
   }, [entData?.entitlements, moduleVis, isAdmin]);
 
@@ -493,8 +531,7 @@ function AssistantTab({ project }: { project: any }) {
     const priceInfo = MODULE_PRICE_MAP[moduleKey];
     if (priceInfo) {
       setCheckoutLoadingKey(moduleKey);
-      const packBundles = ["core_pack", "pack_collecte", "pack_analyse", "pack_revue", "pack_soutenance"];
-      const payload = packBundles.includes(priceInfo.packKey)
+      const payload = priceInfo.isPack
         ? { pack: priceInfo.packKey }
         : { items: [priceInfo.packKey] };
       checkout.mutate(payload, {
@@ -1228,7 +1265,11 @@ function SingleSectionWrapper({
     hypothesis_validation: { packKey: "hypothesis_validation", label: "Validation des hypothèses (19 €)" },
     formulaire: { packKey: "formulaire", label: "Formulaire en ligne (25 €)" },
     financial_simulation: { packKey: "financial_simulation", label: "Simulation financière (29 €)" },
-    bibliography: { packKey: "pack_revue", label: "Pack Revue avancée (59 €)" },
+    bibliography: { packKey: "biblio_multinormes", label: "Bibliographie multi-normes (25 €)" },
+  };
+
+  const SECTION_PRICE_MAP: Record<string, string> = {
+    foundation: "29 €", plan: "25 €", conceptual: "35 €", literature: "49 €", methodology: "39 €", redaction: "19 €",
   };
 
   const getLockedDescription = (): string => {
@@ -1236,7 +1277,11 @@ function SingleSectionWrapper({
     if (!requirement) return "";
     const keys = Array.isArray(requirement) ? requirement : [requirement];
     if (keys.some(k => CORE_KEYS.includes(k))) {
-      return t("project.foundationPackDesc");
+      const entKey = keys.find(k => CORE_KEYS.includes(k)) || keys[0];
+      const price = SECTION_PRICE_MAP[entKey] || "";
+      return price
+        ? `${t("project.sectionRequiresModule")} (${price}). ${t("project.activateToAccess")}`
+        : t("project.foundationPackDesc");
     }
     const packInfo = SECTION_PACK_INFO[sectionKey];
     if (packInfo) {
@@ -1250,13 +1295,9 @@ function SingleSectionWrapper({
     const requirement = getSectionEntitlementKey(sectionKey);
     if (!requirement) return;
     const keys = Array.isArray(requirement) ? requirement : [requirement];
-    if (keys.some(k => CORE_KEYS.includes(k))) {
-      checkout.mutate({ pack: "core_pack" });
-      return;
-    }
     const packInfo = SECTION_PACK_INFO[sectionKey];
     if (packInfo) {
-      checkout.mutate({ pack: packInfo.packKey });
+      checkout.mutate({ items: [packInfo.packKey] });
       return;
     }
     checkout.mutate({ items: [keys[0]] });
@@ -1267,7 +1308,9 @@ function SingleSectionWrapper({
     if (!requirement) return t("project.activateModule");
     const keys = Array.isArray(requirement) ? requirement : [requirement];
     if (keys.some(k => CORE_KEYS.includes(k))) {
-      return t("project.activateFoundationPack");
+      const entKey = keys.find(k => CORE_KEYS.includes(k)) || keys[0];
+      const price = SECTION_PRICE_MAP[entKey];
+      return price ? `${t("project.activateModule")} (${price})` : t("project.activateFoundationPack");
     }
     const packInfo = SECTION_PACK_INFO[sectionKey];
     if (packInfo) {

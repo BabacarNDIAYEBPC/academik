@@ -17,7 +17,10 @@ import Billing from "@/pages/Billing";
 import Admin from "@/pages/Admin";
 import Blog from "@/pages/Blog";
 import PublicForm from "@/pages/PublicForm";
+import Legal from "@/pages/Legal";
 import NotFound from "@/pages/NotFound";
+import CookieConsent from "@/components/CookieConsent";
+import TermsAcceptance from "@/components/TermsAcceptance";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
@@ -59,6 +62,7 @@ function Router() {
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
       <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
       <Route path="/f/:publicId" component={PublicForm} />
+      <Route path="/legal/:page" component={Legal} />
       <Route path="/blog/:slug" component={Blog} />
       <Route path="/blog" component={Blog} />
       <Route component={NotFound} />
@@ -71,8 +75,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <TermsAcceptance>
+            <Toaster />
+            <Router />
+            <CookieConsent />
+          </TermsAcceptance>
         </TooltipProvider>
       </I18nProvider>
     </QueryClientProvider>

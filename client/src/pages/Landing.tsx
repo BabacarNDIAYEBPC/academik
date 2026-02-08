@@ -929,7 +929,22 @@ function Footer() {
           <div className="flex flex-col sm:flex-row items-center gap-3 flex-wrap">
             <Link href="/blog">
               <Button variant="ghost" size="sm" data-testid="link-footer-blog">
-                {lang === "fr" ? "Blog" : "Blog"}
+                Blog
+              </Button>
+            </Link>
+            <Link href="/legal/cgu">
+              <Button variant="ghost" size="sm" data-testid="link-footer-cgu">
+                {lang === "fr" ? "CGU" : "Terms of Use"}
+              </Button>
+            </Link>
+            <Link href="/legal/cgv">
+              <Button variant="ghost" size="sm" data-testid="link-footer-cgv">
+                {lang === "fr" ? "CGV" : "Terms of Sale"}
+              </Button>
+            </Link>
+            <Link href="/legal/politique-de-confidentialite">
+              <Button variant="ghost" size="sm" data-testid="link-footer-privacy">
+                {lang === "fr" ? "Confidentialité" : "Privacy"}
               </Button>
             </Link>
             <a href="/api/login">
@@ -943,6 +958,11 @@ function Footer() {
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </a>
+          </div>
+          <div className="text-xs text-muted-foreground text-center space-y-1">
+            <p>Performance Consulting Groupe SAS – SIREN 913 540 944</p>
+            <p>3 Avenue de Toulouse, 66140 Canet-en-Roussillon – Capital social : 14 000 €</p>
+            <p><a href="mailto:contact@academik.fr" className="hover:underline">contact@academik.fr</a></p>
           </div>
         </div>
       </div>
