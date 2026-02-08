@@ -1,0 +1,279 @@
+🟩 CAHIER DES CHARGES – PARCOURS VAE (Validation des acquis de l’expérience)
+1) Objectif du parcours
+
+Permettre au candidat de produire un dossier VAE complet en :
+
+structurant son parcours + motivation
+
+reliant son expérience au référentiel officiel du diplôme
+
+prouvant chaque bloc de compétences via faits, missions, résultats, preuves
+
+générant des textes conformes aux attentes d’un jury (pas un récit vague)
+
+2) Entrées à récupérer (obligatoires)
+A. Documents importables
+
+CV (PDF/Word)
+
+Référentiel du diplôme (RNCP / DC1-DCx / blocs) (PDF/Word)
+
+Guide VAE / Livret 2 (si disponible) (PDF/Word)
+
+(Optionnel) Fiches de poste, attestations, certificats, évaluations, lettres
+
+B. Données utilisateur (formulaire)
+
+Diplôme visé (nom exact)
+
+Organisme (si connu)
+
+Nombre de blocs/compétences à traiter (auto depuis référentiel)
+
+Calendrier/objectif (date dépôt, etc. – optionnel)
+
+3) Structure globale du dossier VAE (sections)
+✅ Section 1 — Présentation du candidat (obligatoire)
+✅ Section 2 — Parcours & expériences (obligatoire, auto depuis CV + questions)
+✅ Section 3 — Motivation & projet (obligatoire)
+✅ Section 4 — Référentiel & cartographie des compétences (obligatoire)
+✅ Section 5 — Démonstration par blocs de compétences (obligatoire, cœur)
+✅ Section 6 — Synthèse finale & conclusion (obligatoire)
+✅ Annexes / preuves (optionnel mais recommandé)
+🟩 SECTION 1 — PRÉSENTATION DU CANDIDAT
+🎯 Objectif
+
+Donner une présentation claire, crédible, professionnelle.
+
+❓ Questions
+
+Identité (nom/prénom, âge optionnel, ville)
+
+Situation actuelle (poste, structure, statut)
+
+Ancienneté globale dans le métier
+
+Diplôme visé : intitulé exact
+
+Contexte VAE : pourquoi maintenant ?
+
+🧠 Sortie IA
+
+Présentation rédigée (style VAE : factuel + pro)
+
+Formulation “jury-compatible”
+
+🟩 SECTION 2 — PARCOURS & EXPÉRIENCES (CV → narration structurée)
+🎯 Objectif
+
+Transformer le CV en parcours lisible + cohérent.
+
+❓ Questions (en plus du CV importé)
+
+Pour chaque expérience principale :
+
+Fonction occupée (intitulé + niveau de responsabilité)
+
+Missions principales (3 à 7)
+
+Réalisations marquantes (2 à 5)
+
+Outils / méthodes utilisés
+
+Encadrement : seul, équipe, management ?
+
+Périmètre : volume, fréquence, public, budget (si pertinent)
+
+Difficultés rencontrées + solutions
+
+🧠 Sortie IA
+
+Parcours chronologique rédigé
+
+Mise en valeur des expériences “porteuses” pour le diplôme
+
+🟩 SECTION 3 — MOTIVATION & PROJET PROFESSIONNEL
+🎯 Objectif
+
+Montrer la cohérence : expérience → diplôme → projet.
+
+❓ Questions
+
+Pourquoi ce diplôme ?
+
+Pourquoi par la VAE plutôt qu’une formation classique ?
+
+Quel est votre projet après validation (évolution, poste, concours, légitimité…) ?
+
+Quelles valeurs pro vous guident ?
+
+Quelles qualités pro vous caractérisent ?
+
+Quels axes de progression identifiez-vous ?
+
+🧠 Sortie IA
+
+Lettre/motivation VAE (forme dossier)
+
+Projet pro rédigé
+
+🟩 SECTION 4 — RÉFÉRENTIEL & CARTOGRAPHIE (mapping)
+🎯 Objectif
+
+Faire correspondre expérience ↔ compétences.
+
+Fonction attendue
+
+Lire le référentiel importé
+
+Extraire automatiquement :
+
+blocs (DC1/DC2… ou blocs RNCP)
+
+compétences / critères
+
+attendus (verbes d’action)
+
+Sortie IA
+
+Tableau “cartographie globale” :
+
+Bloc	Compétence / attendu	Expériences liées (CV)	Niveau de preuve (faible/moyen/fort)
+
+👉 Le logiciel propose ensuite :
+
+“On commence par le bloc le plus fort” (recommandation)
+
+🟩 SECTION 5 — DÉMONSTRATION PAR BLOCS (CŒUR DU DOSSIER)
+🎯 Objectif
+
+Pour chaque bloc : prouver les compétences par des éléments concrets.
+
+5.1 Structure répétée POUR CHAQUE BLOC
+A. Présentation du bloc
+
+Intitulé du bloc (issu du référentiel)
+
+Compétences visées (liste)
+
+B. Questions préparatoires (obligatoires)
+
+Dans quel(s) poste(s) avez-vous exercé ce bloc ?
+
+Dans quel contexte (structure, public, contraintes) ?
+
+Quelles étaient vos responsabilités ?
+
+Quelles situations professionnelles illustrent le mieux ce bloc ?
+
+C. TABLEAU SYNTHÉTIQUE (obligatoire) — ta vision
+
+1 tableau minimum par bloc (idéalement 2 si bloc large)
+
+Tableau modèle :
+
+Mission / activité	Actions concrètes (ce que j’ai fait)	Résultats / succès (preuves chiffrées si possible)	Compétence / critère du référentiel	Preuves / annexes
+
+✅ “Preuves/annexes” = procédures, attestations, supports, outils, rapports, mails (sans données sensibles)
+
+D. Développement narratif (obligatoire)
+
+Après le tableau, l’IA génère un texte en 3 sous-parties (sans sous-titres si tu veux, mais structuré) :
+
+Contexte + rôle
+
+Démarche (comment j’ai fait)
+
+Résultats + recul (analyse réflexive)
+
+E. Analyse réflexive (obligatoire, guidée)
+
+Questions :
+
+Quelles compétences avez-vous réellement mobilisées ?
+
+Quelles difficultés avez-vous rencontrées ?
+
+Comment les avez-vous gérées ?
+
+Qu’avez-vous appris ?
+
+Qu’est-ce que vous feriez différemment ?
+
+F. Auto-évaluation / niveau (optionnel mais utile)
+
+Sur ce bloc, vous vous situez : débutant / autonome / référent
+
+Points à renforcer
+
+5.2 Règles de qualité VAE (à intégrer)
+
+Pas de blabla : toujours faits + résultats + preuves
+
+Verbes d’action : “j’ai mis en place, coordonné, évalué…”
+
+Éviter les généralités : préciser contexte, fréquence, volume
+
+Toujours relier explicitement au référentiel
+
+🟩 SECTION 6 — SYNTHÈSE FINALE & CONCLUSION
+🎯 Objectif
+
+Clore le dossier, montrer la cohérence et la maturité.
+
+❓ Questions
+
+Quels sont vos points forts démontrés ?
+
+Quelles compétences avez-vous le mieux validées ?
+
+Quelles sont vos limites actuelles ?
+
+Pourquoi vous êtes prêt pour l’obtention du diplôme ?
+
+Votre projection après validation
+
+🧠 Sortie IA
+
+Synthèse globale + conclusion VAE
+
+🟨 ANNEXES / PREUVES (optionnel mais recommandé)
+Fonction
+
+zone d’upload
+
+classement par bloc
+
+générer une “liste des pièces justificatives” automatique
+
+⚙️ FONCTIONNALITÉS TRANSVERSALES (VAE)
+
+Parcours guidé “question par question”
+
+Extraction automatique du référentiel
+
+Mapping référentiel ↔ CV (suggestions IA)
+
+Génération des tableaux + export
+
+Boutons : reformuler / enrichir / simplifier
+
+Export Word / PDF (avec pagination, sommaire si possible)
+
+Mode “jury” : style formel, preuves, cohérence
+
+✅ Résultat final attendu
+
+Un dossier VAE :
+
+clair
+
+structuré
+
+aligné au référentiel
+
+riche en preuves
+
+facile à lire pour le jury
+
+facilement enrichissable par le candidat
