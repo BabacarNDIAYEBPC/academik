@@ -60,6 +60,8 @@ function getSectionsForProjectType(projectType: string): string[] {
     case "memoire":
     case "these":
       return ["subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
+    case "memoire_professionnel":
+      return ["mp_structure", "mp_emergence", "subject", "problematic", "hypotheses", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "tfe":
       return ["situation_appel", "construction_sujet", "plan", "conceptual_framework", "literature_review", "methodology", "questionnaire", "guide_entretien", "questionnaire_analysis", "interview_simulation", "data_analysis", "financial_simulation", "assisted_writing", "bibliography", "exports", "soutenance_ppt", "soutenance_simulation", "memoire_audit"];
     case "vae":
@@ -123,9 +125,18 @@ function getModuleTabs(projectType: string, t: (path: string) => string) {
       tabs.push({ key: "rs_conclusion", label: t("project.rsConclusion"), icon: Check, sectionKeys: ["rs_conclusion"] });
     }
   } else {
+    if (projectType === "memoire_professionnel") {
+      if (sections.includes("mp_structure")) {
+        tabs.push({ key: "mp_structure", label: t("project.mpStructure"), icon: Building2, sectionKeys: ["mp_structure"] });
+      }
+      if (sections.includes("mp_emergence")) {
+        tabs.push({ key: "mp_emergence", label: t("project.mpEmergence"), icon: Lightbulb, sectionKeys: ["mp_emergence"] });
+      }
+    }
+
     const foundationKeys = sections.filter(s => ["subject", "problematic", "hypotheses", "situation_appel", "construction_sujet", "vae_competencies"].includes(s));
     if (foundationKeys.length > 0) {
-      const icon = projectType === "tfe" ? ClipboardList : projectType === "vae" ? Award : BookOpen;
+      const icon = projectType === "tfe" ? ClipboardList : BookOpen;
       tabs.push({ key: "foundations", label: t("project.foundations"), icon, sectionKeys: foundationKeys });
     }
 

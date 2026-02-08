@@ -366,6 +366,8 @@ export const SECTION_LABELS: Record<string, string> = {
   vae_cartographie: "Cartographie des compétences",
   vae_bloc_demo: "Démonstration par blocs",
   vae_synthese: "Synthèse & conclusion",
+  mp_structure: "Présentation de la structure",
+  mp_emergence: "Émergence du sujet",
   rs_cover_page: "Page de garde",
   rs_acknowledgements: "Remerciements",
   rs_introduction: "Introduction",

@@ -58,6 +58,18 @@ The application follows a client-server architecture.
 - **AI Prompts**: Each rs_ section has dedicated French prompts in `getSectionTask()` in routes.ts
 - **i18n**: Full FR/EN translations under `internshipReport.*` in i18n.tsx
 
+## Mémoire Professionnel Module
+- **Questionnaire-based approach**: Two dedicated sections with guided questions before standard academic sections
+- **2 dedicated sections**: mp_structure (17 questions - organization presentation), mp_emergence (5 questions - subject/problem emergence from professional field)
+- **Flow**: mp_structure and mp_emergence tabs appear BEFORE foundations (subject, problematic, hypotheses), then standard academic sections follow
+- **Component**: `MemoireProQuestionnaire.tsx` - Step-by-step question flow with progress tracking (same pattern as VaeQuestionnaire/InternshipQuestionnaire)
+- **Integration**: When all questions are answered, answers are sent as `extraContext` to the generate endpoint
+- **Entitlement**: All mp_ sections map to `foundation` entitlement (same as standard mémoire foundations)
+- **AI Prompts**: Each mp_ section has dedicated French prompts in `getSectionTask()` in routes.ts
+- **i18n**: Full FR/EN translations under `memoirePro.*` in i18n.tsx
+- **Project type**: `memoire_professionnel` in project creation selector (indigo badge in Dashboard)
+- **Purpose**: Grounds academic reflection in professional reality — students describe their workplace structure first, then the problematic emerges from field observation before proceeding to standard academic foundations
+
 ## VAE Module (Validation des Acquis de l'Expérience)
 - **Questionnaire-based approach**: Each section has guided questions (3-7 per section). Users answer all questions before generating content.
 - **6 dedicated sections**: vae_presentation, vae_parcours, vae_motivation, vae_cartographie, vae_bloc_demo, vae_synthese

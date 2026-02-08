@@ -72,6 +72,8 @@ export const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   rs_analysis: "rs_foundation",
   rs_contributions: "rs_foundation",
   rs_conclusion: "rs_foundation",
+  mp_structure: "foundation",
+  mp_emergence: "foundation",
   vae_presentation: "vae_foundation",
   vae_parcours: "vae_foundation",
   vae_motivation: "vae_foundation",

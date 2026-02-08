@@ -60,6 +60,8 @@ const SECTION_TO_ENTITLEMENT: Record<string, string | string[]> = {
   rs_analysis: "rs_foundation",
   rs_contributions: "rs_foundation",
   rs_conclusion: "rs_foundation",
+  mp_structure: "foundation",
+  mp_emergence: "foundation",
   vae_presentation: "vae_foundation",
   vae_parcours: "vae_foundation",
   vae_motivation: "vae_foundation",
@@ -632,6 +634,45 @@ RÈGLES:
 - Longueur: 400-600 mots
 - Ne PAS introduire de nouvelles informations
 - Cohérence avec l'introduction (effet miroir)`;
+
+    case "mp_structure":
+      return `=== TÂCHE: PRÉSENTATION DE LA STRUCTURE PROFESSIONNELLE ===
+À partir des réponses fournies par l'étudiant, rédige une présentation complète et structurée de la structure professionnelle servant de terrain au mémoire.
+
+STRUCTURE ATTENDUE:
+1. **Identification de la structure** : nom, statut juridique, année de création, secteur d'activité, taille, localisation
+2. **Activités et missions** : activité principale, missions, produits/services, publics cibles
+3. **Organisation interne** : organigramme fonctionnel, principaux services/pôles, service d'accueil de l'étudiant et son rôle
+4. **Positionnement de l'étudiant** : rôle occupé, missions confiées, outils et méthodes utilisés, problématiques observées sur le terrain
+
+RÈGLES:
+- Style académique professionnel, à la troisième personne pour la structure, première personne pour le positionnement de l'étudiant
+- Longueur: 600-900 mots
+- Texte exploitable directement dans le mémoire professionnel
+- Servir de socle logique pour l'émergence du sujet et de la problématique
+- Ne PAS inventer d'informations non fournies par l'étudiant`;
+
+    case "mp_emergence":
+      return `=== TÂCHE: ÉMERGENCE DU SUJET ET DE LA PROBLÉMATIQUE ===
+À partir des réponses fournies et du contexte de la structure professionnelle (si disponible dans les sections validées), rédige une section qui fait le pont entre le terrain professionnel et la réflexion académique.
+
+STRUCTURE ATTENDUE:
+1. **Problématique professionnelle identifiée** : description précise de la problématique observée sur le terrain
+2. **Contexte et périmètre** : service ou contexte dans lequel la problématique s'inscrit
+3. **Importance et enjeux** : pourquoi cette problématique est cruciale pour la structure
+4. **Propositions académiques** :
+   - Proposition de sujet de mémoire (formulé comme un titre académique)
+   - Question de départ
+   - Problématique formulée académiquement
+   - Objectifs du mémoire (2-3 objectifs)
+   - Hypothèses de travail (2-3 hypothèses si pertinent)
+
+RÈGLES:
+- Style académique, transition fluide du terrain vers la théorie
+- Longueur: 500-700 mots
+- Montrer clairement le lien entre l'observation de terrain et la question de recherche
+- Les propositions doivent être ancrées dans la réalité décrite
+- L'étudiant pourra ensuite affiner le sujet et la problématique dans les sections suivantes`;
 
     case "vae_presentation":
       return `=== TÂCHE: PRÉSENTATION DU CANDIDAT VAE ===
