@@ -4,6 +4,7 @@ import { SEO } from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, Calendar, Clock, BookOpen } from "lucide-react";
+import { MODULE_CATALOG } from "./ModulePage";
 
 interface BlogArticle {
   slug: string;
@@ -858,6 +859,15 @@ The TFE is a demanding but formative exercise. It's an opportunity to develop yo
   },
 ];
 
+const BLOG_TO_MODULES: Record<string, string[]> = {
+  "comment-rediger-problematique-memoire": ["problematique", "memoire", "tfe-infirmier"],
+  "structurer-plan-memoire": ["plan-de-travail", "memoire", "redaction-assistee"],
+  "cadre-theorique-conceptuel-memoire": ["cadre-theorique-conceptuel", "revue-de-litterature", "memoire"],
+  "revue-litterature-methode": ["revue-de-litterature", "bibliographie-multi-normes", "analyse-articles-scientifiques"],
+  "methodologie-memoire-guide": ["methodologie-recherche", "questionnaire-recherche", "guide-entretien"],
+  "tfe-infirmier-guide-complet": ["tfe-infirmier", "guide-entretien", "analyse-qualitative", "powerpoint-soutenance"],
+};
+
 function BlogList() {
   const { t, lang } = useI18n();
 
@@ -1076,6 +1086,33 @@ function BlogArticlePage() {
               </CardContent>
             </Card>
           </div>
+
+          {(() => {
+            const relatedModuleSlugs = BLOG_TO_MODULES[article.slug] || [];
+            const relatedModules = relatedModuleSlugs
+              .map(s => MODULE_CATALOG.find(m => m.slug === s))
+              .filter(Boolean);
+            if (relatedModules.length === 0) return null;
+            return (
+              <div className="mt-8">
+                <h3 className="text-lg font-bold mb-4" data-testid="text-related-modules">
+                  {lang === "fr" ? "Fonctionnalités associées" : "Related Features"}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {relatedModules.map((m) => (
+                    <Link key={m!.slug} href={`/fonctionnalites/${m!.slug}`}>
+                      <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-blog-module-${m!.slug}`}>
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold text-sm mb-1">{lang === "fr" ? m!.titleFr : m!.titleEn}</h4>
+                          <p className="text-xs text-muted-foreground line-clamp-2">{lang === "fr" ? m!.subtitleFr : m!.subtitleEn}</p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </article>
       </main>
     </div>

@@ -4,13 +4,14 @@ import { useI18n, LanguageSelector } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { BLOG_ARTICLES } from "./Blog";
 import {
   ArrowRight, ArrowLeft, BookOpen, GraduationCap, Sparkles,
   FileText, Search, FlaskConical, CheckCircle2, Lightbulb, Map,
   BookMarked, Award, Briefcase, ClipboardList, BrainCircuit,
   BarChart3, Mic, FileCheck, Presentation, ShieldCheck, PenTool,
   MessageSquare, Calculator, Upload, ListChecks, Layers, Eye,
-  Globe, Package, type LucideIcon,
+  Globe, Package, ChevronRight, type LucideIcon,
 } from "lucide-react";
 
 interface ModuleEntry {
@@ -29,6 +30,9 @@ interface ModuleEntry {
   detailsFr: string;
   detailsEn: string;
   price?: string;
+  relatedSlugs?: string[];
+  faqFr?: { q: string; a: string }[];
+  faqEn?: { q: string; a: string }[];
 }
 
 const MODULE_CATALOG: ModuleEntry[] = [
@@ -66,6 +70,19 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Academik accompagne les étudiants en licence et master dans la rédaction de leur mémoire. Notre plateforme propose une approche structurée : vous définissez votre sujet, formulez votre problématique, construisez vos hypothèses, puis Academik vous guide à travers chaque étape — du plan de travail à la rédaction finale. Grâce à la mémoire contextuelle, chaque section validée enrichit automatiquement les générations suivantes, garantissant la cohérence de l'ensemble de votre travail académique.",
     detailsEn: "Academik supports bachelor's and master's students in writing their dissertation. Our platform offers a structured approach: you define your subject, formulate your research question, build your hypotheses, then Academik guides you through each step — from the work plan to the final draft. Thanks to contextual memory, each validated section automatically enriches subsequent generations, ensuring the coherence of your entire academic work.",
     price: "179 €",
+    relatedSlugs: ["problematique", "plan-de-travail", "cadre-theorique-conceptuel", "revue-de-litterature", "methodologie-recherche", "redaction-assistee", "export-word-pdf"],
+    faqFr: [
+      { q: "Combien de temps faut-il pour rédiger un mémoire avec Academik ?", a: "Le temps varie selon la complexité de votre sujet, mais Academik accélère significativement le processus en vous guidant étape par étape. La plupart des étudiants gagnent entre 40% et 60% de temps sur la structuration et la rédaction." },
+      { q: "Academik rédige-t-il le mémoire à ma place ?", a: "Non. Academik est un outil de méthodologie qui vous accompagne dans la structuration et la rédaction. Vous restez l'auteur de votre travail. L'outil vous aide à formuler vos idées, structurer votre argumentation et respecter les normes académiques." },
+      { q: "Quels types de mémoires sont supportés ?", a: "Academik supporte les mémoires de master, licence, mémoires professionnels, et s'adapte à tous les domaines : sciences humaines, gestion, santé, droit, ingénierie, etc." },
+      { q: "Puis-je exporter mon travail en Word ou PDF ?", a: "Oui, Academik permet l'export en Word (.docx) et PDF avec une mise en page académique professionnelle, incluant un sommaire automatique." },
+    ],
+    faqEn: [
+      { q: "How long does it take to write a dissertation with Academik?", a: "Time varies depending on your subject's complexity, but Academik significantly speeds up the process by guiding you step by step. Most students save between 40% and 60% of time on structuring and writing." },
+      { q: "Does Academik write the dissertation for me?", a: "No. Academik is a methodology tool that supports you in structuring and writing. You remain the author of your work. The tool helps you formulate ideas, structure arguments and meet academic standards." },
+      { q: "What types of dissertations are supported?", a: "Academik supports master's and bachelor's dissertations, professional dissertations, and adapts to all fields: social sciences, management, health, law, engineering, etc." },
+      { q: "Can I export my work to Word or PDF?", a: "Yes, Academik allows export to Word (.docx) and PDF with professional academic formatting, including an automatic table of contents." },
+    ],
   },
   {
     slug: "tfe-infirmier",
@@ -101,6 +118,17 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le TFE (Travail de Fin d'Études) est un passage obligé pour tout étudiant en soins infirmiers. Academik propose un parcours dédié qui suit la méthodologie spécifique de l'IFSI : de la situation d'appel à la question de départ, en passant par le cadre conceptuel, les entretiens et l'analyse. Notre plateforme vous aide à structurer votre réflexion professionnelle tout en respectant les normes académiques.",
     detailsEn: "The TFE (End of Studies Paper) is a mandatory milestone for every nursing student. Academik offers a dedicated pathway that follows the specific methodology of nursing schools: from the initial situation to the starting question, through the conceptual framework, interviews and analysis. Our platform helps you structure your professional reflection while meeting academic standards.",
     price: "179 €",
+    relatedSlugs: ["problematique", "cadre-theorique-conceptuel", "guide-entretien", "analyse-qualitative", "confrontation-resultats", "validation-hypotheses", "powerpoint-soutenance"],
+    faqFr: [
+      { q: "Academik est-il adapté aux exigences de l'IFSI ?", a: "Oui, le parcours TFE d'Academik suit la méthodologie spécifique des Instituts de Formation en Soins Infirmiers, de la situation d'appel à la soutenance." },
+      { q: "Puis-je préparer ma soutenance de TFE avec Academik ?", a: "Oui, Academik propose un module de génération de PowerPoint de soutenance et un simulateur de questions du jury pour vous préparer efficacement." },
+      { q: "Comment Academik aide-t-il pour les entretiens de TFE ?", a: "Academik génère un guide d'entretien semi-directif adapté à votre problématique et vous propose un module d'analyse qualitative des verbatims recueillis." },
+    ],
+    faqEn: [
+      { q: "Is Academik adapted to nursing school requirements?", a: "Yes, Academik's TFE pathway follows the specific methodology of nursing training institutes, from the initial situation to the defense." },
+      { q: "Can I prepare my TFE defense with Academik?", a: "Yes, Academik offers a defense PowerPoint generation module and a jury question simulator to help you prepare effectively." },
+      { q: "How does Academik help with TFE interviews?", a: "Academik generates a semi-structured interview guide adapted to your research question and offers a qualitative verbatim analysis module." },
+    ],
   },
   {
     slug: "these-doctorat",
@@ -136,6 +164,17 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "La rédaction d'une thèse de doctorat représente un défi majeur qui s'étend sur plusieurs années. Academik vous accompagne dans la structuration de votre réflexion, depuis la définition de votre problématique jusqu'à la préparation de votre soutenance. Notre plateforme est conçue pour gérer la complexité et la profondeur requises par un travail doctoral.",
     detailsEn: "Writing a doctoral thesis is a major challenge spanning several years. Academik supports you in structuring your thinking, from defining your research question to preparing your defense. Our platform is designed to handle the complexity and depth required by doctoral work.",
     price: "179 €",
+    relatedSlugs: ["problematique", "revue-de-litterature", "cadre-theorique-conceptuel", "methodologie-recherche", "bibliographie-multi-normes", "audit-memoire"],
+    faqFr: [
+      { q: "Academik peut-il gérer la complexité d'une thèse de doctorat ?", a: "Oui, Academik est conçu pour gérer la profondeur et la complexité requises par un travail doctoral, avec des fonctionnalités avancées de revue de littérature et de méthodologie." },
+      { q: "Comment gérer la bibliographie d'une thèse ?", a: "Le module Bibliographie multi-normes formate automatiquement vos références en APA, Vancouver, MLA ou Chicago selon les exigences de votre établissement." },
+      { q: "L'audit de mémoire fonctionne-t-il pour une thèse ?", a: "Oui, l'audit analyse la cohérence globale, le respect des normes académiques et la qualité rédactionnelle de votre thèse, avec des recommandations détaillées." },
+    ],
+    faqEn: [
+      { q: "Can Academik handle the complexity of a doctoral thesis?", a: "Yes, Academik is designed to handle the depth and complexity required by doctoral work, with advanced literature review and methodology features." },
+      { q: "How to manage a thesis bibliography?", a: "The multi-standard bibliography module automatically formats your references in APA, Vancouver, MLA or Chicago according to your institution's requirements." },
+      { q: "Does the dissertation audit work for a thesis?", a: "Yes, the audit analyzes global coherence, academic standards compliance and writing quality of your thesis, with detailed recommendations." },
+    ],
   },
   {
     slug: "vae",
@@ -171,6 +210,17 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "La VAE (Validation des Acquis de l'Expérience) permet d'obtenir un diplôme en valorisant votre expérience professionnelle. Academik vous guide dans la constitution de votre dossier : de la présentation de votre parcours à la démonstration de vos compétences par blocs, en passant par la cartographie assistée de vos acquis. Notre plateforme vous aide à structurer un dossier convaincant et conforme aux attentes des jurys.",
     detailsEn: "VAE (Prior Learning Assessment) allows you to obtain a degree by leveraging your professional experience. Academik guides you through building your application: from presenting your background to demonstrating competencies block by block, including assisted competency mapping. Our platform helps you structure a convincing application that meets jury expectations.",
     price: "179 €",
+    relatedSlugs: ["redaction-assistee", "powerpoint-soutenance", "simulation-soutenance", "export-word-pdf"],
+    faqFr: [
+      { q: "Qu'est-ce que la VAE exactement ?", a: "La VAE (Validation des Acquis de l'Expérience) permet d'obtenir un diplôme en faisant reconnaître les compétences acquises par l'expérience professionnelle, sans repasser par la formation classique." },
+      { q: "Comment Academik aide-t-il pour le dossier VAE ?", a: "Academik vous guide dans la constitution de votre dossier : présentation du parcours, cartographie des compétences par blocs, démonstration des acquis et préparation de l'oral devant le jury." },
+      { q: "Faut-il une expérience minimum pour la VAE ?", a: "Oui, il faut justifier d'au moins 1 an d'expérience en rapport avec le diplôme visé. Academik vous aide à valoriser et structurer cette expérience dans votre dossier." },
+    ],
+    faqEn: [
+      { q: "What exactly is VAE?", a: "VAE (Prior Learning Assessment) allows you to obtain a degree by having competencies acquired through professional experience recognized, without going through traditional training." },
+      { q: "How does Academik help with the VAE application?", a: "Academik guides you through building your application: background presentation, block-by-block competency mapping, prior learning demonstration and oral defense preparation." },
+      { q: "Is minimum experience required for VAE?", a: "Yes, you need at least 1 year of experience related to the target degree. Academik helps you showcase and structure this experience in your application." },
+    ],
   },
   {
     slug: "rapport-de-stage",
@@ -206,6 +256,17 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le rapport de stage est un exercice académique qui demande de relier théorie et pratique professionnelle. Academik propose un parcours spécifique avec un questionnaire guidé qui vous aide à structurer votre réflexion : présentation de l'entreprise, description des missions, analyse des résultats et bilan personnel. Chaque section est générée en cohérence avec les précédentes.",
     detailsEn: "The internship report is an academic exercise that requires linking theory and professional practice. Academik offers a specific pathway with a guided questionnaire that helps you structure your reflection: company presentation, mission description, results analysis and personal review. Each section is generated in coherence with the previous ones.",
     price: "179 €",
+    relatedSlugs: ["problematique", "redaction-assistee", "export-word-pdf", "powerpoint-soutenance", "simulation-soutenance"],
+    faqFr: [
+      { q: "Quelle est la structure type d'un rapport de stage ?", a: "Un rapport de stage comprend généralement : introduction, présentation de l'entreprise, description des missions, problématique, analyse des résultats, bilan personnel et conclusion. Academik génère ces sections automatiquement." },
+      { q: "Academik peut-il m'aider si je n'ai pas encore fini mon stage ?", a: "Oui, vous pouvez commencer à structurer votre rapport pendant votre stage grâce au questionnaire guidé qui vous aide à collecter les informations au fur et à mesure." },
+      { q: "Le rapport de stage est-il différent d'un mémoire ?", a: "Oui, le rapport de stage est plus centré sur l'expérience terrain et l'entreprise, avec moins d'exigences théoriques. Academik propose un parcours spécifique avec 9 sections dédiées." },
+    ],
+    faqEn: [
+      { q: "What is the typical structure of an internship report?", a: "An internship report typically includes: introduction, company presentation, mission description, research question, results analysis, personal review and conclusion. Academik generates these sections automatically." },
+      { q: "Can Academik help if I haven't finished my internship?", a: "Yes, you can start structuring your report during your internship with the guided questionnaire that helps you collect information progressively." },
+      { q: "Is an internship report different from a dissertation?", a: "Yes, the internship report focuses more on field experience and the company, with fewer theoretical requirements. Academik offers a specific pathway with 9 dedicated sections." },
+    ],
   },
   {
     slug: "etude-de-cas",
@@ -241,6 +302,17 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "L'étude de cas est une méthode d'analyse qui permet d'examiner en profondeur une situation réelle. Academik propose un parcours structuré avec 8 sections dédiées : du contexte initial au plan d'action, en passant par le diagnostic et l'analyse avec des outils sélectionnés. Notre plateforme vous aide à développer une réflexion analytique rigoureuse.",
     detailsEn: "The case study is an analytical method that allows in-depth examination of a real situation. Academik offers a structured pathway with 8 dedicated sections: from initial context to action plan, through diagnosis and analysis with selected tools. Our platform helps you develop rigorous analytical thinking.",
     price: "179 €",
+    relatedSlugs: ["problematique", "analyse-qualitative", "analyse-quantitative", "powerpoint-soutenance", "audit-memoire", "bibliographie-multi-normes"],
+    faqFr: [
+      { q: "Quels outils d'analyse sont disponibles pour l'étude de cas ?", a: "Academik propose une sélection d'outils adaptés : SWOT, PESTEL, Porter, chaîne de valeur, matrice BCG et autres, selon votre domaine d'étude et votre problématique." },
+      { q: "Combien de sections comporte une étude de cas sur Academik ?", a: "Le parcours Étude de Cas comprend 8 sections dédiées : du contexte initial au plan d'action, en passant par le diagnostic, l'analyse et les recommandations." },
+      { q: "Puis-je ajouter des modules complémentaires ?", a: "Oui, l'étude de cas peut être enrichie avec les modules Soutenance, Oral, Bibliographie et Audit pour une préparation complète." },
+    ],
+    faqEn: [
+      { q: "What analysis tools are available for case studies?", a: "Academik offers a selection of adapted tools: SWOT, PESTEL, Porter, value chain, BCG matrix and others, depending on your field and research question." },
+      { q: "How many sections does a case study on Academik have?", a: "The Case Study pathway includes 8 dedicated sections: from initial context to action plan, through diagnosis, analysis and recommendations." },
+      { q: "Can I add complementary modules?", a: "Yes, the case study can be enriched with Defense, Oral, Bibliography and Audit modules for complete preparation." },
+    ],
   },
   {
     slug: "memoire-professionnel",
@@ -276,6 +348,17 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le mémoire professionnel se distingue par son ancrage dans la pratique terrain. Academik vous aide à articuler votre expérience professionnelle avec un cadre académique solide. Le parcours commence par un questionnaire de contexte, puis intègre les sections académiques standards (problématique, cadre théorique, méthodologie) en les reliant à votre réalité professionnelle.",
     detailsEn: "The professional dissertation is distinguished by its grounding in field practice. Academik helps you articulate your professional experience with a solid academic framework. The pathway starts with a context questionnaire, then integrates standard academic sections (research question, theoretical framework, methodology) linking them to your professional reality.",
     price: "179 €",
+    relatedSlugs: ["problematique", "plan-de-travail", "cadre-theorique-conceptuel", "methodologie-recherche", "redaction-assistee"],
+    faqFr: [
+      { q: "Quelle est la différence entre un mémoire classique et un mémoire professionnel ?", a: "Le mémoire professionnel est ancré dans la pratique terrain : il part de votre contexte professionnel pour construire une réflexion académique. Academik propose un parcours spécifique avec un questionnaire de contexte professionnel." },
+      { q: "Dois-je avoir une expérience professionnelle pour utiliser ce parcours ?", a: "Oui, le mémoire professionnel s'appuie sur votre expérience terrain. Le questionnaire initial vous aide à structurer et valoriser cette expérience dans votre travail académique." },
+      { q: "Les sections académiques standards sont-elles incluses ?", a: "Oui, le parcours intègre les sections académiques classiques (problématique, cadre théorique, méthodologie) en les articulant avec votre contexte professionnel." },
+    ],
+    faqEn: [
+      { q: "What's the difference between a classic and professional dissertation?", a: "The professional dissertation is grounded in field practice: it starts from your professional context to build academic reflection. Academik offers a specific pathway with a professional context questionnaire." },
+      { q: "Do I need professional experience for this pathway?", a: "Yes, the professional dissertation builds on your field experience. The initial questionnaire helps you structure and showcase this experience in your academic work." },
+      { q: "Are standard academic sections included?", a: "Yes, the pathway integrates classic academic sections (research question, theoretical framework, methodology) articulating them with your professional context." },
+    ],
   },
   {
     slug: "problematique",
@@ -306,6 +389,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     ],
     detailsFr: "La problématique est le fil conducteur de tout travail académique. Academik vous aide à transformer votre sujet en une question de recherche structurée, en identifiant les tensions théoriques et en formulant une interrogation précise, réalisable et originale.",
     detailsEn: "The research question is the guiding thread of any academic work. Academik helps you transform your subject into a structured research question, identifying theoretical tensions and formulating a precise, feasible and original question.",
+    relatedSlugs: ["memoire", "tfe-infirmier", "these-doctorat", "plan-de-travail", "cadre-theorique-conceptuel"],
   },
   {
     slug: "plan-de-travail",
@@ -336,6 +420,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     ],
     detailsFr: "Le plan de travail est la colonne vertébrale de votre mémoire. Academik génère un plan structuré en parties, chapitres et sous-sections, adapté à votre type de projet (mémoire, TFE, thèse...) et à votre domaine disciplinaire. Vous pouvez le régénérer en mode similaire ou différent jusqu'à obtenir la structure idéale.",
     detailsEn: "The work plan is the backbone of your dissertation. Academik generates a structured outline with parts, chapters and sub-sections, adapted to your project type (dissertation, thesis, TFE...) and disciplinary field. You can regenerate it in similar or different mode until you get the ideal structure.",
+    relatedSlugs: ["memoire", "these-doctorat", "memoire-professionnel", "problematique", "redaction-assistee"],
   },
   {
     slug: "cadre-theorique-conceptuel",
@@ -366,6 +451,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     ],
     detailsFr: "Le cadre théorique et conceptuel constitue le socle scientifique de votre travail. Academik vous aide à identifier les concepts clés, les théories de référence et les auteurs principaux, puis à les articuler de manière cohérente avec votre problématique et vos hypothèses.",
     detailsEn: "The theoretical and conceptual framework constitutes the scientific foundation of your work. Academik helps you identify key concepts, reference theories and main authors, then articulate them coherently with your research question and hypotheses.",
+    relatedSlugs: ["memoire", "tfe-infirmier", "these-doctorat", "revue-de-litterature", "problematique"],
   },
   {
     slug: "revue-de-litterature",
@@ -396,6 +482,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     ],
     detailsFr: "La revue de littérature est une étape essentielle qui permet de situer votre recherche dans le paysage scientifique existant. Academik vous aide à analyser des articles, synthétiser les apports de différents auteurs et identifier les lacunes que votre travail va combler.",
     detailsEn: "The literature review is an essential step that positions your research within the existing scientific landscape. Academik helps you analyze articles, synthesize contributions from different authors and identify gaps that your work will fill.",
+    relatedSlugs: ["memoire", "these-doctorat", "cadre-theorique-conceptuel", "bibliographie-multi-normes", "analyse-articles-scientifiques"],
   },
   {
     slug: "methodologie-recherche",
@@ -426,6 +513,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     ],
     detailsFr: "La méthodologie est le cœur scientifique de votre recherche. Academik vous guide dans le choix de votre approche (qualitative, quantitative ou mixte), la définition de vos outils de collecte, votre stratégie d'échantillonnage et la rédaction de votre protocole de recherche.",
     detailsEn: "The methodology is the scientific heart of your research. Academik guides you through choosing your approach (qualitative, quantitative or mixed), defining your collection tools, your sampling strategy and writing your research protocol.",
+    relatedSlugs: ["memoire", "these-doctorat", "questionnaire-recherche", "guide-entretien", "analyse-qualitative"],
   },
   {
     slug: "redaction-assistee",
@@ -456,6 +544,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     ],
     detailsFr: "La rédaction assistée d'Academik ne remplace pas votre travail : elle l'enrichit. Vous pouvez reformuler dans un registre académique, développer vos idées, synthétiser des passages et améliorer la qualité rédactionnelle. Chaque modification est tracée dans l'historique des versions.",
     detailsEn: "Academik's assisted writing doesn't replace your work: it enriches it. You can reformulate in academic register, develop your ideas, synthesize passages and improve writing quality. Each modification is tracked in version history.",
+    relatedSlugs: ["memoire", "memoire-professionnel", "export-word-pdf", "resume-abstract", "page-remerciements"],
   },
   {
     slug: "export-word-pdf",
@@ -486,6 +575,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     ],
     detailsFr: "Une fois votre travail rédigé et validé, Academik vous permet de l'exporter en Word ou PDF avec une mise en page académique professionnelle. Vous pouvez exporter section par section ou l'intégralité de votre mémoire, avec un sommaire automatique.",
     detailsEn: "Once your work is written and validated, Academik lets you export it to Word or PDF with professional academic formatting. You can export section by section or your entire dissertation, with an automatic table of contents.",
+    relatedSlugs: ["redaction-assistee", "page-de-couverture", "resume-abstract", "bibliographie-multi-normes"],
   },
   {
     slug: "questionnaire-recherche",
@@ -503,6 +593,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module Questionnaire vous permet de créer un questionnaire de recherche complet, de le diffuser en ligne via un lien partageable et de collecter automatiquement les réponses pour votre analyse.",
     detailsEn: "The Questionnaire module lets you create a complete research questionnaire, distribute it online via a shareable link and automatically collect responses for your analysis.",
     price: "25 €",
+    relatedSlugs: ["formulaire-en-ligne", "depouillement-questionnaire", "methodologie-recherche", "analyse-quantitative"],
   },
   {
     slug: "guide-entretien",
@@ -520,6 +611,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le guide d'entretien est essentiel pour la recherche qualitative. Academik génère un guide structuré par thématiques avec des questions principales, des relances et un protocole adapté à vos objectifs de recherche.",
     detailsEn: "The interview guide is essential for qualitative research. Academik generates a structured guide by themes with main questions, follow-ups and a protocol adapted to your research objectives.",
     price: "25 €",
+    relatedSlugs: ["tfe-infirmier", "analyse-qualitative", "simulation-entretien", "methodologie-recherche"],
   },
   {
     slug: "depouillement-questionnaire",
@@ -537,6 +629,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module Dépouillement permet d'analyser vos données de questionnaire : tableaux croisés, graphiques variés et interprétation statistique. Les données peuvent être importées depuis CSV/Excel ou synchronisées depuis le module Formulaire.",
     detailsEn: "The Analysis module lets you analyze your questionnaire data: cross-tabulations, various charts and statistical interpretation. Data can be imported from CSV/Excel or synced from the Form module.",
     price: "29 €",
+    relatedSlugs: ["questionnaire-recherche", "formulaire-en-ligne", "analyse-quantitative", "confrontation-resultats"],
   },
   {
     slug: "analyse-qualitative",
@@ -554,6 +647,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "L'analyse qualitative est au cœur de nombreuses recherches en sciences humaines. Academik vous assiste dans le codage thématique de vos entretiens, l'analyse de verbatims et la production d'une synthèse interprétative rigoureuse.",
     detailsEn: "Qualitative analysis is at the heart of much research in social sciences. Academik assists you in thematic coding of your interviews, verbatim analysis and producing a rigorous interpretive synthesis.",
     price: "39 €",
+    relatedSlugs: ["guide-entretien", "confrontation-resultats", "tfe-infirmier", "validation-hypotheses"],
   },
   {
     slug: "analyse-quantitative",
@@ -571,6 +665,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module d'analyse quantitative transforme vos données brutes en résultats exploitables : tableaux statistiques, graphiques variés et interprétation automatisée pour enrichir votre partie empirique.",
     detailsEn: "The quantitative analysis module transforms your raw data into usable results: statistical tables, various charts and automated interpretation to enrich your empirical section.",
     price: "39 €",
+    relatedSlugs: ["depouillement-questionnaire", "questionnaire-recherche", "confrontation-resultats", "validation-hypotheses"],
   },
   {
     slug: "confrontation-resultats",
@@ -588,6 +683,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "La confrontation des résultats est une étape cruciale de la discussion académique. Academik vous aide à mettre vos résultats en perspective avec la littérature existante, identifiant convergences et divergences pour dégager l'apport original de votre recherche.",
     detailsEn: "Results confrontation is a crucial step in academic discussion. Academik helps you put your results in perspective with existing literature, identifying convergences and divergences to highlight the original contribution of your research.",
     price: "19 €",
+    relatedSlugs: ["analyse-qualitative", "analyse-quantitative", "validation-hypotheses", "revue-de-litterature"],
   },
   {
     slug: "validation-hypotheses",
@@ -605,6 +701,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module de validation des hypothèses vous permet de confronter chaque hypothèse à vos données de recherche, de construire une argumentation structurée et de conclure de manière méthodologique sur la validation ou l'invalidation de chaque hypothèse.",
     detailsEn: "The hypothesis validation module lets you confront each hypothesis with your research data, build structured argumentation and methodologically conclude on the validation or invalidation of each hypothesis.",
     price: "19 €",
+    relatedSlugs: ["confrontation-resultats", "problematique", "analyse-qualitative", "analyse-quantitative"],
   },
   {
     slug: "formulaire-en-ligne",
@@ -622,6 +719,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module Formulaire vous permet de créer des enquêtes en ligne complètes, de les diffuser via un lien public et de suivre les réponses en temps réel depuis un tableau de bord dédié. Les données sont automatiquement synchronisées avec le module de dépouillement.",
     detailsEn: "The Form module lets you create complete online surveys, distribute them via a public link and track responses in real-time from a dedicated dashboard. Data is automatically synced with the analysis module.",
     price: "25 €",
+    relatedSlugs: ["questionnaire-recherche", "depouillement-questionnaire", "analyse-quantitative"],
   },
   {
     slug: "simulation-financiere",
@@ -639,6 +737,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module de simulation financière vous permet de réaliser des prévisionnels complets : compte de résultat, plan de trésorerie, seuil de rentabilité et analyse financière, indispensables pour les mémoires en gestion, management ou entrepreneuriat.",
     detailsEn: "The financial simulation module lets you create complete forecasts: income statement, cash flow plan, break-even point and financial analysis, essential for management, business or entrepreneurship dissertations.",
     price: "29 €",
+    relatedSlugs: ["etude-de-cas", "memoire-professionnel", "redaction-assistee"],
   },
   {
     slug: "powerpoint-soutenance",
@@ -656,6 +755,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "La soutenance est l'étape finale de votre parcours académique. Academik génère un PowerPoint structuré qui synthétise les points clés de votre travail : problématique, méthodologie, résultats et conclusion, dans un format professionnel prêt à présenter.",
     detailsEn: "The defense is the final step of your academic journey. Academik generates a structured PowerPoint that synthesizes the key points of your work: research question, methodology, results and conclusion, in a professional format ready to present.",
     price: "29 €",
+    relatedSlugs: ["simulation-soutenance", "tfe-infirmier", "vae", "etude-de-cas"],
   },
   {
     slug: "simulation-soutenance",
@@ -673,6 +773,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "La simulation de soutenance vous prépare aux questions potentielles du jury. Academik génère des questions adaptées à votre sujet, vous propose des pistes de réponses argumentées et vous aide à vous entraîner pour le jour J.",
     detailsEn: "The defense simulation prepares you for potential jury questions. Academik generates questions adapted to your subject, suggests argued answer paths and helps you practice for the big day.",
     price: "29 €",
+    relatedSlugs: ["powerpoint-soutenance", "tfe-infirmier", "vae"],
   },
   {
     slug: "audit-memoire",
@@ -690,6 +791,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "L'audit de mémoire analyse l'ensemble de votre travail pour identifier les points forts et les axes d'amélioration : cohérence entre les sections, respect des normes académiques, qualité de la rédaction et force de l'argumentation.",
     detailsEn: "The dissertation audit analyzes your entire work to identify strengths and areas for improvement: section coherence, academic standards compliance, writing quality and argumentation strength.",
     price: "49 €",
+    relatedSlugs: ["memoire", "these-doctorat", "redaction-assistee", "export-word-pdf"],
   },
   {
     slug: "bibliographie-multi-normes",
@@ -707,6 +809,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module Bibliographie multi-normes formate automatiquement vos références selon la norme requise par votre établissement : APA, Vancouver, MLA ou Chicago. Plus besoin de vous soucier des règles de formatage complexes.",
     detailsEn: "The multi-standard bibliography module automatically formats your references according to the standard required by your institution: APA, Vancouver, MLA or Chicago. No more worrying about complex formatting rules.",
     price: "25 €",
+    relatedSlugs: ["revue-de-litterature", "analyse-articles-scientifiques", "these-doctorat"],
   },
   {
     slug: "analyse-articles-scientifiques",
@@ -724,6 +827,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le module d'analyse d'articles vous permet de décortiquer chaque article scientifique : extraction des idées principales, analyse de la méthodologie, résumé structuré et positionnement critique pour enrichir votre revue de littérature.",
     detailsEn: "The article analysis module lets you dissect each scientific article: main idea extraction, methodology analysis, structured summary and critical positioning to enrich your literature review.",
     price: "29 €",
+    relatedSlugs: ["revue-de-litterature", "bibliographie-multi-normes", "cadre-theorique-conceptuel"],
   },
   {
     slug: "simulation-entretien",
@@ -741,6 +845,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "La simulation d'entretien vous permet de vous entraîner avant d'aller sur le terrain. Academik simule un entretien interactif avec reformulation, relances et retranscription pour vous préparer à mener vos entretiens semi-directifs.",
     detailsEn: "The interview simulation lets you practice before going into the field. Academik simulates an interactive interview with reformulation, follow-ups and transcription to prepare you for conducting your semi-structured interviews.",
     price: "19 €",
+    relatedSlugs: ["guide-entretien", "analyse-qualitative", "methodologie-recherche"],
   },
   {
     slug: "page-remerciements",
@@ -758,6 +863,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Les remerciements ouvrent votre mémoire et témoignent de votre gratitude envers les personnes qui ont contribué à votre travail. Academik vous propose des formulations appropriées et personnalisables.",
     detailsEn: "Acknowledgments open your dissertation and express gratitude toward people who contributed to your work. Academik suggests appropriate and customizable formulations.",
     price: "9 €",
+    relatedSlugs: ["redaction-assistee", "page-de-couverture", "resume-abstract"],
   },
   {
     slug: "resume-abstract",
@@ -775,6 +881,7 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "Le résumé et l'abstract sont des éléments indispensables de tout travail académique. Academik génère une synthèse bilingue (français/anglais) structurée avec les mots-clés pertinents pour référencer votre travail.",
     detailsEn: "The summary and abstract are essential elements of any academic work. Academik generates a bilingual (French/English) structured synthesis with relevant keywords to reference your work.",
     price: "9 €",
+    relatedSlugs: ["redaction-assistee", "page-remerciements", "export-word-pdf"],
   },
   {
     slug: "page-de-couverture",
@@ -792,10 +899,33 @@ const MODULE_CATALOG: ModuleEntry[] = [
     detailsFr: "La page de couverture est la première impression de votre travail. Academik génère une page de couverture professionnelle avec toutes les informations requises : titre, sous-titre, nom, établissement et date.",
     detailsEn: "The cover page is the first impression of your work. Academik generates a professional cover page with all required information: title, subtitle, name, institution and date.",
     price: "15 €",
+    relatedSlugs: ["export-word-pdf", "page-remerciements", "resume-abstract"],
   },
 ];
 
 export { MODULE_CATALOG };
+
+const MODULE_TO_BLOGS: Record<string, string[]> = {
+  "memoire": ["comment-rediger-problematique-memoire", "structurer-plan-memoire", "cadre-theorique-conceptuel-memoire"],
+  "tfe-infirmier": ["tfe-infirmier-guide-complet", "comment-rediger-problematique-memoire"],
+  "these-doctorat": ["revue-litterature-methode", "methodologie-memoire-guide", "cadre-theorique-conceptuel-memoire"],
+  "vae": [],
+  "rapport-de-stage": ["structurer-plan-memoire"],
+  "etude-de-cas": ["methodologie-memoire-guide"],
+  "memoire-professionnel": ["comment-rediger-problematique-memoire", "structurer-plan-memoire", "methodologie-memoire-guide"],
+  "problematique": ["comment-rediger-problematique-memoire"],
+  "plan-de-travail": ["structurer-plan-memoire"],
+  "cadre-theorique-conceptuel": ["cadre-theorique-conceptuel-memoire"],
+  "revue-de-litterature": ["revue-litterature-methode"],
+  "methodologie-recherche": ["methodologie-memoire-guide"],
+  "redaction-assistee": ["structurer-plan-memoire"],
+  "export-word-pdf": [],
+  "questionnaire-recherche": ["methodologie-memoire-guide"],
+  "guide-entretien": ["tfe-infirmier-guide-complet", "methodologie-memoire-guide"],
+  "analyse-qualitative": ["tfe-infirmier-guide-complet"],
+  "bibliographie-multi-normes": ["revue-litterature-methode"],
+  "analyse-articles-scientifiques": ["revue-litterature-methode"],
+};
 
 function getCategoryLabel(category: string, lang: string): string {
   const labels: Record<string, { fr: string; en: string }> = {
@@ -966,7 +1096,9 @@ function ModuleDetail({ entry }: { entry: ModuleEntry }) {
   const { lang } = useI18n();
   const Icon = entry.icon;
 
-  const relatedModules = MODULE_CATALOG.filter(m => m.category === entry.category && m.slug !== entry.slug).slice(0, 3);
+  const crossLinkedModules = (entry.relatedSlugs || [])
+    .map(s => MODULE_CATALOG.find(m => m.slug === s))
+    .filter(Boolean) as ModuleEntry[];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -985,6 +1117,27 @@ function ModuleDetail({ entry }: { entry: ModuleEntry }) {
     "inLanguage": ["fr", "en"],
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Accueil", "item": "https://academik.fr" },
+      { "@type": "ListItem", "position": 2, "name": lang === "fr" ? "Fonctionnalités" : "Features", "item": "https://academik.fr/fonctionnalites" },
+      { "@type": "ListItem", "position": 3, "name": lang === "fr" ? entry.titleFr : entry.titleEn, "item": `https://academik.fr/fonctionnalites/${entry.slug}` },
+    ],
+  };
+
+  const faqs = lang === "fr" ? entry.faqFr : entry.faqEn;
+  const faqJsonLd = faqs && faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqs.map(faq => ({
+      "@type": "Question",
+      "name": faq.q,
+      "acceptedAnswer": { "@type": "Answer", "text": faq.a },
+    })),
+  } : null;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <SEO
@@ -992,17 +1145,18 @@ function ModuleDetail({ entry }: { entry: ModuleEntry }) {
         descriptionKey={entry.seoDescKey}
         keywordsKey={entry.seoKeywordsKey}
         canonicalPath={`/fonctionnalites/${entry.slug}`}
-        jsonLd={jsonLd}
+        jsonLd={[jsonLd, breadcrumbJsonLd, ...(faqJsonLd ? [faqJsonLd] : [])]}
       />
       <Navbar />
 
       <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <Link href="/fonctionnalites">
-          <Button variant="ghost" size="sm" className="mb-6" data-testid="button-back-modules">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {lang === "fr" ? "Toutes les fonctionnalités" : "All features"}
-          </Button>
-        </Link>
+        <nav className="mb-6 flex items-center gap-1 text-sm text-muted-foreground" aria-label="Breadcrumb" data-testid="breadcrumb-nav">
+          <Link href="/"><span className="hover:underline cursor-pointer">{lang === "fr" ? "Accueil" : "Home"}</span></Link>
+          <ChevronRight className="w-3 h-3" />
+          <Link href="/fonctionnalites"><span className="hover:underline cursor-pointer">{lang === "fr" ? "Fonctionnalités" : "Features"}</span></Link>
+          <ChevronRight className="w-3 h-3" />
+          <span className="text-foreground font-medium">{lang === "fr" ? entry.titleFr : entry.titleEn}</span>
+        </nav>
 
         <div className="flex items-start gap-4 mb-8">
           <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${getCategoryColor(entry.category)}`}>
@@ -1051,6 +1205,24 @@ function ModuleDetail({ entry }: { entry: ModuleEntry }) {
           </CardContent>
         </Card>
 
+        {((lang === "fr" ? entry.faqFr : entry.faqEn) || []).length > 0 && (
+          <Card className="mb-8">
+            <CardContent className="p-6 sm:p-8">
+              <h2 className="text-xl font-bold mb-4">
+                {lang === "fr" ? "Questions fréquentes" : "Frequently Asked Questions"}
+              </h2>
+              <div className="space-y-4">
+                {((lang === "fr" ? entry.faqFr : entry.faqEn) || []).map((faq, i) => (
+                  <div key={i} data-testid={`faq-item-${i}`}>
+                    <h3 className="font-semibold text-sm mb-1">{faq.q}</h3>
+                    <p className="text-sm text-muted-foreground">{faq.a}</p>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="text-center mb-16">
           <a href="/api/login">
             <Button size="lg" data-testid="button-module-cta">
@@ -1063,13 +1235,40 @@ function ModuleDetail({ entry }: { entry: ModuleEntry }) {
           </p>
         </div>
 
-        {relatedModules.length > 0 && (
+        {(() => {
+          const relatedBlogSlugs = MODULE_TO_BLOGS[entry.slug] || [];
+          const relatedBlogs = relatedBlogSlugs
+            .map(s => BLOG_ARTICLES.find(a => a.slug === s))
+            .filter(Boolean);
+          if (relatedBlogs.length === 0) return null;
+          return (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold mb-4">
+                {lang === "fr" ? "Articles de blog associés" : "Related Blog Articles"}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {relatedBlogs.map((blog) => (
+                  <Link key={blog!.slug} href={`/blog/${blog!.slug}`}>
+                    <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-module-blog-${blog!.slug}`}>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold text-sm mb-1">{lang === "fr" ? blog!.titleFr : blog!.titleEn}</h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{lang === "fr" ? blog!.descFr : blog!.descEn}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {crossLinkedModules.length > 0 && (
           <div>
             <h2 className="text-xl font-bold mb-4">
-              {lang === "fr" ? "Modules similaires" : "Similar modules"}
+              {lang === "fr" ? "Modules complémentaires" : "Complementary modules"}
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {relatedModules.map((m) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {crossLinkedModules.slice(0, 6).map((m) => (
                 <Link key={m.slug} href={`/fonctionnalites/${m.slug}`}>
                   <Card className="hover-elevate cursor-pointer h-full" data-testid={`card-related-${m.slug}`}>
                     <CardContent className="p-4">
