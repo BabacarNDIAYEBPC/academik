@@ -462,7 +462,7 @@ export default function SectionEditor({
 
           {!isPending && hasContent && !isEditing && (
             <>
-              <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/30 rounded-lg p-3 md:p-5 overflow-x-hidden" data-testid={`content-${sectionKey}`}>
+              <div className="prose dark:prose-invert prose-academic max-w-none rounded-lg p-4 md:p-6 overflow-x-hidden border border-border bg-card" data-testid={`content-${sectionKey}`}>
                 <ReactMarkdown>{activeVersion!.content}</ReactMarkdown>
               </div>
 
@@ -841,7 +841,7 @@ function VersionHistoryDialog({
                   </CardHeader>
                   {expandedId === v.id && (
                     <CardContent className="pt-0">
-                      <div className="prose prose-sm dark:prose-invert prose-academic max-w-none bg-muted/20 rounded p-3 max-h-60 overflow-y-auto">
+                      <div className="prose dark:prose-invert prose-academic max-w-none border border-border bg-card rounded p-3 max-h-60 overflow-y-auto">
                         <ReactMarkdown>{v.content}</ReactMarkdown>
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">

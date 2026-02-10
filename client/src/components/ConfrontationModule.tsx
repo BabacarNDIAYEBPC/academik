@@ -28,10 +28,10 @@ function RichTextDisplay({ content, className }: { content: string; className?: 
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
-      const h1 = line.match(/^#\s+(.+)$/);
-      const h2 = line.match(/^##\s+(.+)$/);
-      const h3 = line.match(/^###\s+(.+)$/);
-      const h4 = line.match(/^####\s+(.+)$/);
+      const h1 = line.match(/^#\s*(.+)$/);
+      const h2 = line.match(/^##\s*(.+)$/);
+      const h3 = line.match(/^###\s*(.+)$/);
+      const h4 = line.match(/^####\s*(.+)$/);
       if (h4) { blocks.push({ type: "heading", content: h4[1], level: 4 }); i++; continue; }
       if (h3) { blocks.push({ type: "heading", content: h3[1], level: 3 }); i++; continue; }
       if (h2) { blocks.push({ type: "heading", content: h2[1], level: 2 }); i++; continue; }
@@ -91,9 +91,9 @@ function RichTextDisplay({ content, className }: { content: string; className?: 
     <div className={`space-y-3 ${className || ""}`}>
       {rendered.map((block, idx) => {
         if (block.type === "heading") {
-          if (block.level === 1) return <h3 key={idx} className="text-lg font-bold text-foreground border-b pb-2">{formatInline(block.content)}</h3>;
-          if (block.level === 2) return <h4 key={idx} className="text-base font-bold text-foreground mt-4">{formatInline(block.content)}</h4>;
-          if (block.level === 3) return <h5 key={idx} className="text-sm font-bold text-foreground mt-3">{formatInline(block.content)}</h5>;
+          if (block.level === 1) return <h3 key={idx} className="text-lg md:text-xl font-bold text-foreground border-b pb-2">{formatInline(block.content)}</h3>;
+          if (block.level === 2) return <h4 key={idx} className="text-base md:text-lg font-bold text-foreground mt-4">{formatInline(block.content)}</h4>;
+          if (block.level === 3) return <h5 key={idx} className="text-sm md:text-base font-bold text-foreground mt-3">{formatInline(block.content)}</h5>;
           return <h6 key={idx} className="text-sm font-semibold text-muted-foreground mt-2">{formatInline(block.content)}</h6>;
         }
         if (block.type === "table" && block.headerCells && block.rows) {
@@ -103,7 +103,7 @@ function RichTextDisplay({ content, className }: { content: string; className?: 
                 <thead>
                   <tr>
                     {block.headerCells.map((cell, ci) => (
-                      <th key={ci} className="text-left px-3 py-2 text-xs font-bold text-white whitespace-nowrap bg-[#00BCD4] border border-[#00ACC1]">
+                      <th key={ci} className="text-left px-3 py-2 text-xs md:text-sm font-bold text-primary-foreground whitespace-nowrap bg-primary/80 border border-primary/60">
                         {cell}
                       </th>
                     ))}
@@ -111,9 +111,9 @@ function RichTextDisplay({ content, className }: { content: string; className?: 
                 </thead>
                 <tbody>
                   {block.rows.map((row, ri) => (
-                    <tr key={ri} className={ri % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-slate-50 dark:bg-slate-800/40"}>
+                    <tr key={ri} className={ri % 2 === 0 ? "bg-card" : "bg-muted/30"}>
                       {row.map((cell, ci) => (
-                        <td key={ci} className={`px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                        <td key={ci} className={`px-3 py-2 text-xs md:text-sm border border-border ${ci === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
                           {formatInline(cell)}
                         </td>
                       ))}
@@ -128,7 +128,7 @@ function RichTextDisplay({ content, className }: { content: string; className?: 
           return (
             <ul key={idx} className="space-y-1.5 pl-1">
               {block.items.map((item, li) => (
-                <li key={li} className="flex items-start gap-2 text-sm text-foreground leading-relaxed">
+                <li key={li} className="flex items-start gap-2 text-sm md:text-base text-foreground leading-relaxed">
                   <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/60 flex-shrink-0" />
                   <span>{formatInline(item)}</span>
                 </li>
@@ -136,7 +136,7 @@ function RichTextDisplay({ content, className }: { content: string; className?: 
             </ul>
           );
         }
-        return <p key={idx} className="text-sm text-foreground leading-relaxed">{formatInline(block.content)}</p>;
+        return <p key={idx} className="text-sm md:text-base text-foreground leading-relaxed">{formatInline(block.content)}</p>;
       })}
     </div>
   );
@@ -182,7 +182,7 @@ function ResultDisplay({ label, value, onChange, testId }: { label: string; valu
           data-testid={`textarea-${testId}`}
         />
       ) : (
-        <div className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 md:p-5 min-h-[200px]" data-testid={`display-${testId}`}>
+        <div className="rounded-md border border-border bg-card p-4 md:p-6 min-h-[200px]" data-testid={`display-${testId}`}>
           <RichTextDisplay content={value} />
         </div>
       )}
