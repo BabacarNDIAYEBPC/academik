@@ -16,6 +16,7 @@ import Settings from "@/pages/Settings";
 import Billing from "@/pages/Billing";
 import Admin from "@/pages/Admin";
 import Blog from "@/pages/Blog";
+import ModulePage from "@/pages/ModulePage";
 import PublicForm from "@/pages/PublicForm";
 import Legal from "@/pages/Legal";
 import NotFound from "@/pages/NotFound";
@@ -61,6 +62,8 @@ function Router() {
       <Route path="/settings" component={() => <ProtectedRoute component={Settings} />} />
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
       <Route path="/admin" component={() => <ProtectedRoute component={Admin} />} />
+      <Route path="/fonctionnalites/:slug" component={ModulePage} />
+      <Route path="/fonctionnalites" component={ModulePage} />
       <Route path="/f/:publicId" component={PublicForm} />
       <Route path="/legal/:page" component={Legal} />
       <Route path="/blog/:slug" component={Blog} />

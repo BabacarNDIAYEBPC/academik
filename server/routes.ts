@@ -5698,6 +5698,41 @@ Sitemap: https://academik.fr/sitemap.xml
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>`).join("\n");
+
+    const projectTypeSlugs = ["memoire", "tfe-infirmier", "these-doctorat", "vae", "rapport-de-stage", "etude-de-cas", "memoire-professionnel"];
+    const coreFeatureSlugs = ["problematique", "plan-de-travail", "cadre-theorique-conceptuel", "revue-de-litterature", "methodologie-recherche", "redaction-assistee", "export-word-pdf"];
+    const optionalModuleSlugs = [
+      "questionnaire-recherche", "guide-entretien", "depouillement-questionnaire",
+      "analyse-qualitative", "analyse-quantitative", "confrontation-resultats",
+      "validation-hypotheses", "formulaire-en-ligne", "simulation-financiere",
+      "powerpoint-soutenance", "simulation-soutenance", "audit-memoire",
+      "bibliographie-multi-normes", "analyse-articles-scientifiques", "simulation-entretien",
+      "page-remerciements", "resume-abstract", "page-de-couverture",
+    ];
+
+    const makeModuleUrl = (slug: string, priority: string) => `  <url>
+    <loc>https://academik.fr/fonctionnalites/${slug}</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/fonctionnalites/${slug}" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/fonctionnalites/${slug}" />
+    <lastmod>${now}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>${priority}</priority>
+  </url>`;
+
+    const moduleUrls = [
+      ...projectTypeSlugs.map(s => makeModuleUrl(s, "0.9")),
+      ...coreFeatureSlugs.map(s => makeModuleUrl(s, "0.8")),
+      ...optionalModuleSlugs.map(s => makeModuleUrl(s, "0.7")),
+    ].join("\n");
+
+    const legalSlugs = ["cgv", "cgu", "politique-de-confidentialite"];
+    const legalUrls = legalSlugs.map(slug => `  <url>
+    <loc>https://academik.fr/legal/${slug}</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>`).join("\n");
+
     res.type("application/xml").send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -5711,6 +5746,15 @@ Sitemap: https://academik.fr/sitemap.xml
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://academik.fr/fonctionnalites</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/fonctionnalites" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/fonctionnalites" />
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+${moduleUrls}
+  <url>
     <loc>https://academik.fr/blog</loc>
     <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/blog" />
     <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/blog" />
@@ -5719,6 +5763,7 @@ Sitemap: https://academik.fr/sitemap.xml
     <priority>0.8</priority>
   </url>
 ${blogUrls}
+${legalUrls}
 </urlset>
 `);
   });

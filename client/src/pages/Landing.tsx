@@ -144,6 +144,11 @@ function Navbar() {
           <a href="#features">
             <Button variant="ghost" className="hidden sm:flex" data-testid="nav-features">{t("nav.features")}</Button>
           </a>
+          <Link href="/fonctionnalites">
+            <Button variant="ghost" className="hidden sm:flex" data-testid="nav-modules">
+              {lang === "fr" ? "Modules" : "Modules"}
+            </Button>
+          </Link>
           <a href="#pricing">
             <Button variant="ghost" className="hidden sm:flex" data-testid="nav-pricing">{t("nav.pricing")}</Button>
           </a>
@@ -927,6 +932,11 @@ function Footer() {
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 flex-wrap">
+            <Link href="/fonctionnalites">
+              <Button variant="ghost" size="sm" data-testid="link-footer-modules">
+                {lang === "fr" ? "Fonctionnalités" : "Features"}
+              </Button>
+            </Link>
             <Link href="/blog">
               <Button variant="ghost" size="sm" data-testid="link-footer-blog">
                 Blog
