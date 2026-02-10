@@ -2,6 +2,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import { paymentReminders, dunningEmailLogs, profiles, userQuotas } from "@shared/schema";
 import { eq, and, lte, isNull, or } from "drizzle-orm";
+import nodemailer from "nodemailer";
 
 const DUNNING_STAGES = [
   { stage: "24h", delayMs: 24 * 60 * 60 * 1000, label: "24 heures" },
@@ -239,43 +240,30 @@ async function getAppUrl(): Promise<string> {
     : "https://academik.fr";
 }
 
+function getGmailTransporter() {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+}
+
 async function sendEmail(to: string, subject: string, html: string, from: string): Promise<boolean> {
   try {
-    const sendgridKey = process.env.SENDGRID_API_KEY;
-    const resendKey = process.env.RESEND_API_KEY;
+    const transporter = getGmailTransporter();
 
-    if (sendgridKey) {
-      const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${sendgridKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          personalizations: [{ to: [{ email: to }] }],
-          from: { email: from, name: "Academik" },
-          subject,
-          content: [{ type: "text/html", value: html }],
-        }),
+    if (transporter) {
+      await transporter.sendMail({
+        from: `Academik <${process.env.GMAIL_USER}>`,
+        replyTo: from,
+        to,
+        subject,
+        html,
       });
-      return response.ok || response.status === 202;
-    }
-
-    if (resendKey) {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: `Academik <${from}>`,
-          to: [to],
-          subject,
-          html,
-        }),
-      });
-      return response.ok;
+      console.log(`[DUNNING] Sent via Gmail to ${to}: "${subject}"`);
+      return true;
     }
 
     console.log(`[DUNNING] Email simulation (no provider configured):`);

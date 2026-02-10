@@ -2,10 +2,21 @@ import { db } from "./db";
 import { abandonedCheckouts, profiles } from "@shared/schema";
 import { eq, and, lte } from "drizzle-orm";
 import { storage } from "./storage";
+import nodemailer from "nodemailer";
 
 const FROM_EMAIL = "contact@academik.fr";
 const FROM_NAME = "Academik";
 const COMPANY_INFO = `Performance Consulting Groupe SAS – SIREN 913 540 944<br>3 Avenue de Toulouse, 66140 Canet-en-Roussillon<br>Capital social : 14 000 €`;
+
+function getGmailTransporter() {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+}
 
 function escapeHtml(str: string): string {
   return str
@@ -69,29 +80,17 @@ function ctaButton(text: string, url: string, color: string = "#4F46E5"): string
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
   try {
-    const resendKey = process.env.RESEND_API_KEY;
+    const transporter = getGmailTransporter();
 
-    if (resendKey) {
-      const response = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: `${FROM_NAME} <${FROM_EMAIL}>`,
-          to: [to],
-          subject,
-          html,
-        }),
+    if (transporter) {
+      await transporter.sendMail({
+        from: `${FROM_NAME} <${process.env.GMAIL_USER}>`,
+        replyTo: FROM_EMAIL,
+        to,
+        subject,
+        html,
       });
-
-      if (!response.ok) {
-        const err = await response.text();
-        console.error(`[EMAIL] Resend error: ${response.status} ${err}`);
-        return false;
-      }
-      console.log(`[EMAIL] Sent to ${to}: "${subject}"`);
+      console.log(`[EMAIL] Sent via Gmail to ${to}: "${subject}"`);
       return true;
     }
 

@@ -41,7 +41,7 @@ The application uses a client-server architecture.
 - **Internationalization (i18n)**: Custom React context-based system for French and English support across the application.
 - **SEO & Google Indexing**: Utilizes an SEO component for dynamic metadata, `robots.txt` for crawl control, `sitemap.xml` for site structure, and JSON-LD for structured data.
 
-- **Email System** (server/email.ts): Comprehensive email service using Resend API with sender `contact@academik.fr`. Includes:
+- **Email System** (server/email.ts): Comprehensive email service using Gmail SMTP (nodemailer) with sender Gmail account and replyTo `contact@academik.fr`. Includes:
     - Welcome email on first user registration
     - Payment confirmation email after successful checkout
     - Invoice email with itemized details
@@ -56,7 +56,7 @@ The application uses a client-server architecture.
 - **PostgreSQL**: Primary database.
 - **Replit Auth (OIDC)**: Authentication.
 - **Stripe**: Payment processing.
-- **Resend**: Transactional email delivery (sender: contact@academik.fr).
+- **Gmail SMTP (nodemailer)**: Transactional email delivery via Google App Password (replyTo: contact@academik.fr).
 - **docx**: Word document generation.
 - **file-saver**: Client-side file saving.
 - **html2pdf.js**: HTML to PDF conversion.
