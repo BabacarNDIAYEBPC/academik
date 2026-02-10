@@ -21,7 +21,6 @@ import PublicForm from "@/pages/PublicForm";
 import Legal from "@/pages/Legal";
 import NotFound from "@/pages/NotFound";
 import CookieConsent from "@/components/CookieConsent";
-import TermsAcceptance from "@/components/TermsAcceptance";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
   const { user, isLoading } = useAuth();
@@ -78,11 +77,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <TooltipProvider>
-          <TermsAcceptance>
-            <Toaster />
-            <Router />
-            <CookieConsent />
-          </TermsAcceptance>
+          <Toaster />
+          <Router />
+          <CookieConsent />
         </TooltipProvider>
       </I18nProvider>
     </QueryClientProvider>
