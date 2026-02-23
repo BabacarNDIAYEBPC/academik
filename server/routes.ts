@@ -11,6 +11,7 @@ import multer from "multer";
 import mammoth from "mammoth";
 import crypto from "crypto";
 import { sendPaymentConfirmationEmail, sendInvoiceEmail, trackAbandonedCheckout, markCheckoutRecovered, startAbandonedCartScheduler } from "./email";
+import { setupSEOPrerender } from "./seo-prerender";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -5828,6 +5829,8 @@ Site web : https://academik.fr
       legal_info_url: "https://academik.fr"
     });
   });
+
+  setupSEOPrerender(app);
 
   return httpServer;
 }
