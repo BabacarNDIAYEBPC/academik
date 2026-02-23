@@ -1204,6 +1204,15 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  app.use((req, res, next) => {
+    const proto = req.headers["x-forwarded-proto"];
+    const host = req.headers["host"];
+    if (proto === "http" && host) {
+      return res.redirect(301, `https://${host}${req.url}`);
+    }
+    next();
+  });
+
   await setupAuth(app);
   registerAuthRoutes(app);
   registerChatRoutes(app);
