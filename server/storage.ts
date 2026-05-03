@@ -1,899 +1,158 @@
 import { db } from "./db";
 import {
-  users, profiles, projects, documents, aiGenerations,
-  projectSections, sectionVersions, sectionStatusHistory, userPurchases,
-  userQuotas, quotaSurplus, plans, adminSettings, auditLogs, aiLogs, invoices,
-  forms, formQuestions, formResponses, formAnswers,
-  type User, type Profile, type Project, type Document, type AiGeneration,
-  type InsertProfile, type InsertProject, type InsertDocument,
-  type ProjectSection, type SectionVersion, type StatusHistory,
-  type UserPurchase, type InsertPurchase,
-  type UserQuota, type QuotaSurplus, type InsertSurplus,
-  type Plan, type InsertPlan, type AuditLog, type AiLog, type AdminSetting,
-  type Invoice, type InsertInvoice,
-  type Form, type InsertForm, type FormQuestion, type InsertFormQuestion,
-  type FormResponse, type InsertFormResponse, type FormAnswer, type InsertFormAnswer,
-  SECTION_ORDER,
+  userCredits, creditTransactions, bibliographies, readingCards, syntheses, invoices,
+  type UserCredits, type CreditTransaction, type Bibliography, type ReadingCard, type Synthesis, type Invoice,
+  type InsertBibliography, type InsertReadingCard, type InsertSynthesis, type InsertInvoice,
 } from "@shared/schema";
-import { sql } from "drizzle-orm";
-import { eq, desc, and, asc, ilike, or, count, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 
 export interface IStorage {
-  getProfile(userId: string): Promise<Profile | undefined>;
-  createProfile(profile: InsertProfile): Promise<Profile>;
-  updateProfile(userId: string, profile: Partial<InsertProfile>): Promise<Profile>;
+  // Credits
+  getCredits(userId: string): Promise<number>;
+  addCredits(userId: string, amount: number, type: string, description: string, stripeSessionId?: string): Promise<void>;
+  spendCredits(userId: string, amount: number, description: string): Promise<boolean>;
+  getCreditTransactions(userId: string): Promise<CreditTransaction[]>;
 
-  getProjects(userId: string): Promise<Project[]>;
-  getProject(id: number): Promise<Project | undefined>;
-  createProject(project: InsertProject): Promise<Project>;
-  updateProject(id: number, project: Partial<InsertProject>): Promise<Project>;
-  deleteProject(id: number): Promise<void>;
+  // Bibliographies
+  getBibliographies(userId: string): Promise<Bibliography[]>;
+  getBibliography(id: number): Promise<Bibliography | undefined>;
+  createBibliography(data: InsertBibliography): Promise<Bibliography>;
+  updateBibliography(id: number, data: Partial<InsertBibliography>): Promise<Bibliography>;
+  deleteBibliography(id: number): Promise<void>;
 
-  getDocuments(projectId: number): Promise<Document[]>;
-  createDocument(document: InsertDocument): Promise<Document>;
-  deleteDocument(id: number): Promise<void>;
+  // Reading Cards
+  getReadingCards(userId: string): Promise<ReadingCard[]>;
+  getReadingCard(id: number): Promise<ReadingCard | undefined>;
+  createReadingCard(data: InsertReadingCard): Promise<ReadingCard>;
+  updateReadingCard(id: number, data: Partial<InsertReadingCard>): Promise<ReadingCard>;
+  deleteReadingCard(id: number): Promise<void>;
 
-  createAiGeneration(projectId: number, type: string, data: any): Promise<AiGeneration>;
-  getAiGenerations(projectId: number): Promise<AiGeneration[]>;
+  // Syntheses
+  getSyntheses(userId: string): Promise<Synthesis[]>;
+  getSynthesis(id: number): Promise<Synthesis | undefined>;
+  createSynthesis(data: InsertSynthesis): Promise<Synthesis>;
+  updateSynthesis(id: number, data: Partial<InsertSynthesis>): Promise<Synthesis>;
+  deleteSynthesis(id: number): Promise<void>;
 
-  getSections(projectId: number): Promise<ProjectSection[]>;
-  getSection(id: number): Promise<ProjectSection | undefined>;
-  getSectionByKey(projectId: number, key: string): Promise<ProjectSection | undefined>;
-  createSection(projectId: number, key: string, config?: any): Promise<ProjectSection>;
-  updateSectionStatus(id: number, status: string, note?: string): Promise<ProjectSection>;
-  updateSectionConfig(id: number, config: any): Promise<ProjectSection>;
-  setActiveVersion(sectionId: number, versionId: number): Promise<ProjectSection>;
-
-  getVersions(sectionId: number): Promise<SectionVersion[]>;
-  getVersion(id: number): Promise<SectionVersion | undefined>;
-  getActiveVersion(sectionId: number): Promise<SectionVersion | undefined>;
-  createVersion(sectionId: number, content: string, source: string, mode?: string, contextSnapshot?: string): Promise<SectionVersion>;
-  activateVersion(sectionId: number, versionId: number): Promise<void>;
-
-  getStatusHistory(sectionId: number): Promise<StatusHistory[]>;
-  addStatusHistory(sectionId: number, status: string, note?: string): Promise<StatusHistory>;
-
-  getValidatedSectionsContext(projectId: number): Promise<string>;
-
-  getUserPurchases(userId: string): Promise<UserPurchase[]>;
-  createPurchase(purchase: InsertPurchase): Promise<UserPurchase>;
-  deletePurchaseByKey(userId: string, itemKey: string): Promise<void>;
-  getUserEntitlements(userId: string): Promise<string[]>;
-
-  getQuota(userId: string): Promise<UserQuota>;
-  incrementQuotaUsage(userId: string, words: number, actions: number): Promise<UserQuota>;
-  resetQuotaIfNeeded(userId: string): Promise<UserQuota>;
-  addQuotaSurplus(userId: string, surplusType: string, amount: number, price: number): Promise<void>;
-  getActiveProjectCount(userId: string): Promise<number>;
-  getDocumentCount(projectId: number): Promise<number>;
-
-  // Admin methods
-  listAllUsers(search?: string): Promise<any[]>;
-  getUserById(userId: string): Promise<any>;
-  updateUserQuotaAdmin(userId: string, updates: Partial<{ wordsLimit: number; actionsLimit: number; activeProjectsLimit: number; documentsLimit: number }>): Promise<UserQuota>;
-  addCreditsToUser(userId: string, words: number, actions: number): Promise<UserQuota>;
-
-  getPlans(): Promise<Plan[]>;
-  getPlan(id: number): Promise<Plan | undefined>;
-  createPlan(plan: InsertPlan): Promise<Plan>;
-  updatePlan(id: number, updates: Partial<InsertPlan>): Promise<Plan>;
-  deletePlan(id: number): Promise<void>;
-
-  getAdminSetting(key: string): Promise<any>;
-  setAdminSetting(key: string, value: any): Promise<AdminSetting>;
-  getAllAdminSettings(): Promise<AdminSetting[]>;
-
-  createAuditLog(log: { actorId?: string; actorEmail?: string; action: string; targetType?: string; targetId?: string; details?: any }): Promise<AuditLog>;
-  getAuditLogs(limit?: number, offset?: number): Promise<AuditLog[]>;
-
-  createAiLog(log: { userId?: string; endpoint: string; model?: string; tokensIn?: number; tokensOut?: number; durationMs?: number; status?: string; error?: string }): Promise<AiLog>;
-  getAiLogs(limit?: number, offset?: number): Promise<AiLog[]>;
-  getAiLogStats(): Promise<{ totalRequests: number; totalErrors: number; avgDuration: number }>;
-
-  getAllPurchases(limit?: number): Promise<any[]>;
-  getAllSurplus(limit?: number): Promise<any[]>;
-
-  createInvoice(invoice: InsertInvoice): Promise<Invoice>;
-  getUserInvoices(userId: string): Promise<Invoice[]>;
-  getInvoice(id: number): Promise<Invoice | undefined>;
-  getNextInvoiceNumber(): Promise<string>;
-
-  getFormsByProject(projectId: number): Promise<Form[]>;
-  getForm(id: number): Promise<Form | undefined>;
-  getFormByPublicId(publicId: string): Promise<Form | undefined>;
-  createForm(form: InsertForm): Promise<Form>;
-  updateForm(id: number, updates: Partial<InsertForm>): Promise<Form>;
-  deleteForm(id: number): Promise<void>;
-
-  getFormQuestions(formId: number): Promise<FormQuestion[]>;
-  createFormQuestion(question: InsertFormQuestion): Promise<FormQuestion>;
-  updateFormQuestion(id: number, updates: Partial<InsertFormQuestion>): Promise<FormQuestion>;
-  deleteFormQuestion(id: number): Promise<void>;
-  reorderFormQuestions(formId: number, questionIds: number[]): Promise<void>;
-
-  getFormResponses(formId: number): Promise<FormResponse[]>;
-  getFormResponseCount(formId: number): Promise<number>;
-  createFormResponse(response: InsertFormResponse, answers: InsertFormAnswer[]): Promise<FormResponse>;
-  getFormAnswers(responseId: number): Promise<FormAnswer[]>;
-  getFormAllAnswers(formId: number): Promise<FormAnswer[]>;
-  deleteFormResponse(id: number): Promise<void>;
+  // Invoices
+  createInvoice(data: InsertInvoice): Promise<Invoice>;
+  getInvoices(userId: string): Promise<Invoice[]>;
+  getInvoiceBySession(sessionId: string): Promise<Invoice | undefined>;
 }
 
-export class DatabaseStorage implements IStorage {
-  async getProfile(userId: string): Promise<Profile | undefined> {
-    const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId));
-    return profile;
+class DatabaseStorage implements IStorage {
+  async getCredits(userId: string): Promise<number> {
+    const [row] = await db.select().from(userCredits).where(eq(userCredits.userId, userId));
+    return row?.credits ?? 0;
   }
 
-  async createProfile(profile: InsertProfile): Promise<Profile> {
-    const [newProfile] = await db.insert(profiles).values(profile).returning();
-    return newProfile;
-  }
-
-  async updateProfile(userId: string, updates: Partial<InsertProfile>): Promise<Profile> {
-    const [updated] = await db.update(profiles)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(profiles.userId, userId))
-      .returning();
-    return updated;
-  }
-
-  async getProjects(userId: string): Promise<Project[]> {
-    return await db.select().from(projects)
-      .where(eq(projects.userId, userId))
-      .orderBy(desc(projects.updatedAt));
-  }
-
-  async getProject(id: number): Promise<Project | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
-    return project;
-  }
-
-  async createProject(project: InsertProject): Promise<Project> {
-    const [newProject] = await db.insert(projects).values(project).returning();
-    return newProject;
-  }
-
-  async updateProject(id: number, updates: Partial<InsertProject>): Promise<Project> {
-    const [updated] = await db.update(projects)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(projects.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteProject(id: number): Promise<void> {
-    await db.delete(projects).where(eq(projects.id, id));
-  }
-
-  async getDocuments(projectId: number): Promise<Document[]> {
-    return await db.select().from(documents).where(eq(documents.projectId, projectId));
-  }
-
-  async createDocument(document: InsertDocument): Promise<Document> {
-    const [newDoc] = await db.insert(documents).values(document).returning();
-    return newDoc;
-  }
-
-  async deleteDocument(id: number): Promise<void> {
-    await db.delete(documents).where(eq(documents.id, id));
-  }
-
-  async createAiGeneration(projectId: number, type: string, data: any): Promise<AiGeneration> {
-    const [gen] = await db.insert(aiGenerations).values({ projectId, type, data }).returning();
-    return gen;
-  }
-
-  async getAiGenerations(projectId: number): Promise<AiGeneration[]> {
-    return await db.select().from(aiGenerations)
-      .where(eq(aiGenerations.projectId, projectId))
-      .orderBy(desc(aiGenerations.createdAt));
-  }
-
-  // === SECTIONS ===
-  async getSections(projectId: number): Promise<ProjectSection[]> {
-    return await db.select().from(projectSections)
-      .where(eq(projectSections.projectId, projectId))
-      .orderBy(asc(projectSections.createdAt));
-  }
-
-  async getSection(id: number): Promise<ProjectSection | undefined> {
-    const [section] = await db.select().from(projectSections).where(eq(projectSections.id, id));
-    return section;
-  }
-
-  async getSectionByKey(projectId: number, key: string): Promise<ProjectSection | undefined> {
-    const [section] = await db.select().from(projectSections)
-      .where(and(eq(projectSections.projectId, projectId), eq(projectSections.key, key)));
-    return section;
-  }
-
-  async createSection(projectId: number, key: string, config?: any): Promise<ProjectSection> {
-    const [section] = await db.insert(projectSections)
-      .values({ projectId, key, status: "draft", config: config || null })
-      .returning();
-    await this.addStatusHistory(section.id, "draft", "Création de la section");
-    return section;
-  }
-
-  async updateSectionStatus(id: number, status: string, note?: string): Promise<ProjectSection> {
-    const [updated] = await db.update(projectSections)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(projectSections.id, id))
-      .returning();
-    await this.addStatusHistory(id, status, note);
-    return updated;
-  }
-
-  async updateSectionConfig(id: number, config: any): Promise<ProjectSection> {
-    const [updated] = await db.update(projectSections)
-      .set({ config, updatedAt: new Date() })
-      .where(eq(projectSections.id, id))
-      .returning();
-    return updated;
-  }
-
-  async setActiveVersion(sectionId: number, versionId: number): Promise<ProjectSection> {
-    await db.update(sectionVersions)
-      .set({ isActive: false })
-      .where(eq(sectionVersions.sectionId, sectionId));
-    await db.update(sectionVersions)
-      .set({ isActive: true })
-      .where(eq(sectionVersions.id, versionId));
-    const [updated] = await db.update(projectSections)
-      .set({ activeVersionId: versionId, updatedAt: new Date() })
-      .where(eq(projectSections.id, sectionId))
-      .returning();
-    return updated;
-  }
-
-  async markImpactedSections(projectId: number, changedSectionKey: string): Promise<string[]> {
-    const deps = (await import("@shared/schema")).SECTION_DEPENDENCIES;
-    const impactedKeys = deps[changedSectionKey];
-    if (!impactedKeys || impactedKeys.length === 0) return [];
-
-    const allSections = await this.getSections(projectId);
-    const marked: string[] = [];
-
-    for (const section of allSections) {
-      if (impactedKeys.includes(section.key) && section.status === "validated") {
-        const existingConfig = (section.config as Record<string, any>) || {};
-        await db.update(projectSections)
-          .set({
-            config: { ...existingConfig, needsReview: true, reviewReason: changedSectionKey },
-            updatedAt: new Date(),
-          })
-          .where(eq(projectSections.id, section.id));
-        await this.addStatusHistory(section.id, section.status, `À réévaluer suite à la modification de : ${(await import("@shared/schema")).SECTION_LABELS[changedSectionKey] || changedSectionKey}`);
-        marked.push(section.key);
-      }
-    }
-    return marked;
-  }
-
-  async clearNeedsReview(sectionId: number): Promise<void> {
-    const section = await this.getSection(sectionId);
-    if (!section) return;
-    const existingConfig = (section.config as Record<string, any>) || {};
-    const { needsReview, reviewReason, ...rest } = existingConfig;
-    await db.update(projectSections)
-      .set({ config: Object.keys(rest).length > 0 ? rest : null, updatedAt: new Date() })
-      .where(eq(projectSections.id, sectionId));
-  }
-
-  async getProjectStatusHistory(projectId: number): Promise<(StatusHistory & { sectionKey: string })[]> {
-    const sections = await this.getSections(projectId);
-    const sectionIds = sections.map(s => s.id);
-    if (sectionIds.length === 0) return [];
-
-    const allHistory = await db.select().from(sectionStatusHistory)
-      .where(inArray(sectionStatusHistory.sectionId, sectionIds))
-      .orderBy(desc(sectionStatusHistory.changedAt));
-
-    const sectionKeyMap = new Map(sections.map(s => [s.id, s.key]));
-    return allHistory.map(h => ({
-      ...h,
-      sectionKey: sectionKeyMap.get(h.sectionId!) || "unknown",
-    }));
-  }
-
-  // === VERSIONS ===
-  async getVersions(sectionId: number): Promise<SectionVersion[]> {
-    return await db.select().from(sectionVersions)
-      .where(eq(sectionVersions.sectionId, sectionId))
-      .orderBy(desc(sectionVersions.versionNumber));
-  }
-
-  async getVersion(id: number): Promise<SectionVersion | undefined> {
-    const [version] = await db.select().from(sectionVersions).where(eq(sectionVersions.id, id));
-    return version;
-  }
-
-  async getActiveVersion(sectionId: number): Promise<SectionVersion | undefined> {
-    const [version] = await db.select().from(sectionVersions)
-      .where(and(eq(sectionVersions.sectionId, sectionId), eq(sectionVersions.isActive, true)));
-    return version;
-  }
-
-  async createVersion(sectionId: number, content: string, source: string, mode?: string, contextSnapshot?: string): Promise<SectionVersion> {
-    const existing = await this.getVersions(sectionId);
-    const nextNumber = existing.length > 0 ? Math.max(...existing.map(v => v.versionNumber)) + 1 : 1;
-
-    await db.update(sectionVersions)
-      .set({ isActive: false })
-      .where(eq(sectionVersions.sectionId, sectionId));
-
-    const [version] = await db.insert(sectionVersions)
-      .values({
-        sectionId,
-        versionNumber: nextNumber,
-        source,
-        mode: mode || null,
-        content,
-        contextSnapshot: contextSnapshot || null,
-        isActive: true,
-      })
-      .returning();
-
-    await db.update(projectSections)
-      .set({ activeVersionId: version.id, updatedAt: new Date() })
-      .where(eq(projectSections.id, sectionId));
-
-    return version;
-  }
-
-  async activateVersion(sectionId: number, versionId: number): Promise<void> {
-    await db.update(sectionVersions)
-      .set({ isActive: false })
-      .where(eq(sectionVersions.sectionId, sectionId));
-    await db.update(sectionVersions)
-      .set({ isActive: true })
-      .where(eq(sectionVersions.id, versionId));
-    await db.update(projectSections)
-      .set({ activeVersionId: versionId, updatedAt: new Date() })
-      .where(eq(projectSections.id, sectionId));
-  }
-
-  async getSectionsWithContent(projectId: number): Promise<{ key: string; label: string; content: string }[]> {
-    const sections = await this.getSections(projectId);
-    const sorted = sections.sort((a, b) => {
-      const aIdx = SECTION_ORDER.indexOf(a.key);
-      const bIdx = SECTION_ORDER.indexOf(b.key);
-      return aIdx - bIdx;
-    });
-    const result: { key: string; label: string; content: string }[] = [];
-    for (const section of sorted) {
-      if (!section.activeVersionId) continue;
-      const version = await this.getActiveVersion(section.id);
-      if (version) {
-        const { SECTION_LABELS } = await import("@shared/schema");
-        result.push({ key: section.key, label: SECTION_LABELS[section.key] || section.key, content: version.content });
-      }
-    }
-    return result;
-  }
-
-  // === STATUS HISTORY ===
-  async getStatusHistory(sectionId: number): Promise<StatusHistory[]> {
-    return await db.select().from(sectionStatusHistory)
-      .where(eq(sectionStatusHistory.sectionId, sectionId))
-      .orderBy(desc(sectionStatusHistory.changedAt));
-  }
-
-  async addStatusHistory(sectionId: number, status: string, note?: string): Promise<StatusHistory> {
-    const [entry] = await db.insert(sectionStatusHistory)
-      .values({ sectionId, status, note: note || null })
-      .returning();
-    return entry;
-  }
-
-  async getValidatedSectionContents(projectId: number): Promise<Record<string, string>> {
-    const sections = await this.getSections(projectId);
-    const result: Record<string, string> = {};
-    for (const section of sections) {
-      if (!section.activeVersionId) continue;
-      const version = await this.getActiveVersion(section.id);
-      if (version) {
-        result[section.key] = version.content;
-      }
-    }
-    return result;
-  }
-
-  // === CONTEXTUAL MEMORY ===
-  async getValidatedSectionsContext(projectId: number): Promise<string> {
-    const sections = await this.getSections(projectId);
-    const validatedSections = sections.filter(s => s.status === "validated");
-
-    const sorted = validatedSections.sort((a, b) => {
-      const aIdx = SECTION_ORDER.indexOf(a.key);
-      const bIdx = SECTION_ORDER.indexOf(b.key);
-      return aIdx - bIdx;
-    });
-
-    let context = "";
-    for (const section of sorted) {
-      if (!section.activeVersionId) continue;
-      const version = await this.getActiveVersion(section.id);
-      if (version) {
-        const { SECTION_LABELS } = await import("@shared/schema");
-        const label = SECTION_LABELS[section.key] || section.key;
-        context += `\n=== ${label.toUpperCase()} (VALIDÉ) ===\n${version.content}\n`;
-      }
-    }
-    return context;
-  }
-
-  async getUserPurchases(userId: string): Promise<UserPurchase[]> {
-    return await db.select().from(userPurchases)
-      .where(and(eq(userPurchases.userId, userId), eq(userPurchases.status, "active")))
-      .orderBy(desc(userPurchases.createdAt));
-  }
-
-  async createPurchase(purchase: InsertPurchase): Promise<UserPurchase> {
-    const [newPurchase] = await db.insert(userPurchases).values(purchase).returning();
-    return newPurchase;
-  }
-
-  async deletePurchaseByKey(userId: string, itemKey: string): Promise<void> {
-    await db.delete(userPurchases)
-      .where(and(eq(userPurchases.userId, userId), eq(userPurchases.itemKey, itemKey)));
-  }
-
-  async getUserEntitlements(userId: string): Promise<string[]> {
-    const purchases = await this.getUserPurchases(userId);
-    const rawKeys = purchases.map(p => p.itemKey);
-    const expanded = new Set<string>(rawKeys);
-    if (expanded.has("core_pack")) {
-      ["foundation", "plan", "conceptual", "literature", "methodology", "redaction"].forEach(k => expanded.add(k));
-    }
-    if (expanded.has("pack_collecte")) {
-      ["questionnaire", "guide_entretien"].forEach(k => expanded.add(k));
-    }
-    if (expanded.has("pack_analyse")) {
-      ["analyse_qualitative", "analyse_quantitative"].forEach(k => expanded.add(k));
-    }
-    if (expanded.has("pack_revue")) {
-      ["article_analysis", "article_confrontation", "biblio_multinormes"].forEach(k => expanded.add(k));
-    }
-    if (expanded.has("pack_soutenance")) {
-      ["soutenance_ppt", "soutenance_simulation", "audit"].forEach(k => expanded.add(k));
-    }
-    return Array.from(expanded);
-  }
-
-  async getQuota(userId: string): Promise<UserQuota> {
-    const [existing] = await db.select().from(userQuotas).where(eq(userQuotas.userId, userId));
-    if (existing) return existing;
-    const now = new Date();
-    const periodEnd = new Date(now);
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
-    const [created] = await db.insert(userQuotas).values({
-      userId,
-      wordsUsed: 0,
-      wordsLimit: 20000,
-      actionsUsed: 0,
-      actionsLimit: 200,
-      activeProjectsLimit: 3,
-      documentsLimit: 20,
-      periodStart: now,
-      periodEnd,
-    }).returning();
-    return created;
-  }
-
-  async incrementQuotaUsage(userId: string, words: number, actions: number): Promise<UserQuota> {
-    const quota = await this.getQuota(userId);
-    const [updated] = await db.update(userQuotas)
-      .set({
-        wordsUsed: quota.wordsUsed + words,
-        actionsUsed: quota.actionsUsed + actions,
-        updatedAt: new Date(),
-      })
-      .where(eq(userQuotas.userId, userId))
-      .returning();
-    return updated;
-  }
-
-  async resetQuotaIfNeeded(userId: string): Promise<UserQuota> {
-    const quota = await this.getQuota(userId);
-    const now = new Date();
-    if (quota.periodEnd && now >= quota.periodEnd) {
-      const periodEnd = new Date(now);
-      periodEnd.setMonth(periodEnd.getMonth() + 1);
-      const [updated] = await db.update(userQuotas)
-        .set({
-          wordsUsed: 0,
-          actionsUsed: 0,
-          periodStart: now,
-          periodEnd,
-          updatedAt: now,
-        })
-        .where(eq(userQuotas.userId, userId))
-        .returning();
-      return updated;
-    }
-    return quota;
-  }
-
-  async addQuotaSurplus(userId: string, surplusType: string, amount: number, price: number): Promise<void> {
-    await db.insert(quotaSurplus).values({
-      userId,
-      surplusType,
-      amount,
-      price,
-      status: "active",
-    });
-    const quota = await this.getQuota(userId);
-    if (surplusType === "words") {
-      await db.update(userQuotas)
-        .set({ wordsLimit: quota.wordsLimit + amount, updatedAt: new Date() })
-        .where(eq(userQuotas.userId, userId));
-    } else if (surplusType === "actions") {
-      await db.update(userQuotas)
-        .set({ actionsLimit: quota.actionsLimit + amount, updatedAt: new Date() })
-        .where(eq(userQuotas.userId, userId));
-    } else if (surplusType === "projects") {
-      await db.update(userQuotas)
-        .set({ activeProjectsLimit: quota.activeProjectsLimit + amount, updatedAt: new Date() })
-        .where(eq(userQuotas.userId, userId));
-    }
-  }
-
-  async getActiveProjectCount(userId: string): Promise<number> {
-    const result = await db.select().from(projects)
-      .where(and(eq(projects.userId, userId), eq(projects.status, "active")));
-    return result.length;
-  }
-
-  async getDocumentCount(projectId: number): Promise<number> {
-    const result = await db.select().from(documents).where(eq(documents.projectId, projectId));
-    return result.length;
-  }
-
-  // === ADMIN METHODS ===
-
-  async listAllUsers(search?: string): Promise<any[]> {
-    let userRows;
-    if (search) {
-      userRows = await db.select().from(users).where(
-        or(
-          ilike(users.email, `%${search}%`),
-          ilike(users.firstName, `%${search}%`),
-          ilike(users.lastName, `%${search}%`)
-        )
-      ).orderBy(desc(users.createdAt));
+  async addCredits(userId: string, amount: number, type: string, description: string, stripeSessionId?: string): Promise<void> {
+    const existing = await db.select().from(userCredits).where(eq(userCredits.userId, userId));
+    if (existing.length === 0) {
+      await db.insert(userCredits).values({ userId, credits: amount });
     } else {
-      userRows = await db.select().from(users).orderBy(desc(users.createdAt));
+      await db.update(userCredits)
+        .set({ credits: existing[0].credits + amount, updatedAt: new Date() })
+        .where(eq(userCredits.userId, userId));
     }
-    const enriched = [];
-    for (const u of userRows) {
-      const profile = await this.getProfile(u.id);
-      const quota = await this.getQuota(u.id);
-      const projectCount = await this.getActiveProjectCount(u.id);
-      const purchases = await this.getUserPurchases(u.id);
-      const activePurchases = purchases.filter((p: any) => p.status === "active");
-      const totalPaid = activePurchases.reduce((sum: number, p: any) => sum + (p.price || 0), 0);
-      const purchaseItems = activePurchases.map((p: any) => p.itemKey);
-      enriched.push({
-        ...u,
-        profile,
-        quota,
-        projectCount,
-        purchases: activePurchases,
-        purchaseCount: activePurchases.length,
-        purchaseItems,
-        totalPaid,
-        status: activePurchases.length > 0 ? "paid" : "trial",
-      });
-    }
-    return enriched;
+    await db.insert(creditTransactions).values({ userId, amount, type, description, stripeSessionId });
   }
 
-  async getUserById(userId: string): Promise<any> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
-    if (!user) return null;
-    const profile = await this.getProfile(userId);
-    const quota = await this.getQuota(userId);
-    const projectCount = await this.getActiveProjectCount(userId);
-    const purchases = await this.getUserPurchases(userId);
-    const surplusList = await db.select().from(quotaSurplus)
-      .where(eq(quotaSurplus.userId, userId))
-      .orderBy(desc(quotaSurplus.createdAt));
-    return { ...user, profile, quota, projectCount, purchases, surplus: surplusList };
+  async spendCredits(userId: string, amount: number, description: string): Promise<boolean> {
+    const current = await this.getCredits(userId);
+    if (current < amount) return false;
+    await db.update(userCredits)
+      .set({ credits: current - amount, updatedAt: new Date() })
+      .where(eq(userCredits.userId, userId));
+    await db.insert(creditTransactions).values({ userId, amount: -amount, type: "spend", description });
+    return true;
   }
 
-  async updateUserQuotaAdmin(userId: string, updates: Partial<{ wordsLimit: number; actionsLimit: number; activeProjectsLimit: number; documentsLimit: number }>): Promise<UserQuota> {
-    await this.getQuota(userId);
-    const [updated] = await db.update(userQuotas)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(userQuotas.userId, userId))
-      .returning();
-    return updated;
+  async getCreditTransactions(userId: string): Promise<CreditTransaction[]> {
+    return db.select().from(creditTransactions).where(eq(creditTransactions.userId, userId)).orderBy(desc(creditTransactions.createdAt));
   }
 
-  async addCreditsToUser(userId: string, words: number, actions: number): Promise<UserQuota> {
-    const quota = await this.getQuota(userId);
-    const [updated] = await db.update(userQuotas)
-      .set({
-        wordsLimit: quota.wordsLimit + words,
-        actionsLimit: quota.actionsLimit + actions,
-        updatedAt: new Date(),
-      })
-      .where(eq(userQuotas.userId, userId))
-      .returning();
-    return updated;
+  async getBibliographies(userId: string): Promise<Bibliography[]> {
+    return db.select().from(bibliographies).where(eq(bibliographies.userId, userId)).orderBy(desc(bibliographies.createdAt));
   }
 
-  // === PLANS ===
-
-  async getPlans(): Promise<Plan[]> {
-    return await db.select().from(plans).orderBy(asc(plans.id));
+  async getBibliography(id: number): Promise<Bibliography | undefined> {
+    const [row] = await db.select().from(bibliographies).where(eq(bibliographies.id, id));
+    return row;
   }
 
-  async getPlan(id: number): Promise<Plan | undefined> {
-    const [plan] = await db.select().from(plans).where(eq(plans.id, id));
-    return plan;
+  async createBibliography(data: InsertBibliography): Promise<Bibliography> {
+    const [row] = await db.insert(bibliographies).values(data).returning();
+    return row;
   }
 
-  async createPlan(plan: InsertPlan): Promise<Plan> {
-    const [created] = await db.insert(plans).values(plan).returning();
-    return created;
+  async updateBibliography(id: number, data: Partial<InsertBibliography>): Promise<Bibliography> {
+    const [row] = await db.update(bibliographies).set({ ...data, updatedAt: new Date() }).where(eq(bibliographies.id, id)).returning();
+    return row;
   }
 
-  async updatePlan(id: number, updates: Partial<InsertPlan>): Promise<Plan> {
-    const [updated] = await db.update(plans)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(plans.id, id))
-      .returning();
-    return updated;
+  async deleteBibliography(id: number): Promise<void> {
+    await db.delete(bibliographies).where(eq(bibliographies.id, id));
   }
 
-  async deletePlan(id: number): Promise<void> {
-    await db.delete(plans).where(eq(plans.id, id));
+  async getReadingCards(userId: string): Promise<ReadingCard[]> {
+    return db.select().from(readingCards).where(eq(readingCards.userId, userId)).orderBy(desc(readingCards.createdAt));
   }
 
-  // === ADMIN SETTINGS ===
-
-  async getAdminSetting(key: string): Promise<any> {
-    const [setting] = await db.select().from(adminSettings).where(eq(adminSettings.key, key));
-    return setting?.value ?? null;
+  async getReadingCard(id: number): Promise<ReadingCard | undefined> {
+    const [row] = await db.select().from(readingCards).where(eq(readingCards.id, id));
+    return row;
   }
 
-  async setAdminSetting(key: string, value: any): Promise<AdminSetting> {
-    const [existing] = await db.select().from(adminSettings).where(eq(adminSettings.key, key));
-    if (existing) {
-      const [updated] = await db.update(adminSettings)
-        .set({ value, updatedAt: new Date() })
-        .where(eq(adminSettings.key, key))
-        .returning();
-      return updated;
-    }
-    const [created] = await db.insert(adminSettings).values({ key, value }).returning();
-    return created;
+  async createReadingCard(data: InsertReadingCard): Promise<ReadingCard> {
+    const [row] = await db.insert(readingCards).values(data).returning();
+    return row;
   }
 
-  async getAllAdminSettings(): Promise<AdminSetting[]> {
-    return await db.select().from(adminSettings);
+  async updateReadingCard(id: number, data: Partial<InsertReadingCard>): Promise<ReadingCard> {
+    const [row] = await db.update(readingCards).set({ ...data, updatedAt: new Date() }).where(eq(readingCards.id, id)).returning();
+    return row;
   }
 
-  // === AUDIT LOGS ===
-
-  async createAuditLog(log: { actorId?: string; actorEmail?: string; action: string; targetType?: string; targetId?: string; details?: any }): Promise<AuditLog> {
-    const [created] = await db.insert(auditLogs).values(log).returning();
-    return created;
+  async deleteReadingCard(id: number): Promise<void> {
+    await db.delete(readingCards).where(eq(readingCards.id, id));
   }
 
-  async getAuditLogs(limit = 100, offset = 0): Promise<AuditLog[]> {
-    return await db.select().from(auditLogs)
-      .orderBy(desc(auditLogs.createdAt))
-      .limit(limit)
-      .offset(offset);
+  async getSyntheses(userId: string): Promise<Synthesis[]> {
+    return db.select().from(syntheses).where(eq(syntheses.userId, userId)).orderBy(desc(syntheses.createdAt));
   }
 
-  // === AI LOGS ===
-
-  async createAiLog(log: { userId?: string; endpoint: string; model?: string; tokensIn?: number; tokensOut?: number; durationMs?: number; status?: string; error?: string }): Promise<AiLog> {
-    const [created] = await db.insert(aiLogs).values(log).returning();
-    return created;
+  async getSynthesis(id: number): Promise<Synthesis | undefined> {
+    const [row] = await db.select().from(syntheses).where(eq(syntheses.id, id));
+    return row;
   }
 
-  async getAiLogs(limit = 100, offset = 0): Promise<AiLog[]> {
-    return await db.select().from(aiLogs)
-      .orderBy(desc(aiLogs.createdAt))
-      .limit(limit)
-      .offset(offset);
+  async createSynthesis(data: InsertSynthesis): Promise<Synthesis> {
+    const [row] = await db.insert(syntheses).values(data).returning();
+    return row;
   }
 
-  async getAiLogStats(): Promise<{ totalRequests: number; totalErrors: number; avgDuration: number }> {
-    const [stats] = await db.select({
-      totalRequests: count(),
-      totalErrors: count(sql`CASE WHEN ${aiLogs.status} = 'error' THEN 1 END`),
-      avgDuration: sql<number>`COALESCE(AVG(${aiLogs.durationMs}), 0)`,
-    }).from(aiLogs);
-    return {
-      totalRequests: Number(stats.totalRequests),
-      totalErrors: Number(stats.totalErrors),
-      avgDuration: Math.round(Number(stats.avgDuration)),
-    };
+  async updateSynthesis(id: number, data: Partial<InsertSynthesis>): Promise<Synthesis> {
+    const [row] = await db.update(syntheses).set({ ...data, updatedAt: new Date() }).where(eq(syntheses.id, id)).returning();
+    return row;
   }
 
-  // === ALL PURCHASES (Admin) ===
-
-  async getAllPurchases(limit = 100): Promise<any[]> {
-    const rows = await db.select().from(userPurchases)
-      .orderBy(desc(userPurchases.createdAt))
-      .limit(limit);
-    const enriched = [];
-    for (const p of rows) {
-      const [user] = await db.select().from(users).where(eq(users.id, p.userId));
-      enriched.push({ ...p, userEmail: user?.email, userName: user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Inconnu" });
-    }
-    return enriched;
+  async deleteSynthesis(id: number): Promise<void> {
+    await db.delete(syntheses).where(eq(syntheses.id, id));
   }
 
-  async getAllSurplus(limit = 100): Promise<any[]> {
-    const rows = await db.select().from(quotaSurplus)
-      .orderBy(desc(quotaSurplus.createdAt))
-      .limit(limit);
-    const enriched = [];
-    for (const s of rows) {
-      const [user] = await db.select().from(users).where(eq(users.id, s.userId));
-      enriched.push({ ...s, userEmail: user?.email, userName: user ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : "Inconnu" });
-    }
-    return enriched;
+  async createInvoice(data: InsertInvoice): Promise<Invoice> {
+    const [row] = await db.insert(invoices).values(data).returning();
+    return row;
   }
 
-  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
-    const [created] = await db.insert(invoices).values(invoice).returning();
-    return created;
+  async getInvoices(userId: string): Promise<Invoice[]> {
+    return db.select().from(invoices).where(eq(invoices.userId, userId)).orderBy(desc(invoices.createdAt));
   }
 
-  async getUserInvoices(userId: string): Promise<Invoice[]> {
-    return db.select().from(invoices)
-      .where(eq(invoices.userId, userId))
-      .orderBy(desc(invoices.createdAt));
-  }
-
-  async getInvoice(id: number): Promise<Invoice | undefined> {
-    const [inv] = await db.select().from(invoices).where(eq(invoices.id, id));
-    return inv;
-  }
-
-  async getNextInvoiceNumber(): Promise<string> {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const prefix = `AS-${year}${month}`;
-    const [latest] = await db.select({ invoiceNumber: invoices.invoiceNumber })
-      .from(invoices)
-      .where(sql`${invoices.invoiceNumber} LIKE ${prefix + '%'}`)
-      .orderBy(desc(invoices.invoiceNumber))
-      .limit(1);
-    let seq = 1;
-    if (latest) {
-      const parts = latest.invoiceNumber.split("-");
-      const lastSeq = parseInt(parts[parts.length - 1], 10);
-      if (!isNaN(lastSeq)) seq = lastSeq + 1;
-    }
-    return `${prefix}-${String(seq).padStart(4, "0")}`;
-  }
-
-  // === FORMS (Formulaire en ligne) ===
-
-  async getFormsByProject(projectId: number): Promise<Form[]> {
-    return await db.select().from(forms)
-      .where(eq(forms.projectId, projectId))
-      .orderBy(desc(forms.createdAt));
-  }
-
-  async getForm(id: number): Promise<Form | undefined> {
-    const [form] = await db.select().from(forms).where(eq(forms.id, id));
-    return form;
-  }
-
-  async getFormByPublicId(publicId: string): Promise<Form | undefined> {
-    const [form] = await db.select().from(forms).where(eq(forms.publicId, publicId));
-    return form;
-  }
-
-  async createForm(form: InsertForm): Promise<Form> {
-    const [created] = await db.insert(forms).values(form).returning();
-    return created;
-  }
-
-  async updateForm(id: number, updates: Partial<InsertForm>): Promise<Form> {
-    const [updated] = await db.update(forms)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(forms.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteForm(id: number): Promise<void> {
-    const questions = await this.getFormQuestions(id);
-    const questionIds = questions.map(q => q.id);
-    if (questionIds.length > 0) {
-      const responses = await this.getFormResponses(id);
-      for (const r of responses) {
-        await db.delete(formAnswers).where(eq(formAnswers.responseId, r.id));
-      }
-      await db.delete(formResponses).where(eq(formResponses.formId, id));
-      await db.delete(formQuestions).where(eq(formQuestions.formId, id));
-    }
-    await db.delete(forms).where(eq(forms.id, id));
-  }
-
-  async getFormQuestions(formId: number): Promise<FormQuestion[]> {
-    return await db.select().from(formQuestions)
-      .where(eq(formQuestions.formId, formId))
-      .orderBy(asc(formQuestions.order));
-  }
-
-  async createFormQuestion(question: InsertFormQuestion): Promise<FormQuestion> {
-    const [created] = await db.insert(formQuestions).values(question).returning();
-    return created;
-  }
-
-  async updateFormQuestion(id: number, updates: Partial<InsertFormQuestion>): Promise<FormQuestion> {
-    const [updated] = await db.update(formQuestions)
-      .set(updates)
-      .where(eq(formQuestions.id, id))
-      .returning();
-    return updated;
-  }
-
-  async deleteFormQuestion(id: number): Promise<void> {
-    await db.delete(formAnswers).where(eq(formAnswers.questionId, id));
-    await db.delete(formQuestions).where(eq(formQuestions.id, id));
-  }
-
-  async reorderFormQuestions(formId: number, questionIds: number[]): Promise<void> {
-    for (let i = 0; i < questionIds.length; i++) {
-      await db.update(formQuestions)
-        .set({ order: i })
-        .where(and(eq(formQuestions.id, questionIds[i]), eq(formQuestions.formId, formId)));
-    }
-  }
-
-  async getFormResponses(formId: number): Promise<FormResponse[]> {
-    return await db.select().from(formResponses)
-      .where(eq(formResponses.formId, formId))
-      .orderBy(desc(formResponses.submittedAt));
-  }
-
-  async getFormResponseCount(formId: number): Promise<number> {
-    const [result] = await db.select({ count: count() }).from(formResponses)
-      .where(eq(formResponses.formId, formId));
-    return Number(result.count);
-  }
-
-  async createFormResponse(response: InsertFormResponse, answers: InsertFormAnswer[]): Promise<FormResponse> {
-    const [created] = await db.insert(formResponses).values(response).returning();
-    if (answers.length > 0) {
-      await db.insert(formAnswers).values(
-        answers.map(a => ({ ...a, responseId: created.id }))
-      );
-    }
-    return created;
-  }
-
-  async getFormAnswers(responseId: number): Promise<FormAnswer[]> {
-    return await db.select().from(formAnswers)
-      .where(eq(formAnswers.responseId, responseId));
-  }
-
-  async getFormAllAnswers(formId: number): Promise<FormAnswer[]> {
-    const responses = await this.getFormResponses(formId);
-    if (responses.length === 0) return [];
-    const responseIds = responses.map(r => r.id);
-    return await db.select().from(formAnswers)
-      .where(inArray(formAnswers.responseId, responseIds));
-  }
-
-  async deleteFormResponse(id: number): Promise<void> {
-    await db.delete(formAnswers).where(eq(formAnswers.responseId, id));
-    await db.delete(formResponses).where(eq(formResponses.id, id));
+  async getInvoiceBySession(sessionId: string): Promise<Invoice | undefined> {
+    const [row] = await db.select().from(invoices).where(eq(invoices.stripeSessionId, sessionId));
+    return row;
   }
 }
 
