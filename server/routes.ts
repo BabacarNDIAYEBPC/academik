@@ -2,15 +2,19 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
-import { registerChatRoutes } from "./replit_integrations/chat";
 import OpenAI from "openai";
-import multer from "multer";
 import { CREDIT_COSTS, CREDIT_PACKS } from "@shared/schema";
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
-
 function getUserId(req: any): string {
-  return req.user?.claims?.sub || "";
+  return String((req.session as any)?.userId || "");
+}
+
+function checkAuth(req: any, res: any): boolean {
+  if (!(req.session as any)?.userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return false;
+  }
+  return true;
 }
 
 async function getOpenAI(): Promise<OpenAI> {
@@ -18,34 +22,25 @@ async function getOpenAI(): Promise<OpenAI> {
 }
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
-  // HTTPS redirect in production
-  app.use((req, res, next) => {
-    const proto = req.headers["x-forwarded-proto"];
-    const host = req.headers["host"];
-    if (proto === "http" && host) return res.redirect(301, `https://${host}${req.url}`);
-    next();
-  });
-
   await setupAuth(app);
   registerAuthRoutes(app);
-  registerChatRoutes(app);
 
   // === CREDITS ===
   app.get("/api/credits", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const credits = await storage.getCredits(getUserId(req));
     res.json({ credits });
   });
 
   app.get("/api/credits/transactions", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const transactions = await storage.getCreditTransactions(getUserId(req));
     res.json(transactions);
   });
 
   // === STRIPE CHECKOUT ===
   app.post("/api/checkout", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const { packId } = req.body;
     const pack = CREDIT_PACKS.find(p => p.id === packId);
     if (!pack) return res.status(400).json({ message: "Pack invalide" });
@@ -76,7 +71,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   app.post("/api/checkout/confirm", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const { sessionId } = req.body;
     if (!sessionId) return res.status(400).json({ message: "Session ID manquant" });
     const existing = await storage.getInvoiceBySession(sessionId);
@@ -85,12 +80,12 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     if (!stripeKey) return res.status(500).json({ message: "Stripe non configuré" });
     const Stripe = (await import("stripe")).default;
     const stripe = new Stripe(stripeKey);
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    if (session.payment_status !== "paid") return res.status(400).json({ message: "Paiement non complété" });
-    const userId = session.metadata?.userId;
-    const credits = parseInt(session.metadata?.credits || "0");
-    const amount = (session.amount_total || 0) / 100;
-    const packId = session.metadata?.packId;
+    const stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
+    if (stripeSession.payment_status !== "paid") return res.status(400).json({ message: "Paiement non complété" });
+    const userId = stripeSession.metadata?.userId;
+    const credits = parseInt(stripeSession.metadata?.credits || "0");
+    const amount = (stripeSession.amount_total || 0) / 100;
+    const packId = stripeSession.metadata?.packId;
     if (!userId || !credits) return res.status(400).json({ message: "Métadonnées invalides" });
     await storage.addCredits(userId, credits, "purchase", `Achat pack ${packId}`, sessionId);
     await storage.createInvoice({ userId, stripeSessionId: sessionId, amount, credits, status: "paid" });
@@ -98,16 +93,16 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   });
 
   app.get("/api/invoices", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const inv = await storage.getInvoices(getUserId(req));
     res.json(inv);
   });
 
   // === LITERATURE REVIEW — SEARCH ARTICLES ===
   app.post("/api/literature/search", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const userId = getUserId(req);
-    const { query, domain, platforms, language, periodStart, periodEnd, level, sourceTypes, articleCount, norm } = req.body;
+    const { query, domain, platforms, language, periodStart, periodEnd, level, sourceTypes, articleCount } = req.body;
     if (!query && !domain) return res.status(400).json({ message: "Requête manquante" });
     const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, `Recherche: ${query || domain}`);
     if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
@@ -149,7 +144,7 @@ Réponds en JSON: { "articles": [ { "lastName": "", "firstName": "", "title": ""
 
   // === LITERATURE REVIEW — ANALYZE ARTICLES ===
   app.post("/api/literature/analyze", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const userId = getUserId(req);
     const { articles, analysisType, query } = req.body;
     if (!articles || !articles.length) return res.status(400).json({ message: "Articles manquants" });
@@ -161,20 +156,13 @@ Réponds en JSON: { "articles": [ { "lastName": "", "firstName": "", "title": ""
     ).join("\n");
     let prompt = "";
     if (analysisType === "single") {
-      prompt = `Fais une synthèse critique et structurée de cet article académique en français:
-${articlesText}
-Inclus: résumé, problématique, méthodologie, résultats clés, apport au domaine, limites.`;
+      prompt = `Fais une synthèse critique et structurée de cet article académique en français:\n${articlesText}\nInclus: résumé, problématique, méthodologie, résultats clés, apport au domaine, limites.`;
     } else if (analysisType === "confrontation") {
-      prompt = `Compare et confronte ces articles académiques en français. Identifie convergences, divergences, débats théoriques:
-${articlesText}
-Structure: introduction, convergences, divergences, synthèse critique.`;
+      prompt = `Compare et confronte ces articles académiques en français. Identifie convergences, divergences, débats théoriques:\n${articlesText}\nStructure: introduction, convergences, divergences, synthèse critique.`;
     } else if (analysisType === "mapping") {
-      prompt = `Établis une cartographie thématique de ces articles en français. Identifie les grands axes thématiques, courants théoriques et auteurs clés:
-${articlesText}`;
+      prompt = `Établis une cartographie thématique de ces articles en français. Identifie les grands axes thématiques, courants théoriques et auteurs clés:\n${articlesText}`;
     } else {
-      prompt = `Génère une synthèse littéraire structurée en français de ces articles académiques${query ? ` sur le thème: "${query}"` : ""}:
-${articlesText}
-Structure: introduction, thèmes majeurs, convergences et débats, lacunes, conclusion.`;
+      prompt = `Génère une synthèse littéraire structurée en français de ces articles académiques${query ? ` sur le thème: "${query}"` : ""}:\n${articlesText}\nStructure: introduction, thèmes majeurs, convergences et débats, lacunes, conclusion.`;
     }
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -186,7 +174,7 @@ Structure: introduction, thèmes majeurs, convergences et débats, lacunes, conc
 
   // === LITERATURE REVIEW — BIBLIOGRAPHY ===
   app.post("/api/literature/bibliography", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const userId = getUserId(req);
     const { articles, norm = "apa7" } = req.body;
     if (!articles || !articles.length) return res.status(400).json({ message: "Articles manquants" });
@@ -198,10 +186,7 @@ Structure: introduction, thèmes majeurs, convergences et débats, lacunes, conc
     const articlesText = articles.map((a: any, i: number) =>
       `${i + 1}. ${a.lastName || ""}, ${a.firstName || ""} (${a.year || ""}). ${a.title || ""}. ${a.publisher || a.source || ""}. ${a.url || ""}`
     ).join("\n");
-    const prompt = `Génère une bibliographie académique complète et correctement formatée au format ${normLabel} pour les références suivantes. Classe par ordre alphabétique du premier auteur. Réponds uniquement avec le texte de la bibliographie formatée, sans introduction ni commentaire.
-
-Références:
-${articlesText}`;
+    const prompt = `Génère une bibliographie académique complète et correctement formatée au format ${normLabel} pour les références suivantes. Classe par ordre alphabétique du premier auteur. Réponds uniquement avec le texte de la bibliographie formatée, sans introduction ni commentaire.\n\nRéférences:\n${articlesText}`;
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
@@ -212,7 +197,7 @@ ${articlesText}`;
 
   // === LITERATURE REVIEW — EQUATIONS ===
   app.post("/api/literature/equations", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const userId = getUserId(req);
     const { query, domain, language } = req.body;
     const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, "Génération équations de recherche");
@@ -233,19 +218,19 @@ Génère 5-6 équations de recherche pour Google Scholar, PubMed, et bases de do
 
   // === SAVED SEARCHES (bibliographies) ===
   app.get("/api/bibliographies", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const items = await storage.getBibliographies(getUserId(req));
     res.json(items);
   });
 
   app.post("/api/bibliographies", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const item = await storage.createBibliography({ ...req.body, userId: getUserId(req) });
     res.json(item);
   });
 
   app.patch("/api/bibliographies/:id", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const item = await storage.getBibliography(Number(req.params.id));
     if (!item || item.userId !== getUserId(req)) return res.status(403).json({ message: "Interdit" });
     const updated = await storage.updateBibliography(Number(req.params.id), req.body);
@@ -253,7 +238,7 @@ Génère 5-6 équations de recherche pour Google Scholar, PubMed, et bases de do
   });
 
   app.delete("/api/bibliographies/:id", async (req, res) => {
-    if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+    if (!checkAuth(req, res)) return;
     const item = await storage.getBibliography(Number(req.params.id));
     if (!item || item.userId !== getUserId(req)) return res.status(403).json({ message: "Interdit" });
     await storage.deleteBibliography(Number(req.params.id));

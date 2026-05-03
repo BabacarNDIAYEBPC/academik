@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CREDIT_PACKS } from "@shared/schema";
 
 export default function Landing() {
-  const handleLogin = () => { window.location.href = "/api/login"; };
+  const handleLogin = () => { window.location.href = "/connexion"; };
 
   return (
     <div className="min-h-screen bg-background">
