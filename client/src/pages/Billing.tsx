@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
 import { BookOpen, Coins, ArrowLeft, Check, Loader2, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Billing() {
   const { t } = useTranslation();
+  useSEO("billing");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { data: creditsData, isLoading: creditsLoading } = useCredits();

@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
 import {
   BookOpen, Search, Loader2, ExternalLink, ChevronLeft, ChevronRight,
@@ -46,6 +47,7 @@ type ActiveAction = null | "search" | "summary_selected" | "summary_all" | "conf
 const articleKey = (a: LiteratureArticle) => `${a.lastName}|${a.firstName}|${a.title}|${a.year}`;
 
 export default function Revue() {
+  useSEO("revue");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 

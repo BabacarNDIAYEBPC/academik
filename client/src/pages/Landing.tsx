@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useSEO } from "@/hooks/use-seo";
 import { BookOpen, Search, FileText, GitCompare, Zap, Shield, ChevronRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Landing() {
   const { t } = useTranslation();
+  useSEO("home");
   const handleLogin = () => { window.location.href = "/connexion"; };
 
   return (

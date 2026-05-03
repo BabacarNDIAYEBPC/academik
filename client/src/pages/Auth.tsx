@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
@@ -13,6 +14,7 @@ type Step = "login" | "register" | "verify" | "forgot" | "reset";
 
 export default function Auth() {
   const { t } = useTranslation();
+  useSEO("auth");
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();

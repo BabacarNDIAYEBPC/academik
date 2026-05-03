@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
 import { BookOpen, Search, Plus, Trash2, Clock, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Dashboard() {
   const { t } = useTranslation();
+  useSEO("dashboard");
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
