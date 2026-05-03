@@ -37,6 +37,7 @@ export function registerAuthRoutes(app: Express): void {
 
     const code = generateCode();
     await authStorage.createVerificationCode(email, code, "verify");
+    console.log(`[AUTH] Verification code for ${email}: ${code}`);
     sendVerificationCode(email, code).catch(err => console.error("[AUTH] Email error:", err));
 
     res.json({ success: true, message: "Code de vérification envoyé" });
@@ -98,6 +99,7 @@ export function registerAuthRoutes(app: Express): void {
 
     const code = generateCode();
     await authStorage.createVerificationCode(email, code, "reset");
+    console.log(`[AUTH] Reset code for ${email}: ${code}`);
     sendVerificationCode(email, code, true).catch(err => console.error("[AUTH] Reset email error:", err));
 
     res.json({ success: true });
@@ -133,6 +135,7 @@ export function registerAuthRoutes(app: Express): void {
 
     const code = generateCode();
     await authStorage.createVerificationCode(email, code, type);
+    console.log(`[AUTH] Resent code for ${email}: ${code}`);
     sendVerificationCode(email, code, type === "reset").catch(() => {});
 
     res.json({ success: true });
