@@ -1,15 +1,7 @@
-import { Resend } from "resend";
 import nodemailer from "nodemailer";
 
-const FROM_EMAIL = process.env.GMAIL_USER || "noreply@academik.fr";
 const FROM_NAME = "Academik";
 const REPLY_TO = "contact@academik.fr";
-
-function getResend() {
-  const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
-  return new Resend(key);
-}
 
 function getTransporter() {
   const user = process.env.GMAIL_USER;
@@ -22,43 +14,21 @@ function getTransporter() {
 }
 
 async function send(to: string, subject: string, html: string) {
-  const resend = getResend();
-
-  if (resend) {
-    try {
-      const { error } = await resend.emails.send({
-        from: `${FROM_NAME} <onboarding@resend.dev>`,
-        to,
-        replyTo: REPLY_TO,
-        subject,
-        html,
-      });
-      if (error) {
-        console.error("[EMAIL] Resend error:", error);
-        throw error;
-      }
-      console.log(`[EMAIL] Sent via Resend to ${to}: ${subject}`);
-      return;
-    } catch (err) {
-      console.error("[EMAIL] Resend failed, falling back to Gmail:", err);
-    }
-  }
-
   const transporter = getTransporter();
   if (!transporter) {
     console.warn(`[EMAIL] No email provider configured — would send to ${to}: ${subject}`);
     return;
   }
-
+  const from = process.env.GMAIL_USER!;
   try {
     await transporter.sendMail({
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+      from: `"${FROM_NAME}" <${from}>`,
       to,
       replyTo: REPLY_TO,
       subject,
       html,
     });
-    console.log(`[EMAIL] Sent via Gmail to ${to}: ${subject}`);
+    console.log(`[EMAIL] Sent to ${to}: ${subject}`);
   } catch (err) {
     console.error("[EMAIL] Gmail error:", err);
     throw err;
