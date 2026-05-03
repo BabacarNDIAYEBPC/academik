@@ -1,10 +1,13 @@
+import { useTranslation } from "react-i18next";
 import { BookOpen, Search, FileText, GitCompare, Zap, Shield, ChevronRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CREDIT_PACKS } from "@shared/schema";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Landing() {
+  const { t } = useTranslation();
   const handleLogin = () => { window.location.href = "/connexion"; };
 
   return (
@@ -13,38 +16,41 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-primary" />
-            <span className="font-bold text-lg tracking-tight">Refbib</span>
+            <span className="font-bold text-lg tracking-tight">{t("app_name")}</span>
           </div>
-          <Button onClick={handleLogin} size="sm" data-testid="button-login">
-            Commencer gratuitement
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher compact />
+            <Button onClick={handleLogin} size="sm" data-testid="button-login">
+              {t("start_free")}
+            </Button>
+          </div>
         </div>
       </nav>
 
       <section className="py-20 px-4 text-center">
         <div className="max-w-3xl mx-auto">
-          <Badge variant="secondary" className="mb-4">Recherche bibliographique académique</Badge>
+          <Badge variant="secondary" className="mb-4">{t("hero_badge")}</Badge>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
-            Votre assistant de{" "}
-            <span className="gradient-text">revue de littérature</span>
+            {t("hero_title_1")}{" "}
+            <span className="gradient-text">{t("hero_title_2")}</span>
           </h1>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Recherchez des articles académiques, générez des bibliographies aux normes APA, analysez et confrontez vos sources en quelques clics.
+            {t("hero_desc")}
           </p>
           <Button size="lg" onClick={handleLogin} className="gap-2" data-testid="button-hero-cta">
-            Accéder à l'outil <ChevronRight className="w-4 h-4" />
+            {t("hero_cta")} <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
       </section>
 
       <section className="py-16 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-12">Tout ce dont vous avez besoin pour votre revue</h2>
+          <h2 className="text-2xl font-bold text-center mb-12">{t("features_title")}</h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: Search, title: "Recherche intelligente", desc: "Trouvez des articles sur Google Scholar, PubMed, HAL, Cairn et ScienceDirect avec des filtres avancés : période, langue, type de source." },
-              { icon: FileText, title: "Bibliographies APA", desc: "Générez automatiquement vos bibliographies aux normes APA 7, Vancouver, MLA ou Chicago à partir de vos articles sélectionnés." },
-              { icon: GitCompare, title: "Analyse & Synthèse", desc: "Obtenez des résumés structurés, confrontez des articles entre eux, et générez des synthèses littéraires complètes." },
+              { icon: Search, title: t("feature1_title"), desc: t("feature1_desc") },
+              { icon: FileText, title: t("feature2_title"), desc: t("feature2_desc") },
+              { icon: GitCompare, title: t("feature3_title"), desc: t("feature3_desc") },
             ].map(({ icon: Icon, title, desc }) => (
               <Card key={title} className="card-hover">
                 <CardContent className="pt-6">
@@ -63,23 +69,23 @@ export default function Landing() {
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold mb-3">Tarifs simples à l'usage</h2>
-            <p className="text-muted-foreground">Achetez des crédits, utilisez-les quand vous en avez besoin. Sans abonnement.</p>
+            <h2 className="text-2xl font-bold mb-3">{t("pricing_title")}</h2>
+            <p className="text-muted-foreground">{t("pricing_desc")}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {CREDIT_PACKS.map((pack, i) => (
               <Card key={pack.id} className={`card-hover relative ${i === 1 ? "border-primary shadow-md" : ""}`}>
                 {i === 1 && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary">Populaire</Badge>
+                    <Badge className="bg-primary">{t("popular")}</Badge>
                   </div>
                 )}
                 <CardContent className="pt-6 text-center">
                   <h3 className="font-bold text-lg mb-1">{pack.label}</h3>
                   <div className="text-3xl font-bold my-3">{pack.price} €</div>
-                  <p className="text-muted-foreground text-sm mb-4">{pack.credits} crédits</p>
+                  <p className="text-muted-foreground text-sm mb-4">{pack.credits} {t("credits")}</p>
                   <div className="space-y-2 text-sm text-left mb-6">
-                    {["Recherches d'articles", "Analyses et synthèses", "Bibliographies APA"].map(f => (
+                    {[t("feature_articles"), t("feature_analyses"), t("feature_bib")].map(f => (
                       <div key={f} className="flex items-center gap-2">
                         <Check className="w-4 h-4 text-green-500 shrink-0" />
                         <span>{f}</span>
@@ -87,31 +93,31 @@ export default function Landing() {
                     ))}
                   </div>
                   <Button className="w-full" variant={i === 1 ? "default" : "outline"} onClick={handleLogin} data-testid={`button-pack-${pack.id}`}>
-                    Choisir ce pack
+                    {t("choose_pack")}
                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
           <p className="text-center text-xs text-muted-foreground mt-6">
-            1 crédit = 1 recherche ou 1 analyse. 2 crédits = 1 synthèse complète.
+            {t("credits_note")}
           </p>
         </div>
       </section>
 
       <section className="py-12 px-4 bg-muted/30 border-t">
         <div className="max-w-3xl mx-auto flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
-          {[{ icon: Shield, text: "Données sécurisées" }, { icon: Zap, text: "Résultats en secondes" }, { icon: BookOpen, text: "Sources académiques" }].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2">
+          {[{ icon: Shield, key: "trust_secure" }, { icon: Zap, key: "trust_fast" }, { icon: BookOpen, key: "trust_academic" }].map(({ icon: Icon, key }) => (
+            <div key={key} className="flex items-center gap-2">
               <Icon className="w-4 h-4 text-primary" />
-              <span>{text}</span>
+              <span>{t(key)}</span>
             </div>
           ))}
         </div>
       </section>
 
       <footer className="py-8 px-4 text-center text-xs text-muted-foreground border-t">
-        © {new Date().getFullYear()} Refbib — Performance Consulting Groupe SAS
+        © {new Date().getFullYear()} {t("app_name")} — Performance Consulting Groupe SAS
       </footer>
     </div>
   );

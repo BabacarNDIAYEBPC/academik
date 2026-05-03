@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { BookOpen, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
@@ -6,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 type Step = "login" | "register" | "verify" | "forgot" | "reset";
 
 export default function Auth() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -42,14 +44,14 @@ export default function Auth() {
           await resendCode("verify");
           setStep("verify");
         } else {
-          toast({ variant: "destructive", title: "Erreur", description: data.message });
+          toast({ variant: "destructive", title: t("error"), description: data.message });
         }
         return;
       }
       queryClient.setQueryData(["/api/auth/user"], data.user);
       setLocation("/");
     } catch {
-      toast({ variant: "destructive", title: "Erreur réseau", description: "Impossible de se connecter" });
+      toast({ variant: "destructive", title: t("err_network"), description: t("err_network_login") });
     } finally {
       setLoading(false);
     }
@@ -59,11 +61,11 @@ export default function Auth() {
     e.preventDefault();
     if (!email || !password || !firstName) return;
     if (password.length < 8) {
-      toast({ variant: "destructive", title: "Mot de passe trop court", description: "8 caractères minimum" });
+      toast({ variant: "destructive", title: t("err_short_pass"), description: t("err_short_pass_desc") });
       return;
     }
     if (password !== confirmPass) {
-      toast({ variant: "destructive", title: "Mots de passe différents", description: "Les mots de passe ne correspondent pas" });
+      toast({ variant: "destructive", title: t("err_pass_diff"), description: t("err_pass_diff_desc") });
       return;
     }
     setLoading(true);
@@ -75,12 +77,12 @@ export default function Auth() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast({ variant: "destructive", title: "Erreur", description: data.message });
+        toast({ variant: "destructive", title: t("error"), description: data.message });
         return;
       }
       setStep("verify");
     } catch {
-      toast({ variant: "destructive", title: "Erreur réseau", description: "Impossible de créer le compte" });
+      toast({ variant: "destructive", title: t("err_network"), description: t("err_network_register") });
     } finally {
       setLoading(false);
     }
@@ -89,7 +91,7 @@ export default function Auth() {
   async function handleVerify(e: React.FormEvent) {
     e.preventDefault();
     if (!code || code.length !== 6) {
-      toast({ variant: "destructive", title: "Code invalide", description: "Entrez le code à 6 chiffres" });
+      toast({ variant: "destructive", title: t("err_invalid_code"), description: t("err_invalid_code_desc") });
       return;
     }
     setLoading(true);
@@ -102,13 +104,13 @@ export default function Auth() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast({ variant: "destructive", title: "Code invalide", description: data.message });
+        toast({ variant: "destructive", title: t("err_invalid_code"), description: data.message });
         return;
       }
       queryClient.setQueryData(["/api/auth/user"], data.user);
       setLocation("/");
     } catch {
-      toast({ variant: "destructive", title: "Erreur réseau" });
+      toast({ variant: "destructive", title: t("err_network") });
     } finally {
       setLoading(false);
     }
@@ -126,7 +128,7 @@ export default function Auth() {
       });
       setStep("reset");
     } catch {
-      toast({ variant: "destructive", title: "Erreur réseau" });
+      toast({ variant: "destructive", title: t("err_network") });
     } finally {
       setLoading(false);
     }
@@ -136,11 +138,11 @@ export default function Auth() {
     e.preventDefault();
     if (!code || !password) return;
     if (password.length < 8) {
-      toast({ variant: "destructive", title: "Mot de passe trop court", description: "8 caractères minimum" });
+      toast({ variant: "destructive", title: t("err_short_pass"), description: t("err_short_pass_desc") });
       return;
     }
     if (password !== confirmPass) {
-      toast({ variant: "destructive", title: "Mots de passe différents" });
+      toast({ variant: "destructive", title: t("err_pass_diff") });
       return;
     }
     setLoading(true);
@@ -152,16 +154,16 @@ export default function Auth() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast({ variant: "destructive", title: "Erreur", description: data.message });
+        toast({ variant: "destructive", title: t("error"), description: data.message });
         return;
       }
-      toast({ title: "Mot de passe modifié", description: "Connectez-vous avec votre nouveau mot de passe" });
+      toast({ title: t("password_changed"), description: t("password_changed_desc") });
       setPassword("");
       setConfirmPass("");
       setCode("");
       setStep("login");
     } catch {
-      toast({ variant: "destructive", title: "Erreur réseau" });
+      toast({ variant: "destructive", title: t("err_network") });
     } finally {
       setLoading(false);
     }
@@ -179,7 +181,7 @@ export default function Auth() {
     setLoading(true);
     try {
       await resendCode(step === "reset" ? "reset" : "verify");
-      toast({ title: "Code renvoyé", description: `Un nouveau code a été envoyé à ${email}` });
+      toast({ title: t("code_resent"), description: `${t("code_resent_desc")} ${email}` });
     } finally {
       setLoading(false);
     }
@@ -187,11 +189,12 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col">
-      <header className="px-6 py-4">
+      <header className="px-6 py-4 flex items-center justify-between">
         <a href="/" className="flex items-center gap-2 text-slate-700 hover:text-blue-700 transition-colors w-fit">
           <BookOpen className="h-5 w-5 text-blue-700" />
-          <span className="font-bold text-lg">Refbib</span>
+          <span className="font-bold text-lg">{t("app_name")}</span>
         </a>
+        <LanguageSwitcher compact />
       </header>
 
       <div className="flex-1 flex items-center justify-center p-4">
@@ -202,19 +205,19 @@ export default function Auth() {
             {step === "login" && (
               <>
                 <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-slate-900">Connexion</h1>
-                  <p className="text-slate-500 mt-1 text-sm">Accédez à votre espace Refbib</p>
+                  <h1 className="text-2xl font-bold text-slate-900">{t("login_title")}</h1>
+                  <p className="text-slate-500 mt-1 text-sm">{t("login_subtitle")}</p>
                 </div>
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div>
-                    <Label htmlFor="login-email">Adresse email</Label>
+                    <Label htmlFor="login-email">{t("email")}</Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
                         id="login-email"
                         data-testid="input-email"
                         type="email"
-                        placeholder="vous@exemple.com"
+                        placeholder={t("email_placeholder")}
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                         className="pl-9"
@@ -224,14 +227,14 @@ export default function Auth() {
                   </div>
                   <div>
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="login-password">Mot de passe</Label>
+                      <Label htmlFor="login-password">{t("password")}</Label>
                       <button
                         type="button"
                         onClick={() => setStep("forgot")}
                         className="text-xs text-blue-600 hover:underline"
                         data-testid="link-forgot-password"
                       >
-                        Mot de passe oublié ?
+                        {t("forgot_password")}
                       </button>
                     </div>
                     <div className="relative mt-1">
@@ -262,17 +265,17 @@ export default function Auth() {
                     disabled={loading}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Se connecter
+                    {t("login_btn")}
                   </Button>
                 </form>
                 <p className="text-center text-sm text-slate-500 mt-6">
-                  Pas encore de compte ?{" "}
+                  {t("no_account")}{" "}
                   <button
                     onClick={() => setStep("register")}
                     className="text-blue-600 font-medium hover:underline"
                     data-testid="link-register"
                   >
-                    Créer un compte
+                    {t("create_account_link")}
                   </button>
                 </p>
               </>
@@ -283,15 +286,15 @@ export default function Auth() {
               <>
                 <div className="mb-6">
                   <button onClick={() => setStep("login")} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm mb-4">
-                    <ArrowLeft className="h-4 w-4" /> Retour
+                    <ArrowLeft className="h-4 w-4" /> {t("back")}
                   </button>
-                  <h1 className="text-2xl font-bold text-slate-900">Créer un compte</h1>
-                  <p className="text-slate-500 mt-1 text-sm">Rejoignez Refbib gratuitement</p>
+                  <h1 className="text-2xl font-bold text-slate-900">{t("register_title")}</h1>
+                  <p className="text-slate-500 mt-1 text-sm">{t("register_subtitle")}</p>
                 </div>
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="reg-firstname">Prénom <span className="text-red-500">*</span></Label>
+                      <Label htmlFor="reg-firstname">{t("firstname")} <span className="text-red-500">*</span></Label>
                       <div className="relative mt-1">
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
@@ -306,7 +309,7 @@ export default function Auth() {
                       </div>
                     </div>
                     <div>
-                      <Label htmlFor="reg-lastname">Nom</Label>
+                      <Label htmlFor="reg-lastname">{t("lastname")}</Label>
                       <Input
                         id="reg-lastname"
                         data-testid="input-lastname"
@@ -318,14 +321,14 @@ export default function Auth() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="reg-email">Adresse email <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="reg-email">{t("email")} <span className="text-red-500">*</span></Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
                         id="reg-email"
                         data-testid="input-email-register"
                         type="email"
-                        placeholder="vous@exemple.com"
+                        placeholder={t("email_placeholder")}
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                         className="pl-9"
@@ -334,14 +337,14 @@ export default function Auth() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="reg-password">Mot de passe <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="reg-password">{t("password")} <span className="text-red-500">*</span></Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
                         id="reg-password"
                         data-testid="input-password-register"
                         type={showPass ? "text" : "password"}
-                        placeholder="8 caractères minimum"
+                        placeholder={t("min_8_chars")}
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                         className="pl-9 pr-10"
@@ -358,7 +361,7 @@ export default function Auth() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="reg-confirm">Confirmer le mot de passe <span className="text-red-500">*</span></Label>
+                    <Label htmlFor="reg-confirm">{t("confirm_password")} <span className="text-red-500">*</span></Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
@@ -380,17 +383,17 @@ export default function Auth() {
                     disabled={loading}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Créer mon compte
+                    {t("register_btn")}
                   </Button>
                 </form>
                 <p className="text-center text-sm text-slate-500 mt-6">
-                  Déjà un compte ?{" "}
+                  {t("already_account")}{" "}
                   <button
                     onClick={() => setStep("login")}
                     className="text-blue-600 font-medium hover:underline"
                     data-testid="link-login"
                   >
-                    Se connecter
+                    {t("login_link")}
                   </button>
                 </p>
               </>
@@ -403,15 +406,15 @@ export default function Auth() {
                   <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Mail className="h-7 w-7 text-blue-700" />
                   </div>
-                  <h1 className="text-2xl font-bold text-slate-900">Vérifiez votre email</h1>
+                  <h1 className="text-2xl font-bold text-slate-900">{t("verify_title")}</h1>
                   <p className="text-slate-500 mt-2 text-sm">
-                    Un code à 6 chiffres a été envoyé à<br />
+                    {t("verify_subtitle")}<br />
                     <strong className="text-slate-700">{email}</strong>
                   </p>
                 </div>
                 <form onSubmit={handleVerify} className="space-y-4">
                   <div>
-                    <Label htmlFor="verify-code">Code de vérification</Label>
+                    <Label htmlFor="verify-code">{t("verification_code")}</Label>
                     <Input
                       id="verify-code"
                       data-testid="input-verification-code"
@@ -430,7 +433,7 @@ export default function Auth() {
                     disabled={loading || code.length !== 6}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Vérifier
+                    {t("verify_btn")}
                   </Button>
                 </form>
                 <div className="mt-4 text-center">
@@ -440,11 +443,11 @@ export default function Auth() {
                     className="text-sm text-blue-600 hover:underline"
                     data-testid="button-resend-code"
                   >
-                    Renvoyer le code
+                    {t("resend_code")}
                   </button>
                   <span className="text-slate-300 mx-2">|</span>
                   <button onClick={() => setStep("login")} className="text-sm text-slate-500 hover:underline">
-                    Retour
+                    {t("back")}
                   </button>
                 </div>
               </>
@@ -455,21 +458,21 @@ export default function Auth() {
               <>
                 <div className="mb-6">
                   <button onClick={() => setStep("login")} className="flex items-center gap-1 text-slate-500 hover:text-slate-700 text-sm mb-4">
-                    <ArrowLeft className="h-4 w-4" /> Retour à la connexion
+                    <ArrowLeft className="h-4 w-4" /> {t("back_to_login")}
                   </button>
-                  <h1 className="text-2xl font-bold text-slate-900">Mot de passe oublié</h1>
-                  <p className="text-slate-500 mt-1 text-sm">Entrez votre email pour recevoir un code de réinitialisation</p>
+                  <h1 className="text-2xl font-bold text-slate-900">{t("forgot_title")}</h1>
+                  <p className="text-slate-500 mt-1 text-sm">{t("forgot_subtitle")}</p>
                 </div>
                 <form onSubmit={handleForgot} className="space-y-4">
                   <div>
-                    <Label htmlFor="forgot-email">Adresse email</Label>
+                    <Label htmlFor="forgot-email">{t("email")}</Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
                         id="forgot-email"
                         data-testid="input-forgot-email"
                         type="email"
-                        placeholder="vous@exemple.com"
+                        placeholder={t("email_placeholder")}
                         value={email}
                         onChange={e => setEmail(e.target.value)}
                         className="pl-9"
@@ -484,7 +487,7 @@ export default function Auth() {
                     disabled={loading}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Envoyer le code
+                    {t("send_code")}
                   </Button>
                 </form>
               </>
@@ -497,14 +500,14 @@ export default function Auth() {
                   <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-7 w-7 text-green-600" />
                   </div>
-                  <h1 className="text-2xl font-bold text-slate-900 text-center">Nouveau mot de passe</h1>
+                  <h1 className="text-2xl font-bold text-slate-900 text-center">{t("reset_title")}</h1>
                   <p className="text-slate-500 mt-2 text-sm text-center">
-                    Code envoyé à <strong className="text-slate-700">{email}</strong>
+                    {t("reset_subtitle")} <strong className="text-slate-700">{email}</strong>
                   </p>
                 </div>
                 <form onSubmit={handleReset} className="space-y-4">
                   <div>
-                    <Label htmlFor="reset-code">Code reçu par email</Label>
+                    <Label htmlFor="reset-code">{t("code_received")}</Label>
                     <Input
                       id="reset-code"
                       data-testid="input-reset-code"
@@ -517,14 +520,14 @@ export default function Auth() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="reset-password">Nouveau mot de passe</Label>
+                    <Label htmlFor="reset-password">{t("new_password")}</Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
                         id="reset-password"
                         data-testid="input-new-password"
                         type={showPass ? "text" : "password"}
-                        placeholder="8 caractères minimum"
+                        placeholder={t("min_8_chars")}
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                         className="pl-9 pr-10"
@@ -541,7 +544,7 @@ export default function Auth() {
                     </div>
                   </div>
                   <div>
-                    <Label htmlFor="reset-confirm">Confirmer</Label>
+                    <Label htmlFor="reset-confirm">{t("confirm_label")}</Label>
                     <div className="relative mt-1">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
@@ -563,7 +566,7 @@ export default function Auth() {
                     disabled={loading}
                   >
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                    Réinitialiser le mot de passe
+                    {t("reset_btn")}
                   </Button>
                 </form>
                 <div className="mt-4 text-center">
@@ -572,7 +575,7 @@ export default function Auth() {
                     disabled={loading}
                     className="text-sm text-blue-600 hover:underline"
                   >
-                    Renvoyer le code
+                    {t("resend_code")}
                   </button>
                 </div>
               </>
@@ -581,10 +584,10 @@ export default function Auth() {
           </div>
 
           <p className="text-center text-xs text-slate-400 mt-6">
-            En créant un compte, vous acceptez nos{" "}
-            <a href="#" className="hover:underline">Conditions d'utilisation</a>
-            {" "}et notre{" "}
-            <a href="#" className="hover:underline">Politique de confidentialité</a>
+            {t("terms_agree")}{" "}
+            <a href="#" className="hover:underline">{t("terms_link")}</a>
+            {" "}{t("and_privacy")}{" "}
+            <a href="#" className="hover:underline">{t("privacy_link")}</a>
           </p>
         </div>
       </div>
