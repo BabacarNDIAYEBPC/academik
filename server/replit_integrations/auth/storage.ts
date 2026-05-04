@@ -71,19 +71,29 @@ class AuthStorageImpl implements IAuthStorage {
   }
 
   async getValidCode(email: string, code: string, type: string): Promise<boolean> {
-    const [row] = await db.select().from(verificationCodes).where(
-      eq(verificationCodes.email, email.toLowerCase())
-    );
+    const { and, desc } = await import("drizzle-orm");
+    const rows = await db.select().from(verificationCodes).where(
+      and(
+        eq(verificationCodes.email, email.toLowerCase()),
+        eq(verificationCodes.type, type),
+        eq(verificationCodes.code, code),
+      )
+    ).orderBy(desc(verificationCodes.createdAt)).limit(1);
+    const row = rows[0];
     if (!row) return false;
     if (row.used) return false;
-    if (row.code !== code) return false;
-    if (row.type !== type) return false;
     if (new Date() > row.expiresAt) return false;
     return true;
   }
 
   async markCodeUsed(email: string, code: string): Promise<void> {
-    await db.update(verificationCodes).set({ used: true }).where(eq(verificationCodes.email, email.toLowerCase()));
+    const { and } = await import("drizzle-orm");
+    await db.update(verificationCodes).set({ used: true }).where(
+      and(
+        eq(verificationCodes.email, email.toLowerCase()),
+        eq(verificationCodes.code, code),
+      )
+    );
   }
 }
 
