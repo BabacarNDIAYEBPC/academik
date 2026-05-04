@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
+import { registerAdminRoutes } from "./admin";
 import OpenAI from "openai";
 import { CREDIT_COSTS, CREDIT_PACKS } from "@shared/schema";
 
@@ -24,6 +25,7 @@ async function getOpenAI(): Promise<OpenAI> {
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   await setupAuth(app);
   registerAuthRoutes(app);
+  registerAdminRoutes(app);
 
   // === CREDITS ===
   app.get("/api/credits", async (req, res) => {

@@ -11,6 +11,7 @@ import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import Revue from "@/pages/Revue";
 import Billing from "@/pages/Billing";
+import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -54,6 +55,7 @@ function Router() {
       <Route path="/connexion" component={Auth} />
       <Route path="/revue" component={() => <ProtectedRoute component={Revue} />} />
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );
