@@ -118,7 +118,54 @@ export default function Landing() {
         </div>
       </section>
 
-      <footer className="py-8 px-4 text-center text-xs text-muted-foreground border-t">
+      {/* SEO Footer Links */}
+      <section className="py-12 px-4 border-t bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+            <div>
+              <p className="font-semibold mb-3 text-foreground">Formats bibliographiques</p>
+              <ul className="space-y-2">
+                <li><a href="/bibliographie-apa" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie APA 7</a></li>
+                <li><a href="/bibliographie-vancouver" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie Vancouver</a></li>
+                <li><a href="/bibliographie-mla" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie MLA 9</a></li>
+                <li><a href="/bibliographie-chicago" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie Chicago 17</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold mb-3 text-foreground">Recherche académique</p>
+              <ul className="space-y-2">
+                <li><a href="/revue-litterature" className="text-muted-foreground hover:text-primary transition-colors">Revue de littérature</a></li>
+                <li><a href="/memoire-these" className="text-muted-foreground hover:text-primary transition-colors">Aide mémoire & thèse</a></li>
+                <li><a href="/etudiant" className="text-muted-foreground hover:text-primary transition-colors">Outil pour étudiants</a></li>
+                <li><a href="/chercheur" className="text-muted-foreground hover:text-primary transition-colors">Outil pour chercheurs</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold mb-3 text-foreground">English pages</p>
+              <ul className="space-y-2">
+                <li><a href="/en/apa-citation-generator" className="text-muted-foreground hover:text-primary transition-colors">APA Citation Generator</a></li>
+                <li><a href="/en/literature-review" className="text-muted-foreground hover:text-primary transition-colors">Literature Review AI</a></li>
+                <li><a href="/en/dissertation-help" className="text-muted-foreground hover:text-primary transition-colors">Dissertation Help</a></li>
+                <li><a href="/en/students" className="text-muted-foreground hover:text-primary transition-colors">Tool for Students</a></li>
+              </ul>
+            </div>
+            <div>
+              <p className="font-semibold mb-3 text-foreground">Partenaire</p>
+              <ul className="space-y-2">
+                <li>
+                  <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">
+                    Rédacteur Mémoire
+                  </a>
+                </li>
+                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">Connexion</a></li>
+                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">Créer un compte</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer className="py-6 px-4 text-center text-xs text-muted-foreground border-t">
         © {new Date().getFullYear()} {t("app_name")} — Performance Consulting Groupe SAS
       </footer>
     </div>
