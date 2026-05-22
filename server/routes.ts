@@ -37,143 +37,249 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get("/sitemap.xml", (_req, res) => {
     res.setHeader("Content-Type", "application/xml");
     res.setHeader("Cache-Control", "public, max-age=86400");
+
+    const BASE = "https://academik.fr";
+    const today = "2026-05-22";
+
+    // All multilang SEO slugs (23 langs × 8 types = 184 pages)
+    const multiLangSlugs = [
+      // ES
+      "es/generador-bibliografia-apa","es/bibliografia-vancouver","es/bibliografia-mla","es/bibliografia-chicago","es/revision-literatura","es/tesis-memoria","es/estudiantes","es/investigadores",
+      // PT
+      "pt/gerador-bibliografia-apa","pt/bibliografia-vancouver","pt/bibliografia-mla","pt/bibliografia-chicago","pt/revisao-literatura","pt/tese-dissertacao","pt/estudantes","pt/pesquisadores",
+      // DE
+      "de/literaturverzeichnis-apa","de/literaturverzeichnis-vancouver","de/literaturverzeichnis-mla","de/literaturverzeichnis-chicago","de/literaturrecherche","de/dissertation-hilfe","de/studenten","de/wissenschaftler",
+      // IT
+      "it/generatore-bibliografia-apa","it/bibliografia-vancouver","it/bibliografia-mla","it/bibliografia-chicago","it/revisione-letteratura","it/tesi-dissertazione","it/studenti","it/ricercatori",
+      // NL
+      "nl/bibliografie-apa","nl/bibliografie-vancouver","nl/bibliografie-mla","nl/bibliografie-chicago","nl/literatuuronderzoek","nl/scriptie-hulp","nl/studenten","nl/onderzoekers",
+      // PL
+      "pl/bibliografia-apa","pl/bibliografia-vancouver","pl/bibliografia-mla","pl/bibliografia-chicago","pl/przeglad-literatury","pl/praca-dyplomowa","pl/studenci","pl/naukowcy",
+      // RO
+      "ro/bibliografie-apa","ro/bibliografie-vancouver","ro/bibliografie-mla","ro/bibliografie-chicago","ro/recenzie-literatura","ro/teza-disertatie","ro/studenti","ro/cercetatori",
+      // SV
+      "sv/bibliografi-apa","sv/bibliografi-vancouver","sv/bibliografi-mla","sv/bibliografi-chicago","sv/litteraturgranskning","sv/uppsats-hjalp","sv/studenter","sv/forskare",
+      // NO
+      "no/bibliografi-apa","no/bibliografi-vancouver","no/bibliografi-mla","no/bibliografi-chicago","no/litteraturgjennomgang","no/oppgave-hjelp","no/studenter","no/forskere",
+      // DA
+      "da/bibliografi-apa","da/bibliografi-vancouver","da/bibliografi-mla","da/bibliografi-chicago","da/litteraturgennemgang","da/opgave-hjaelp","da/studerende","da/forskere",
+      // FI
+      "fi/bibliografia-apa","fi/bibliografia-vancouver","fi/bibliografia-mla","fi/bibliografia-chicago","fi/kirjallisuuskatsaus","fi/opinnaytetyo-apu","fi/opiskelijat","fi/tutkijat",
+      // CS
+      "cs/bibliografie-apa","cs/bibliografie-vancouver","cs/bibliografie-mla","cs/bibliografie-chicago","cs/prehled-literatury","cs/diplomova-prace","cs/studenti","cs/vedci",
+      // HU
+      "hu/bibliografia-apa","hu/bibliografia-vancouver","hu/bibliografia-mla","hu/bibliografia-chicago","hu/irodalomattekintes","hu/szakdolgozat-segitseg","hu/hallgatok","hu/kutatók",
+      // EL
+      "el/vivliografia-apa","el/vivliografia-vancouver","el/vivliografia-mla","el/vivliografia-chicago","el/anaskopisi-vivliografias","el/ptychiak-ergasia","el/foitites","el/erevnites",
+      // RU
+      "ru/bibliografiya-apa","ru/bibliografiya-vancouver","ru/bibliografiya-mla","ru/bibliografiya-chicago","ru/obzor-literatury","ru/dissertaciya-pomoshch","ru/studenty","ru/issledovateli",
+      // UK
+      "uk/bibliohrafiia-apa","uk/bibliohrafiia-vancouver","uk/bibliohrafiia-mla","uk/bibliohrafiia-chicago","uk/ohliad-literatury","uk/dysertaciia-dopomoha","uk/studenty","uk/doslidnyky",
+      // TR
+      "tr/kaynakca-apa","tr/kaynakca-vancouver","tr/kaynakca-mla","tr/kaynakca-chicago","tr/literatur-taramasi","tr/tez-yardim","tr/ogrenciler","tr/arastirmacılar",
+      // AR
+      "ar/bibliughrafia-apa","ar/bibliughrafia-vancouver","ar/bibliughrafia-mla","ar/bibliughrafia-chicago","ar/murajaat-adabiyya","ar/risala-musaeada","ar/tullab","ar/bahithun",
+      // HE
+      "he/bibliographia-apa","he/bibliographia-vancouver","he/bibliographia-mla","he/bibliographia-chicago","he/skirut-sifrut","he/avaoda-akademit","he/studentim","he/hukrim",
+      // HI
+      "hi/sandarbh-suchi-apa","hi/sandarbh-suchi-vancouver","hi/sandarbh-suchi-mla","hi/sandarbh-suchi-chicago","hi/sahitya-samiksha","hi/shodh-prabandh-sahayata","hi/chhatr","hi/shodharth",
+      // ZH
+      "zh/cankaowenxian-apa","zh/cankaowenxian-vancouver","zh/cankaowenxian-mla","zh/cankaowenxian-chicago","zh/wenxian-zongshu","zh/lunwen-bangzhu","zh/xuesheng","zh/yanjiu-ren-yuan",
+      // JA
+      "ja/sankoubunken-apa","ja/sankoubunken-vancouver","ja/sankoubunken-mla","ja/sankoubunken-chicago","ja/bunken-chosa","ja/ronbun-support","ja/gakusei","ja/kenkyusha",
+      // KO
+      "ko/chamgomunheon-apa","ko/chamgomunheon-vancouver","ko/chamgomunheon-mla","ko/chamgomunheon-chicago","ko/munheon-gochal","ko/nonmun-jiwon","ko/haksaeng","ko/yeongu-ja",
+      // VI
+      "vi/tai-lieu-tham-khao-apa","vi/tai-lieu-tham-khao-vancouver","vi/tai-lieu-tham-khao-mla","vi/tai-lieu-tham-khao-chicago","vi/tong-quan-tai-lieu","vi/luan-van-ho-tro","vi/sinh-vien","vi/nha-nghien-cuu",
+      // ID
+      "id/daftar-pustaka-apa","id/daftar-pustaka-vancouver","id/daftar-pustaka-mla","id/daftar-pustaka-chicago","id/tinjauan-pustaka","id/skripsi-bantuan","id/mahasiswa","id/peneliti",
+    ];
+
+    const multiLangUrls = multiLangSlugs.map(slug => `  <url>
+    <loc>${BASE}/${slug}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`).join("\n");
+
     res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://academik.fr/</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://academik.fr/bibliographie-apa</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/bibliographie-apa</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-apa"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/apa-citation-generator"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-apa"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/apa-citation-generator"/>
+    <xhtml:link rel="alternate" hreflang="es" href="${BASE}/es/generador-bibliografia-apa"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="${BASE}/pt/gerador-bibliografia-apa"/>
+    <xhtml:link rel="alternate" hreflang="de" href="${BASE}/de/literaturverzeichnis-apa"/>
+    <xhtml:link rel="alternate" hreflang="it" href="${BASE}/it/generatore-bibliografia-apa"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-apa"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/apa-citation-generator</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/apa-citation-generator</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-apa"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/apa-citation-generator"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-apa"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/apa-citation-generator"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-apa"/>
   </url>
   <url>
-    <loc>https://academik.fr/revue-litterature</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/revue-litterature</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/revue-litterature"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/literature-review"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/revue-litterature"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/literature-review"/>
+    <xhtml:link rel="alternate" hreflang="es" href="${BASE}/es/revision-literatura"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="${BASE}/pt/revisao-literatura"/>
+    <xhtml:link rel="alternate" hreflang="de" href="${BASE}/de/literaturrecherche"/>
+    <xhtml:link rel="alternate" hreflang="it" href="${BASE}/it/revisione-letteratura"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/revue-litterature"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/literature-review</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/literature-review</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/revue-litterature"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/literature-review"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/revue-litterature"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/literature-review"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/revue-litterature"/>
   </url>
   <url>
-    <loc>https://academik.fr/bibliographie-vancouver</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/bibliographie-vancouver</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-vancouver"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/vancouver-citation"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/vancouver-citation"/>
+    <xhtml:link rel="alternate" hreflang="es" href="${BASE}/es/bibliografia-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="${BASE}/pt/bibliografia-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="de" href="${BASE}/de/literaturverzeichnis-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="it" href="${BASE}/it/bibliografia-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-vancouver"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/vancouver-citation</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/vancouver-citation</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-vancouver"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/vancouver-citation"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/vancouver-citation"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-vancouver"/>
   </url>
   <url>
-    <loc>https://academik.fr/bibliographie-mla</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/bibliographie-mla</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-mla"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/mla-citation"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-mla"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/mla-citation"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-mla"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/mla-citation</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/mla-citation</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-mla"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/mla-citation"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-mla"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/mla-citation"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-mla"/>
   </url>
   <url>
-    <loc>https://academik.fr/bibliographie-chicago</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/bibliographie-chicago</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-chicago"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/chicago-citation"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-chicago"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/chicago-citation"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-chicago"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/chicago-citation</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/chicago-citation</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-chicago"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/chicago-citation"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/bibliographie-chicago"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/chicago-citation"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/bibliographie-chicago"/>
   </url>
   <url>
-    <loc>https://academik.fr/memoire-these</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/memoire-these</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/memoire-these"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/dissertation-help"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/memoire-these"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/dissertation-help"/>
+    <xhtml:link rel="alternate" hreflang="es" href="${BASE}/es/tesis-memoria"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="${BASE}/pt/tese-dissertacao"/>
+    <xhtml:link rel="alternate" hreflang="de" href="${BASE}/de/dissertation-hilfe"/>
+    <xhtml:link rel="alternate" hreflang="it" href="${BASE}/it/tesi-dissertazione"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/memoire-these"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/dissertation-help</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/dissertation-help</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/memoire-these"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/dissertation-help"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/memoire-these"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/dissertation-help"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/memoire-these"/>
   </url>
   <url>
-    <loc>https://academik.fr/etudiant</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/etudiant</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/etudiant"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/students"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/etudiant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/students"/>
+    <xhtml:link rel="alternate" hreflang="es" href="${BASE}/es/estudiantes"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="${BASE}/pt/estudantes"/>
+    <xhtml:link rel="alternate" hreflang="de" href="${BASE}/de/studenten"/>
+    <xhtml:link rel="alternate" hreflang="it" href="${BASE}/it/studenti"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/etudiant"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/students</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/students</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/etudiant"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/students"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/etudiant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/students"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/etudiant"/>
   </url>
   <url>
-    <loc>https://academik.fr/chercheur</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/chercheur</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/chercheur"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/researchers"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/chercheur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/researchers"/>
+    <xhtml:link rel="alternate" hreflang="es" href="${BASE}/es/investigadores"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="${BASE}/pt/pesquisadores"/>
+    <xhtml:link rel="alternate" hreflang="de" href="${BASE}/de/wissenschaftler"/>
+    <xhtml:link rel="alternate" hreflang="it" href="${BASE}/it/ricercatori"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/chercheur"/>
   </url>
   <url>
-    <loc>https://academik.fr/en/researchers</loc>
-    <lastmod>2026-05-22</lastmod>
+    <loc>${BASE}/en/researchers</loc>
+    <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/chercheur"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/researchers"/>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/chercheur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/researchers"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/chercheur"/>
   </url>
+${multiLangUrls}
 </urlset>`);
   });
 
