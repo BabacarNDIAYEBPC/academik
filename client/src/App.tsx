@@ -18,6 +18,8 @@ import RevueLitterature from "@/pages/seo/RevueLitterature";
 import LiteratureReview from "@/pages/seo/LiteratureReview";
 import BiblioVancouver from "@/pages/seo/BiblioVancouver";
 import VancouverCitation from "@/pages/seo/VancouverCitation";
+import BiblioMla from "@/pages/seo/BiblioMla";
+import MlaCitation from "@/pages/seo/MlaCitation";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -68,6 +70,8 @@ function Router() {
       <Route path="/en/literature-review" component={LiteratureReview} />
       <Route path="/bibliographie-vancouver" component={BiblioVancouver} />
       <Route path="/en/vancouver-citation" component={VancouverCitation} />
+      <Route path="/bibliographie-mla" component={BiblioMla} />
+      <Route path="/en/mla-citation" component={MlaCitation} />
       <Route component={NotFound} />
     </Switch>
   );
