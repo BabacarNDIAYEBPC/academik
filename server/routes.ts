@@ -297,6 +297,94 @@ Disallow: /api/
 Sitemap: https://academik.fr/sitemap.xml`);
   });
 
+  // === CURRENCY DETECTION ===
+  app.get("/api/currency", (req, res) => {
+    // Map country codes (from CF-IPCountry or X-Country headers) to currency
+    const COUNTRY_CURRENCY: Record<string, { currency: string; symbol: string; rate: number }> = {
+      // EUR zone
+      FR: { currency: "eur", symbol: "€", rate: 1 },
+      DE: { currency: "eur", symbol: "€", rate: 1 },
+      IT: { currency: "eur", symbol: "€", rate: 1 },
+      ES: { currency: "eur", symbol: "€", rate: 1 },
+      PT: { currency: "eur", symbol: "€", rate: 1 },
+      NL: { currency: "eur", symbol: "€", rate: 1 },
+      BE: { currency: "eur", symbol: "€", rate: 1 },
+      AT: { currency: "eur", symbol: "€", rate: 1 },
+      FI: { currency: "eur", symbol: "€", rate: 1 },
+      IE: { currency: "eur", symbol: "€", rate: 1 },
+      GR: { currency: "eur", symbol: "€", rate: 1 },
+      LU: { currency: "eur", symbol: "€", rate: 1 },
+      SK: { currency: "eur", symbol: "€", rate: 1 },
+      SI: { currency: "eur", symbol: "€", rate: 1 },
+      EE: { currency: "eur", symbol: "€", rate: 1 },
+      LV: { currency: "eur", symbol: "€", rate: 1 },
+      LT: { currency: "eur", symbol: "€", rate: 1 },
+      MT: { currency: "eur", symbol: "€", rate: 1 },
+      CY: { currency: "eur", symbol: "€", rate: 1 },
+      HR: { currency: "eur", symbol: "€", rate: 1 },
+      // GBP
+      GB: { currency: "gbp", symbol: "£", rate: 0.86 },
+      // USD
+      US: { currency: "usd", symbol: "$", rate: 1.08 },
+      CA: { currency: "cad", symbol: "CA$", rate: 1.48 },
+      AU: { currency: "aud", symbol: "A$", rate: 1.64 },
+      NZ: { currency: "nzd", symbol: "NZ$", rate: 1.78 },
+      // BRL
+      BR: { currency: "brl", symbol: "R$", rate: 5.5 },
+      // CHF
+      CH: { currency: "chf", symbol: "CHF", rate: 0.96 },
+      // SEK
+      SE: { currency: "sek", symbol: "kr", rate: 11.3 },
+      NO: { currency: "nok", symbol: "kr", rate: 11.5 },
+      DK: { currency: "dkk", symbol: "kr", rate: 7.46 },
+      // PLN
+      PL: { currency: "pln", symbol: "zł", rate: 4.3 },
+      // CZK
+      CZ: { currency: "czk", symbol: "Kč", rate: 25.1 },
+      // HUF
+      HU: { currency: "huf", symbol: "Ft", rate: 400 },
+      // RON
+      RO: { currency: "ron", symbol: "lei", rate: 5 },
+      // TRY
+      TR: { currency: "try", symbol: "₺", rate: 36 },
+      // RUB (Stripe doesn't support, fallback EUR)
+      RU: { currency: "eur", symbol: "€", rate: 1 },
+      UA: { currency: "eur", symbol: "€", rate: 1 },
+      // ILS
+      IL: { currency: "ils", symbol: "₪", rate: 3.9 },
+      // INR
+      IN: { currency: "inr", symbol: "₹", rate: 91 },
+      // JPY
+      JP: { currency: "jpy", symbol: "¥", rate: 162 },
+      // CNY
+      CN: { currency: "cny", symbol: "¥", rate: 7.8 },
+      // KRW
+      KR: { currency: "krw", symbol: "₩", rate: 1450 },
+      // VND
+      VN: { currency: "vnd", symbol: "₫", rate: 27000 },
+      // IDR
+      ID: { currency: "idr", symbol: "Rp", rate: 17500 },
+      // ARS
+      AR: { currency: "ars", symbol: "$", rate: 1050 },
+      // MXN
+      MX: { currency: "mxn", symbol: "MX$", rate: 18.5 },
+      // SAR
+      SA: { currency: "sar", symbol: "﷼", rate: 4.05 },
+      AE: { currency: "aed", symbol: "د.إ", rate: 3.97 },
+      // MAD
+      MA: { currency: "mad", symbol: "DH", rate: 10.8 },
+      TN: { currency: "tnd", symbol: "DT", rate: 3.3 },
+      DZ: { currency: "dzd", symbol: "DA", rate: 146 },
+    };
+
+    // Try Cloudflare header first, then X-Country, then Accept-Language fallback
+    const cfCountry = req.headers["cf-ipcountry"] as string;
+    const country = (cfCountry && cfCountry !== "XX" ? cfCountry : "").toUpperCase();
+    const info = COUNTRY_CURRENCY[country] || { currency: "eur", symbol: "€", rate: 1 };
+
+    res.json({ ...info, country: country || "XX" });
+  });
+
   // === CREDITS ===
   app.get("/api/credits", async (req, res) => {
     if (!checkAuth(req, res)) return;
@@ -313,7 +401,7 @@ Sitemap: https://academik.fr/sitemap.xml`);
   // === STRIPE CHECKOUT ===
   app.post("/api/checkout", async (req, res) => {
     if (!checkAuth(req, res)) return;
-    const { packId } = req.body;
+    const { packId, currency, rate } = req.body;
     const pack = CREDIT_PACKS.find(p => p.id === packId);
     if (!pack) return res.status(400).json({ message: "Pack invalide" });
     const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -324,13 +412,24 @@ Sitemap: https://academik.fr/sitemap.xml`);
     const host = req.headers["host"] || "localhost:5000";
     const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
     const baseUrl = `${protocol}://${host}`;
+
+    // Use requested currency if valid, fallback to EUR
+    const useCurrency = (currency || "eur").toLowerCase();
+    const useRate = typeof rate === "number" && rate > 0 ? rate : 1;
+    // Currencies where Stripe expects integer amounts (no decimals)
+    const zeroDécimalCurrencies = ["jpy", "krw", "vnd", "idr", "clp", "gnf", "mga", "pyg", "rwf", "ugx", "xaf", "xof"];
+    const convertedPrice = pack.price * useRate;
+    const unitAmount = zeroDécimalCurrencies.includes(useCurrency)
+      ? Math.round(convertedPrice)
+      : Math.round(convertedPrice * 100);
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [{
         price_data: {
-          currency: "eur",
-          product_data: { name: `Pack ${pack.label} — ${pack.credits} crédits`, description: `${pack.credits} crédits Refbib` },
-          unit_amount: Math.round(pack.price * 100),
+          currency: useCurrency,
+          product_data: { name: `Pack ${pack.label} — ${pack.credits} crédits`, description: `${pack.credits} crédits Academik` },
+          unit_amount: unitAmount,
         },
         quantity: 1,
       }],

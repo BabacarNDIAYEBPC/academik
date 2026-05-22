@@ -13,6 +13,32 @@ import { apiRequest } from "@/lib/queryClient";
 import { CREDIT_PACKS } from "@shared/schema";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
+interface CurrencyInfo {
+  currency: string;
+  symbol: string;
+  rate: number;
+  country: string;
+}
+
+function formatPrice(eurPrice: number, info: CurrencyInfo): string {
+  const converted = eurPrice * info.rate;
+  // Zero-decimal currencies: no cents
+  const zeroDecimal = ["jpy", "krw", "vnd", "idr", "clp", "gnf", "mga", "pyg", "rwf", "ugx", "xaf", "xof"];
+  if (zeroDecimal.includes(info.currency)) {
+    return `${info.symbol}${Math.round(converted).toLocaleString()}`;
+  }
+  return `${info.symbol}${converted.toFixed(2)}`;
+}
+
+function formatPricePerCredit(eurPrice: number, credits: number, info: CurrencyInfo): string {
+  const converted = (eurPrice / credits) * info.rate;
+  const zeroDecimal = ["jpy", "krw", "vnd", "idr"];
+  if (zeroDecimal.includes(info.currency)) {
+    return `${info.symbol}${Math.round(converted)}`;
+  }
+  return `${info.symbol}${converted.toFixed(2)}`;
+}
+
 export default function Billing() {
   const { t } = useTranslation();
   useSEO("billing");
@@ -26,9 +52,20 @@ export default function Billing() {
     queryKey: ["/api/invoices"],
   });
 
+  const { data: currencyInfo, isLoading: currencyLoading } = useQuery<CurrencyInfo>({
+    queryKey: ["/api/currency"],
+    staleTime: 1000 * 60 * 60, // 1h cache
+  });
+
+  const currency: CurrencyInfo = currencyInfo || { currency: "eur", symbol: "€", rate: 1, country: "XX" };
+
   const checkoutMutation = useMutation({
     mutationFn: async (packId: string) => {
-      const res = await apiRequest("POST", "/api/checkout", { packId });
+      const res = await apiRequest("POST", "/api/checkout", {
+        packId,
+        currency: currency.currency,
+        rate: currency.rate,
+      });
       return res.json() as Promise<{ url: string }>;
     },
   });
@@ -68,6 +105,8 @@ export default function Billing() {
       },
     });
   };
+
+  const isLoadingPrices = currencyLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -119,9 +158,19 @@ export default function Billing() {
               )}
               <CardContent className="pt-6 pb-5 text-center">
                 <h3 className="font-bold text-base mb-1">{pack.label}</h3>
-                <div className="text-3xl font-bold my-2">{pack.price} €</div>
+                <div className="text-3xl font-bold my-2" data-testid={`text-price-${pack.id}`}>
+                  {isLoadingPrices
+                    ? <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                    : formatPrice(pack.price, currency)
+                  }
+                </div>
                 <p className="text-muted-foreground text-sm mb-1">{pack.credits} {t("credits")}</p>
-                <p className="text-xs text-muted-foreground mb-4">{(pack.price / pack.credits).toFixed(2)} {t("per_credit")}</p>
+                <p className="text-xs text-muted-foreground mb-4">
+                  {isLoadingPrices
+                    ? "..."
+                    : `${formatPricePerCredit(pack.price, pack.credits, currency)} / ${t("credit")}`
+                  }
+                </p>
                 <div className="space-y-1.5 text-xs text-left mb-5">
                   {[t("billed_features_1"), t("billed_features_2"), t("billed_features_3")].map(f => (
                     <div key={f} className="flex items-center gap-1.5">
@@ -133,20 +182,28 @@ export default function Billing() {
                 <Button
                   className="w-full"
                   variant={i === 1 ? "default" : "outline"}
-                  disabled={loadingPack === pack.id || checkoutMutation.isPending}
+                  disabled={loadingPack === pack.id || checkoutMutation.isPending || isLoadingPrices}
                   onClick={() => handleBuy(pack.id)}
                   data-testid={`button-buy-${pack.id}`}
                 >
                   {loadingPack === pack.id ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("redirecting")}</>
+                  ) : isLoadingPrices ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    `${t("buy_pack", { price: pack.price })}`
+                    `${t("buy")} — ${formatPrice(pack.price, currency)}`
                   )}
                 </Button>
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {!currencyLoading && currency.currency !== "eur" && (
+          <p className="text-xs text-muted-foreground text-center -mt-6 mb-8">
+            {t("price_converted_note", { currency: currency.currency.toUpperCase() })}
+          </p>
+        )}
 
         <Card className="mb-8 bg-muted/30">
           <CardContent className="py-4 px-5">
