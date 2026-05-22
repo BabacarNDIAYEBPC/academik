@@ -283,6 +283,15 @@ ${multiLangUrls}
 </urlset>`);
   });
 
+  // === BING VERIFICATION ===
+  app.get("/BingSiteAuth.xml", (_req, res) => {
+    res.setHeader("Content-Type", "application/xml");
+    res.send(`<?xml version="1.0"?>
+<users>
+  <user>7743124096E97C8BCDE341917A7FBAA9</user>
+</users>`);
+  });
+
   // === ROBOTS.TXT ===
   app.get("/robots.txt", (_req, res) => {
     res.setHeader("Content-Type", "text/plain");
