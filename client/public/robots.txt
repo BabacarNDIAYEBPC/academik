@@ -26,4 +26,26 @@ Disallow: /dashboard
 Disallow: /admin
 Disallow: /api/
 
+# Crawlers IA — autorisés explicitement
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: msnbot
+Allow: /
+
 Sitemap: https://academik.fr/sitemap.xml
