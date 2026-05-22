@@ -123,42 +123,42 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
             <div>
-              <p className="font-semibold mb-3 text-foreground">Formats bibliographiques</p>
+              <p className="font-semibold mb-3 text-foreground">{t("footer_bib_title")}</p>
               <ul className="space-y-2">
-                <li><a href="/bibliographie-apa" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie APA 7</a></li>
-                <li><a href="/bibliographie-vancouver" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie Vancouver</a></li>
-                <li><a href="/bibliographie-mla" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie MLA 9</a></li>
-                <li><a href="/bibliographie-chicago" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie Chicago 17</a></li>
+                <li><a href="/bibliographie-apa" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_bib_apa")}</a></li>
+                <li><a href="/bibliographie-vancouver" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_bib_vancouver")}</a></li>
+                <li><a href="/bibliographie-mla" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_bib_mla")}</a></li>
+                <li><a href="/bibliographie-chicago" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_bib_chicago")}</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-3 text-foreground">Recherche académique</p>
+              <p className="font-semibold mb-3 text-foreground">{t("footer_research_title")}</p>
               <ul className="space-y-2">
-                <li><a href="/revue-litterature" className="text-muted-foreground hover:text-primary transition-colors">Revue de littérature</a></li>
-                <li><a href="/memoire-these" className="text-muted-foreground hover:text-primary transition-colors">Aide mémoire & thèse</a></li>
-                <li><a href="/etudiant" className="text-muted-foreground hover:text-primary transition-colors">Outil pour étudiants</a></li>
-                <li><a href="/chercheur" className="text-muted-foreground hover:text-primary transition-colors">Outil pour chercheurs</a></li>
+                <li><a href="/revue-litterature" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_research_review")}</a></li>
+                <li><a href="/memoire-these" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_research_thesis")}</a></li>
+                <li><a href="/etudiant" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_research_students")}</a></li>
+                <li><a href="/chercheur" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_research_researchers")}</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-3 text-foreground">English pages</p>
+              <p className="font-semibold mb-3 text-foreground">{t("footer_english_title")}</p>
               <ul className="space-y-2">
-                <li><a href="/en/apa-citation-generator" className="text-muted-foreground hover:text-primary transition-colors">APA Citation Generator</a></li>
-                <li><a href="/en/literature-review" className="text-muted-foreground hover:text-primary transition-colors">Literature Review AI</a></li>
-                <li><a href="/en/dissertation-help" className="text-muted-foreground hover:text-primary transition-colors">Dissertation Help</a></li>
-                <li><a href="/en/students" className="text-muted-foreground hover:text-primary transition-colors">Tool for Students</a></li>
+                <li><a href="/en/apa-citation-generator" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_en_apa")}</a></li>
+                <li><a href="/en/literature-review" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_en_review")}</a></li>
+                <li><a href="/en/dissertation-help" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_en_dissertation")}</a></li>
+                <li><a href="/en/students" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_en_students")}</a></li>
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-3 text-foreground">Partenaire</p>
+              <p className="font-semibold mb-3 text-foreground">{t("footer_partner_title")}</p>
               <ul className="space-y-2">
                 <li>
                   <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">
-                    Rédacteur Mémoire
+                    {t("footer_partner_link")}
                   </a>
                 </li>
-                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">Connexion</a></li>
-                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">Créer un compte</a></li>
+                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_login")}</a></li>
+                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_register")}</a></li>
               </ul>
             </div>
           </div>
