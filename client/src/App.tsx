@@ -12,6 +12,8 @@ import Dashboard from "@/pages/Dashboard";
 import Revue from "@/pages/Revue";
 import Billing from "@/pages/Billing";
 import Admin from "@/pages/Admin";
+import BibliographieApa from "@/pages/seo/BibliographieApa";
+import ApaCitationGenerator from "@/pages/seo/ApaCitationGenerator";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -56,6 +58,8 @@ function Router() {
       <Route path="/revue" component={() => <ProtectedRoute component={Revue} />} />
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
       <Route path="/admin" component={Admin} />
+      <Route path="/bibliographie-apa" component={BibliographieApa} />
+      <Route path="/en/apa-citation-generator" component={ApaCitationGenerator} />
       <Route component={NotFound} />
     </Switch>
   );
