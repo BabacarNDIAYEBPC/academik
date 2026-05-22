@@ -20,6 +20,8 @@ import BiblioVancouver from "@/pages/seo/BiblioVancouver";
 import VancouverCitation from "@/pages/seo/VancouverCitation";
 import BiblioMla from "@/pages/seo/BiblioMla";
 import MlaCitation from "@/pages/seo/MlaCitation";
+import BiblioChicago from "@/pages/seo/BiblioChicago";
+import ChicagoCitation from "@/pages/seo/ChicagoCitation";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -72,6 +74,8 @@ function Router() {
       <Route path="/en/vancouver-citation" component={VancouverCitation} />
       <Route path="/bibliographie-mla" component={BiblioMla} />
       <Route path="/en/mla-citation" component={MlaCitation} />
+      <Route path="/bibliographie-chicago" component={BiblioChicago} />
+      <Route path="/en/chicago-citation" component={ChicagoCitation} />
       <Route component={NotFound} />
     </Switch>
   );
