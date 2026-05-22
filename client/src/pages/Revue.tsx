@@ -5,8 +5,9 @@ import {
   BookOpen, Search, Loader2, ExternalLink, ChevronLeft, ChevronRight,
   ChevronDown, FileText, GitCompare, Map as MapIcon, History, Copy,
   Trash2, CheckSquare, Eye, X, ArrowUpDown, Filter, SlidersHorizontal,
-  Coins, ArrowLeft,
+  Coins, ArrowLeft, FileDown,
 } from "lucide-react";
+import { exportToWord } from "@/lib/export-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -544,14 +545,25 @@ export default function Revue() {
 
       {/* Analysis Dialog */}
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{analysisTitle}</DialogTitle>
+            <DialogTitle className="text-base font-semibold">{analysisTitle}</DialogTitle>
           </DialogHeader>
-          <div className="prose-academic text-sm mt-2">
+          <div className="prose-academic mt-3 px-1">
             <ReactMarkdown>{analysisResult}</ReactMarkdown>
           </div>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-5 pt-4 border-t">
+            <Button
+              size="sm"
+              onClick={() => exportToWord(
+                analysisTitle,
+                [{ label: analysisTitle, content: analysisResult }],
+                `academik-${analysisTitle.toLowerCase().replace(/\s+/g, "-")}`
+              )}
+              data-testid="button-export-word-analysis"
+            >
+              <FileDown className="w-4 h-4 mr-2" /> Exporter en Word
+            </Button>
             <Button variant="outline" size="sm" onClick={() => copyToClipboard(analysisResult)} data-testid="button-copy-analysis">
               <Copy className="w-4 h-4 mr-2" /> Copier
             </Button>
@@ -561,12 +573,25 @@ export default function Revue() {
 
       {/* Bibliography Dialog */}
       <Dialog open={showBibDialog} onOpenChange={setShowBibDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Bibliographie — {bibliographyNorm.toUpperCase()}</DialogTitle>
+            <DialogTitle className="text-base font-semibold">Bibliographie — {bibliographyNorm.toUpperCase()}</DialogTitle>
           </DialogHeader>
-          <Textarea value={bibliographyResult} onChange={e => setBibliographyResult(e.target.value)} className="min-h-[300px] text-sm font-mono" data-testid="textarea-bibliography" />
-          <div className="flex gap-2 mt-2">
+          <div className="mt-3 rounded-lg border bg-muted/30 p-4">
+            <pre className="text-sm leading-relaxed whitespace-pre-wrap font-sans text-foreground" data-testid="textarea-bibliography">{bibliographyResult}</pre>
+          </div>
+          <div className="flex gap-2 mt-4 pt-4 border-t">
+            <Button
+              size="sm"
+              onClick={() => exportToWord(
+                `Bibliographie ${bibliographyNorm.toUpperCase()}`,
+                [{ label: `Références bibliographiques (${bibliographyNorm.toUpperCase()})`, content: bibliographyResult }],
+                `academik-bibliographie-${bibliographyNorm}`
+              )}
+              data-testid="button-export-word-bib"
+            >
+              <FileDown className="w-4 h-4 mr-2" /> Exporter en Word
+            </Button>
             <Button variant="outline" size="sm" onClick={() => copyToClipboard(bibliographyResult)} data-testid="button-copy-bib">
               <Copy className="w-4 h-4 mr-2" /> Copier
             </Button>
@@ -576,14 +601,25 @@ export default function Revue() {
 
       {/* Equations Dialog */}
       <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Équations de recherche</DialogTitle>
+            <DialogTitle className="text-base font-semibold">Équations de recherche</DialogTitle>
           </DialogHeader>
-          <div className="prose-academic text-sm mt-2">
+          <div className="prose-academic mt-3 px-1">
             <ReactMarkdown>{equationsResult}</ReactMarkdown>
           </div>
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mt-5 pt-4 border-t">
+            <Button
+              size="sm"
+              onClick={() => exportToWord(
+                "Équations de recherche",
+                [{ label: "Équations booléennes", content: equationsResult }],
+                `academik-equations-recherche`
+              )}
+              data-testid="button-export-word-equations"
+            >
+              <FileDown className="w-4 h-4 mr-2" /> Exporter en Word
+            </Button>
             <Button variant="outline" size="sm" onClick={() => copyToClipboard(equationsResult)} data-testid="button-copy-equations">
               <Copy className="w-4 h-4 mr-2" /> Copier
             </Button>
