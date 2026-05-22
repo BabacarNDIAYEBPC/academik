@@ -22,6 +22,12 @@ import BiblioMla from "@/pages/seo/BiblioMla";
 import MlaCitation from "@/pages/seo/MlaCitation";
 import BiblioChicago from "@/pages/seo/BiblioChicago";
 import ChicagoCitation from "@/pages/seo/ChicagoCitation";
+import MemoireThese from "@/pages/seo/MemoireThese";
+import DissertationHelp from "@/pages/seo/DissertationHelp";
+import Etudiant from "@/pages/seo/Etudiant";
+import Students from "@/pages/seo/Students";
+import Chercheur from "@/pages/seo/Chercheur";
+import Researchers from "@/pages/seo/Researchers";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -76,6 +82,12 @@ function Router() {
       <Route path="/en/mla-citation" component={MlaCitation} />
       <Route path="/bibliographie-chicago" component={BiblioChicago} />
       <Route path="/en/chicago-citation" component={ChicagoCitation} />
+      <Route path="/memoire-these" component={MemoireThese} />
+      <Route path="/en/dissertation-help" component={DissertationHelp} />
+      <Route path="/etudiant" component={Etudiant} />
+      <Route path="/en/students" component={Students} />
+      <Route path="/chercheur" component={Chercheur} />
+      <Route path="/en/researchers" component={Researchers} />
       <Route component={NotFound} />
     </Switch>
   );
