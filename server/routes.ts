@@ -27,6 +27,170 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   registerAuthRoutes(app);
   registerAdminRoutes(app);
 
+  // === GOOGLE SEARCH CONSOLE VERIFICATION ===
+  app.get("/google8535e51db75ef260.html", (_req, res) => {
+    res.setHeader("Content-Type", "text/html");
+    res.send("google-site-verification: google8535e51db75ef260.html");
+  });
+
+  // === SITEMAP ===
+  app.get("/sitemap.xml", (_req, res) => {
+    res.setHeader("Content-Type", "application/xml");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://academik.fr/</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://academik.fr/bibliographie-apa</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-apa"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/apa-citation-generator"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/apa-citation-generator</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-apa"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/apa-citation-generator"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/revue-litterature</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/revue-litterature"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/literature-review"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/literature-review</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/revue-litterature"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/literature-review"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/bibliographie-vancouver</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/vancouver-citation"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/vancouver-citation</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-vancouver"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/vancouver-citation"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/bibliographie-mla</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-mla"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/mla-citation"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/mla-citation</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-mla"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/mla-citation"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/bibliographie-chicago</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-chicago"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/chicago-citation"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/chicago-citation</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/bibliographie-chicago"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/chicago-citation"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/memoire-these</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/memoire-these"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/dissertation-help"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/dissertation-help</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/memoire-these"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/dissertation-help"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/etudiant</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/etudiant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/students"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/students</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/etudiant"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/students"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/chercheur</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/chercheur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/researchers"/>
+  </url>
+  <url>
+    <loc>https://academik.fr/en/researchers</loc>
+    <lastmod>2026-05-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://academik.fr/chercheur"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://academik.fr/en/researchers"/>
+  </url>
+</urlset>`);
+  });
+
+  // === ROBOTS.TXT ===
+  app.get("/robots.txt", (_req, res) => {
+    res.setHeader("Content-Type", "text/plain");
+    res.send(`User-agent: *
+Allow: /
+Disallow: /revue
+Disallow: /billing
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://academik.fr/sitemap.xml`);
+  });
+
   // === CREDITS ===
   app.get("/api/credits", async (req, res) => {
     if (!checkAuth(req, res)) return;
