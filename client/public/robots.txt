@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+
+# Pages SEO publiques
+Allow: /bibliographie-apa
+Allow: /en/apa-citation-generator
+Allow: /revue-litterature
+Allow: /en/literature-review
+Allow: /bibliographie-vancouver
+Allow: /en/vancouver-citation
+Allow: /bibliographie-mla
+Allow: /en/mla-citation
+Allow: /bibliographie-chicago
+Allow: /en/chicago-citation
+Allow: /memoire-these
+Allow: /en/dissertation-help
+Allow: /etudiant
+Allow: /en/students
+Allow: /chercheur
+Allow: /en/researchers
+
+# Pages protégées — pas d'indexation
+Disallow: /revue
+Disallow: /billing
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://academik.fr/sitemap.xml
