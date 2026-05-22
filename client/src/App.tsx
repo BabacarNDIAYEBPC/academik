@@ -16,6 +16,8 @@ import BibliographieApa from "@/pages/seo/BibliographieApa";
 import ApaCitationGenerator from "@/pages/seo/ApaCitationGenerator";
 import RevueLitterature from "@/pages/seo/RevueLitterature";
 import LiteratureReview from "@/pages/seo/LiteratureReview";
+import BiblioVancouver from "@/pages/seo/BiblioVancouver";
+import VancouverCitation from "@/pages/seo/VancouverCitation";
 import NotFound from "@/pages/NotFound";
 
 function ProtectedRoute({ component: Component }: { component: React.ComponentType }) {
@@ -64,6 +66,8 @@ function Router() {
       <Route path="/en/apa-citation-generator" component={ApaCitationGenerator} />
       <Route path="/revue-litterature" component={RevueLitterature} />
       <Route path="/en/literature-review" component={LiteratureReview} />
+      <Route path="/bibliographie-vancouver" component={BiblioVancouver} />
+      <Route path="/en/vancouver-citation" component={VancouverCitation} />
       <Route component={NotFound} />
     </Switch>
   );
