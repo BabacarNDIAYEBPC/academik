@@ -338,6 +338,17 @@ export default function LiteratureReview() {
         </div>
       </section>
 
+      {/* Partner banner */}
+      <div className="py-5 px-4 bg-amber-50 border-y border-amber-100 text-center text-sm">
+        <p className="text-muted-foreground">
+          Need expert help <strong>writing your dissertation or thesis</strong>?{" "}
+          <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="text-primary font-semibold underline underline-offset-2 hover:opacity-80">
+            Rédacteur Mémoire
+          </a>{" "}
+          — personalised academic support from expert tutors (French-speaking).
+        </p>
+      </div>
+
       <footer className="py-8 px-4 border-t text-center text-sm text-muted-foreground">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
@@ -349,6 +360,7 @@ export default function LiteratureReview() {
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/en/apa-citation-generator")}>APA Generator</span>
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/connexion")}>Sign in</span>
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/revue-litterature")}>Français</span>
+            <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="hover:text-foreground">Rédacteur Mémoire</a>
           </div>
         </div>
       </footer>

@@ -334,6 +334,17 @@ export default function RevueLitterature() {
         </div>
       </section>
 
+      {/* Partner banner */}
+      <div className="py-5 px-4 bg-amber-50 border-y border-amber-100 text-center text-sm">
+        <p className="text-muted-foreground">
+          Besoin d'aide pour <strong>rédiger votre mémoire ou votre thèse</strong> ?{" "}
+          <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="text-primary font-semibold underline underline-offset-2 hover:opacity-80">
+            Rédacteur Mémoire
+          </a>{" "}
+          — accompagnement personnalisé par des experts académiques.
+        </p>
+      </div>
+
       <footer className="py-8 px-4 border-t text-center text-sm text-muted-foreground">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
@@ -345,6 +356,7 @@ export default function RevueLitterature() {
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/bibliographie-apa")}>Bibliographie APA</span>
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/connexion")}>Connexion</span>
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/en/literature-review")}>English</span>
+            <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="hover:text-foreground">Rédacteur Mémoire</a>
           </div>
         </div>
       </footer>
