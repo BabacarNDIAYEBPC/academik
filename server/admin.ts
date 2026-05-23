@@ -113,6 +113,124 @@ export function registerAdminRoutes(app: Express) {
     }
   });
 
+  // === SOCIAL MEDIA PUBLISHING ===
+
+  // Generate AI post content
+  app.post("/api/admin/social/generate", async (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { topic, platform } = req.body;
+    if (!topic) return res.status(400).json({ message: "Sujet requis" });
+
+    try {
+      const { default: OpenAI } = await import("openai");
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const platformInstructions = platform === "instagram"
+        ? "Post Instagram : accrocheur, visuel, avec émojis, hashtags (#recherche #académique #université #étudiant #bibliographie #science), max 2200 caractères."
+        : "Post Facebook : informatif, engageant, peut être plus long, avec émojis, 1-3 hashtags pertinents, max 63206 caractères.";
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: `Tu es un community manager pour Academik (academik.fr), outil de recherche bibliographique académique IA pour étudiants et chercheurs francophones. Écris en français. ${platformInstructions}`,
+          },
+          {
+            role: "user",
+            content: `Crée un post sur le sujet suivant : ${topic}`,
+          },
+        ],
+      });
+
+      const content = response.choices[0]?.message?.content ?? "";
+      res.json({ content });
+    } catch (err: any) {
+      console.error("[ADMIN] Generate post error:", err);
+      res.status(500).json({ message: "Erreur génération IA" });
+    }
+  });
+
+  // Publish to Facebook
+  app.post("/api/admin/social/publish/facebook", async (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ message: "Message requis" });
+
+    const pageId = process.env.FB_PAGE_ID;
+    const token = process.env.FB_PAGE_ACCESS_TOKEN;
+    if (!pageId || !token) return res.status(500).json({ message: "FB_PAGE_ID ou FB_PAGE_ACCESS_TOKEN non configuré" });
+
+    try {
+      const url = `https://graph.facebook.com/v20.0/${pageId}/feed`;
+      const fbRes = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, access_token: token }),
+      });
+      const data = await fbRes.json() as any;
+      if (!fbRes.ok || data.error) {
+        console.error("[ADMIN] Facebook API error:", data);
+        return res.status(400).json({ message: data.error?.message ?? "Erreur Facebook API" });
+      }
+      res.json({ success: true, postId: data.id });
+    } catch (err: any) {
+      console.error("[ADMIN] Facebook publish error:", err);
+      res.status(500).json({ message: "Erreur publication Facebook" });
+    }
+  });
+
+  // Publish to Instagram
+  app.post("/api/admin/social/publish/instagram", async (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const { message } = req.body;
+    if (!message) return res.status(400).json({ message: "Message requis" });
+
+    const igAccountId = process.env.INSTAGRAM_ACCOUNT_ID;
+    const token = process.env.FB_PAGE_ACCESS_TOKEN;
+    if (!igAccountId || !token) return res.status(500).json({ message: "INSTAGRAM_ACCOUNT_ID non configuré — liez d'abord le compte Instagram à la Page Facebook" });
+
+    try {
+      // Step 1: Create media container
+      const containerRes = await fetch(`https://graph.facebook.com/v20.0/${igAccountId}/media`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caption: message, media_type: "TEXT", access_token: token }),
+      });
+      const container = await containerRes.json() as any;
+      if (!containerRes.ok || container.error) {
+        console.error("[ADMIN] Instagram container error:", container);
+        return res.status(400).json({ message: container.error?.message ?? "Erreur création container Instagram" });
+      }
+
+      // Step 2: Publish container
+      const publishRes = await fetch(`https://graph.facebook.com/v20.0/${igAccountId}/media_publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ creation_id: container.id, access_token: token }),
+      });
+      const published = await publishRes.json() as any;
+      if (!publishRes.ok || published.error) {
+        console.error("[ADMIN] Instagram publish error:", published);
+        return res.status(400).json({ message: published.error?.message ?? "Erreur publication Instagram" });
+      }
+
+      res.json({ success: true, postId: published.id });
+    } catch (err: any) {
+      console.error("[ADMIN] Instagram publish error:", err);
+      res.status(500).json({ message: "Erreur publication Instagram" });
+    }
+  });
+
+  // Check social config status
+  app.get("/api/admin/social/status", async (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    res.json({
+      facebook: !!(process.env.FB_PAGE_ID && process.env.FB_PAGE_ACCESS_TOKEN),
+      instagram: !!process.env.INSTAGRAM_ACCOUNT_ID,
+    });
+  });
+
   // Liste des utilisateurs
   app.get("/api/admin/users", async (req, res) => {
     if (!checkAdminAuth(req, res)) return;

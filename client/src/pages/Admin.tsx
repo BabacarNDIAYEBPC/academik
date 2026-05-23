@@ -3,9 +3,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Users, CheckCircle, TrendingUp, Euro, Search, BarChart3, LogOut, ShoppingCart, BookOpen, Coins } from "lucide-react";
+import { Loader2, Users, CheckCircle, TrendingUp, Euro, Search, BarChart3, LogOut, ShoppingCart, BookOpen, Coins, Send, Sparkles, Facebook, Instagram } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Stats {
@@ -54,6 +55,154 @@ function MiniBar({ data }: { data: { date: string; count: number }[] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+function SocialPublisher({ authenticated }: { authenticated: boolean }) {
+  const { toast } = useToast();
+  const [platform, setPlatform] = useState<"facebook" | "instagram">("facebook");
+  const [topic, setTopic] = useState("");
+  const [content, setContent] = useState("");
+
+  const { data: socialStatus } = useQuery<{ facebook: boolean; instagram: boolean }>({
+    queryKey: ["/api/admin/social/status"],
+    enabled: authenticated,
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/admin/social/generate", { topic, platform });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message); }
+      return res.json();
+    },
+    onSuccess: (data) => setContent(data.content),
+    onError: (e: any) => toast({ variant: "destructive", title: "Erreur génération", description: e.message }),
+  });
+
+  const publishMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/admin/social/publish/${platform}`, { message: content });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.message); }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      toast({ title: "✅ Publié !", description: `Post publié avec succès (ID: ${data.postId})` });
+      setContent("");
+      setTopic("");
+    },
+    onError: (e: any) => toast({ variant: "destructive", title: "Erreur publication", description: e.message }),
+  });
+
+  const charLimit = platform === "instagram" ? 2200 : 63206;
+  const charCount = content.length;
+
+  return (
+    <Card className="border-0 shadow-sm">
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-5">
+          <Send className="w-4 h-4 text-violet-600" />
+          <h3 className="font-semibold">Publication réseaux sociaux</h3>
+          <div className="flex items-center gap-2 ml-auto">
+            <Badge variant={socialStatus?.facebook ? "default" : "secondary"}
+              className={socialStatus?.facebook ? "bg-blue-100 text-blue-700 border-0" : ""}>
+              <Facebook className="w-3 h-3 mr-1" />
+              {socialStatus?.facebook ? "Connecté" : "Non configuré"}
+            </Badge>
+            <Badge variant={socialStatus?.instagram ? "default" : "secondary"}
+              className={socialStatus?.instagram ? "bg-pink-100 text-pink-700 border-0" : ""}>
+              <Instagram className="w-3 h-3 mr-1" />
+              {socialStatus?.instagram ? "Connecté" : "En attente"}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Platform selector */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setPlatform("facebook")}
+            data-testid="button-platform-facebook"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              platform === "facebook"
+                ? "bg-blue-600 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <Facebook className="w-4 h-4" /> Facebook
+          </button>
+          <button
+            onClick={() => setPlatform("instagram")}
+            data-testid="button-platform-instagram"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              platform === "instagram"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <Instagram className="w-4 h-4" /> Instagram
+          </button>
+        </div>
+
+        {/* Topic + Generate */}
+        <div className="flex gap-2 mb-3">
+          <Input
+            placeholder={`Sujet du post ${platform === "instagram" ? "Instagram" : "Facebook"} (ex: tips bibliographie APA, avantages IA pour les étudiants...)`}
+            value={topic}
+            onChange={e => setTopic(e.target.value)}
+            data-testid="input-social-topic"
+            className="flex-1 text-sm"
+            onKeyDown={e => { if (e.key === "Enter" && topic.trim()) generateMutation.mutate(); }}
+          />
+          <Button
+            onClick={() => generateMutation.mutate()}
+            disabled={!topic.trim() || generateMutation.isPending}
+            variant="outline"
+            data-testid="button-generate-post"
+            className="shrink-0"
+          >
+            {generateMutation.isPending
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <><Sparkles className="w-4 h-4 mr-1.5" /> Générer</>}
+          </Button>
+        </div>
+
+        {/* Content editor */}
+        <div className="relative">
+          <Textarea
+            placeholder="Le contenu du post apparaîtra ici. Vous pouvez aussi l'écrire directement ou le modifier après génération."
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            data-testid="textarea-social-content"
+            className="min-h-[180px] text-sm resize-none"
+          />
+          <span className={`absolute bottom-2 right-3 text-xs ${charCount > charLimit ? "text-red-500" : "text-muted-foreground"}`}>
+            {charCount}/{charLimit}
+          </span>
+        </div>
+
+        {/* Publish button */}
+        <div className="flex items-center justify-between mt-3">
+          <p className="text-xs text-muted-foreground">
+            {platform === "instagram" && !socialStatus?.instagram
+              ? "⚠️ Liez d'abord @marketlens.fr à la Page Facebook Marketlens"
+              : platform === "facebook"
+              ? "→ Page Facebook : Marketlens"
+              : "→ Instagram : @marketlens.fr"}
+          </p>
+          <Button
+            onClick={() => publishMutation.mutate()}
+            disabled={!content.trim() || charCount > charLimit || publishMutation.isPending ||
+              (platform === "instagram" && !socialStatus?.instagram)}
+            className={platform === "facebook" ? "bg-blue-600 hover:bg-blue-700" : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"}
+            data-testid="button-publish-post"
+          >
+            {publishMutation.isPending
+              ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              : <Send className="w-4 h-4 mr-2" />}
+            Publier sur {platform === "facebook" ? "Facebook" : "Instagram"}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -207,6 +356,9 @@ export default function Admin() {
             </Card>
           </>
         )}
+
+        {/* Social Media Publisher */}
+        <SocialPublisher authenticated={true} />
 
         {/* Users table */}
         <Card className="border-0 shadow-sm">
