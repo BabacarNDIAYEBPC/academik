@@ -58,6 +58,65 @@ function MiniBar({ data }: { data: { date: string; count: number }[] }) {
   );
 }
 
+function DiscoverInstagramButton() {
+  const { toast } = useToast();
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const discover = async () => {
+    setLoading(true);
+    try {
+      const res = await apiRequest("GET", "/api/admin/social/discover-instagram");
+      const data = await res.json();
+      setResult(data);
+
+      // Try to extract the Instagram ID from any of the responses
+      const igId =
+        data.instagram_business_account?.instagram_business_account?.id ||
+        data.connected_instagram_account?.connected_instagram_account?.id ||
+        data.instagram_accounts?.data?.[0]?.id ||
+        data.me?.instagram_business_account?.id;
+
+      if (igId) {
+        toast({
+          title: "ID Instagram trouvé !",
+          description: `ID : ${igId} — copiez-le et ajoutez-le comme secret INSTAGRAM_ACCOUNT_ID`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "ID introuvable",
+          description: "Voir les détails dans la section diagnostic ci-dessous",
+        });
+      }
+    } catch (e: any) {
+      toast({ variant: "destructive", title: "Erreur", description: e.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="w-full">
+      <Button
+        variant="outline"
+        onClick={discover}
+        disabled={loading}
+        data-testid="button-discover-instagram"
+        className="border-pink-200 text-pink-700 hover:bg-pink-50"
+      >
+        {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Instagram className="w-4 h-4 mr-2" />}
+        Découvrir l'ID Instagram
+      </Button>
+      {result && (
+        <div className="mt-3 p-3 bg-slate-50 rounded-lg border text-xs font-mono overflow-auto max-h-48 whitespace-pre-wrap">
+          {JSON.stringify(result, null, 2)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SocialPublisher({ authenticated }: { authenticated: boolean }) {
   const { toast } = useToast();
   const [platform, setPlatform] = useState<"facebook" | "instagram">("facebook");
