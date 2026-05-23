@@ -180,26 +180,31 @@ function SocialPublisher({ authenticated }: { authenticated: boolean }) {
         </div>
 
         {/* Publish button */}
-        <div className="flex items-center justify-between mt-3">
+        <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
           <p className="text-xs text-muted-foreground">
             {platform === "instagram" && !socialStatus?.instagram
-              ? "⚠️ Liez d'abord @marketlens.fr à la Page Facebook Marketlens"
+              ? "⚠️ ID Instagram non configuré — cliquez Découvrir →"
               : platform === "facebook"
               ? "→ Page Facebook : Marketlens"
               : "→ Instagram : @marketlens.fr"}
           </p>
-          <Button
-            onClick={() => publishMutation.mutate()}
-            disabled={!content.trim() || charCount > charLimit || publishMutation.isPending ||
-              (platform === "instagram" && !socialStatus?.instagram)}
-            className={platform === "facebook" ? "bg-blue-600 hover:bg-blue-700" : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"}
-            data-testid="button-publish-post"
-          >
-            {publishMutation.isPending
-              ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              : <Send className="w-4 h-4 mr-2" />}
-            Publier sur {platform === "facebook" ? "Facebook" : "Instagram"}
-          </Button>
+          <div className="flex gap-2">
+            {platform === "instagram" && !socialStatus?.instagram && (
+              <DiscoverInstagramButton />
+            )}
+            <Button
+              onClick={() => publishMutation.mutate()}
+              disabled={!content.trim() || charCount > charLimit || publishMutation.isPending ||
+                (platform === "instagram" && !socialStatus?.instagram)}
+              className={platform === "facebook" ? "bg-blue-600 hover:bg-blue-700" : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"}
+              data-testid="button-publish-post"
+            >
+              {publishMutation.isPending
+                ? <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                : <Send className="w-4 h-4 mr-2" />}
+              Publier sur {platform === "facebook" ? "Facebook" : "Instagram"}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -231,6 +231,47 @@ export function registerAdminRoutes(app: Express) {
     });
   });
 
+  // Discover Instagram account ID from the saved Page token
+  app.get("/api/admin/social/discover-instagram", async (req, res) => {
+    if (!checkAdminAuth(req, res)) return;
+    const pageId = process.env.FB_PAGE_ID;
+    const token = process.env.FB_PAGE_ACCESS_TOKEN;
+    if (!pageId || !token) return res.status(500).json({ message: "Token Facebook non configuré" });
+
+    try {
+      // Try multiple approaches to find the Instagram account
+      const results: any = {};
+
+      // Approach 1: instagram_business_account on the page
+      const r1 = await fetch(
+        `https://graph.facebook.com/v20.0/${pageId}?fields=instagram_business_account&access_token=${token}`
+      );
+      results.instagram_business_account = await r1.json();
+
+      // Approach 2: connected_instagram_account
+      const r2 = await fetch(
+        `https://graph.facebook.com/v20.0/${pageId}?fields=connected_instagram_account&access_token=${token}`
+      );
+      results.connected_instagram_account = await r2.json();
+
+      // Approach 3: via /me with page token
+      const r3 = await fetch(
+        `https://graph.facebook.com/v20.0/me?fields=id,name,instagram_business_account&access_token=${token}`
+      );
+      results.me = await r3.json();
+
+      // Approach 4: instagram_accounts
+      const r4 = await fetch(
+        `https://graph.facebook.com/v20.0/${pageId}?fields=instagram_accounts&access_token=${token}`
+      );
+      results.instagram_accounts = await r4.json();
+
+      res.json(results);
+    } catch (err: any) {
+      res.status(500).json({ message: err.message });
+    }
+  });
+
   // Liste des utilisateurs
   app.get("/api/admin/users", async (req, res) => {
     if (!checkAdminAuth(req, res)) return;
