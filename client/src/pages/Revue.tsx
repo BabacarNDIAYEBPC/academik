@@ -7,6 +7,7 @@ import {
   Trash2, CheckSquare, Eye, X, ArrowUpDown, Filter, SlidersHorizontal,
   Coins, ArrowLeft, FileDown,
 } from "lucide-react";
+import logoUrl from "@assets/logo_academik_minimal.png";
 import { exportToWord } from "@/lib/export-utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -236,8 +237,8 @@ export default function Revue() {
       <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/")}>
-            <BookOpen className="w-5 h-5 text-primary" />
-            <span className="font-bold text-lg tracking-tight">Refbib</span>
+            <img src={logoUrl} alt="Academik" className="w-7 h-7 object-contain" />
+            <span className="font-bold text-lg tracking-tight">Academik</span>
           </div>
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => setLocation("/billing")} className="gap-1.5" data-testid="button-credits-nav">

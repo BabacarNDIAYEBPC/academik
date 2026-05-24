@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
-import { BookOpen, Search, Plus, Trash2, Clock, Coins } from "lucide-react";
+import { Search, Plus, Trash2, Clock, Coins } from "lucide-react";
+import logoUrl from "@assets/logo_academik_minimal.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +33,7 @@ export default function Dashboard() {
       <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => setLocation("/")}>
-            <BookOpen className="w-5 h-5 text-primary" />
+            <img src={logoUrl} alt="Academik" className="w-7 h-7 object-contain" />
             <span className="font-bold text-lg tracking-tight">{t("app_name")}</span>
           </div>
           <div className="flex items-center gap-2">

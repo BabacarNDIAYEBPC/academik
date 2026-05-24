@@ -3,7 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowLeft, Loader2, CheckCircle } from "lucide-react";
+import logoUrl from "@assets/logo_academik_minimal.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,7 +194,7 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex flex-col">
       <header className="px-6 py-4 flex items-center justify-between">
         <a href="/" className="flex items-center gap-2 text-slate-700 hover:text-blue-700 transition-colors w-fit">
-          <BookOpen className="h-5 w-5 text-blue-700" />
+          <img src={logoUrl} alt="Academik" className="w-7 h-7 object-contain" />
           <span className="font-bold text-lg">{t("app_name")}</span>
         </a>
         <LanguageSwitcher compact />
