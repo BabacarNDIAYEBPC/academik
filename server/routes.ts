@@ -510,19 +510,69 @@ Sitemap: https://academik.fr/sitemap.xml`);
     const count = articleCount || 10;
     const searchQuery = [query, domain].filter(Boolean).join(" ");
 
-    const articles = await realSearch({
+    // Fetch more than needed so GPT can pick the best ones
+    const rawArticles = await realSearch({
       query: searchQuery,
       platforms: platforms || ["google_scholar", "pubmed", "hal", "cairn", "sciencedirect"],
       language: language || "fr",
       periodStart: periodStart || "2015",
       periodEnd: periodEnd || String(new Date().getFullYear()),
-      articleCount: count,
+      articleCount: Math.min(count * 3, 40),
       accessType: accessType || "all",
       openAccessProportion: openAccessProportion ?? 50,
     });
 
-    if (articles.length === 0) {
+    if (rawArticles.length === 0) {
       return res.status(404).json({ message: "Aucun article trouvé pour cette requête. Essayez des termes plus généraux ou en anglais." });
+    }
+
+    // GPT re-ranking: score relevance of each article vs the query
+    let articles = rawArticles;
+    if (rawArticles.length > count) {
+      try {
+        const openai = await getOpenAI();
+        const candidateList = rawArticles.map((a, i) =>
+          `${i}: "${a.title}" — ${a.lastName}${a.firstName ? `, ${a.firstName}` : ""} (${a.year}) — ${a.publisher || ""}`
+        ).join("\n");
+
+        const rankPrompt = `Tu es un assistant de recherche académique. Évalue la pertinence de chaque article ci-dessous par rapport à la requête de recherche.
+
+Requête: "${searchQuery}"
+
+Articles (format: index: "titre" — auteur (année) — revue):
+${candidateList}
+
+Pour chaque article, donne un score de pertinence de 0 à 10 (10 = très pertinent, 0 = hors sujet).
+Réponds UNIQUEMENT en JSON: { "scores": [{"index": 0, "score": 8}, ...] }`;
+
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [{ role: "user", content: rankPrompt }],
+          response_format: { type: "json_object" },
+          temperature: 0,
+        });
+
+        const ranked = JSON.parse(response.choices[0].message.content || "{}");
+        const scores: { index: number; score: number }[] = ranked.scores || [];
+
+        if (scores.length > 0) {
+          const scoreMap = new Map(scores.map(s => [s.index, s.score]));
+          articles = rawArticles
+            .map((a, i) => ({ ...a, relevanceScore: scoreMap.get(i) ?? 5 }))
+            .filter(a => (a.relevanceScore ?? 0) >= 4)
+            .sort((a, b) => (b.relevanceScore ?? 0) - (a.relevanceScore ?? 0))
+            .slice(0, count);
+
+          // If GPT filtered too aggressively, fall back to raw results
+          if (articles.length < Math.min(3, count)) {
+            articles = rawArticles.slice(0, count);
+          }
+        } else {
+          articles = rawArticles.slice(0, count);
+        }
+      } catch {
+        articles = rawArticles.slice(0, count);
+      }
     }
 
     res.json({ articles });
