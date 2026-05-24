@@ -5,6 +5,7 @@ import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerAdminRoutes } from "./admin";
 import OpenAI from "openai";
 import { CREDIT_COSTS, CREDIT_PACKS } from "@shared/schema";
+import { realSearch } from "./search";
 
 function getUserId(req: any): string {
   return String((req.session as any)?.userId || "");
@@ -506,46 +507,25 @@ Sitemap: https://academik.fr/sitemap.xml`);
       const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, `Recherche: ${query || domain}`);
       if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
     }
-    const openai = await getOpenAI();
-    const platformList = (platforms || ["google_scholar", "pubmed", "hal", "cairn", "sciencedirect"]).join(", ");
-    const sourceTypesList = (sourceTypes || ["scientific_articles"]).join(", ");
     const count = articleCount || 10;
-    const accessLabel = accessType === "open_access"
-      ? "Open Access uniquement (articles gratuits, disponibles librement en ligne)"
-      : accessType === "paid"
-      ? "Articles payants uniquement (revues avec abonnement, pas nécessairement open access)"
-      : `Mix : environ ${openAccessProportion ?? 50}% open access (gratuits) et ${100 - (openAccessProportion ?? 50)}% payants`;
-    const prompt = `Tu es un assistant de recherche académique francophone. Génère une liste de ${count} références bibliographiques académiques pertinentes pour la recherche suivante.
+    const searchQuery = [query, domain].filter(Boolean).join(" ");
 
-Sujet/Requête: ${query || domain || ""}
-${domain ? `Domaine: ${domain}` : ""}
-Plateformes: ${platformList}
-Langue: ${language === "fr" ? "Français" : language === "en" ? "Anglais" : "Français et Anglais"}
-${periodStart ? `Période: ${periodStart} - ${periodEnd || new Date().getFullYear()}` : ""}
-Niveau: ${level === "academic" ? "Académique (peer-reviewed)" : level === "professional" ? "Professionnel" : "Mixte"}
-Types de sources: ${sourceTypesList}
-Accès: ${accessLabel}
-
-Pour chaque référence, fournis:
-- lastName: Nom de l'auteur principal
-- firstName: Prénom
-- title: Titre complet
-- year: Année
-- publisher: Revue/Éditeur
-- platform: Plateforme (parmi: ${platformList})
-- url: URL ou DOI
-- type: Type (article, livre, rapport, etc.)
-
-Réponds en JSON: { "articles": [ { "lastName": "", "firstName": "", "title": "", "year": "", "publisher": "", "platform": "", "url": "", "type": "" } ] }`;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" },
-      temperature: 0.4,
+    const articles = await realSearch({
+      query: searchQuery,
+      platforms: platforms || ["google_scholar", "pubmed", "hal", "cairn", "sciencedirect"],
+      language: language || "fr",
+      periodStart: periodStart || "2015",
+      periodEnd: periodEnd || String(new Date().getFullYear()),
+      articleCount: count,
+      accessType: accessType || "all",
+      openAccessProportion: openAccessProportion ?? 50,
     });
-    const result = JSON.parse(response.choices[0].message.content || "{}");
-    res.json(result);
+
+    if (articles.length === 0) {
+      return res.status(404).json({ message: "Aucun article trouvé pour cette requête. Essayez des termes plus généraux ou en anglais." });
+    }
+
+    res.json({ articles });
   });
 
   // === LITERATURE REVIEW — ANALYZE ARTICLES ===

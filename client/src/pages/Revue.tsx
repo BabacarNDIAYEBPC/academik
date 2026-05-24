@@ -43,6 +43,16 @@ const SOURCE_TYPES = [
 
 const BATCH_SIZES = [10, 20, 30, 50];
 
+const PLATFORM_LABELS: Record<string, string> = {
+  openalex: "OpenAlex",
+  pubmed: "PubMed",
+  hal: "HAL",
+  crossref: "CrossRef",
+  google_scholar: "Google Scholar",
+  cairn: "Cairn",
+  sciencedirect: "ScienceDirect",
+};
+
 type ActiveAction = null | "search" | "summary_selected" | "summary_all" | "confrontation" | "mapping" | "bibliography" | "equations" | `resume_${number}`;
 
 const articleKey = (a: LiteratureArticle) => `${a.lastName}|${a.firstName}|${a.title}|${a.year}`;
@@ -549,8 +559,9 @@ export default function Revue() {
                             <span className="font-medium">{article.lastName}{article.firstName ? `, ${article.firstName}` : ""}</span>
                             {article.year && <> · {article.year}</>}
                             {article.publisher && <> · {article.publisher}</>}
-                            {article.platform && <> · <span className="text-primary/70">{article.platform}</span></>}
-                            {article.type && <Badge variant="secondary" className="ml-2 text-[10px] py-0">{article.type}</Badge>}
+                              {article.platform && <> · <span className="text-primary/70">{PLATFORM_LABELS[article.platform] || article.platform}</span></>}
+                            {(article as any).isOpenAccess && <Badge variant="outline" className="ml-1 text-[10px] py-0 text-green-600 border-green-300">🔓 Open Access</Badge>}
+                            {article.type && <Badge variant="secondary" className="ml-1 text-[10px] py-0">{article.type}</Badge>}
                           </p>
                         </div>
                         <div className="flex gap-1 shrink-0">
