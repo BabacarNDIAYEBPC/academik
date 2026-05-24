@@ -1,0 +1,25 @@
+uploads = []
+
+[[generated]]
+id = "MZSTyaz8OeD6ZGsTKCR0r"
+uri = "file://attached_assets/logo_academik_minimal.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "4qYtF2RYRoYk-mDX-h8PX"
+uri = "file://attached_assets/logo_academik_typo.png"
+type = "image"
+title = "generated_image"
+
+[[outputs]]
+id = "AJub3npayYVtzvL6HEz8Z"
+uri = "file://attached_assets/logo_academik_minimal.png"
+type = "image"
+title = "Logo Minimaliste — Lettre A"
+
+[[outputs]]
+id = "zt4aiEOF9iprdqP9fDZm5"
+uri = "file://attached_assets/logo_academik_typo.png"
+type = "image"
+title = "Logo Typographique — Academik"
