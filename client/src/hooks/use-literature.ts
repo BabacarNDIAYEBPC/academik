@@ -23,6 +23,8 @@ export interface LiteratureConfig {
   sourceTypes: string[];
   articleCount: number;
   norm: string;
+  accessType: "all" | "open_access" | "paid";
+  openAccessProportion: number;
 }
 
 export const DEFAULT_CONFIG: LiteratureConfig = {
@@ -36,6 +38,8 @@ export const DEFAULT_CONFIG: LiteratureConfig = {
   sourceTypes: ["scientific_articles"],
   articleCount: 10,
   norm: "apa7",
+  accessType: "all",
+  openAccessProportion: 50,
 };
 
 export function useSearchArticles() {

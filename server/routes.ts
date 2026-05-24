@@ -499,7 +499,7 @@ Sitemap: https://academik.fr/sitemap.xml`);
   app.post("/api/literature/search", async (req, res) => {
     if (!checkAuth(req, res)) return;
     const userId = getUserId(req);
-    const { query, domain, platforms, language, periodStart, periodEnd, level, sourceTypes, articleCount } = req.body;
+    const { query, domain, platforms, language, periodStart, periodEnd, level, sourceTypes, articleCount, accessType, openAccessProportion } = req.body;
     if (!query && !domain) return res.status(400).json({ message: "Requête manquante" });
     const superAdmin = await isSuperAdmin(userId);
     if (!superAdmin) {
@@ -510,6 +510,11 @@ Sitemap: https://academik.fr/sitemap.xml`);
     const platformList = (platforms || ["google_scholar", "pubmed", "hal", "cairn", "sciencedirect"]).join(", ");
     const sourceTypesList = (sourceTypes || ["scientific_articles"]).join(", ");
     const count = articleCount || 10;
+    const accessLabel = accessType === "open_access"
+      ? "Open Access uniquement (articles gratuits, disponibles librement en ligne)"
+      : accessType === "paid"
+      ? "Articles payants uniquement (revues avec abonnement, pas nécessairement open access)"
+      : `Mix : environ ${openAccessProportion ?? 50}% open access (gratuits) et ${100 - (openAccessProportion ?? 50)}% payants`;
     const prompt = `Tu es un assistant de recherche académique francophone. Génère une liste de ${count} références bibliographiques académiques pertinentes pour la recherche suivante.
 
 Sujet/Requête: ${query || domain || ""}
@@ -519,6 +524,7 @@ Langue: ${language === "fr" ? "Français" : language === "en" ? "Anglais" : "Fra
 ${periodStart ? `Période: ${periodStart} - ${periodEnd || new Date().getFullYear()}` : ""}
 Niveau: ${level === "academic" ? "Académique (peer-reviewed)" : level === "professional" ? "Professionnel" : "Mixte"}
 Types de sources: ${sourceTypesList}
+Accès: ${accessLabel}
 
 Pour chaque référence, fournis:
 - lastName: Nom de l'auteur principal

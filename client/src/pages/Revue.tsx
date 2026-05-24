@@ -347,6 +347,50 @@ export default function Revue() {
               </div>
             </div>
 
+            {/* Access type */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-muted-foreground">Accès aux articles</Label>
+              <div className="flex gap-2 flex-wrap">
+                {[
+                  { value: "all", label: "Tous" },
+                  { value: "open_access", label: "🔓 Open Access (gratuit)" },
+                  { value: "paid", label: "🔒 Payants uniquement" },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    data-testid={`button-access-${opt.value}`}
+                    onClick={() => setConfig(c => ({ ...c, accessType: opt.value as any }))}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${
+                      config.accessType === opt.value
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {config.accessType === "all" && (
+                <div className="flex items-center gap-3 pt-1">
+                  <Label className="text-xs text-muted-foreground whitespace-nowrap">
+                    Proportion open access : <span className="font-semibold text-foreground">{config.openAccessProportion}%</span>
+                  </Label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={10}
+                    value={config.openAccessProportion}
+                    onChange={e => setConfig(c => ({ ...c, openAccessProportion: Number(e.target.value) }))}
+                    data-testid="range-open-access-proportion"
+                    className="flex-1 h-1.5 accent-primary cursor-pointer"
+                  />
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Payant : {100 - config.openAccessProportion}%</span>
+                </div>
+              )}
+            </div>
+
             {/* Buttons */}
             <div className="flex items-center gap-2 pt-1 flex-wrap">
               <Button onClick={handleSearch} disabled={isAnyActionRunning} data-testid="button-search">
