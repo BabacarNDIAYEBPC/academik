@@ -18,6 +18,21 @@ function checkAuth(req: any, res: any): boolean {
   return true;
 }
 
+async function isSuperAdmin(userId: string): Promise<boolean> {
+  if (!userId) return false;
+  const superAdminEmails = (process.env.SUPER_ADMIN_EMAILS || "").toLowerCase().split(",").map(e => e.trim()).filter(Boolean);
+  if (!superAdminEmails.length) return false;
+  try {
+    const { db } = await import("./db");
+    const { authUsers } = await import("./replit_integrations/auth/storage");
+    const { eq } = await import("drizzle-orm");
+    const [user] = await db.select({ email: authUsers.email }).from(authUsers).where(eq(authUsers.id, Number(userId)));
+    return !!user && superAdminEmails.includes(user.email.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 async function getOpenAI(): Promise<OpenAI> {
   return new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 }
@@ -397,7 +412,9 @@ Sitemap: https://academik.fr/sitemap.xml`);
   // === CREDITS ===
   app.get("/api/credits", async (req, res) => {
     if (!checkAuth(req, res)) return;
-    const credits = await storage.getCredits(getUserId(req));
+    const userId = getUserId(req);
+    if (await isSuperAdmin(userId)) return res.json({ credits: 999999, superAdmin: true });
+    const credits = await storage.getCredits(userId);
     res.json({ credits });
   });
 
@@ -484,8 +501,11 @@ Sitemap: https://academik.fr/sitemap.xml`);
     const userId = getUserId(req);
     const { query, domain, platforms, language, periodStart, periodEnd, level, sourceTypes, articleCount } = req.body;
     if (!query && !domain) return res.status(400).json({ message: "Requête manquante" });
-    const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, `Recherche: ${query || domain}`);
-    if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    const superAdmin = await isSuperAdmin(userId);
+    if (!superAdmin) {
+      const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, `Recherche: ${query || domain}`);
+      if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    }
     const openai = await getOpenAI();
     const platformList = (platforms || ["google_scholar", "pubmed", "hal", "cairn", "sciencedirect"]).join(", ");
     const sourceTypesList = (sourceTypes || ["scientific_articles"]).join(", ");
@@ -528,8 +548,10 @@ Réponds en JSON: { "articles": [ { "lastName": "", "firstName": "", "title": ""
     const userId = getUserId(req);
     const { articles, analysisType, query } = req.body;
     if (!articles || !articles.length) return res.status(400).json({ message: "Articles manquants" });
-    const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, "Analyse articles");
-    if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    if (!await isSuperAdmin(userId)) {
+      const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, "Analyse articles");
+      if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    }
     const openai = await getOpenAI();
     const articlesText = articles.map((a: any, i: number) =>
       `${i + 1}. ${a.title} — ${a.authors || `${a.lastName}, ${a.firstName}`} (${a.year}) — ${a.source || a.publisher || ""}`
@@ -558,8 +580,10 @@ Réponds en JSON: { "articles": [ { "lastName": "", "firstName": "", "title": ""
     const userId = getUserId(req);
     const { articles, norm = "apa7" } = req.body;
     if (!articles || !articles.length) return res.status(400).json({ message: "Articles manquants" });
-    const spent = await storage.spendCredits(userId, CREDIT_COSTS.GENERATE_BIBLIOGRAPHY, "Génération bibliographie");
-    if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    if (!await isSuperAdmin(userId)) {
+      const spent = await storage.spendCredits(userId, CREDIT_COSTS.GENERATE_BIBLIOGRAPHY, "Génération bibliographie");
+      if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    }
     const openai = await getOpenAI();
     const normLabels: Record<string, string> = { apa7: "APA 7", vancouver: "Vancouver", mla: "MLA", chicago: "Chicago" };
     const normLabel = normLabels[norm] || "APA 7";
@@ -580,8 +604,10 @@ Réponds en JSON: { "articles": [ { "lastName": "", "firstName": "", "title": ""
     if (!checkAuth(req, res)) return;
     const userId = getUserId(req);
     const { query, domain, language } = req.body;
-    const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, "Génération équations de recherche");
-    if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    if (!await isSuperAdmin(userId)) {
+      const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, "Génération équations de recherche");
+      if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+    }
     const openai = await getOpenAI();
     const prompt = `Génère des équations de recherche booléennes optimisées pour trouver des articles académiques sur:
 Sujet: ${query || domain || ""}
