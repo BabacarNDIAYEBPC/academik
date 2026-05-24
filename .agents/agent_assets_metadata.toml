@@ -12,6 +12,18 @@ uri = "file://attached_assets/logo_academik_typo.png"
 type = "image"
 title = "generated_image"
 
+[[generated]]
+id = "8IIj-oBcboho6YQ4mnUN9"
+uri = "file://attached_assets/logo_social_profile.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "Jhixw47Q_IDWiVIe-YYG0"
+uri = "file://attached_assets/logo_youtube_banner.png"
+type = "image"
+title = "generated_image"
+
 [[outputs]]
 id = "AJub3npayYVtzvL6HEz8Z"
 uri = "file://attached_assets/logo_academik_minimal.png"
@@ -23,3 +35,15 @@ id = "zt4aiEOF9iprdqP9fDZm5"
 uri = "file://attached_assets/logo_academik_typo.png"
 type = "image"
 title = "Logo Typographique — Academik"
+
+[[outputs]]
+id = "Npr6UrCxAoHbjikcAd91a"
+uri = "file://attached_assets/logo_social_profile.png"
+type = "image"
+title = "Photo de profil — Facebook · Instagram · TikTok · YouTube (1:1)"
+
+[[outputs]]
+id = "alYZCjKUV77N_XgNKBkuC"
+uri = "file://attached_assets/logo_youtube_banner.png"
+type = "image"
+title = "Bannière YouTube (16:9)"
