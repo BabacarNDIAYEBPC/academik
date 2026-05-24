@@ -1,7 +1,7 @@
 import {
   Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType,
   Table as DocxTable, TableRow, TableCell, WidthType, BorderStyle,
-  Header, Footer, PageNumber, NumberFormat,
+  Header, Footer, PageNumber, NumberFormat, ExternalHyperlink,
 } from "docx";
 import { saveAs } from "file-saver";
 
@@ -277,7 +277,7 @@ export async function exportToWord(
       new TextRun({ text: "Academik — ", size: 16, color: WORD_COLOR_MUTED, font: WORD_FONT }),
       new TextRun({ text: "academik.fr", size: 16, color: WORD_COLOR_SECTION, font: WORD_FONT }),
       new TextRun({ text: "   |   Page ", size: 16, color: WORD_COLOR_MUTED, font: WORD_FONT }),
-      new PageNumber({ style: NumberFormat.DECIMAL }),
+      new TextRun({ children: [PageNumber.CURRENT], size: 16, color: WORD_COLOR_MUTED, font: WORD_FONT }),
     ],
     alignment: AlignmentType.CENTER,
   });
