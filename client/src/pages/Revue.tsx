@@ -365,7 +365,7 @@ export default function Revue() {
                 {[
                   { value: "all", label: "Tous" },
                   { value: "open_access", label: "🔓 Open Access (gratuit)" },
-                  { value: "paid", label: "🔒 Payants uniquement" },
+                  { value: "paid", label: "🔒 Sous abonnement" },
                 ].map(opt => (
                   <button
                     key={opt.value}
@@ -382,6 +382,16 @@ export default function Revue() {
                   </button>
                 ))}
               </div>
+              {config.accessType === "paid" && (
+                <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                  ⚠️ Ces articles nécessitent un abonnement (Cairn, ScienceDirect…). Certains peuvent être accessibles via votre institution ou en version preprint.
+                </p>
+              )}
+              {config.accessType === "open_access" && (
+                <p className="text-[11px] text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
+                  ✓ Seuls les articles librement téléchargeables sont affichés (HAL, PMC, preprints…).
+                </p>
+              )}
               {config.accessType === "all" && (
                 <div className="flex items-center gap-3 pt-1">
                   <Label className="text-xs text-muted-foreground whitespace-nowrap">
@@ -397,7 +407,7 @@ export default function Revue() {
                     data-testid="range-open-access-proportion"
                     className="flex-1 h-1.5 accent-primary cursor-pointer"
                   />
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">Payant : {100 - config.openAccessProportion}%</span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">Abonnement : {100 - config.openAccessProportion}%</span>
                 </div>
               )}
             </div>
