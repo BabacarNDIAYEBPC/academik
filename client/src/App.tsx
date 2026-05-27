@@ -29,6 +29,8 @@ import Etudiant from "@/pages/seo/Etudiant";
 import Students from "@/pages/seo/Students";
 import Chercheur from "@/pages/seo/Chercheur";
 import Researchers from "@/pages/seo/Researchers";
+import RechercheBibliographique from "@/pages/seo/RechercheBibliographique";
+import SyntheseBibliographique from "@/pages/seo/SyntheseBibliographique";
 import NotFound from "@/pages/NotFound";
 
 import SeoPageLang from "@/pages/seo/SeoPageLang";
@@ -95,6 +97,8 @@ function Router() {
       <Route path="/memoire-these" component={MemoireThese} />
       <Route path="/etudiant" component={Etudiant} />
       <Route path="/chercheur" component={Chercheur} />
+      <Route path="/recherche-bibliographique" component={RechercheBibliographique} />
+      <Route path="/synthese-bibliographique" component={SyntheseBibliographique} />
 
       {/* EN pages */}
       <Route path="/en/apa-citation-generator" component={ApaCitationGenerator} />
