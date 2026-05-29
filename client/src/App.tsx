@@ -31,6 +31,7 @@ import Chercheur from "@/pages/seo/Chercheur";
 import Researchers from "@/pages/seo/Researchers";
 import RechercheBibliographique from "@/pages/seo/RechercheBibliographique";
 import SyntheseBibliographique from "@/pages/seo/SyntheseBibliographique";
+import ReussirMemoireMaster from "@/pages/seo/ReussirMemoireMaster";
 import NotFound from "@/pages/NotFound";
 
 import SeoPageLang from "@/pages/seo/SeoPageLang";
@@ -99,6 +100,7 @@ function Router() {
       <Route path="/chercheur" component={Chercheur} />
       <Route path="/recherche-bibliographique" component={RechercheBibliographique} />
       <Route path="/synthese-bibliographique" component={SyntheseBibliographique} />
+      <Route path="/reussir-memoire-master" component={ReussirMemoireMaster} />
 
       {/* EN pages */}
       <Route path="/en/apa-citation-generator" component={ApaCitationGenerator} />

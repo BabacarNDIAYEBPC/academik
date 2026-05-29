@@ -128,6 +128,14 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>${BASE}/reussir-memoire-master</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/reussir-memoire-master"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/reussir-memoire-master"/>
+  </url>
+  <url>
     <loc>${BASE}/recherche-bibliographique</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
