@@ -354,6 +354,10 @@ export default function RevueLitterature() {
           </div>
           <div className="flex gap-4">
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/bibliographie-apa")}>Bibliographie APA</span>
+            <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/recherche-bibliographique")}>Recherche biblio</span>
+            <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/synthese-bibliographique")}>Synthèse biblio</span>
+            <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/reussir-memoire-master")}>Réussir son mémoire</span>
+            <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/memoire-these")}>Mémoire & Thèse</span>
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/connexion")}>Connexion</span>
             <span className="cursor-pointer hover:text-foreground" onClick={() => setLocation("/en/literature-review")}>English</span>
             <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="hover:text-foreground">Rédacteur Mémoire</a>

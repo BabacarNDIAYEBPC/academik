@@ -139,6 +139,9 @@ export default function Landing() {
                 <li><a href="/memoire-these" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_research_thesis")}</a></li>
                 <li><a href="/etudiant" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_research_students")}</a></li>
                 <li><a href="/chercheur" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_research_researchers")}</a></li>
+                <li><a href="/recherche-bibliographique" className="text-muted-foreground hover:text-primary transition-colors">Recherche bibliographique</a></li>
+                <li><a href="/synthese-bibliographique" className="text-muted-foreground hover:text-primary transition-colors">Synthèse bibliographique</a></li>
+                <li><a href="/reussir-memoire-master" className="text-muted-foreground hover:text-primary transition-colors">Réussir son mémoire</a></li>
               </ul>
             </div>
             <div>
@@ -148,6 +151,10 @@ export default function Landing() {
                 <li><a href="/en/literature-review" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_en_review")}</a></li>
                 <li><a href="/en/dissertation-help" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_en_dissertation")}</a></li>
                 <li><a href="/en/students" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_en_students")}</a></li>
+                <li><a href="/en/vancouver-citation" className="text-muted-foreground hover:text-primary transition-colors">Vancouver citation</a></li>
+                <li><a href="/en/mla-citation" className="text-muted-foreground hover:text-primary transition-colors">MLA citation</a></li>
+                <li><a href="/en/chicago-citation" className="text-muted-foreground hover:text-primary transition-colors">Chicago citation</a></li>
+                <li><a href="/en/researchers" className="text-muted-foreground hover:text-primary transition-colors">For researchers</a></li>
               </ul>
             </div>
             <div>
