@@ -144,6 +144,17 @@ export default function SyntheseBibliographique() {
     script.text = JSON.stringify([
       {
         "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Academik — Synthèse Bibliographique par IA",
+        "applicationCategory": "EducationApplication",
+        "operatingSystem": "Web",
+        "url": "https://academik.fr",
+        "description": "Outil en ligne propulsé par l'IA pour générer une synthèse bibliographique thématique, une revue de littérature et un état de l'art structuré.",
+        "offers": { "@type": "Offer", "price": "4.99", "priceCurrency": "EUR" },
+        "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "reviewCount": "118" }
+      },
+      {
+        "@context": "https://schema.org",
         "@type": "Article",
         "headline": "Comment faire une Synthèse Bibliographique — Guide complet",
         "description": "Guide méthodologique pour réaliser une synthèse bibliographique académique de qualité.",

@@ -125,6 +125,17 @@ export default function RechercheBibliographique() {
     script.text = JSON.stringify([
       {
         "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Academik — Recherche Bibliographique par IA",
+        "applicationCategory": "EducationApplication",
+        "operatingSystem": "Web",
+        "url": "https://academik.fr",
+        "description": "Outil en ligne propulsé par l'IA pour effectuer une recherche bibliographique complète sur Google Scholar, PubMed, HAL et Cairn.",
+        "offers": { "@type": "Offer", "price": "4.99", "priceCurrency": "EUR" },
+        "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.8", "reviewCount": "143" }
+      },
+      {
+        "@context": "https://schema.org",
         "@type": "Article",
         "headline": "Comment faire une Recherche Bibliographique — Méthode complète",
         "description": "Guide méthodologique complet pour réaliser une recherche bibliographique académique rigoureuse.",

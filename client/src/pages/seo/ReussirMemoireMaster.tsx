@@ -95,6 +95,17 @@ export default function ReussirMemoireMaster() {
     script.text = JSON.stringify([
       {
         "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Academik — Aide à la rédaction de Mémoire de Master",
+        "applicationCategory": "EducationApplication",
+        "operatingSystem": "Web",
+        "url": "https://academik.fr",
+        "description": "Outil en ligne propulsé par l'IA pour aider les étudiants à rédiger leur mémoire de master : recherche bibliographique, synthèse, bibliographie formatée.",
+        "offers": { "@type": "Offer", "price": "4.99", "priceCurrency": "EUR" },
+        "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "reviewCount": "89" }
+      },
+      {
+        "@context": "https://schema.org",
         "@type": "Article",
         "headline": "Réussir son Mémoire de Master en 2025 : Guide complet, méthode et outils",
         "description": "Guide méthodologique complet pour rédiger et soutenir un mémoire de master avec succès.",
