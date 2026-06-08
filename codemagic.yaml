@@ -28,7 +28,7 @@ workflows:
         script: npm ci
 
       - name: Build web app (Vite)
-        script: npm run build
+        script: npx tsx script/build.ts
 
       - name: Install Capacitor CLI
         script: npm install -g @capacitor/cli
@@ -83,7 +83,7 @@ workflows:
         script: npm ci
 
       - name: Build web app (Vite)
-        script: npm run build
+        script: npx tsx script/build.ts
 
       - name: Install Capacitor CLI
         script: npm install -g @capacitor/cli
