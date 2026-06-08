@@ -174,6 +174,12 @@ export default function Landing() {
       </section>
 
       <footer className="py-6 px-4 text-center text-xs text-muted-foreground border-t">
+        <div className="flex justify-center gap-5 mb-3 flex-wrap">
+          <a href="/cgu" className="hover:text-foreground transition-colors">CGU</a>
+          <a href="/cgv" className="hover:text-foreground transition-colors">CGV</a>
+          <a href="/rgpd" className="hover:text-foreground transition-colors">Politique de confidentialité</a>
+          <a href="/contact" className="hover:text-foreground transition-colors">Contact</a>
+        </div>
         © {new Date().getFullYear()} {t("app_name")} — Performance Consulting Groupe SAS
       </footer>
     </div>

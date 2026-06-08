@@ -6,6 +6,8 @@ import { registerAdminRoutes } from "./admin";
 import OpenAI from "openai";
 import { CREDIT_COSTS, CREDIT_PACKS } from "@shared/schema";
 import { realSearch } from "./search";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 function getUserId(req: any): string {
   return String((req.session as any)?.userId || "");
@@ -432,6 +434,21 @@ Sitemap: https://academik.fr/sitemap.xml`);
     const info = COUNTRY_CURRENCY[country] || { currency: "eur", symbol: "€", rate: 1 };
 
     res.json({ ...info, country: country || "XX" });
+  });
+
+  // === ACCOUNT ===
+  app.delete("/api/user/account", async (req, res) => {
+    if (!checkAuth(req, res)) return;
+    const userId = getUserId(req);
+    try {
+      await storage.deleteUserData(userId);
+      const { authUsers } = await import("./replit_integrations/auth/storage");
+      await db.delete(authUsers).where(eq(authUsers.id, Number(userId)));
+      req.session.destroy(() => {});
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
   });
 
   // === CREDITS ===

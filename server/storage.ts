@@ -38,6 +38,9 @@ export interface IStorage {
   createInvoice(data: InsertInvoice): Promise<Invoice>;
   getInvoices(userId: string): Promise<Invoice[]>;
   getInvoiceBySession(sessionId: string): Promise<Invoice | undefined>;
+
+  // Account
+  deleteUserData(userId: string): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -153,6 +156,14 @@ class DatabaseStorage implements IStorage {
   async getInvoiceBySession(sessionId: string): Promise<Invoice | undefined> {
     const [row] = await db.select().from(invoices).where(eq(invoices.stripeSessionId, sessionId));
     return row;
+  }
+
+  async deleteUserData(userId: string): Promise<void> {
+    await db.delete(bibliographies).where(eq(bibliographies.userId, userId));
+    await db.delete(readingCards).where(eq(readingCards.userId, userId));
+    await db.delete(syntheses).where(eq(syntheses.userId, userId));
+    await db.delete(creditTransactions).where(eq(creditTransactions.userId, userId));
+    await db.delete(userCredits).where(eq(userCredits.userId, userId));
   }
 }
 

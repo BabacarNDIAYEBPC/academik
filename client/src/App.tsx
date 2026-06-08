@@ -33,6 +33,10 @@ import RechercheBibliographique from "@/pages/seo/RechercheBibliographique";
 import SyntheseBibliographique from "@/pages/seo/SyntheseBibliographique";
 import ReussirMemoireMaster from "@/pages/seo/ReussirMemoireMaster";
 import NotFound from "@/pages/NotFound";
+import Contact from "@/pages/legal/Contact";
+import CGU from "@/pages/legal/CGU";
+import CGV from "@/pages/legal/CGV";
+import RGPD from "@/pages/legal/RGPD";
 
 import SeoPageLang from "@/pages/seo/SeoPageLang";
 import { SEO_PAGES } from "@/pages/seo/seoData";
@@ -88,6 +92,12 @@ function Router() {
       <Route path="/revue" component={() => <ProtectedRoute component={Revue} />} />
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
       <Route path="/admin" component={Admin} />
+
+      {/* Legal pages */}
+      <Route path="/contact" component={Contact} />
+      <Route path="/cgu" component={CGU} />
+      <Route path="/cgv" component={CGV} />
+      <Route path="/rgpd" component={RGPD} />
 
       {/* FR pages */}
       <Route path="/bibliographie-apa" component={BibliographieApa} />

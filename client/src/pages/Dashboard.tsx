@@ -1,16 +1,26 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
-import { Search, Plus, Trash2, Clock, Coins } from "lucide-react";
+import { Search, Plus, Trash2, Clock, Coins, UserX, AlertTriangle } from "lucide-react";
 import logoUrl from "@assets/logo_academik_minimal.png";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useCredits, useBibliographies, useDeleteBibliography } from "@/hooks/use-literature";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -21,11 +31,26 @@ export default function Dashboard() {
   const { data: bibliographies, isLoading: bibLoading } = useBibliographies();
   const deleteBib = useDeleteBibliography();
   const { toast } = useToast();
+  const [showDeleteAccount, setShowDeleteAccount] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const handleDelete = (id: number) => {
     deleteBib.mutate(id, {
       onSuccess: () => toast({ title: t("search_deleted") }),
     });
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeletingAccount(true);
+    try {
+      await apiRequest("DELETE", "/api/user/account");
+      toast({ title: "Compte supprimé", description: "Toutes vos données ont été effacées." });
+      logout();
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de supprimer le compte. Réessayez.", variant: "destructive" });
+      setDeletingAccount(false);
+      setShowDeleteAccount(false);
+    }
   };
 
   return (
@@ -97,7 +122,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div>
+        <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold flex items-center gap-2">
               <Clock className="w-4 h-4 text-muted-foreground" /> {t("saved_searches")}
@@ -147,7 +172,70 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        <div className="border-t pt-8">
+          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-4">Compte</h2>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border border-destructive/20 bg-destructive/5">
+            <div>
+              <p className="font-medium text-sm">Supprimer mon compte</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Supprime définitivement toutes vos données, recherches et crédits non utilisés.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-destructive/40 text-destructive hover:bg-destructive hover:text-white gap-2 shrink-0"
+              onClick={() => setShowDeleteAccount(true)}
+              data-testid="button-delete-account"
+            >
+              <UserX className="w-4 h-4" /> Supprimer mon compte
+            </Button>
+          </div>
+          <div className="mt-4 flex gap-4 text-xs text-muted-foreground">
+            <a href="/cgu" className="hover:text-foreground transition-colors">CGU</a>
+            <a href="/cgv" className="hover:text-foreground transition-colors">CGV</a>
+            <a href="/rgpd" className="hover:text-foreground transition-colors">Politique de confidentialité</a>
+            <a href="/contact" className="hover:text-foreground transition-colors">Contact</a>
+          </div>
+        </div>
       </main>
+
+      <Dialog open={showDeleteAccount} onOpenChange={setShowDeleteAccount}>
+        <DialogContent data-testid="dialog-delete-account">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="w-5 h-5" /> Supprimer mon compte
+            </DialogTitle>
+            <DialogDescription className="pt-2 space-y-2">
+              <span className="block">Cette action est <strong>irréversible</strong>. Elle supprimera définitivement :</span>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                <li>Toutes vos recherches et bibliographies sauvegardées</li>
+                <li>Vos crédits non utilisés (sans remboursement)</li>
+                <li>Votre compte et vos données personnelles</li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteAccount(false)}
+              disabled={deletingAccount}
+              data-testid="button-cancel-delete-account"
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deletingAccount}
+              data-testid="button-confirm-delete-account"
+            >
+              {deletingAccount ? <><Loader2 className="w-4 h-4 animate-spin mr-2" />Suppression…</> : "Oui, supprimer définitivement"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
