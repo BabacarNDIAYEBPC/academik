@@ -14,7 +14,7 @@ workflows:
         APP_ID: fr.academik.app
         PACKAGE_NAME: fr.academik.app
       android_signing:
-        - academik_keystore   # À créer dans Codemagic → Code signing
+        - marketlens_keystore   # Remplacer par academik_keystore après création
 
     triggering:
       events:
