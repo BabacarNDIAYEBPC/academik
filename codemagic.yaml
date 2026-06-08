@@ -9,7 +9,7 @@ workflows:
     instance_type: mac_mini_m1
 
     environment:
-      node: 18.19.0
+      node: 20.19.0
       vars:
         APP_ID: fr.academik.app
         PACKAGE_NAME: fr.academik.app
@@ -61,7 +61,7 @@ workflows:
     instance_type: mac_mini_m1
 
     environment:
-      node: 18.19.0
+      node: 20.19.0
       vars:
         APP_ID: fr.academik.app
         BUNDLE_ID: fr.academik.app
