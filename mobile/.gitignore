@@ -1,0 +1,8 @@
+node_modules/
+android/
+ios/
+resources/android/
+resources/ios/
+*.keystore
+*.jks
+.DS_Store

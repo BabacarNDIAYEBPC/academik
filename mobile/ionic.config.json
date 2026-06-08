@@ -1,0 +1,7 @@
+{
+  "name": "Academik",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}
