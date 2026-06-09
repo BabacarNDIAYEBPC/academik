@@ -79,4 +79,42 @@ export async function sendWelcomeEmail(to: string, firstName: string) {
   await send(to, "Bienvenue sur Academik !", html);
 }
 
+export async function sendContactEmail(opts: {
+  name: string;
+  email: string;
+  subject: string;
+  category: string;
+  message: string;
+}) {
+  const html = baseTemplate(`
+    <h2 style="color:#1e293b;font-size:20px;margin:0 0 8px;">Nouveau message de contact</h2>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 20px;">
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;width:120px;">Nom</td><td style="font-weight:600;font-size:14px;">${opts.name}</td></tr>
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;">Email</td><td style="font-weight:600;font-size:14px;"><a href="mailto:${opts.email}" style="color:#7c3aed;">${opts.email}</a></td></tr>
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;">Catégorie</td><td style="font-weight:600;font-size:14px;">${opts.category}</td></tr>
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;">Sujet</td><td style="font-weight:600;font-size:14px;">${opts.subject}</td></tr>
+    </table>
+    <div style="background:#f8fafc;border-left:4px solid #7c3aed;border-radius:4px;padding:16px;margin:0 0 20px;">
+      <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap;">${opts.message}</p>
+    </div>
+    <a href="mailto:${opts.email}" style="display:inline-block;padding:10px 20px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px;">Répondre à ${opts.name} →</a>
+  `);
+
+  await send(process.env.GMAIL_USER || "contact@bpc-ai.com", `[Contact Academik] ${opts.subject}`, html);
+
+  const confirmHtml = baseTemplate(`
+    <h2 style="color:#1e293b;font-size:20px;margin:0 0 8px;">Votre message a bien été reçu !</h2>
+    <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 16px;">
+      Bonjour ${opts.name},<br/>Merci de nous avoir contacté. Nous avons bien reçu votre message et vous répondrons sous <strong>24 heures ouvrées</strong>.
+    </p>
+    <div style="background:#f5f3ff;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="color:#64748b;font-size:13px;margin:0 0 4px;">Votre message :</p>
+      <p style="color:#1e293b;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap;">${opts.message}</p>
+    </div>
+    <p style="color:#94a3b8;font-size:13px;margin:0;">L'équipe Academik</p>
+  `);
+
+  await send(opts.email, "Nous avons bien reçu votre message — Academik", confirmHtml);
+}
+
 export function startAbandonedCartScheduler() {}

@@ -8,6 +8,7 @@ import { CREDIT_COSTS, CREDIT_PACKS } from "@shared/schema";
 import { realSearch } from "./search";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import { sendContactEmail } from "./email";
 
 function getUserId(req: any): string {
   return String((req.session as any)?.userId || "");
@@ -535,6 +536,26 @@ Sitemap: https://academik.fr/sitemap.xml`);
     if (!checkAuth(req, res)) return;
     const inv = await storage.getInvoices(getUserId(req));
     res.json(inv);
+  });
+
+  app.post("/api/contact", async (req, res) => {
+    const { name, email, subject, category, message } = req.body;
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ message: "Tous les champs obligatoires doivent être remplis." });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: "Adresse email invalide." });
+    }
+    if (message.length > 4000) {
+      return res.status(400).json({ message: "Message trop long (4000 caractères max)." });
+    }
+    try {
+      await sendContactEmail({ name, email, subject, category: category || "Général", message });
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[CONTACT]", err);
+      res.status(500).json({ message: "Erreur lors de l'envoi. Veuillez réessayer." });
+    }
   });
 
   // === LITERATURE REVIEW — SEARCH ARTICLES ===

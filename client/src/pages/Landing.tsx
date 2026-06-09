@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useSEO } from "@/hooks/use-seo";
-import { Search, FileText, GitCompare, Zap, Shield, ChevronRight, Check, BookOpen } from "lucide-react";
+import { Search, FileText, GitCompare, Zap, Shield, ChevronRight, Check, BookOpen, Database, Save, Cpu, GraduationCap, Microscope, Briefcase } from "lucide-react";
 import logoUrl from "@assets/logo_academik_minimal.png";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,22 +100,48 @@ export default function Landing() {
 
       <section className="py-16 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-12">{t("features_title")}</h2>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-3">{t("features_section_title")}</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">{t("features_section_subtitle")}</p>
+          </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { icon: Search, title: t("feature1_title"), desc: t("feature1_desc") },
-              { icon: FileText, title: t("feature2_title"), desc: t("feature2_desc") },
-              { icon: GitCompare, title: t("feature3_title"), desc: t("feature3_desc") },
-            ].map(({ icon: Icon, title, desc }) => (
-              <Card key={title} className="card-hover">
+              { icon: Search,    title: t("feature1_title"), desc: t("feature1_desc"), color: "bg-blue-50 text-blue-600" },
+              { icon: FileText,  title: t("feature2_title"), desc: t("feature2_desc"), color: "bg-violet-50 text-violet-600" },
+              { icon: GitCompare,title: t("feature3_title"), desc: t("feature3_desc"), color: "bg-indigo-50 text-indigo-600" },
+              { icon: Database,  title: t("feature4_title"), desc: t("feature4_desc"), color: "bg-emerald-50 text-emerald-600" },
+              { icon: Save,      title: t("feature5_title"), desc: t("feature5_desc"), color: "bg-amber-50 text-amber-600" },
+              { icon: Cpu,       title: t("feature6_title"), desc: t("feature6_desc"), color: "bg-rose-50 text-rose-600" },
+            ].map(({ icon: Icon, title, desc, color }) => (
+              <Card key={title} className="card-hover border-0 shadow-sm">
                 <CardContent className="pt-6">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <Icon className="w-5 h-5 text-primary" />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${color}`}>
+                    <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="font-semibold mb-2">{title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
                 </CardContent>
               </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Who uses Academik */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-center mb-10">{t("who_title")}</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: GraduationCap, title: t("who_students"), desc: t("who_students_desc"), color: "text-violet-600" },
+              { icon: Microscope,    title: t("who_researchers"), desc: t("who_researchers_desc"), color: "text-blue-600" },
+              { icon: Briefcase,     title: t("who_pros"), desc: t("who_pros_desc"), color: "text-emerald-600" },
+            ].map(({ icon: Icon, title, desc, color }) => (
+              <div key={title} className="text-center p-6 rounded-xl border bg-muted/20">
+                <Icon className={`w-8 h-8 mx-auto mb-3 ${color}`} />
+                <h3 className="font-semibold mb-2">{title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
             ))}
           </div>
         </div>
@@ -162,7 +188,7 @@ export default function Landing() {
 
       <section className="py-12 px-4 bg-muted/30 border-t">
         <div className="max-w-3xl mx-auto flex flex-wrap justify-center gap-8 text-sm text-muted-foreground">
-          {[{ icon: Shield, key: "trust_secure" }, { icon: Zap, key: "trust_fast" }, { icon: BookOpen, key: "trust_academic" }].map(({ icon: Icon, key }) => (
+          {[{ icon: Shield, key: "trust_secure" }, { icon: Zap, key: "trust_fast" }, { icon: BookOpen, key: "trust_academic" }, { icon: Cpu, key: "trust_gpt4" }].map(({ icon: Icon, key }) => (
             <div key={key} className="flex items-center gap-2">
               <Icon className="w-4 h-4 text-primary" />
               <span>{t(key)}</span>

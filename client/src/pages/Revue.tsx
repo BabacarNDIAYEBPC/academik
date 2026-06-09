@@ -240,11 +240,14 @@ export default function Revue() {
             <img src={logoUrl} alt="Academik" className="w-7 h-7 object-contain" />
             <span className="font-bold text-lg tracking-tight">Academik</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setLocation("/billing")} className="gap-1.5" data-testid="button-credits-nav">
               <Coins className="w-4 h-4 text-primary" />
               <span className="font-semibold">{creditsData?.credits ?? 0}</span>
               <span className="text-muted-foreground hidden sm:inline">crédits</span>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setLocation("/contact")} className="gap-1.5 hidden sm:flex">
+              <span className="text-muted-foreground">Contact</span>
             </Button>
             <Button variant="ghost" size="sm" onClick={() => setLocation("/")} className="gap-1.5">
               <ArrowLeft className="w-4 h-4" />
