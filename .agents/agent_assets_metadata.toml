@@ -131,3 +131,15 @@ id = "pZzPgwKIHtxpSrmmCQ5uw"
 uri = "file://mobile/store_assets/ios/screenshots/academik.fr_connexion(iPhone_14_Pro_Max)_(4)_1781039541435.png"
 type = "image"
 title = "7 — Articles sélectionnés"
+
+[[outputs]]
+id = "0arHtDuINRCL42Hep35N8"
+uri = "file://mobile/store_assets/ios/screenshots_ipad/ipad129_academik.fr_(iPhone_14_Pro_Max)_1781039541438.png"
+type = "image"
+title = "iPad Pro 12.9\" — 2048×2732 — Accueil"
+
+[[outputs]]
+id = "LAUrZyW9Vxh7N_BbnoeCs"
+uri = "file://mobile/store_assets/ios/screenshots_ipad/ipad11_academik.fr_(iPhone_14_Pro_Max)_1781039541438.png"
+type = "image"
+title = "iPad Pro 11\" — 2064×2752 — Accueil"
