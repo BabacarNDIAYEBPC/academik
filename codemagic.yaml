@@ -70,6 +70,8 @@ workflows:
           ]);
 
           patchFile(varsGradle, [
+            [/targetSdkVersion = \d+/g, 'targetSdkVersion = 35'],
+            [/compileSdkVersion = \d+/g, 'compileSdkVersion = 35'],
             [/targetSdk = \d+/g, 'targetSdk = 35'],
             [/compileSdk = \d+/g, 'compileSdk = 35'],
           ]);
