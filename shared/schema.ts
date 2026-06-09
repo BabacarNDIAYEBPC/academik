@@ -137,7 +137,7 @@ export function getSearchCreditCost(articleCount: number): number {
 
 // Credit packs
 export const CREDIT_PACKS = [
-  { id: "pack_10", credits: 10, price: 4.99, label: "Starter" },
-  { id: "pack_30", credits: 30, price: 11.99, label: "Essentiel" },
-  { id: "pack_100", credits: 100, price: 29.99, label: "Pro" },
+  { id: "pack_5", credits: 5, price: 1.99, label: "Découverte" },
+  { id: "pack_15", credits: 15, price: 4.99, label: "Essentiel" },
+  { id: "pack_50", credits: 50, price: 14.99, label: "Pro" },
 ] as const;

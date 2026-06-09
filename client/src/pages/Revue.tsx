@@ -76,6 +76,11 @@ export default function Revue() {
   const [showActions, setShowActions] = useState(false);
   const [activeAction, setActiveAction] = useState<ActiveAction>(null);
   const [bibliographyNorm, setBibliographyNorm] = useState("apa7");
+  const [insufficientCreditsData, setInsufficientCreditsData] = useState<{
+    currentCredits: number;
+    requiredCredits: number;
+    affordableTier: { maxArticles: number; credits: number; label: string } | null;
+  } | null>(null);
 
   // Dialogs
   const [analysisResult, setAnalysisResult] = useState("");
@@ -143,8 +148,20 @@ export default function Revue() {
       },
       onError: (err: any) => {
         const msg = err.message || "";
-        if (msg.includes("402") || msg.includes("Crédits")) toast({ title: "Crédits insuffisants", description: "Achetez des crédits pour continuer.", variant: "destructive" });
-        else toast({ title: "Erreur de recherche", description: msg, variant: "destructive" });
+        if (msg.includes("402") || msg.includes("Crédits")) {
+          try {
+            const data = JSON.parse(msg.replace(/^[^{]*/, ""));
+            setInsufficientCreditsData({
+              currentCredits: data.currentCredits ?? 0,
+              requiredCredits: data.requiredCredits ?? 0,
+              affordableTier: data.affordableTier ?? null,
+            });
+          } catch {
+            setInsufficientCreditsData({ currentCredits: 0, requiredCredits: 0, affordableTier: null });
+          }
+        } else {
+          toast({ title: "Erreur de recherche", description: msg, variant: "destructive" });
+        }
         setActiveAction(null);
       },
     });
@@ -700,6 +717,59 @@ export default function Revue() {
             </Button>
             <Button variant="outline" size="sm" onClick={() => copyToClipboard(equationsResult)} data-testid="button-copy-equations">
               <Copy className="w-4 h-4 mr-2" /> Copier
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Insufficient Credits Dialog */}
+      <Dialog open={!!insufficientCreditsData} onOpenChange={() => setInsufficientCreditsData(null)}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold flex items-center gap-2">
+              <Coins className="w-4 h-4 text-amber-500" /> Crédits insuffisants
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-1">
+            <p className="text-sm text-muted-foreground">
+              Cette recherche nécessite{" "}
+              <span className="font-semibold text-foreground">{insufficientCreditsData?.requiredCredits} crédit{(insufficientCreditsData?.requiredCredits ?? 0) > 1 ? "s" : ""}</span>
+              , mais vous n'en avez que{" "}
+              <span className="font-semibold text-foreground">{insufficientCreditsData?.currentCredits}</span>.
+            </p>
+
+            {insufficientCreditsData?.affordableTier ? (
+              <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                <p className="text-sm font-medium">Avec vos crédits vous pouvez :</p>
+                <p className="text-sm text-muted-foreground">
+                  Rechercher jusqu'à{" "}
+                  <span className="font-semibold text-foreground">
+                    {insufficientCreditsData.affordableTier.maxArticles} articles
+                  </span>{" "}
+                  pour{" "}
+                  <span className="font-semibold text-foreground">
+                    {insufficientCreditsData.affordableTier.credits} crédit{insufficientCreditsData.affordableTier.credits > 1 ? "s" : ""}
+                  </span>
+                </p>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={() => {
+                    const tier = insufficientCreditsData.affordableTier!;
+                    setConfig(c => ({ ...c, articleCount: tier.maxArticles }));
+                    setInsufficientCreditsData(null);
+                    setTimeout(() => handleSearch(), 50);
+                  }}
+                >
+                  Rechercher {insufficientCreditsData.affordableTier.maxArticles} articles ({insufficientCreditsData.affordableTier.credits} crédit{insufficientCreditsData.affordableTier.credits > 1 ? "s" : ""})
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Vous n'avez plus de crédits disponibles.</p>
+            )}
+
+            <Button className="w-full" onClick={() => { setInsufficientCreditsData(null); setLocation("/billing"); }}>
+              <Coins className="w-4 h-4 mr-2" /> Acheter des crédits
             </Button>
           </div>
         </DialogContent>

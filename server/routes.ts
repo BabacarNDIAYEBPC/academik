@@ -591,8 +591,18 @@ Sitemap: https://academik.fr/sitemap.xml`);
     const searchCost = getSearchCreditCost(count);
     const superAdmin = await isSuperAdmin(userId);
     if (!superAdmin) {
-      const spent = await storage.spendCredits(userId, searchCost, `Recherche: ${query || domain}`);
-      if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
+      const currentCredits = await storage.getCredits(userId);
+      if (currentCredits < searchCost) {
+        // Find the best tier the user can actually afford
+        const affordableTier = [...SEARCH_CREDIT_TIERS].reverse().find(t => t.credits <= currentCredits) || null;
+        return res.status(402).json({
+          message: "Crédits insuffisants",
+          currentCredits,
+          requiredCredits: searchCost,
+          affordableTier,
+        });
+      }
+      await storage.spendCredits(userId, searchCost, `Recherche: ${query || domain}`);
     }
     const searchQuery = [query, domain].filter(Boolean).join(" ");
 
