@@ -30,14 +30,14 @@ export default function Landing() {
         </div>
       </nav>
 
-      <section className="py-20 px-4 text-center">
+      <section className="py-12 md:py-16 px-4 text-center">
         <div className="max-w-3xl mx-auto">
           <Badge variant="secondary" className="mb-4">{t("hero_badge")}</Badge>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-5">
             {t("hero_title_1")}{" "}
             <span className="gradient-text">{t("hero_title_2")}</span>
           </h1>
-          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+          <p className="text-lg text-muted-foreground mb-7 leading-relaxed">
             {t("hero_desc")}
           </p>
           <Button size="lg" onClick={handleLogin} className="gap-2" data-testid="button-hero-cta">

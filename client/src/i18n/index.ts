@@ -8,10 +8,11 @@ i18n
   .use(initReactI18next)
   .init({
     resources: translations,
+    lng: "fr",
     fallbackLng: "fr",
     interpolation: { escapeValue: false },
     detection: {
-      order: ["localStorage", "navigator", "htmlTag"],
+      order: ["localStorage"],
       caches: ["localStorage"],
     },
   });
