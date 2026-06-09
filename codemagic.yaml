@@ -14,7 +14,7 @@ workflows:
         APP_ID: fr.academik.app
         PACKAGE_NAME: fr.academik.app
       android_signing:
-        - marketlens_keystore   # Remplacer par academik_keystore après création
+        - marketlens_keystore
 
     triggering:
       events:
@@ -25,10 +25,13 @@ workflows:
 
     scripts:
       - name: Install root dependencies
-        script: npm install --include=dev
+        script: npm install
+
+      - name: Install build tools globally
+        script: npm install -g vite tsx
 
       - name: Build web app (Vite)
-        script: ./node_modules/.bin/vite build
+        script: vite build
 
       - name: Install Capacitor CLI
         script: npm install -g @capacitor/cli
@@ -80,10 +83,13 @@ workflows:
 
     scripts:
       - name: Install root dependencies
-        script: npm install --include=dev
+        script: npm install
+
+      - name: Install build tools globally
+        script: npm install -g vite tsx
 
       - name: Build web app (Vite)
-        script: ./node_modules/.bin/vite build
+        script: vite build
 
       - name: Install Capacitor CLI
         script: npm install -g @capacitor/cli
