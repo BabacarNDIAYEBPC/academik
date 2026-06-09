@@ -94,6 +94,8 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: fr.academik.app
+        provisioning_profile: academik_appstore
+        certificate: academik_appstore
 
     triggering:
       events:
