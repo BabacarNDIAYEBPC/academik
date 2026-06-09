@@ -143,3 +143,9 @@ id = "LAUrZyW9Vxh7N_BbnoeCs"
 uri = "file://mobile/store_assets/ios/screenshots_ipad/ipad11_academik.fr_(iPhone_14_Pro_Max)_1781039541438.png"
 type = "image"
 title = "iPad Pro 11\" — 2064×2752 — Accueil"
+
+[[outputs]]
+id = "AlIbPVkt6qoHSzZLPZQQ_"
+uri = "file://mobile/store_assets/ios/screenshots/screenshot_resume_modal.png"
+type = "image"
+title = "Résumé d'article — 1242×2688px ✅"
