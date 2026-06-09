@@ -613,7 +613,7 @@ Sitemap: https://academik.fr/sitemap.xml`);
       language: language || "fr",
       periodStart: periodStart || "2015",
       periodEnd: periodEnd || String(new Date().getFullYear()),
-      articleCount: Math.min(count * 2, 40),
+      articleCount: Math.min(count + 10, 60),
       accessType: accessType || "all",
       openAccessProportion: openAccessProportion ?? 50,
     });

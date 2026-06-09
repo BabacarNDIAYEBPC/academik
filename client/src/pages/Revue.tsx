@@ -328,10 +328,11 @@ export default function Revue() {
                 <Select value={String(config.articleCount)} onValueChange={v => setConfig(c => ({ ...c, articleCount: Number(v) }))}>
                   <SelectTrigger data-testid="select-article-count"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="5">5 articles — 1 crédit</SelectItem>
                     <SelectItem value="10">10 articles — 1 crédit</SelectItem>
-                    <SelectItem value="15">15 articles — 2 crédits</SelectItem>
-                    <SelectItem value="20">20 articles — 3 crédits</SelectItem>
+                    <SelectItem value="20">20 articles — 2 crédits</SelectItem>
+                    <SelectItem value="30">30 articles — 3 crédits</SelectItem>
+                    <SelectItem value="40">40 articles — 4 crédits</SelectItem>
+                    <SelectItem value="50">50 articles — 5 crédits</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

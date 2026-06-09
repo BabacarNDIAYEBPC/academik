@@ -118,26 +118,26 @@ export const CREDIT_COSTS = {
   GENERATE_EQUATIONS: 1,
 } as const;
 
-// Search credit tiers based on article count requested
+// Search credit tiers: 1 crédit = 10 articles (arrondi au palier supérieur)
 export const SEARCH_CREDIT_TIERS = [
   { maxArticles: 10, credits: 1, label: "1–10 articles" },
-  { maxArticles: 15, credits: 2, label: "11–15 articles" },
-  { maxArticles: 20, credits: 3, label: "16–20 articles" },
+  { maxArticles: 20, credits: 2, label: "11–20 articles" },
+  { maxArticles: 30, credits: 3, label: "21–30 articles" },
+  { maxArticles: 40, credits: 4, label: "31–40 articles" },
+  { maxArticles: 50, credits: 5, label: "41–50 articles" },
 ] as const;
 
-export const MAX_ARTICLES_PER_SEARCH = 20;
+export const MAX_ARTICLES_PER_SEARCH = 50;
 
+// 1 crédit par tranche de 10 articles (ceil)
 export function getSearchCreditCost(articleCount: number): number {
-  const count = Math.min(articleCount, MAX_ARTICLES_PER_SEARCH);
-  for (const tier of SEARCH_CREDIT_TIERS) {
-    if (count <= tier.maxArticles) return tier.credits;
-  }
-  return SEARCH_CREDIT_TIERS[SEARCH_CREDIT_TIERS.length - 1].credits;
+  const count = Math.min(Math.max(articleCount, 1), MAX_ARTICLES_PER_SEARCH);
+  return Math.ceil(count / 10);
 }
 
 // Credit packs
 export const CREDIT_PACKS = [
-  { id: "pack_5", credits: 5, price: 1.99, label: "Découverte" },
-  { id: "pack_15", credits: 15, price: 4.99, label: "Essentiel" },
-  { id: "pack_50", credits: 50, price: 14.99, label: "Pro" },
+  { id: "pack_10", credits: 10, price: 4.99, label: "Starter" },
+  { id: "pack_30", credits: 30, price: 12.99, label: "Essentiel" },
+  { id: "pack_100", credits: 100, price: 39.99, label: "Pro" },
 ] as const;
