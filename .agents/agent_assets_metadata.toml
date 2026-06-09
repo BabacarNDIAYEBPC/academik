@@ -65,3 +65,9 @@ id = "lD9J_QtK6YDk38ovMmB7Z"
 uri = "file://mobile/store_assets/icon_appstore_1024.png"
 type = "image"
 title = "Icône App Store 1024×1024"
+
+[[outputs]]
+id = "MMZjVgNLGojGAZEZmHxid"
+uri = "file://mobile/store_assets/feature_graphic_1024x500.png"
+type = "image"
+title = "Bannière Play Store 1024×500"
