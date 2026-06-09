@@ -58,10 +58,10 @@ title = "Bannière YouTube (16:9)"
 id = "_PWOpORg_DIY37UsdH5D1"
 uri = "file://mobile/store_assets/icon_playstore_512.png"
 type = "image"
-title = "Icône Play Store 512×512 (fond violet)"
+title = "Icône Play Store 512×512"
 
 [[outputs]]
 id = "lD9J_QtK6YDk38ovMmB7Z"
 uri = "file://mobile/store_assets/icon_appstore_1024.png"
 type = "image"
-title = "Icône App Store 1024×1024 (fond violet)"
+title = "Icône App Store 1024×1024"
