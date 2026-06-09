@@ -89,3 +89,45 @@ id = "q4TXBEn6r8rqUXGt5JlWT"
 uri = "file://mobile/store_assets/banner_v3_neon.png"
 type = "image"
 title = "V3 — Nuit étoilée"
+
+[[outputs]]
+id = "GdiJqngVeiE09bf_nDlbm"
+uri = "file://mobile/store_assets/ios/screenshots/academik.fr_(iPhone_14_Pro_Max)_1781039541438.png"
+type = "image"
+title = "1 — Page d'accueil (Landing)"
+
+[[outputs]]
+id = "SpmKRv1M-85sHjxsJCgn6"
+uri = "file://mobile/store_assets/ios/screenshots/academik.fr_(iPhone_14_Pro_Max)_(1)_1781039541438.png"
+type = "image"
+title = "2 — Tarifs"
+
+[[outputs]]
+id = "4JIDf5gC9qCjTxo7gvEgJ"
+uri = "file://mobile/store_assets/ios/screenshots/academik.fr_connexion(iPhone_14_Pro_Max)_1781039541438.png"
+type = "image"
+title = "3 — Connexion"
+
+[[outputs]]
+id = "x55H3uj9tFa8a0V3nyQvf"
+uri = "file://mobile/store_assets/ios/screenshots/academik.fr_connexion(iPhone_14_Pro_Max)_(1)_1781039541437.png"
+type = "image"
+title = "4 — Dashboard"
+
+[[outputs]]
+id = "7a7HkhXdD4xJYHDNjbYVe"
+uri = "file://mobile/store_assets/ios/screenshots/academik.fr_connexion(iPhone_14_Pro_Max)_(2)_1781039541437.png"
+type = "image"
+title = "5 — Formulaire de recherche"
+
+[[outputs]]
+id = "7S3y-sevG_eM2KmyH0ucF"
+uri = "file://mobile/store_assets/ios/screenshots/academik.fr_connexion(iPhone_14_Pro_Max)_(3)_1781039541436.png"
+type = "image"
+title = "6 — Résultats de recherche"
+
+[[outputs]]
+id = "pZzPgwKIHtxpSrmmCQ5uw"
+uri = "file://mobile/store_assets/ios/screenshots/academik.fr_connexion(iPhone_14_Pro_Max)_(4)_1781039541435.png"
+type = "image"
+title = "7 — Articles sélectionnés"
