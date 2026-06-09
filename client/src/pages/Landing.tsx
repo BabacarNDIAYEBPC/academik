@@ -259,18 +259,6 @@ export default function Landing() {
           <a href="/contact" className="hover:text-foreground transition-colors">Contact</a>
         </div>
         © {new Date().getFullYear()} {t("app_name")} — Performance Consulting Groupe SAS
-        <div className="mt-4">
-          <button
-            data-testid="button-demo-login"
-            onClick={async () => {
-              await fetch("/api/demo-login", { method: "POST", credentials: "include" });
-              window.location.href = "/revue";
-            }}
-            className="text-[10px] text-muted-foreground/40 hover:text-muted-foreground transition-colors"
-          >
-            Demo account
-          </button>
-        </div>
       </footer>
     </div>
   );
