@@ -173,7 +173,7 @@ export default function Billing() {
                   }
                 </p>
                 <div className="space-y-1.5 text-xs text-left mb-5">
-                  {[t("billed_features_1"), t("billed_features_2"), t("billed_features_3")].map(f => (
+                  {[t("feature_articles"), t("feature_analyses"), t("feature_bib")].map(f => (
                     <div key={f} className="flex items-center gap-1.5">
                       <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
                       <span>{f}</span>
@@ -224,11 +224,11 @@ export default function Billing() {
                 </div>
               </div>
               {[
-                [t("cost_analysis"), "1 crédit"],
-                [t("cost_confrontation"), "1 crédit"],
-                [t("cost_bib"), "1 crédit"],
-                [t("cost_equations"), "1 crédit"],
-                [t("cost_synthesis"), "2 crédits"],
+                [t("cost_analysis"), t("one_credit")],
+                [t("cost_confrontation"), t("one_credit")],
+                [t("cost_bib"), t("one_credit")],
+                [t("cost_equations"), t("one_credit")],
+                [t("cost_synthesis"), t("two_credits")],
               ].map(([action, cost]) => (
                 <div key={action} className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0">
                   <span className="text-muted-foreground">{action}</span>
