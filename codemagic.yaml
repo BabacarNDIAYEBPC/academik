@@ -85,7 +85,7 @@ workflows:
             compileSdkVersion 35
             defaultConfig {
               targetSdkVersion 35
-              versionCode 2
+              versionCode System.getenv('BUILD_NUMBER') ? System.getenv('BUILD_NUMBER').toInteger() + 2 : 3
             }
             signingConfigs {
               release {
