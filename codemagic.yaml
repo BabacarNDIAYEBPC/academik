@@ -77,11 +77,16 @@ workflows:
           ]);
           "
 
-      - name: Configure Android signing
+      - name: Configure Android signing and override SDK/versionCode
         script: |
           cat >> mobile/android/app/build.gradle << 'GRADLE'
 
           android {
+            compileSdkVersion 35
+            defaultConfig {
+              targetSdkVersion 35
+              versionCode 2
+            }
             signingConfigs {
               release {
                 storeFile file(System.getenv('CM_KEYSTORE_PATH') ?: '')
