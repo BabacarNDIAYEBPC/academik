@@ -45,6 +45,14 @@ workflows:
           npx cap add android || true
           npx cap sync android
 
+      - name: Set targetSdkVersion to 35 and bump versionCode
+        script: |
+          sed -i 's/targetSdkVersion [0-9]*/targetSdkVersion 35/g' mobile/android/app/build.gradle || true
+          sed -i 's/targetSdk = [0-9]*/targetSdk = 35/g' mobile/android/variables.gradle || true
+          sed -i 's/compileSdkVersion [0-9]*/compileSdkVersion 35/g' mobile/android/app/build.gradle || true
+          sed -i 's/compileSdk = [0-9]*/compileSdk = 35/g' mobile/android/variables.gradle || true
+          sed -i 's/versionCode [0-9]*/versionCode 2/g' mobile/android/app/build.gradle || true
+
       - name: Configure Android signing
         script: |
           cat >> mobile/android/app/build.gradle << 'GRADLE'
