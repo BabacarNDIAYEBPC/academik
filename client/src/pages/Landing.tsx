@@ -46,6 +46,58 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Platforms marquee */}
+      <section className="py-10 border-y bg-white overflow-hidden">
+        <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-6 px-4">
+          Google Scholar, PubMed, HAL, Cairn, CINAHL et des dizaines d'autres bases de données — réunis instantanément
+        </p>
+        {(() => {
+          const platforms = [
+            { name: "Google Scholar", domain: "scholar.google.com" },
+            { name: "PubMed",         domain: "pubmed.ncbi.nlm.nih.gov" },
+            { name: "HAL",            domain: "hal.science" },
+            { name: "Cairn",          domain: "cairn.info" },
+            { name: "ScienceDirect",  domain: "sciencedirect.com" },
+            { name: "Scopus",         domain: "scopus.com" },
+            { name: "Web of Science", domain: "webofscience.com" },
+            { name: "JSTOR",          domain: "jstor.org" },
+            { name: "ArXiv",          domain: "arxiv.org" },
+            { name: "IEEE Xplore",    domain: "ieeexplore.ieee.org" },
+            { name: "ResearchGate",   domain: "researchgate.net" },
+            { name: "Cochrane",       domain: "cochranelibrary.com" },
+            { name: "CrossRef",       domain: "crossref.org" },
+            { name: "ERIC",           domain: "eric.ed.gov" },
+            { name: "Semantic Scholar", domain: "semanticscholar.org" },
+            { name: "OpenAlex",       domain: "openalex.org" },
+            { name: "DOAJ",           domain: "doaj.org" },
+            { name: "CINAHL",         domain: "ebsco.com" },
+          ];
+          const row1 = platforms.slice(0, 9);
+          const row2 = platforms.slice(9);
+          const Badge = ({ p }: { p: typeof platforms[0] }) => (
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border bg-background shadow-sm text-sm font-medium text-foreground whitespace-nowrap mx-2">
+              <img
+                src={`https://www.google.com/s2/favicons?domain=${p.domain}&sz=32`}
+                alt={p.name}
+                className="w-4 h-4 rounded-sm"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+              {p.name}
+            </div>
+          );
+          return (
+            <div className="space-y-3">
+              <div className="flex animate-marquee">
+                {[...row1, ...row1].map((p, i) => <Badge key={i} p={p} />)}
+              </div>
+              <div className="flex animate-marquee-reverse">
+                {[...row2, ...row2].map((p, i) => <Badge key={i} p={p} />)}
+              </div>
+            </div>
+          );
+        })()}
+      </section>
+
       <section className="py-16 px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-2xl font-bold text-center mb-12">{t("features_title")}</h2>
