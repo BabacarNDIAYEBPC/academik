@@ -166,40 +166,18 @@ workflows:
           cd mobile/ios/App
           pod install
 
-      - name: Fetch provisioning profiles
-        script: |
-          echo "Bundle ID: $BUNDLE_ID"
-          echo "Distribution type: app_store"
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-
-      - name: Set up signing certificate
-        script: |
-          keychain initialize
-          app-store-connect list-certificates \
-            --type IOS_DISTRIBUTION \
-            --save || app-store-connect create-certificate \
-            --type IOS_DISTRIBUTION \
-            --save
-          keychain add-certificates
-
       - name: Set Xcode code signing settings
         script: |
-          xcode-project use-profiles \
-            --project "mobile/ios/App/App.xcodeproj" \
-            --scheme "$XCODE_SCHEME"
+          xcode-project use-profiles
 
       - name: Build iOS IPA
         script: |
           cd mobile
           xcode-project build-ipa \
             --workspace "ios/App/App.xcworkspace" \
-            --scheme "$XCODE_SCHEME" \
-            --config Release
+            --scheme "$XCODE_SCHEME"
 
     artifacts:
-      - mobile/build/ios/ipa/*.ipa
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
       - $HOME/Library/Logs/gym/*.log
