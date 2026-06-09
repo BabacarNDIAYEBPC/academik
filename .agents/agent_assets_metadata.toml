@@ -71,3 +71,21 @@ id = "MMZjVgNLGojGAZEZmHxid"
 uri = "file://mobile/store_assets/feature_graphic_1024x500.png"
 type = "image"
 title = "Bannière Play Store — Premium"
+
+[[outputs]]
+id = "uzA94QG-yRg_X23fOuYbz"
+uri = "file://mobile/store_assets/banner_v1_rose.png"
+type = "image"
+title = "V1 — Dégradé violet→rose"
+
+[[outputs]]
+id = "Ky3dKyZpzF9l6GXWDb0gZ"
+uri = "file://mobile/store_assets/banner_v2_blanc.png"
+type = "image"
+title = "V2 — Blanc minimaliste"
+
+[[outputs]]
+id = "q4TXBEn6r8rqUXGt5JlWT"
+uri = "file://mobile/store_assets/banner_v3_neon.png"
+type = "image"
+title = "V3 — Nuit étoilée"
