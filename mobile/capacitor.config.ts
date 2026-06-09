@@ -24,6 +24,7 @@ const config: CapacitorConfig = {
     buildOptions: {
       releaseType: "AAB",
     },
+    versionCode: 2,
   },
   ios: {
     contentInset: "always",
