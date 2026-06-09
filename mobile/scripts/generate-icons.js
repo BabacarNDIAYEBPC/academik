@@ -10,7 +10,7 @@ const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
 
-const SOURCE = path.join(__dirname, "../../attached_assets/logo_academik_minimal.png");
+const SOURCE = path.join(__dirname, "../resources/icon.png");
 
 const IOS_SIZES = [
   { size: 20, scales: [1, 2, 3] },
@@ -48,14 +48,16 @@ async function generateIosIcons() {
       const px = Math.round(size * scale);
       const filename = `icon-${size}@${scale}x.png`;
       await sharp(SOURCE)
-        .resize(px, px, { fit: "contain", background: { r: 255, g: 255, b: 255, alpha: 1 } })
+        .resize(px, px, { fit: "cover" })
         .toFile(path.join(outDir, filename));
-      contents.images.push({
-        idiom: size >= 76 ? "ipad" : "iphone",
-        size: `${size}x${size}`,
-        scale: `${scale}x`,
-        filename,
-      });
+
+      if (size === 1024) {
+        contents.images.push({ idiom: "ios-marketing", size: "1024x1024", scale: "1x", filename });
+      } else if (size >= 76) {
+        contents.images.push({ idiom: "ipad", size: `${size}x${size}`, scale: `${scale}x`, filename });
+      } else {
+        contents.images.push({ idiom: "iphone", size: `${size}x${size}`, scale: `${scale}x`, filename });
+      }
       console.log(`✓ iOS ${filename} (${px}x${px})`);
     }
   }

@@ -157,11 +157,30 @@ workflows:
       - name: Install mobile dependencies
         script: cd mobile && npm install
 
+      - name: Generate app icons
+        script: |
+          cd mobile
+          npm install
+          node scripts/generate-icons.js
+
       - name: Capacitor sync iOS
         script: |
           cd mobile
           npx cap add ios || true
           npx cap sync ios
+
+      - name: Copy icons to Xcode project
+        script: |
+          ICON_SRC="mobile/resources/ios/AppIcon.appiconset"
+          ICON_DST="mobile/ios/App/App/Assets.xcassets/AppIcon.appiconset"
+          if [ -d "$ICON_SRC" ] && [ -d "$ICON_DST" ]; then
+            cp -R "$ICON_SRC/." "$ICON_DST/"
+            echo "✅ Icons copied to Xcode project"
+          else
+            echo "⚠️ Icon source or destination not found"
+            echo "SRC exists: $([ -d $ICON_SRC ] && echo yes || echo no)"
+            echo "DST exists: $([ -d $ICON_DST ] && echo yes || echo no)"
+          fi
 
       - name: Install CocoaPods
         script: |
