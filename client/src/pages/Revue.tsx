@@ -611,11 +611,11 @@ export default function Revue() {
 
       {/* Analysis Dialog */}
       <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-3xl max-h-[85vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">{analysisTitle}</DialogTitle>
           </DialogHeader>
-          <div className="prose-academic mt-3 px-1">
+          <div className="prose-academic mt-3 px-1 w-full min-w-0 overflow-hidden">
             <ReactMarkdown>{analysisResult}</ReactMarkdown>
           </div>
           <div className="flex gap-2 mt-5 pt-4 border-t">
@@ -639,12 +639,12 @@ export default function Revue() {
 
       {/* Bibliography Dialog */}
       <Dialog open={showBibDialog} onOpenChange={setShowBibDialog}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-3xl max-h-[85vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">Bibliographie — {bibliographyNorm.toUpperCase()}</DialogTitle>
           </DialogHeader>
-          <div className="mt-3 rounded-lg border bg-muted/30 p-4">
-            <pre className="text-sm leading-relaxed whitespace-pre-wrap font-sans text-foreground" data-testid="textarea-bibliography">{bibliographyResult}</pre>
+          <div className="mt-3 rounded-lg border bg-muted/30 p-4 w-full min-w-0 overflow-hidden">
+            <pre className="text-sm leading-relaxed whitespace-pre-wrap break-words font-sans text-foreground w-full" data-testid="textarea-bibliography">{bibliographyResult}</pre>
           </div>
           <div className="flex gap-2 mt-4 pt-4 border-t">
             <Button
@@ -667,11 +667,11 @@ export default function Revue() {
 
       {/* Equations Dialog */}
       <Dialog open={showEquationsDialog} onOpenChange={setShowEquationsDialog}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-3xl max-h-[85vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold">Équations de recherche</DialogTitle>
           </DialogHeader>
-          <div className="prose-academic mt-3 px-1">
+          <div className="prose-academic mt-3 px-1 w-full min-w-0 overflow-hidden">
             <ReactMarkdown>{equationsResult}</ReactMarkdown>
           </div>
           <div className="flex gap-2 mt-5 pt-4 border-t">
