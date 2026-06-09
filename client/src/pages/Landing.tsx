@@ -1,17 +1,39 @@
 import { useTranslation } from "react-i18next";
 import { useSEO } from "@/hooks/use-seo";
-import { Search, FileText, GitCompare, Zap, Shield, ChevronRight, Check, BookOpen, Database, Save, Cpu, GraduationCap, Microscope, Briefcase } from "lucide-react";
+import { Search, FileText, GitCompare, Zap, Shield, ChevronRight, Check, BookOpen, Database, Save, Cpu, GraduationCap, Microscope, Briefcase, Loader2 } from "lucide-react";
 import logoUrl from "@assets/logo_academik_minimal.png";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CREDIT_PACKS } from "@shared/schema";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useQuery } from "@tanstack/react-query";
+
+interface CurrencyInfo {
+  currency: string;
+  symbol: string;
+  rate: number;
+  country: string;
+}
+
+const zeroDecimal = ["jpy", "krw", "vnd", "idr", "clp", "gnf", "mga", "pyg", "rwf", "ugx", "xaf", "xof"];
+
+function formatPrice(eurPrice: number, info: CurrencyInfo): string {
+  const converted = eurPrice * info.rate;
+  if (zeroDecimal.includes(info.currency)) return `${info.symbol}${Math.round(converted).toLocaleString()}`;
+  return `${info.symbol}${converted.toFixed(2)}`;
+}
 
 export default function Landing() {
   const { t } = useTranslation();
   useSEO("home");
   const handleLogin = () => { window.location.href = "/connexion"; };
+
+  const { data: currencyInfo, isLoading: currencyLoading } = useQuery<CurrencyInfo>({
+    queryKey: ["/api/currency"],
+    staleTime: 1000 * 60 * 60,
+  });
+  const currency: CurrencyInfo = currencyInfo || { currency: "eur", symbol: "€", rate: 1, country: "XX" };
 
   return (
     <div className="min-h-screen bg-background">
@@ -163,7 +185,12 @@ export default function Landing() {
                 )}
                 <CardContent className="pt-6 text-center">
                   <h3 className="font-bold text-lg mb-1">{pack.label}</h3>
-                  <div className="text-3xl font-bold my-3">{pack.price} €</div>
+                  <div className="text-3xl font-bold my-3">
+                    {currencyLoading
+                      ? <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                      : formatPrice(pack.price, currency)
+                    }
+                  </div>
                   <p className="text-muted-foreground text-sm mb-4">{pack.credits} {t("credits")}</p>
                   <div className="space-y-2 text-sm text-left mb-6">
                     {[t("feature_articles"), t("feature_analyses"), t("feature_bib")].map(f => (
@@ -183,6 +210,11 @@ export default function Landing() {
           <p className="text-center text-xs text-muted-foreground mt-6">
             {t("credits_note")}
           </p>
+          {!currencyLoading && currency.currency !== "eur" && (
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              {t("price_converted_note", { currency: currency.currency.toUpperCase() })}
+            </p>
+          )}
         </div>
       </section>
 
