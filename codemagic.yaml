@@ -45,22 +45,35 @@ workflows:
           npx cap add android || true
           npx cap sync android
 
-      - name: Set targetSdkVersion to 35 and bump versionCode
+      - name: Patch Android SDK and versionCode
         script: |
-          GRADLE_FILE="mobile/android/app/build.gradle"
-          VARS_FILE="mobile/android/variables.gradle"
-          # Target SDK
-          sed -i 's/targetSdkVersion [0-9]*/targetSdkVersion 35/g' "$GRADLE_FILE" || true
-          sed -i 's/targetSdk = [0-9]*/targetSdk = 35/g' "$VARS_FILE" || true
-          sed -i 's/targetSdk = [0-9]*/targetSdk = 35/g' "$GRADLE_FILE" || true
-          # Compile SDK
-          sed -i 's/compileSdkVersion [0-9]*/compileSdkVersion 35/g' "$GRADLE_FILE" || true
-          sed -i 's/compileSdk = [0-9]*/compileSdk = 35/g' "$VARS_FILE" || true
-          sed -i 's/compileSdk = [0-9]*/compileSdk = 35/g' "$GRADLE_FILE" || true
-          # Version code — force to 2
-          sed -i 's/versionCode [0-9][0-9]*/versionCode 2/g' "$GRADLE_FILE" || true
-          echo "=== build.gradle after patch ===" && grep -E "targetSdk|compileSdk|versionCode" "$GRADLE_FILE" || true
-          echo "=== variables.gradle after patch ===" && grep -E "targetSdk|compileSdk" "$VARS_FILE" || true
+          node -e "
+          const fs = require('fs');
+          const appGradle = 'mobile/android/app/build.gradle';
+          const varsGradle = 'mobile/android/variables.gradle';
+
+          function patchFile(path, replacements) {
+            if (!fs.existsSync(path)) { console.log('Not found:', path); return; }
+            let content = fs.readFileSync(path, 'utf8');
+            console.log('BEFORE', path, ':', content.match(/versionCode \d+|targetSdk\w* \d+|compileSdk\w* \d+/g));
+            for (const [from, to] of replacements) {
+              content = content.replace(from, to);
+            }
+            fs.writeFileSync(path, content);
+            console.log('AFTER', path, ':', content.match(/versionCode \d+|targetSdk\w* \d+|compileSdk\w* \d+/g));
+          }
+
+          patchFile(appGradle, [
+            [/versionCode \d+/g, 'versionCode 2'],
+            [/targetSdkVersion \d+/g, 'targetSdkVersion 35'],
+            [/compileSdkVersion \d+/g, 'compileSdkVersion 35'],
+          ]);
+
+          patchFile(varsGradle, [
+            [/targetSdk = \d+/g, 'targetSdk = 35'],
+            [/compileSdk = \d+/g, 'compileSdk = 35'],
+          ]);
+          "
 
       - name: Configure Android signing
         script: |
