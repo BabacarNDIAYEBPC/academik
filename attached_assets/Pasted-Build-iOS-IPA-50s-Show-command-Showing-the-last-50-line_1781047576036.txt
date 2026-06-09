@@ -1,0 +1,54 @@
+Build iOS IPA
+50s
+
+
+
+Show command
+Showing the last 50 lines. Click this button to load the full log
+▸ Compiling CAPBridgedJSTypes.m
+▸ Compiling CAPBridgeViewController+CDVScreenOrientationDelegate.m
+▸ Linking Capacitor
+▸ Generating 'Capacitor.framework.dSYM'
+▸ Touching Capacitor.framework (in target 'Capacitor' from project 'Pods')
+▸ Processing CapacitorStatusBar-Info.plist
+▸ Processing CapacitorSplashScreen-Info.plist
+▸ Processing CapacitorApp-Info.plist
+▸ Compiling CapacitorStatusBar_vers.c
+▸ Compiling CapacitorSplashScreen_vers.c
+▸ Compiling CapacitorApp_vers.c
+▸ Compiling Pods_App_vers.c
+▸ Compiling CapacitorStatusBar-dummy.m
+▸ Linking CapacitorStatusBar
+▸ Compiling Pods-App-dummy.m
+▸ Compiling CapacitorApp-dummy.m
+▸ Compiling CapacitorSplashScreen-dummy.m
+▸ Linking CapacitorApp
+▸ Linking CapacitorSplashScreen
+▸ Generating 'CapacitorStatusBar.framework.dSYM'
+▸ Touching CapacitorStatusBar.framework (in target 'CapacitorStatusBar' from project 'Pods')
+▸ Generating 'CapacitorSplashScreen.framework.dSYM'
+▸ Generating 'CapacitorApp.framework.dSYM'
+▸ Touching CapacitorSplashScreen.framework (in target 'CapacitorSplashScreen' from project 'Pods')
+▸ Touching CapacitorApp.framework (in target 'CapacitorApp' from project 'Pods')
+▸ Processing Pods-App-Info.plist
+▸ Touching Pods_App.framework (in target 'Pods-App' from project 'Pods')
+▸ Running script '[CP] Check Pods Manifest.lock'
+▸ Copying /Users/builder/Library/Developer/Xcode/DerivedData/App-cdodsawpstrgxrgbysbjswpcvrrr/Build/Intermediates.noindex/ArchiveIntermediates/App/InstallationBuildProductsLocation/Applications/App.app/public
+▸ Copying /Users/builder/Library/Developer/Xcode/DerivedData/App-cdodsawpstrgxrgbysbjswpcvrrr/Build/Intermediates.noindex/ArchiveIntermediates/App/InstallationBuildProductsLocation/Applications/App.app/config.xml
+▸ Copying /Users/builder/Library/Developer/Xcode/DerivedData/App-cdodsawpstrgxrgbysbjswpcvrrr/Build/Intermediates.noindex/ArchiveIntermediates/App/InstallationBuildProductsLocation/Applications/App.app/capacitor.config.json
+▸ Compiling Main.storyboard
+▸ Compiling LaunchScreen.storyboard
+▸ Linking App
+▸ Processing Info.plist
+▸ Running script '[CP] Embed Pods Frameworks'
+▸ Generating 'App.app.dSYM'
+▸ Touching App.app (in target 'App' from project 'App')
+    Run script build phase '[CP] Embed Pods Frameworks' will be run during every build because it does not specify any outputs. To address this issue, either add output dependencies to the script phase, or configure it to run in every build by unchecking "Based on dependency analysis" in the script phase. (in target 'App' from project 'App')
+▸ Archive Succeeded
+Successfully created archive at /Users/builder/clone/mobile/build/ios/xcarchive/App_1g74_ltj.xcarchive
+Export /Users/builder/clone/mobile/build/ios/xcarchive/App_1g74_ltj.xcarchive to build/ios/ipa
+Execute "xcodebuild -exportArchive -archivePath /Users/builder/clone/mobile/build/ios/xcarchive/App_1g74_ltj.xcarchive -exportPath build/ios/ipa -exportOptionsPlist /Users/builder/export_options.plist COMPILER_INDEX_STORE_ENABLE=NO"
+
+▸ Export Succeeded
+Successfully exported ipa to build/ios/ipa/App.ipa
+Raw xcodebuild logs stored in /tmp/xcodebuild_logs/App.log
