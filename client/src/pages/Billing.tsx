@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCredits } from "@/hooks/use-literature";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { CREDIT_PACKS } from "@shared/schema";
+import { CREDIT_PACKS, SEARCH_CREDIT_TIERS } from "@shared/schema";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface CurrencyInfo {
@@ -209,16 +209,28 @@ export default function Billing() {
         <Card className="mb-8 bg-muted/30">
           <CardContent className="py-4 px-5">
             <h3 className="font-medium text-sm mb-3">{t("action_costs")}</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="text-sm space-y-0">
+              {/* Search tiers */}
+              <div className="py-1.5 border-b border-border/50">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-muted-foreground">{t("cost_search")}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pl-1">
+                  {SEARCH_CREDIT_TIERS.map(tier => (
+                    <Badge key={tier.maxArticles} variant="outline" className="text-[11px] font-normal px-1.5">
+                      {tier.label} → {tier.credits} crédit{tier.credits > 1 ? "s" : ""}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
               {[
-                [t("cost_search"), t("one_credit")],
-                [t("cost_analysis"), t("one_credit")],
-                [t("cost_confrontation"), t("one_credit")],
-                [t("cost_bib"), t("one_credit")],
-                [t("cost_equations"), t("one_credit")],
-                [t("cost_synthesis"), t("one_credit")],
+                [t("cost_analysis"), "1 crédit"],
+                [t("cost_confrontation"), "1 crédit"],
+                [t("cost_bib"), "1 crédit"],
+                [t("cost_equations"), "1 crédit"],
+                [t("cost_synthesis"), "2 crédits"],
               ].map(([action, cost]) => (
-                <div key={action} className="flex justify-between items-center py-1 border-b border-border/50 last:border-0">
+                <div key={action} className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0">
                   <span className="text-muted-foreground">{action}</span>
                   <Badge variant="secondary" className="text-xs">{cost}</Badge>
                 </div>

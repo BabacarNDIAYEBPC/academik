@@ -112,11 +112,28 @@ export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 
 // Credit costs
 export const CREDIT_COSTS = {
-  SEARCH_ARTICLES: 1,
-  GENERATE_READING_CARD: 2,
-  GENERATE_SYNTHESIS: 3,
+  GENERATE_READING_CARD: 1,
+  GENERATE_SYNTHESIS: 2,
   GENERATE_BIBLIOGRAPHY: 1,
+  GENERATE_EQUATIONS: 1,
 } as const;
+
+// Search credit tiers based on article count requested
+export const SEARCH_CREDIT_TIERS = [
+  { maxArticles: 10, credits: 1, label: "1–10 articles" },
+  { maxArticles: 15, credits: 2, label: "11–15 articles" },
+  { maxArticles: 20, credits: 3, label: "16–20 articles" },
+] as const;
+
+export const MAX_ARTICLES_PER_SEARCH = 20;
+
+export function getSearchCreditCost(articleCount: number): number {
+  const count = Math.min(articleCount, MAX_ARTICLES_PER_SEARCH);
+  for (const tier of SEARCH_CREDIT_TIERS) {
+    if (count <= tier.maxArticles) return tier.credits;
+  }
+  return SEARCH_CREDIT_TIERS[SEARCH_CREDIT_TIERS.length - 1].credits;
+}
 
 // Credit packs
 export const CREDIT_PACKS = [

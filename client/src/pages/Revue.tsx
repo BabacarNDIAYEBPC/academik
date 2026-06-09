@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { getSearchCreditCost, MAX_ARTICLES_PER_SEARCH } from "@shared/schema";
 import {
   useSearchArticles, useAnalyzeArticles, useGenerateBibliography, useGenerateEquations,
   useCredits, useSaveBibliography,
@@ -301,11 +302,19 @@ export default function Revue() {
             {/* Filters row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Nombre</Label>
+                <Label className="text-xs text-muted-foreground flex items-center gap-1">
+                  Nombre
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 font-normal">
+                    {getSearchCreditCost(config.articleCount)} crédit{getSearchCreditCost(config.articleCount) > 1 ? "s" : ""}
+                  </Badge>
+                </Label>
                 <Select value={String(config.articleCount)} onValueChange={v => setConfig(c => ({ ...c, articleCount: Number(v) }))}>
                   <SelectTrigger data-testid="select-article-count"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {[10, 20, 30, 50].map(n => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                    <SelectItem value="5">5 articles — 1 crédit</SelectItem>
+                    <SelectItem value="10">10 articles — 1 crédit</SelectItem>
+                    <SelectItem value="15">15 articles — 2 crédits</SelectItem>
+                    <SelectItem value="20">20 articles — 3 crédits</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

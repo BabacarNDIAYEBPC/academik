@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { setupAuth, registerAuthRoutes } from "./replit_integrations/auth";
 import { registerAdminRoutes } from "./admin";
 import OpenAI from "openai";
-import { CREDIT_COSTS, CREDIT_PACKS } from "@shared/schema";
+import { CREDIT_COSTS, CREDIT_PACKS, SEARCH_CREDIT_TIERS, MAX_ARTICLES_PER_SEARCH, getSearchCreditCost } from "@shared/schema";
 import { realSearch } from "./search";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -587,22 +587,23 @@ Sitemap: https://academik.fr/sitemap.xml`);
     const userId = getUserId(req);
     const { query, domain, platforms, language, periodStart, periodEnd, level, sourceTypes, articleCount, accessType, openAccessProportion } = req.body;
     if (!query && !domain) return res.status(400).json({ message: "Requête manquante" });
+    const count = Math.min(articleCount || 10, MAX_ARTICLES_PER_SEARCH);
+    const searchCost = getSearchCreditCost(count);
     const superAdmin = await isSuperAdmin(userId);
     if (!superAdmin) {
-      const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, `Recherche: ${query || domain}`);
+      const spent = await storage.spendCredits(userId, searchCost, `Recherche: ${query || domain}`);
       if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
     }
-    const count = articleCount || 10;
     const searchQuery = [query, domain].filter(Boolean).join(" ");
 
-    // Fetch more than needed so GPT can pick the best ones
+    // Fetch more than needed so GPT can pick the best ones (cap raw fetch at 2x requested, max 40)
     const rawArticles = await realSearch({
       query: searchQuery,
       platforms: platforms || ["google_scholar", "pubmed", "hal", "cairn", "sciencedirect"],
       language: language || "fr",
       periodStart: periodStart || "2015",
       periodEnd: periodEnd || String(new Date().getFullYear()),
-      articleCount: Math.min(count * 3, 40),
+      articleCount: Math.min(count * 2, 40),
       accessType: accessType || "all",
       openAccessProportion: openAccessProportion ?? 50,
     });
@@ -670,7 +671,7 @@ Réponds UNIQUEMENT en JSON: { "scores": [{"index": 0, "score": 8}, ...] }`;
     const { articles, analysisType, query } = req.body;
     if (!articles || !articles.length) return res.status(400).json({ message: "Articles manquants" });
     if (!await isSuperAdmin(userId)) {
-      const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, "Analyse articles");
+      const spent = await storage.spendCredits(userId, CREDIT_COSTS.GENERATE_READING_CARD, "Analyse articles");
       if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
     }
     const openai = await getOpenAI();
@@ -726,7 +727,7 @@ Réponds UNIQUEMENT en JSON: { "scores": [{"index": 0, "score": 8}, ...] }`;
     const userId = getUserId(req);
     const { query, domain, language } = req.body;
     if (!await isSuperAdmin(userId)) {
-      const spent = await storage.spendCredits(userId, CREDIT_COSTS.SEARCH_ARTICLES, "Génération équations de recherche");
+      const spent = await storage.spendCredits(userId, CREDIT_COSTS.GENERATE_EQUATIONS, "Génération équations de recherche");
       if (!spent) return res.status(402).json({ message: "Crédits insuffisants" });
     }
     const openai = await getOpenAI();
