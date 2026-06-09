@@ -437,6 +437,29 @@ Sitemap: https://academik.fr/sitemap.xml`);
     res.json({ ...info, country: country || "XX" });
   });
 
+  // === DEMO LOGIN (Apple Review Team) ===
+  // Accept button click OR username/password: demo / academik2024
+  app.post("/api/demo-login", async (req, res) => {
+    const DEMO_USER_ID = "apple-review-demo-academik";
+    const { username, password } = req.body || {};
+    // If credentials provided, validate them
+    if (username !== undefined || password !== undefined) {
+      if (username !== "demo" || password !== "academik2024") {
+        return res.status(401).json({ message: "Identifiants incorrects" });
+      }
+    }
+    try {
+      (req.session as any).userId = DEMO_USER_ID;
+      const credits = await storage.getCredits(DEMO_USER_ID);
+      if (credits < 50) {
+        await storage.addCredits(DEMO_USER_ID, 50 - credits, "demo", "Crédits démo Apple Review", undefined);
+      }
+      res.json({ ok: true });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
+    }
+  });
+
   // === ACCOUNT ===
   app.delete("/api/user/account", async (req, res) => {
     if (!checkAuth(req, res)) return;
