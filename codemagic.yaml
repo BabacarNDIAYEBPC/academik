@@ -191,10 +191,14 @@ workflows:
         script: |
           xcode-project use-profiles
 
-      - name: Set iOS build number
+      - name: Set iOS build number and encryption flag
         script: |
           cd mobile/ios/App
           agvtool new-version -all $BUILD_NUMBER
+          plutil -replace ITSAppUsesNonExemptEncryption -bool NO App/Info.plist || \
+          /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" App/Info.plist 2>/dev/null || \
+          /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" App/Info.plist
+          echo "✅ ITSAppUsesNonExemptEncryption = NO set"
 
       - name: Build iOS IPA
         script: |
