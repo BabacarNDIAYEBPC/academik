@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core';
-
 export const IAP_PRODUCTS_MAP: Record<string, number> = {
   'fr.academik.app.starter': 10,
   'fr.academik.app.essentiel': 30,
@@ -13,7 +11,8 @@ export const IAP_PRODUCT_IDS = [
 ];
 
 export function isNativeIOS(): boolean {
-  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'ios';
+  const w = window as any;
+  return !!(w.Capacitor?.isNativePlatform?.() && w.Capacitor?.getPlatform?.() === 'ios');
 }
 
 export function getCdvPurchase(): any {
