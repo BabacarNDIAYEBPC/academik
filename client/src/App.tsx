@@ -98,6 +98,7 @@ function Router() {
       <Route path="/cgu" component={CGU} />
       <Route path="/cgv" component={CGV} />
       <Route path="/rgpd" component={RGPD} />
+      <Route path="/privacy" component={RGPD} />
 
       {/* FR pages */}
       <Route path="/bibliographie-apa" component={BibliographieApa} />
