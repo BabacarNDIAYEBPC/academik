@@ -191,6 +191,11 @@ workflows:
         script: |
           xcode-project use-profiles
 
+      - name: Set iOS build number
+        script: |
+          cd mobile/ios/App
+          agvtool new-version -all $BUILD_NUMBER
+
       - name: Build iOS IPA
         script: |
           cd mobile
