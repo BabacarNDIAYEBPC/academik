@@ -561,6 +561,63 @@ Sitemap: https://academik.fr/sitemap.xml`);
     res.json(inv);
   });
 
+  app.post("/api/iap/verify", async (req, res) => {
+    if (!checkAuth(req, res)) return;
+    const { transactionId, productId, receiptData } = req.body;
+    if (!transactionId || !productId) {
+      return res.status(400).json({ message: "Paramètres manquants" });
+    }
+
+    const IAP_CREDITS: Record<string, number> = {
+      "fr.academik.app.starter": 10,
+      "fr.academik.app.essentiel": 30,
+      "fr.academik.app.pro": 100,
+    };
+    const credits = IAP_CREDITS[productId];
+    if (!credits) return res.status(400).json({ message: "Produit invalide" });
+
+    const sessionKey = `iap_${transactionId}`;
+    const existing = await storage.getInvoiceBySession(sessionKey);
+    if (existing) return res.json({ success: true, credits: existing.credits });
+
+    if (receiptData) {
+      try {
+        const verifyReceipt = async (url: string) => {
+          const r = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              "receipt-data": receiptData,
+              "password": process.env.APPLE_IAP_SHARED_SECRET || "",
+              "exclude-old-transactions": true,
+            }),
+          });
+          return r.json() as Promise<any>;
+        };
+        let result = await verifyReceipt("https://buy.itunes.apple.com/verifyReceipt");
+        if (result.status === 21007) {
+          result = await verifyReceipt("https://sandbox.itunes.apple.com/verifyReceipt");
+        }
+        if (result.status !== 0) {
+          return res.status(400).json({ message: "Reçu Apple invalide" });
+        }
+        const inApp: any[] = result.receipt?.in_app || result.latest_receipt_info || [];
+        const txn = inApp.find((t: any) => t.transaction_id === transactionId || t.original_transaction_id === transactionId);
+        if (!txn) {
+          return res.status(400).json({ message: "Transaction non trouvée dans le reçu" });
+        }
+      } catch (err) {
+        console.error("Apple IAP receipt verification error:", err);
+        return res.status(500).json({ message: "Erreur de vérification Apple" });
+      }
+    }
+
+    const userId = getUserId(req);
+    await storage.addCredits(userId, credits, "purchase", `Achat iOS ${productId}`, sessionKey);
+    await storage.createInvoice({ userId, stripeSessionId: sessionKey, amount: 0, credits, status: "paid" });
+    res.json({ success: true, credits });
+  });
+
   app.post("/api/contact", async (req, res) => {
     const { name, email, subject, category, message } = req.body;
     if (!name || !email || !subject || !message) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useSEO } from "@/hooks/use-seo";
 import { useLocation } from "wouter";
@@ -13,6 +13,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { CREDIT_PACKS, SEARCH_CREDIT_TIERS } from "@shared/schema";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { isNativeIOS, IAP_PRODUCT_IDS, IAP_PRODUCTS_MAP, getCdvPurchase } from "@/lib/iap";
 
 interface CurrencyInfo {
   currency: string;
@@ -23,7 +24,6 @@ interface CurrencyInfo {
 
 function formatPrice(eurPrice: number, info: CurrencyInfo): string {
   const converted = eurPrice * info.rate;
-  // Zero-decimal currencies: no cents
   const zeroDecimal = ["jpy", "krw", "vnd", "idr", "clp", "gnf", "mga", "pyg", "rwf", "ugx", "xaf", "xof"];
   if (zeroDecimal.includes(info.currency)) {
     return `${info.symbol}${Math.round(converted).toLocaleString()}`;
@@ -40,6 +40,13 @@ function formatPricePerCredit(eurPrice: number, credits: number, info: CurrencyI
   return `${info.symbol}${converted.toFixed(2)}`;
 }
 
+interface IAPProduct {
+  id: string;
+  title: string;
+  price: string;
+  offer: any;
+}
+
 export default function Billing() {
   const { t } = useTranslation();
   useSEO("billing");
@@ -48,6 +55,10 @@ export default function Billing() {
   const { data: creditsData, isLoading: creditsLoading } = useCredits();
   const queryClient = useQueryClient();
   const [loadingPack, setLoadingPack] = useState<string | null>(null);
+  const [iapProducts, setIapProducts] = useState<IAPProduct[]>([]);
+  const [iapLoading, setIapLoading] = useState(false);
+  const iapInitialized = useRef(false);
+  const onNativeIOS = isNativeIOS();
 
   const { data: invoices, isLoading: invoicesLoading } = useQuery<any[]>({
     queryKey: ["/api/invoices"],
@@ -55,7 +66,8 @@ export default function Billing() {
 
   const { data: currencyInfo, isLoading: currencyLoading } = useQuery<CurrencyInfo>({
     queryKey: ["/api/currency"],
-    staleTime: 1000 * 60 * 60, // 1h cache
+    staleTime: 1000 * 60 * 60,
+    enabled: !onNativeIOS,
   });
 
   const currency: CurrencyInfo = currencyInfo || { currency: "eur", symbol: "€", rate: 1, country: "XX" };
@@ -84,17 +96,123 @@ export default function Billing() {
   });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const payment = params.get("payment");
-    const sessionId = params.get("session_id");
-    if (payment === "success" && sessionId) {
-      confirmMutation.mutate(sessionId);
-      window.history.replaceState({}, "", "/billing");
-    } else if (payment === "cancelled") {
-      toast({ title: t("payment_cancelled"), variant: "destructive" });
-      window.history.replaceState({}, "", "/billing");
+    if (onNativeIOS) {
+      initIAP();
+    } else {
+      const params = new URLSearchParams(window.location.search);
+      const payment = params.get("payment");
+      const sessionId = params.get("session_id");
+      if (payment === "success" && sessionId) {
+        confirmMutation.mutate(sessionId);
+        window.history.replaceState({}, "", "/billing");
+      } else if (payment === "cancelled") {
+        toast({ title: t("payment_cancelled"), variant: "destructive" });
+        window.history.replaceState({}, "", "/billing");
+      }
     }
   }, []);
+
+  const initIAP = async () => {
+    if (iapInitialized.current) return;
+    setIapLoading(true);
+
+    const waitForCdv = (maxMs = 5000): Promise<any> =>
+      new Promise((resolve) => {
+        const start = Date.now();
+        const check = () => {
+          const cdv = getCdvPurchase();
+          if (cdv) { resolve(cdv); return; }
+          if (Date.now() - start > maxMs) { resolve(null); return; }
+          setTimeout(check, 200);
+        };
+        check();
+      });
+
+    const CdvPurchase = await waitForCdv();
+    if (!CdvPurchase) {
+      setIapLoading(false);
+      return;
+    }
+
+    const { store, ProductType, Platform } = CdvPurchase;
+
+    store.register(
+      IAP_PRODUCT_IDS.map((id: string) => ({
+        id,
+        type: ProductType.CONSUMABLE,
+        platform: Platform.APPLE_APPSTORE,
+      }))
+    );
+
+    store.when().approved(async (transaction: any) => {
+      try {
+        const productId = transaction.products?.[0]?.id;
+        const transactionId = transaction.transactionId;
+        if (!productId || !transactionId) return;
+
+        const appleReceipt = store.localReceipts?.find(
+          (r: any) => r.platform === Platform.APPLE_APPSTORE
+        );
+        const receiptData = appleReceipt?.nativeData?.appStoreReceipt || "";
+
+        const res = await fetch("/api/iap/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ transactionId, productId, receiptData }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          await transaction.finish();
+          queryClient.invalidateQueries({ queryKey: ["/api/credits"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
+          toast({ title: `✓ ${data.credits} ${t("credits_added")}` });
+        } else {
+          toast({ title: t("payment_error"), variant: "destructive" });
+        }
+      } catch {
+        toast({ title: t("payment_error"), variant: "destructive" });
+      } finally {
+        setLoadingPack(null);
+      }
+    });
+
+    store.when().finished(() => {
+      setLoadingPack(null);
+    });
+
+    await store.initialize([Platform.APPLE_APPSTORE]);
+    iapInitialized.current = true;
+
+    const products: IAPProduct[] = IAP_PRODUCT_IDS.map((id: string) => {
+      const p = store.get(id, Platform.APPLE_APPSTORE);
+      const offer = p?.offers?.[0];
+      return {
+        id,
+        title: p?.title || id,
+        price: offer?.pricingPhases?.[0]?.price || "—",
+        offer,
+      };
+    });
+    setIapProducts(products);
+    setIapLoading(false);
+  };
+
+  const handleIAPBuy = async (productId: string, offer: any) => {
+    if (!offer) {
+      toast({ title: "Produit non disponible", variant: "destructive" });
+      return;
+    }
+    setLoadingPack(productId);
+    try {
+      const CdvPurchase = getCdvPurchase();
+      await CdvPurchase.store.order(offer);
+    } catch {
+      toast({ title: t("payment_error"), variant: "destructive" });
+      setLoadingPack(null);
+    }
+  };
 
   const handleBuy = async (packId: string) => {
     setLoadingPack(packId);
@@ -107,7 +225,7 @@ export default function Billing() {
     });
   };
 
-  const isLoadingPrices = currencyLoading;
+  const isLoadingPrices = onNativeIOS ? iapLoading : currencyLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,7 +236,7 @@ export default function Billing() {
             <span className="font-bold text-lg tracking-tight">{t("app_name")}</span>
           </div>
           <div className="flex items-center gap-2">
-            <LanguageSwitcher compact />
+            {!onNativeIOS && <LanguageSwitcher compact />}
             <Button variant="ghost" size="sm" onClick={() => setLocation("/")} className="gap-1.5">
               <ArrowLeft className="w-4 h-4" /> {t("back")}
             </Button>
@@ -150,59 +268,81 @@ export default function Billing() {
 
         <h2 className="font-semibold mb-4">{t("buy_credits")}</h2>
         <div className="grid sm:grid-cols-3 gap-4 mb-10">
-          {CREDIT_PACKS.map((pack, i) => (
-            <Card key={pack.id} className={`relative ${i === 1 ? "border-primary shadow-md" : ""}`} data-testid={`card-pack-${pack.id}`}>
-              {i === 1 && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-primary">{t("popular")}</Badge>
-                </div>
-              )}
-              <CardContent className="pt-6 pb-5 text-center">
-                <h3 className="font-bold text-base mb-1">{pack.label}</h3>
-                <div className="text-3xl font-bold my-2" data-testid={`text-price-${pack.id}`}>
-                  {isLoadingPrices
-                    ? <Loader2 className="w-5 h-5 animate-spin mx-auto" />
-                    : formatPrice(pack.price, currency)
-                  }
-                </div>
-                <p className="text-muted-foreground text-sm mb-1">{pack.credits} {t("credits")}</p>
-                <p className="text-xs text-muted-foreground mb-4">
-                  {isLoadingPrices
-                    ? "..."
-                    : `${formatPricePerCredit(pack.price, pack.credits, currency)} / ${t("credit")}`
-                  }
-                </p>
-                <div className="space-y-1.5 text-xs text-left mb-5">
-                  {[t("feature_articles"), t("feature_analyses"), t("feature_bib")].map(f => (
-                    <div key={f} className="flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
-                      <span>{f}</span>
-                    </div>
-                  ))}
-                </div>
-                <Button
-                  className="w-full"
-                  variant={i === 1 ? "default" : "outline"}
-                  disabled={loadingPack === pack.id || checkoutMutation.isPending || isLoadingPrices}
-                  onClick={() => handleBuy(pack.id)}
-                  data-testid={`button-buy-${pack.id}`}
-                >
-                  {loadingPack === pack.id ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("redirecting")}</>
-                  ) : isLoadingPrices ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    `${t("buy")} — ${formatPrice(pack.price, currency)}`
+          {CREDIT_PACKS.map((pack, i) => {
+            const iapProduct = iapProducts.find(p => p.id === `fr.academik.app.${pack.id}`);
+            const displayPrice = onNativeIOS
+              ? (iapLoading ? null : (iapProduct?.price ?? "—"))
+              : (currencyLoading ? null : formatPrice(pack.price, currency));
+            const pricePerCredit = onNativeIOS
+              ? null
+              : (currencyLoading ? null : `${formatPricePerCredit(pack.price, pack.credits, currency)} / ${t("credit")}`);
+
+            return (
+              <Card key={pack.id} className={`relative ${i === 1 ? "border-primary shadow-md" : ""}`} data-testid={`card-pack-${pack.id}`}>
+                {i === 1 && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <Badge className="bg-primary">{t("popular")}</Badge>
+                  </div>
+                )}
+                <CardContent className="pt-6 pb-5 text-center">
+                  <h3 className="font-bold text-base mb-1">{pack.label}</h3>
+                  <div className="text-3xl font-bold my-2" data-testid={`text-price-${pack.id}`}>
+                    {isLoadingPrices
+                      ? <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                      : displayPrice
+                    }
+                  </div>
+                  <p className="text-muted-foreground text-sm mb-1">{pack.credits} {t("credits")}</p>
+                  {pricePerCredit && (
+                    <p className="text-xs text-muted-foreground mb-4">
+                      {isLoadingPrices ? "..." : pricePerCredit}
+                    </p>
                   )}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                  {!pricePerCredit && <div className="mb-4" />}
+                  <div className="space-y-1.5 text-xs text-left mb-5">
+                    {[t("feature_articles"), t("feature_analyses"), t("feature_bib")].map(f => (
+                      <div key={f} className="flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                        <span>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <Button
+                    className="w-full"
+                    variant={i === 1 ? "default" : "outline"}
+                    disabled={loadingPack === pack.id || isLoadingPrices}
+                    onClick={() => {
+                      if (onNativeIOS) {
+                        handleIAPBuy(`fr.academik.app.${pack.id}`, iapProduct?.offer);
+                      } else {
+                        handleBuy(pack.id);
+                      }
+                    }}
+                    data-testid={`button-buy-${pack.id}`}
+                  >
+                    {loadingPack === pack.id ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {t("redirecting")}</>
+                    ) : isLoadingPrices ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      `${t("buy")} — ${displayPrice ?? ""}`
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
-        {!currencyLoading && currency.currency !== "eur" && (
+        {!onNativeIOS && !currencyLoading && currency.currency !== "eur" && (
           <p className="text-xs text-muted-foreground text-center -mt-6 mb-8">
             {t("price_converted_note", { currency: currency.currency.toUpperCase() })}
+          </p>
+        )}
+
+        {onNativeIOS && (
+          <p className="text-xs text-muted-foreground text-center -mt-6 mb-8">
+            Paiement sécurisé via Apple — les prix s'affichent dans votre devise locale
           </p>
         )}
 
@@ -210,7 +350,6 @@ export default function Billing() {
           <CardContent className="py-4 px-5">
             <h3 className="font-medium text-sm mb-3">{t("action_costs")}</h3>
             <div className="text-sm space-y-0">
-              {/* Search tiers */}
               <div className="py-1.5 border-b border-border/50">
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-muted-foreground">{t("cost_search")}</span>
@@ -261,7 +400,9 @@ export default function Billing() {
                       <p className="text-xs text-muted-foreground">{new Date(inv.createdAt).toLocaleDateString()}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-sm">{inv.amount.toFixed(2)} €</p>
+                      <p className="font-semibold text-sm">
+                        {inv.stripeSessionId?.startsWith("iap_") ? "Apple IAP" : `${inv.amount.toFixed(2)} €`}
+                      </p>
                       <Badge variant="secondary" className="text-xs">{t("paid")}</Badge>
                     </div>
                   </CardContent>
