@@ -58,7 +58,11 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     res.setHeader("Cache-Control", "public, max-age=86400");
 
     const BASE = "https://academik.fr";
-    const today = "2026-05-22";
+    const today = "2026-06-18";
+
+    // Encode non-ASCII characters in URL paths for valid XML/sitemap
+    const encodePath = (slug: string) =>
+      slug.split("/").map(seg => encodeURIComponent(decodeURIComponent(seg)).replace(/%2F/g, "/")).join("/");
 
     // All multilang SEO slugs (23 langs × 8 types = 184 pages)
     const multiLangSlugs = [
@@ -115,7 +119,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     ];
 
     const multiLangUrls = multiLangSlugs.map(slug => `  <url>
-    <loc>${BASE}/${slug}</loc>
+    <loc>${BASE}/${encodePath(slug)}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -129,6 +133,14 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${BASE}/comment-faire-bibliographie</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.95</priority>
+    <xhtml:link rel="alternate" hreflang="fr" href="${BASE}/comment-faire-bibliographie"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/comment-faire-bibliographie"/>
   </url>
   <url>
     <loc>${BASE}/reussir-memoire-master</loc>
