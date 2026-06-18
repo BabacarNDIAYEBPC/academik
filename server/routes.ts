@@ -334,7 +334,6 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     <xhtml:link rel="alternate" hreflang="en" href="${BASE}/en/researchers"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="${BASE}/chercheur"/>
   </url>
-${multiLangUrls}
 </urlset>`);
   });
 

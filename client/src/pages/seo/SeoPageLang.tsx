@@ -91,6 +91,11 @@ export default function SeoPageLang({ data }: { data: SeoPageData }) {
     if (!canonical) { canonical = document.createElement("link"); canonical.rel = "canonical"; document.head.appendChild(canonical); }
     canonical.href = data.canonical;
 
+    // Noindex: template-based pages — preserve crawl budget for unique content pages
+    let robotsMeta = document.querySelector('meta[name="robots"]') as HTMLMetaElement;
+    if (!robotsMeta) { robotsMeta = document.createElement("meta"); robotsMeta.name = "robots"; document.head.appendChild(robotsMeta); }
+    robotsMeta.content = "noindex, follow";
+
     // Remove old hreflangs
     document.querySelectorAll('link[rel="alternate"][hreflang]').forEach(el => el.remove());
     data.hreflangs.forEach(({ lang, href }) => {
