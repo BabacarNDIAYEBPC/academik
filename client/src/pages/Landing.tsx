@@ -252,6 +252,8 @@ export default function Landing() {
                 <li><a href="/recherche-bibliographique" className="text-muted-foreground hover:text-primary transition-colors">Recherche bibliographique</a></li>
                 <li><a href="/synthese-bibliographique" className="text-muted-foreground hover:text-primary transition-colors">Synthèse bibliographique</a></li>
                 <li><a href="/reussir-memoire-master" className="text-muted-foreground hover:text-primary transition-colors">Réussir son mémoire</a></li>
+                <li><a href="/comment-faire-bibliographie" className="text-muted-foreground hover:text-primary transition-colors">Comment faire une bibliographie</a></li>
+                <li><a href="/ressources" className="text-muted-foreground hover:text-primary font-medium transition-colors">→ Tous les guides</a></li>
               </ul>
             </div>
             <div>

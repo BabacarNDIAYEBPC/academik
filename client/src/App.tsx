@@ -33,6 +33,7 @@ import RechercheBibliographique from "@/pages/seo/RechercheBibliographique";
 import SyntheseBibliographique from "@/pages/seo/SyntheseBibliographique";
 import ReussirMemoireMaster from "@/pages/seo/ReussirMemoireMaster";
 import CommentFaireBibliographie from "@/pages/seo/CommentFaireBibliographie";
+import Ressources from "@/pages/seo/Ressources";
 import NotFound from "@/pages/NotFound";
 import Contact from "@/pages/legal/Contact";
 import CGU from "@/pages/legal/CGU";
@@ -114,6 +115,7 @@ function Router() {
       <Route path="/synthese-bibliographique" component={SyntheseBibliographique} />
       <Route path="/reussir-memoire-master" component={ReussirMemoireMaster} />
       <Route path="/comment-faire-bibliographie" component={CommentFaireBibliographie} />
+      <Route path="/ressources" component={Ressources} />
 
       {/* EN pages */}
       <Route path="/en/apa-citation-generator" component={ApaCitationGenerator} />
