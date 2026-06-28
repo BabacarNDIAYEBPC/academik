@@ -229,6 +229,80 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* SEO Hub — tous les sujets */}
+      <section className="py-14 px-4 border-t bg-slate-50/70">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-2xl font-bold mb-2 text-center">Guides & ressources bibliographiques</h2>
+          <p className="text-muted-foreground text-center text-sm mb-10">Tous les outils et guides pour maîtriser la bibliographie académique, la recherche de sources et la rédaction scientifique.</p>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-10">
+            {/* Formats bibliographiques */}
+            <div className="bg-white border rounded-xl p-5">
+              <h3 className="font-bold text-base mb-4 text-violet-700 flex items-center gap-2">
+                <FileText className="w-4 h-4" /> Formats bibliographiques
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li><a href="/comment-faire-bibliographie" className="text-muted-foreground hover:text-primary transition-colors font-medium">→ Comment faire une bibliographie</a></li>
+                <li><a href="/bibliographie-apa" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie APA 7</a></li>
+                <li><a href="/bibliographie-vancouver" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie Vancouver</a></li>
+                <li><a href="/bibliographie-mla" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie MLA 9</a></li>
+                <li><a href="/bibliographie-chicago" className="text-muted-foreground hover:text-primary transition-colors">Bibliographie Chicago 17</a></li>
+              </ul>
+            </div>
+
+            {/* Recherche & synthèse */}
+            <div className="bg-white border rounded-xl p-5">
+              <h3 className="font-bold text-base mb-4 text-blue-700 flex items-center gap-2">
+                <Search className="w-4 h-4" /> Recherche & synthèse
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li><a href="/recherche-bibliographique" className="text-muted-foreground hover:text-primary transition-colors">Recherche bibliographique</a></li>
+                <li><a href="/synthese-bibliographique" className="text-muted-foreground hover:text-primary transition-colors">Synthèse bibliographique</a></li>
+                <li><a href="/revue-litterature" className="text-muted-foreground hover:text-primary transition-colors">Revue de littérature</a></li>
+                <li><a href="/memoire-these" className="text-muted-foreground hover:text-primary transition-colors">Mémoire & thèse</a></li>
+                <li><a href="/reussir-memoire-master" className="text-muted-foreground hover:text-primary transition-colors">Réussir son mémoire de master</a></li>
+              </ul>
+            </div>
+
+            {/* Par profil */}
+            <div className="bg-white border rounded-xl p-5">
+              <h3 className="font-bold text-base mb-4 text-emerald-700 flex items-center gap-2">
+                <GraduationCap className="w-4 h-4" /> Par profil & en anglais
+              </h3>
+              <ul className="space-y-2 text-sm">
+                <li><a href="/etudiant" className="text-muted-foreground hover:text-primary transition-colors">Pour les étudiants</a></li>
+                <li><a href="/chercheur" className="text-muted-foreground hover:text-primary transition-colors">Pour les chercheurs</a></li>
+                <li><a href="/en/apa-citation-generator" className="text-muted-foreground hover:text-primary transition-colors">APA citation generator (EN)</a></li>
+                <li><a href="/en/literature-review" className="text-muted-foreground hover:text-primary transition-colors">Literature review (EN)</a></li>
+                <li><a href="/en/dissertation-help" className="text-muted-foreground hover:text-primary transition-colors">Dissertation help (EN)</a></li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Nuage de mots-clés */}
+          <div className="bg-white border rounded-xl p-6">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Mots-clés couverts</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                "bibliographie APA 7","générateur de bibliographie","comment faire une bibliographie",
+                "bibliographie Vancouver","bibliographie MLA","bibliographie Chicago",
+                "revue de littérature","synthèse bibliographique","recherche bibliographique",
+                "mémoire de master","thèse de doctorat","citation académique",
+                "références bibliographiques","normes de citation","APA 7e édition",
+                "format Vancouver médecine","style MLA humanités","Cairn bibliographie",
+                "HAL sources académiques","PubMed citations","Google Scholar",
+                "état de l'art","bibliographie automatique IA","équation de recherche",
+                "sources peer-reviewed","open access","note de bas de page",
+              ].map(kw => (
+                <span key={kw} className="bg-slate-100 rounded-full px-3 py-1 text-xs text-slate-600 hover:bg-primary/10 hover:text-primary transition-colors cursor-default">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* SEO Footer Links */}
       <section className="py-12 px-4 border-t bg-white">
         <div className="max-w-6xl mx-auto">
