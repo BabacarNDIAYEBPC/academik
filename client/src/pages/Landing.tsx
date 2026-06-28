@@ -229,6 +229,53 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Texte SEO — 600 mots */}
+      <section className="py-16 px-4 border-t bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold mb-6">La recherche bibliographique académique, simplifiée par l'intelligence artificielle</h2>
+
+          <div className="prose prose-slate max-w-none text-muted-foreground leading-relaxed space-y-5 text-[15px]">
+            <p>
+              La <strong className="text-foreground">recherche bibliographique</strong> est l'une des compétences les plus exigeantes de la vie académique. Qu'il s'agisse d'un mémoire de master, d'une thèse de doctorat, d'un article soumis à une revue à comité de lecture ou d'un rapport professionnel, chaque travail sérieux repose sur une bibliographie rigoureuse, complète et correctement formatée. Pourtant, cette étape cruciale est trop souvent bâclée, oubliée ou réalisée à la dernière minute — au risque de pénaliser l'ensemble d'un travail par ailleurs solide.
+            </p>
+
+            <p>
+              Academik est un outil de <strong className="text-foreground">recherche bibliographique par intelligence artificielle</strong>, conçu spécifiquement pour les étudiants et chercheurs francophones. Il automatise les deux étapes les plus chronophages du travail académique : la <strong className="text-foreground">recherche de sources fiables</strong> dans les grandes bases de données académiques (Google Scholar, PubMed, HAL, Cairn.info, ScienceDirect, JSTOR) et la <strong className="text-foreground">génération automatique de la bibliographie</strong> dans le format imposé par votre institution.
+            </p>
+
+            <h3 className="text-xl font-bold text-foreground mt-8 mb-3">Quatre formats de citation couverts</h3>
+
+            <p>
+              Les normes de citation varient selon les disciplines. Academik maîtrise les quatre standards internationaux : le <a href="/bibliographie-apa" className="text-primary hover:underline font-medium">format APA 7</a>, utilisé en sciences sociales, psychologie et sciences de la santé ; la <a href="/bibliographie-vancouver" className="text-primary hover:underline font-medium">norme Vancouver</a>, standard en médecine et sciences biomédicales ; le <a href="/bibliographie-mla" className="text-primary hover:underline font-medium">style MLA 9</a>, référence en littérature et langues ; et le <a href="/bibliographie-chicago" className="text-primary hover:underline font-medium">format Chicago 17</a>, privilégié en histoire et sciences humaines. En quelques secondes, l'outil génère une liste de références parfaitement formatée, sans erreur de ponctuation, d'italique ou d'ordre des éléments.
+            </p>
+
+            <h3 className="text-xl font-bold text-foreground mt-8 mb-3">De la revue de littérature à la synthèse bibliographique</h3>
+
+            <p>
+              Au-delà de la simple génération de références, Academik accompagne la totalité du processus de <strong className="text-foreground">revue de littérature</strong>. L'outil identifie les articles les plus pertinents pour votre sujet, compare les sources entre elles, détecte les convergences et les débats dans la littérature existante, et génère une <strong className="text-foreground">synthèse bibliographique</strong> structurée. Cette fonctionnalité répond directement aux exigences méthodologiques des masters recherche, des doctorats et des publications scientifiques, où l'<em>état de l'art</em> constitue souvent un chapitre à part entière.
+            </p>
+
+            <p>
+              Pour les étudiants en licence ou en master qui rédigent leur premier mémoire, Academik propose également des guides méthodologiques complets sur <a href="/comment-faire-bibliographie" className="text-primary hover:underline font-medium">comment faire une bibliographie</a>, comment structurer une <a href="/recherche-bibliographique" className="text-primary hover:underline font-medium">recherche bibliographique</a> efficace, et comment <a href="/reussir-memoire-master" className="text-primary hover:underline font-medium">réussir son mémoire de master</a> de A à Z.
+            </p>
+
+            <h3 className="text-xl font-bold text-foreground mt-8 mb-3">Un outil pour chaque profil académique</h3>
+
+            <p>
+              Que vous soyez <a href="/etudiant" className="text-primary hover:underline font-medium">étudiant en université</a> cherchant à valider votre mémoire avec une bibliographie irréprochable, <a href="/chercheur" className="text-primary hover:underline font-medium">chercheur</a> soumettant un article à une revue internationale, ou professionnel de la santé devant rédiger un rapport selon les normes Vancouver, Academik s'adapte à vos besoins. L'interface est entièrement en français, les sources francophones (Cairn, HAL) sont pleinement intégrées, et les résultats sont disponibles en moins de trente secondes.
+            </p>
+
+            <p>
+              Le système fonctionne sur un modèle de <strong className="text-foreground">crédits à l'usage</strong>, sans abonnement mensuel : vous payez uniquement les actions effectuées. Un pack Starter de 10 crédits est disponible dès 4,99 €, permettant de tester l'outil sur un premier sujet sans engagement. Les crédits ne expirent pas et sont utilisables aussi bien pour la recherche d'articles, la génération de bibliographies, la création d'équations de recherche booléennes que pour la synthèse de littérature.
+            </p>
+
+            <p>
+              Rejoignez les <strong className="text-foreground">12 000 étudiants et chercheurs</strong> qui utilisent déjà Academik pour accélérer leur travail de recherche — en France, en Belgique, en Suisse, au Canada et dans toute la francophonie.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* SEO Hub — tous les sujets */}
       <section className="py-14 px-4 border-t bg-slate-50/70">
         <div className="max-w-6xl mx-auto">
