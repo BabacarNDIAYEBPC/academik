@@ -391,15 +391,16 @@ export default function Landing() {
               </ul>
             </div>
             <div>
-              <p className="font-semibold mb-3 text-foreground">{t("footer_partner_title")}</p>
+              <p className="font-semibold mb-3 text-foreground">Sites partenaires</p>
               <ul className="space-y-2">
-                <li>
-                  <a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">
-                    {t("footer_partner_link")}
-                  </a>
-                </li>
-                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_login")}</a></li>
-                <li><a href="/connexion" className="text-muted-foreground hover:text-primary transition-colors">{t("footer_register")}</a></li>
+                <li><a href="https://www.redacteurmemoire.com" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">Rédacteur Mémoire</a></li>
+                <li><a href="https://www.redactionvae.com" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">Rédaction VAE</a></li>
+                <li><a href="https://www.redactiontfeinfirmier.com" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">Rédaction TFE Infirmier</a></li>
+                <li><a href="https://www.redactionrapportdestage.fr" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">Rédaction Rapport de Stage</a></li>
+                <li><a href="https://www.excellence-catalane.fr" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">Excellence Catalane</a></li>
+                <li><a href="https://www.marketlens.fr" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">MarketLens</a></li>
+                <li><a href="https://www.investlens.fr" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">InvestLens</a></li>
+                <li><a href="https://www.kemunity.fr" target="_blank" rel="noopener" className="text-muted-foreground hover:text-primary transition-colors">Kemunity</a></li>
               </ul>
             </div>
           </div>
