@@ -1,0 +1,21 @@
+{
+  "appId": "fr.academik.app",
+  "appName": "Academik",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minSdkVersion": 22,
+  "targetSdkVersion": 34,
+  "compileSdkVersion": 34,
+  "playStore": {
+    "category": "EDUCATION",
+    "contentRating": "EVERYONE",
+    "shortDescription": {
+      "fr": "Recherche bibliographique académique par IA",
+      "en": "AI-powered academic bibliography research"
+    },
+    "fullDescription": {
+      "fr": "Academik est l'outil de recherche bibliographique académique propulsé par l'IA. Trouvez des articles sur Google Scholar, PubMed, HAL et Cairn. Générez des bibliographies APA, Vancouver, MLA et Chicago. Analysez et synthétisez vos sources. Disponible en 27 langues.",
+      "en": "Academik is the AI-powered academic bibliography research tool. Find articles on Google Scholar, PubMed, HAL and Cairn. Generate APA, Vancouver, MLA and Chicago bibliographies. Analyze and synthesize your sources. Available in 27 languages."
+    }
+  }
+}

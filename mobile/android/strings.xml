@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Academik Android — Strings de l'application -->
+<resources>
+    <string name="app_name">Academik</string>
+    <string name="title_activity_main">Academik</string>
+    <string name="package_name">fr.academik.app</string>
+    <string name="custom_url_scheme">fr.academik.app</string>
+</resources>

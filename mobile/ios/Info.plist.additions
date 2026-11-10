@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Academik iOS — Additions à Info.plist
+  Copier ces clés dans ios/App/App/Info.plist après `npx cap add ios`
+-->
+<plist version="1.0">
+<dict>
+    <!-- Nom de l'app affiché sous l'icône -->
+    <key>CFBundleDisplayName</key>
+    <string>Academik</string>
+
+    <!-- Identifiant du bundle -->
+    <key>CFBundleIdentifier</key>
+    <string>fr.academik.app</string>
+
+    <!-- Version de l'app -->
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+
+    <!-- Build number -->
+    <key>CFBundleVersion</key>
+    <string>1</string>
+
+    <!-- Langues supportées (27 langues) -->
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>fr</string>
+        <string>en</string>
+        <string>es</string>
+        <string>pt</string>
+        <string>de</string>
+        <string>it</string>
+        <string>ar</string>
+        <string>zh-Hans</string>
+        <string>zh-Hant</string>
+        <string>ja</string>
+        <string>ru</string>
+        <string>tr</string>
+        <string>ko</string>
+        <string>nl</string>
+        <string>pl</string>
+        <string>ro</string>
+        <string>sv</string>
+        <string>hi</string>
+        <string>id</string>
+        <string>uk</string>
+        <string>vi</string>
+        <string>da</string>
+        <string>fi</string>
+        <string>no</string>
+        <string>cs</string>
+        <string>hu</string>
+        <string>el</string>
+        <string>he</string>
+        <string>th</string>
+    </array>
+
+    <!-- Langue par défaut -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>fr</string>
+
+    <!-- URL Scheme pour deep links -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>fr.academik.app</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>fr.academik.app</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- Permissions réseau -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        <key>NSExceptionDomains</key>
+        <dict>
+            <key>academik.fr</key>
+            <dict>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <false/>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+
+    <!-- Orientation supportée -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+
+    <!-- Status bar -->
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleDefault</string>
+
+    <!-- Splash screen -->
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+</dict>
+</plist>
