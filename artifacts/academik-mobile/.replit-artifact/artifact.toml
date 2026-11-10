@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/academik-mobile/"
+title = "Academik Mobile"
+description = "Application native Academik pour iOS et Android : recherche bibliographique, analyse IA, bibliographies, sauvegardes, compte et achats intégrés de crédits."
+version = "1.0.0"
+id = "artifacts/academik-mobile"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/academik-mobile/" ]
+localPort = 22760
+
+[services.development]
+run = "pnpm --filter @workspace/academik-mobile run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/academik-mobile", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/academik-mobile", "run", "serve" ]
+
+[services.env]
+PORT = "22760"
+BASE_PATH = "/academik-mobile/"
