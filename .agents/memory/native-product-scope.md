@@ -15,6 +15,14 @@ comme une acceptation acquise des stores.
 protégées selon leurs droits, et distinguer ce qui est implémenté de ce qui dépend
 des comptes développeur, de leurs déclarations et de la revue des stores.
 
+Le propriétaire dispose d’une adhésion Apple Developer active et d’un compte
+Google Play Console actif.
+
+**Why:** il a confirmé explicitement les deux comptes.
+
+**How to apply:** ne pas redemander leur existence ; vérifier séparément les apps,
+produits, contrats et liaisons RevenueCat, sans demander les mots de passe en chat.
+
 Utiliser un projet RevenueCat dédié à Academik, sans modifier les projets d’autres
 produits présents dans la même connexion.
 
