@@ -46,8 +46,10 @@ async function main() {
   }
 
   stage = "private-key-validation";
-  const suppliedPem = required("APP_STORE_CONNECT_PRIVATE_KEY").replace(/\\r\\n|\\n|\\r/g, "\n");
-  const keyId = required("APP_STORE_CONNECT_KEY_ID");
+  const iap = process.argv.includes("--iap");
+  const suppliedPem = required(iap ? "APP_STORE_IAP_PRIVATE_KEY" : "APP_STORE_CONNECT_PRIVATE_KEY")
+    .replace(/\\r\\n|\\n|\\r/g, "\n");
+  const keyId = required(iap ? "APP_STORE_IAP_KEY_ID" : "APP_STORE_CONNECT_KEY_ID");
   const issuer = required("APP_STORE_CONNECT_ISSUER_ID");
   stage = "key-id-format";
   assert(/^[a-zA-Z0-9]{8,32}$/.test(keyId), "Invalid key ID format");
@@ -65,6 +67,38 @@ async function main() {
   stage = "private-key-curve";
   assert.equal(key.asymmetricKeyType, "ec");
   assert.equal(key.asymmetricKeyDetails?.namedCurve, "prime256v1");
+
+  if (iap) {
+    stage = "revenuecat-in-app-purchase-key";
+    assert.equal(field(before.data.app_store, "app_store_connect_api_key_configured"), true);
+    assert.notEqual(keyId, required("APP_STORE_CONNECT_KEY_ID"), "Expected a distinct In-App Purchase key");
+    const updated = await updateApp({
+      client, path,
+      body: { app_store: {
+        subscription_private_key: pem,
+        subscription_key_id: keyId,
+        subscription_key_issuer: issuer,
+      } },
+    });
+    if (updated.error) {
+      console.error(JSON.stringify({ stage, status: updated.response?.status }));
+      process.exitCode = 1;
+      return;
+    }
+    stage = "revenuecat-in-app-purchase-readback";
+    const after = await getApp({ client, path });
+    assert(!after.error && after.data);
+    assert.equal(field(after.data.app_store, "bundle_id"), bundle);
+    assert.equal(field(after.data.app_store, "app_store_connect_api_key_configured"), true);
+    assert.equal(field(after.data.app_store, "subscription_key_configured"), true);
+    console.log(JSON.stringify({
+      appStoreConnectConfigured: true,
+      inAppPurchaseKeyConfigured: true,
+      productsChanged: false,
+      storePurchaseTested: false,
+    }));
+    return;
+  }
 
   stage = "apple-access-validation";
   const now = Math.floor(Date.now() / 1000);
