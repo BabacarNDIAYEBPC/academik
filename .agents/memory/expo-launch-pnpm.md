@@ -17,11 +17,14 @@ la version majeure distante. Conserver une liste explicite de scripts approuvés
 ne pas autoriser globalement tous les scripts pour contourner un échec.
 
 Le manifeste Expo utilisé à l'export distant peut être normalisé vers la version
-corrective effectivement installée, sans réécrire le specifier du lockfile.
+corrective effectivement installée et classer Expo, React et React Native dans
+les dépendances d'exécution, sans réécrire le lockfile.
 
 **Why:** l'installation initiale réussissait, mais l'export relançait une
-installation figée et refusait un specifier Expo différent entre les deux fichiers.
+installation figée et refusait les différences de specifier ou de section entre
+les deux fichiers. Corriger seulement la version ne couvre pas le classement.
 
 **How to apply:** si les journaux montrent ce décalage, aligner les déclarations
-sur la version déjà résolue, puis vérifier l'installation figée et l'export iOS.
+sur la version déjà résolue et comparer toutes les dépendances attendues dans
+les journaux, y compris leur section, puis vérifier l'installation figée et l'export iOS.
 Ne pas désactiver le lockfile figé pour masquer le problème.
