@@ -23,6 +23,15 @@ Google Play Console actif.
 **How to apply:** ne pas redemander leur existence ; vérifier séparément les apps,
 produits, contrats et liaisons RevenueCat, sans demander les mots de passe en chat.
 
+Le public visé par Academik est « dès 13 ans ». Les tarifs des stores doivent
+reprendre ceux du site.
+
+**Why:** le propriétaire a confirmé ces deux choix.
+
+**How to apply:** préparer les fiches des deux stores avec ce public cible et
+conserver la cohérence tarifaire avec le catalogue web ; remplir séparément les
+questionnaires de classification d’âge et de confidentialité des stores.
+
 Utiliser un projet RevenueCat dédié à Academik, sans modifier les projets d’autres
 produits présents dans la même connexion.
 
