@@ -3,3 +3,4 @@
 - [Portée native](native-product-scope.md) — parité Apple/Android demandée ; ne pas confondre implémentation et acceptation des stores, ni mélanger les projets RevenueCat.
 - [Remboursements de crédits](native-credit-refunds.md) — retrait intégral avec déficit reporté, sans prélèvement d’argent supplémentaire ; choix du propriétaire.
 - [Codegen et aperçu mobile](codegen-metro.md) — le nettoyage du client généré peut laisser Metro avec des imports introuvables malgré des fichiers recréés et un TypeScript valide.
+- [pnpm et Expo Launch](expo-launch-pnpm.md) — les versions locale et distante peuvent différer ; vérifier les autorisations de scripts avec la version de compilation.
