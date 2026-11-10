@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "audit:academik-apple-catalog": "tsx ./src/auditAcademikAppleCatalog.ts",
+    "audit:academik-apple-products": "tsx ./src/auditAcademikAppleProducts.ts",
     "configure:academik-apple": "tsx ./src/configureAcademikApple.ts",
     "hello": "tsx ./src/hello.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"

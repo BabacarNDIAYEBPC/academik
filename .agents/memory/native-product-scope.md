@@ -45,11 +45,26 @@ Conserver la fiche Apple existante avec l’identifiant iOS `app.replit.academik
 Android conserve `fr.academik.app` ; ne pas renommer les identifiants des produits
 d’achat pour simplement les faire ressembler au nouvel identifiant iOS.
 
-**Why:** le propriétaire a explicitement approuvé l’alignement sur son unique fiche
-App Store existante, plutôt que la création d’une deuxième application.
+**Why:** le propriétaire a explicitement approuvé l’alignement sur cette fiche
+App Store, plutôt que la création d’une nouvelle application.
 
 **How to apply:** maintenir la cohérence entre la configuration native, la fiche
 Apple sélectionnée et l’app iOS RevenueCat, sans toucher aux autres produits.
+
+Deux fiches Apple Academik existent effectivement. Le catalogue Apple
+`fr.academik.app` contient déjà les trois consommables
+`fr.academik.app.starter`, `fr.academik.app.essentiel` et `fr.academik.app.pro`.
+La fiche `app.replit.academik`, retenue pour la compilation, n'en contenait aucun
+lors du contrôle direct du catalogue Apple.
+
+**Why:** RevenueCat signalait les produits introuvables sur la fiche courante,
+mais Apple refusait leur création car leurs identifiants étaient déjà utilisés
+sur l'autre fiche. La synchronisation générique ne précisait pas ce conflit.
+
+**How to apply:** ne pas supprimer ni tenter de déplacer ces produits pour
+réutiliser leurs identifiants. Faire choisir au propriétaire entre de nouveaux
+identifiants iOS sur la fiche retenue et une recompilation pour l'autre fiche.
+Ne jamais changer la configuration Android à cause de ce conflit Apple.
 
 Ne pas supposer que la permission générale « read_write » d’une intégration couvre
 tous les scopes RevenueCat, ni qu’une reconnexion ajoute un scope absent.
