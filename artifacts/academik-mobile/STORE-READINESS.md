@@ -8,8 +8,12 @@ Ce document n’est pas une garantie d’acceptation. La validation finale appar
 
 Les offres actuelles sont des **packs ponctuels de crédits consommables** :
 10, 30 et 100 crédits. Aucun abonnement récurrent n’a été inventé.
-Les identifiants des produits sont `fr.academik.app.starter`,
-`fr.academik.app.essentiel`, `fr.academik.app.pro`.
+Sur iOS, les nouveaux identifiants sont `app.replit.academik.starter`,
+`app.replit.academik.essentiel`, `app.replit.academik.pro`.
+Android et le Test Store conservent `fr.academik.app.starter`,
+`fr.academik.app.essentiel`, `fr.academik.app.pro`. Les anciens produits Apple ne
+sont pas supprimés ; leurs identifiants sont déjà réservés par l'autre fiche Apple.
+Une nouvelle compilation iOS est nécessaire pour afficher les nouveaux produits.
 
 ## En place dans le code
 

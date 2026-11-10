@@ -108,7 +108,7 @@ test("refunds, reversals, duplicates, out-of-order delivery, deleted users and c
       const notification = {
         id: randomUUID(), type: "REFUND_REVERSED", event_timestamp_ms: Date.now(),
         app_id: "app13bbfed722", app_user_id: `academik:${uid}`, store: "APP_STORE",
-        environment: "SANDBOX", product_id: "fr.academik.app.starter", transaction_id: txid,
+        environment: "SANDBOX", product_id: "app.replit.academik.starter", transaction_id: txid,
       };
       assert.equal((await post({ ...notification, app_id: "another-project" })).status, 400);
       assert.equal((await post({ ...notification, product_id: "unknown-pack" })).status, 400);

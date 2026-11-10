@@ -53,6 +53,33 @@ async function main() {
         state: p.attributes?.state, name: p.attributes?.name,
       })),
     }));
+    if (process.argv.includes("--create-approved-ios") && app.attributes?.bundleId === "app.replit.academik") {
+      for (const pack of [
+        { suffix: "starter", name: "Starter 10 crédits" },
+        { suffix: "essentiel", name: "Essentiel 30 crédits" },
+        { suffix: "pro", name: "Pro 100 crédits" },
+      ]) {
+        const sku = `app.replit.academik.${pack.suffix}`;
+        if (products.some(p => p.attributes?.productId === sku)) continue;
+        const response = await fetch("https://api.appstoreconnect.apple.com/v2/inAppPurchases", {
+          method: "POST",
+          headers: { authorization: `Bearer ${jwt}`, "content-type": "application/json" },
+          body: JSON.stringify({ data: {
+            type: "inAppPurchases",
+            attributes: { name: pack.name, productId: sku, inAppPurchaseType: "CONSUMABLE" },
+            relationships: { app: { data: { type: "apps", id: app.id } } },
+          } }),
+          signal: AbortSignal.timeout(30_000),
+        });
+        const result = await response.json() as {
+          errors?: { code?: string; title?: string; detail?: string }[];
+        };
+        console.log(JSON.stringify({ sku, status: response.status, errors: result.errors?.map(e => ({
+          code: e.code, title: e.title, detail: e.detail?.slice(0, 800),
+        })) }));
+        if (!response.ok) { process.exitCode = 1; return; }
+      }
+    }
   }
 }
 

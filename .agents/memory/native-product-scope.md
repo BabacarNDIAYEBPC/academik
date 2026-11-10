@@ -62,9 +62,31 @@ mais Apple refusait leur création car leurs identifiants étaient déjà utilis
 sur l'autre fiche. La synchronisation générique ne précisait pas ce conflit.
 
 **How to apply:** ne pas supprimer ni tenter de déplacer ces produits pour
-réutiliser leurs identifiants. Faire choisir au propriétaire entre de nouveaux
-identifiants iOS sur la fiche retenue et une recompilation pour l'autre fiche.
-Ne jamais changer la configuration Android à cause de ce conflit Apple.
+réutiliser leurs identifiants. Ne jamais changer la configuration Android à cause
+de ce conflit Apple.
+
+Le propriétaire a choisi de nouveaux packs iOS sur `app.replit.academik` :
+`app.replit.academik.starter`, `app.replit.academik.essentiel` et
+`app.replit.academik.pro`, pour les mêmes quantités et tarifs que le site.
+Conserver les anciens produits et les identifiants Android/Test Store.
+
+**Why:** ce choix évite le conflit d'identifiants déjà réservés sur l'autre fiche
+Apple, tout en conservant l'identité de la compilation réussie.
+
+**How to apply:** cette exception remplace l'interdiction de renommer les produits
+uniquement pour les nouveaux achats iOS. Maintenir la reconnaissance des anciens
+identifiants et ne pas présenter une configuration de produits comme un achat
+réel testé ni comme une acceptation par Apple.
+
+La lecture de l'état d'un produit depuis RevenueCat peut rester temporairement
+à « not_found » juste après sa création chez Apple.
+
+**Why:** un produit avait été créé dans le catalogue Apple alors que la lecture
+RevenueCat suivante ne le voyait pas encore ; une nouvelle création était refusée.
+
+**How to apply:** avant de recréer ou de renommer un produit après un échec
+ambigu, vérifier le catalogue directement chez Apple et laisser son état se
+propager. Une erreur de synchronisation ne prouve pas l'absence du produit.
 
 Ne pas supposer que la permission générale « read_write » d’une intégration couvre
 tous les scopes RevenueCat, ni qu’une reconnexion ajoute un scope absent.

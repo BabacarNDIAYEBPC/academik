@@ -8,7 +8,14 @@ import { useAuth, useLanguage, errorMessage } from "@/lib/providers";
 import { Screen, Txt, Heading, Card, Button, Notice, AuthGate } from "@/components/UI";
 import { useColors } from "@/hooks/useColors";
 
-const productCredits:Record<string,number>={"fr.academik.app.starter":10,"fr.academik.app.essentiel":30,"fr.academik.app.pro":100};
+const productCredits:Record<string,number>={
+  "app.replit.academik.starter":10,
+  "app.replit.academik.essentiel":30,
+  "app.replit.academik.pro":100,
+  "fr.academik.app.starter":10,
+  "fr.academik.app.essentiel":30,
+  "fr.academik.app.pro":100,
+};
 export default function Billing() {
   const {user}=useAuth();const {t}=useLanguage();const c=useColors();const [packages,setPackages]=useState<PurchasesPackage[]>([]);const [busy,setBusy]=useState("");const [message,setMessage]=useState("");
   const credits=useMobileGetCredits({query:{enabled:!!user,retry:false}});const history=useMobileListTransactions({query:{enabled:!!user,retry:false}});const invoices=useMobileListInvoices({query:{enabled:!!user,retry:false}});
@@ -22,7 +29,7 @@ export default function Billing() {
       if(!await Purchases.isConfigured())Purchases.configure({apiKey:key,appUserID:`academik:${user.id}`});
       else if(await Purchases.getAppUserID()!==`academik:${user.id}`)await Purchases.logIn(`academik:${user.id}`);
       const offers=await Purchases.getOfferings();setPackages((offers.current?.availablePackages||[]).filter(p=>productCredits[p.product.identifier]));
-      if(!offers.current?.availablePackages.length)throw new Error("Les produits du store ne sont pas encore disponibles. Aucun achat ne sera effectué.");
+      if(!offers.current?.availablePackages.some(p=>productCredits[p.product.identifier]))throw new Error("Les produits du store ne sont pas encore disponibles. Aucun achat ne sera effectué.");
     }catch(e){setMessage(errorMessage(e));}finally{setBusy("");}
   };
   useEffect(()=>{void load();},[user?.id]);

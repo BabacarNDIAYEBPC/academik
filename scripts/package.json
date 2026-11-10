@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "configure:academik-ios-metadata": "tsx ./src/configureAcademikIosPackMetadata.ts",
+    "create:academik-ios-packs": "tsx ./src/createAcademikIosPacks.ts",
     "audit:academik-apple-catalog": "tsx ./src/auditAcademikAppleCatalog.ts",
     "audit:academik-apple-products": "tsx ./src/auditAcademikAppleProducts.ts",
     "configure:academik-apple": "tsx ./src/configureAcademikApple.ts",

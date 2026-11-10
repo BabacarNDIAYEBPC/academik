@@ -33,10 +33,14 @@ async function main() {
     const state = await getProductStoreState({
       client, path: { project_id: projectId, product_id: product.id },
     });
+    const common = state.data?.common as {
+      pricing?: { territory_prices?: Record<string, { amount_micros: number; currency: string }> };
+    } | undefined;
     console.log(JSON.stringify({
       sku: product.store_identifier, type: product.type,
       status: state.response?.status,
       storeStatus: state.data?.store_status,
+      francePrice: common?.pricing?.territory_prices?.FR || common?.pricing?.territory_prices?.FRA,
       warnings: state.data?.warnings?.map(safeMessage),
       errorType: state.error?.type,
       errorMessage: safeMessage(state.error?.message),

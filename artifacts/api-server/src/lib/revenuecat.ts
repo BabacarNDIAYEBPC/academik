@@ -8,6 +8,9 @@ import { assertNotRefunded } from "./iapRefunds";
 
 const connectors = new ReplitConnectors();
 const creditsByProduct: Record<string, number> = {
+  "app.replit.academik.starter": 10,
+  "app.replit.academik.essentiel": 30,
+  "app.replit.academik.pro": 100,
   "fr.academik.app.starter": 10,
   "fr.academik.app.essentiel": 30,
   "fr.academik.app.pro": 100,
