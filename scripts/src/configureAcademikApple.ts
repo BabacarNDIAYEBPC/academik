@@ -46,7 +46,7 @@ async function main() {
   }
 
   stage = "private-key-validation";
-  const pem = required("APP_STORE_CONNECT_PRIVATE_KEY").replace(/\\n/g, "\n");
+  const suppliedPem = required("APP_STORE_CONNECT_PRIVATE_KEY").replace(/\\r\\n|\\n|\\r/g, "\n");
   const keyId = required("APP_STORE_CONNECT_KEY_ID");
   const issuer = required("APP_STORE_CONNECT_ISSUER_ID");
   stage = "key-id-format";
@@ -54,7 +54,12 @@ async function main() {
   stage = "issuer-id-format";
   assert(/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(issuer), "Invalid issuer format");
   stage = "private-key-pem-format";
-  assert(pem.startsWith("-----BEGIN PRIVATE KEY-----"), "Expected PKCS8 PEM");
+  const envelope = suppliedPem.match(/^-----BEGIN PRIVATE KEY-----([\s\S]*?)-----END PRIVATE KEY-----$/);
+  assert(envelope, "Expected complete PKCS8 PEM");
+  // Secret forms can flatten line breaks. Rewrap only whitespace; never alter key bytes.
+  const encodedKey = envelope[1].replace(/\s/g, "");
+  assert(/^[A-Za-z0-9+/]+={0,2}$/.test(encodedKey) && encodedKey.length % 4 === 0);
+  const pem = `-----BEGIN PRIVATE KEY-----\n${encodedKey.match(/.{1,64}/g)!.join("\n")}\n-----END PRIVATE KEY-----\n`;
   stage = "private-key-parsing";
   const key = createPrivateKey(pem);
   stage = "private-key-curve";

@@ -4,3 +4,4 @@
 - [Remboursements de crédits](native-credit-refunds.md) — retrait intégral avec déficit reporté, sans prélèvement d’argent supplémentaire ; choix du propriétaire.
 - [Codegen et aperçu mobile](codegen-metro.md) — le nettoyage du client généré peut laisser Metro avec des imports introuvables malgré des fichiers recréés et un TypeScript valide.
 - [pnpm et Expo Launch](expo-launch-pnpm.md) — les versions locale et distante peuvent différer ; vérifier les autorisations de scripts avec la version de compilation.
+- [Saisie des clés Apple](apple-key-input.md) — une saisie de Secret peut aplatir le PEM ; vérifier la mise en forme avant de redemander le fichier.
