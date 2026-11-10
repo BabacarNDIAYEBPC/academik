@@ -15,3 +15,13 @@ accepter le marqueur de cycle de vie propre à pnpm quand son user-agent était 
 l'installation avec lockfile figé dans une copie temporaire des manifests, avec
 la version majeure distante. Conserver une liste explicite de scripts approuvés ;
 ne pas autoriser globalement tous les scripts pour contourner un échec.
+
+Le manifeste Expo utilisé à l'export distant peut être normalisé vers la version
+corrective effectivement installée, sans réécrire le specifier du lockfile.
+
+**Why:** l'installation initiale réussissait, mais l'export relançait une
+installation figée et refusait un specifier Expo différent entre les deux fichiers.
+
+**How to apply:** si les journaux montrent ce décalage, aligner les déclarations
+sur la version déjà résolue, puis vérifier l'installation figée et l'export iOS.
+Ne pas désactiver le lockfile figé pour masquer le problème.
