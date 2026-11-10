@@ -79,3 +79,37 @@ sa soumission Google Play doivent suivre un parcours externe approprié.
 
 L’acceptation appartient aux stores. Aucun test navigateur ni bundle JavaScript
 ne remplace un build signé, les essais sur appareils et la revue Apple/Google.
+
+## État confirmé et prochaine étape propriétaire
+
+- Serveur publié et webhook RevenueCat configuré après prévol authentifié réussi.
+- Comptes développeur Apple et Google confirmés actifs par le propriétaire.
+- Liaisons de service Apple/Google non encore configurées dans RevenueCat.
+- Textes du site mis à jour pour Apple/Google, RevenueCat, effacement et retrait
+  de crédits remboursés : republier cette correction avant la soumission.
+- Icone iOS opaque disponible ; ne pas remplacer l’original Android ou les logos
+  du site. Régénération sans dépendance :
+  `python3 artifacts/academik-mobile/scripts/prepare-ios-icon.py`.
+
+Dans Publishing, commencer le parcours App Store, se connecter à Apple uniquement
+dans son interface sécurisée et conserver `fr.academik.app`. Après l’upload vers
+TestFlight, utiliser la synchronisation RevenueCat/App Store Connect disponible
+dans le parcours de publication, en conservant des produits **consommables**.
+Configurer également la clé In-App Purchase demandée par RevenueCat et les
+notifications Apple vers RevenueCat.
+
+Pour Android, relier les identifiants de service Google Play à l’application
+`fr.academik.app` dans RevenueCat et activer ses notifications serveur. Suivre la
+documentation officielle de création des identifiants de service et de leurs
+permissions ; ne jamais les envoyer dans une capture ou dans le chat.
+
+Référence tarifaire actuelle du catalogue utilisé par le site : Starter 10 crédits
+à 4,99 €, Essentiel 30 crédits à 12,99 €, Pro 100 crédits à 39,99 €. Les tarifs réels des stores
+doivent être confirmés par le propriétaire ; les tarifs simulés de Test Store
+ne valent pas accord pour les prix de vente.
+
+La recette des achats doit utiliser un compte ordinaire distinct de
+l’administration et explicitement autorisé pour la sandbox publiée, afin que
+les éventuels avantages administrateur ne masquent pas les variations du solde.
+Les déclarations de public cible, de confidentialité et les textes juridiques
+restent à valider par le propriétaire avant envoi en revue.

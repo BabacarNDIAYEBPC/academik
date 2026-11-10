@@ -34,7 +34,7 @@ export default function RGPD() {
       <main className="max-w-3xl mx-auto px-4 py-16">
         <h1 className="text-4xl font-bold mb-2">Politique de confidentialité</h1>
         <p className="text-muted-foreground mb-2">Conformément au Règlement Général sur la Protection des Données (RGPD — UE 2016/679)</p>
-        <p className="text-muted-foreground mb-10">Dernière mise à jour : juin 2025</p>
+        <p className="text-muted-foreground mb-10">Dernière mise à jour : 10 novembre 2026</p>
 
         <div className="space-y-10 text-sm leading-relaxed text-foreground">
 
@@ -53,7 +53,7 @@ export default function RGPD() {
             <div className="mt-4 space-y-3">
               <div className="border rounded-lg p-4">
                 <p className="font-semibold">Données de compte</p>
-                <p className="text-muted-foreground mt-1">Nom, prénom, adresse email — collectés lors de la création du compte via Replit Auth.</p>
+                <p className="text-muted-foreground mt-1">Nom, prénom et adresse email — collectés lors de la création et de la vérification du compte.</p>
               </div>
               <div className="border rounded-lg p-4">
                 <p className="font-semibold">Données d'utilisation</p>
@@ -61,7 +61,7 @@ export default function RGPD() {
               </div>
               <div className="border rounded-lg p-4">
                 <p className="font-semibold">Données de paiement</p>
-                <p className="text-muted-foreground mt-1">Historique des transactions (montant, date, pack acheté). Les données de carte bancaire sont traitées exclusivement par Stripe et ne sont jamais stockées par Academik.</p>
+                <p className="text-muted-foreground mt-1">Historique des transactions, packs, crédits, dates et remboursements. Les cartes bancaires sont traitées par Stripe pour les achats web, ou par Apple et Google pour les achats dans leurs applications. Academik ne stocke pas les numéros de carte. RevenueCat reçoit un identifiant technique associé au compte et les informations d’achat nécessaires à la validation des crédits.</p>
               </div>
               <div className="border rounded-lg p-4">
                 <p className="font-semibold">Données techniques</p>
@@ -102,9 +102,10 @@ export default function RGPD() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td className="border p-3">Données de compte</td><td className="border p-3">Durée du compte + 3 ans</td></tr>
-                  <tr className="bg-muted/30"><td className="border p-3">Données d'utilisation</td><td className="border p-3">3 ans après dernière utilisation</td></tr>
+                  <tr><td className="border p-3">Données de compte</td><td className="border p-3">Pendant l’existence du compte, puis effacées à sa suppression, hors conservation légalement justifiée.</td></tr>
+                  <tr className="bg-muted/30"><td className="border p-3">Recherches et bibliographies sauvegardées</td><td className="border p-3">Jusqu’à leur suppression par l’utilisateur ou à celle du compte.</td></tr>
                   <tr><td className="border p-3">Données de paiement</td><td className="border p-3">10 ans (obligation légale)</td></tr>
+                  <tr className="bg-muted/30"><td className="border p-3">Empreintes techniques des achats mobiles</td><td className="border p-3">Dissociées du compte supprimé, sans nom ni email, aussi longtemps que nécessaire pour empêcher qu’une même transaction soit créditée plusieurs fois.</td></tr>
                   <tr className="bg-muted/30"><td className="border p-3">Logs techniques</td><td className="border p-3">12 mois</td></tr>
                 </tbody>
               </table>
@@ -115,9 +116,11 @@ export default function RGPD() {
             <h2 className="text-xl font-bold mb-3">6. Destinataires des données</h2>
             <p>Vos données peuvent être partagées avec les sous-traitants suivants, dans la limite de leurs missions :</p>
             <ul className="space-y-2 mt-3">
-              <li className="flex gap-2"><span className="text-primary">•</span> <strong>Stripe</strong> — traitement des paiements (USA, Privacy Shield)</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> <strong>OpenAI</strong> — traitement IA des requêtes (USA, clauses contractuelles types)</li>
-              <li className="flex gap-2"><span className="text-primary">•</span> <strong>Replit</strong> — hébergement de l'application (USA, clauses contractuelles types)</li>
+              <li className="flex gap-2"><span className="text-primary">•</span> <strong>Stripe</strong> — traitement des paiements effectués sur le site web.</li>
+              <li className="flex gap-2"><span className="text-primary">•</span> <strong>Apple et Google</strong> — traitement des achats et demandes de remboursement dans leurs stores respectifs, selon leurs propres politiques.</li>
+              <li className="flex gap-2"><span className="text-primary">•</span> <strong>RevenueCat</strong> — validation des achats mobiles, liaison au compte et notification des remboursements ; identifiant technique du compte et métadonnées des achats.</li>
+              <li className="flex gap-2"><span className="text-primary">•</span> <strong>OpenAI</strong> — traitement IA des requêtes et références sélectionnées. Dans l’application native, votre accord est demandé avant leur transmission ; ne transmettez pas de données sensibles.</li>
+              <li className="flex gap-2"><span className="text-primary">•</span> <strong>Replit</strong> — hébergement technique de l’application, de son API et de ses données.</li>
               <li className="flex gap-2"><span className="text-primary">•</span> <strong>Google</strong> — analytiques (optionnel, avec consentement)</li>
             </ul>
             <p className="mt-3 text-muted-foreground">Vos données ne sont jamais vendues à des tiers.</p>
@@ -142,7 +145,7 @@ export default function RGPD() {
               ))}
             </div>
             <p className="mt-4">Pour exercer vos droits, contactez-nous à : <a href="mailto:contact@bpc-ai.com" className="text-primary">contact@bpc-ai.com</a> (objet : [RGPD]). Nous répondons dans un délai maximum de 30 jours.</p>
-            <p className="mt-2">Vous pouvez également supprimer votre compte directement depuis votre tableau de bord (Compte → Supprimer mon compte).</p>
+            <p className="mt-2">Vous pouvez également supprimer votre compte depuis le tableau de bord ou l’application native (Compte → Suppression du compte). Le profil, les recherches sauvegardées et le client RevenueCat sont supprimés, et les sessions sont révoquées. Les exceptions de conservation sont détaillées ci-dessus. Sans réinstaller l’application, vous pouvez utiliser la <a href="/suppression-compte" className="text-primary underline">page de demande de suppression</a>. Apple et Google peuvent conserver les données de paiement dont ils sont responsables selon leurs propres obligations.</p>
             <p className="mt-2">En cas de réponse insatisfaisante, vous pouvez saisir la <strong>CNIL</strong> : <a href="https://www.cnil.fr" target="_blank" rel="noopener" className="text-primary">www.cnil.fr</a></p>
           </section>
 

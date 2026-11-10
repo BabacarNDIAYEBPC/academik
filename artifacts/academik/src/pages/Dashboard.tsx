@@ -211,9 +211,10 @@ export default function Dashboard() {
               <span className="block">Cette action est <strong>irréversible</strong>. Elle supprimera définitivement :</span>
               <ul className="list-disc pl-5 space-y-1 text-sm">
                 <li>Toutes vos recherches et bibliographies sauvegardées</li>
-                <li>Vos crédits non utilisés (sans remboursement)</li>
+                <li>Vos crédits non utilisés ; la suppression ne déclenche pas automatiquement un remboursement</li>
                 <li>Votre compte et vos données personnelles</li>
               </ul>
+              <span className="block">Les conservations légales et empreintes d’achat dissociées du compte sont détaillées dans la politique de confidentialité. Les droits légaux et règles de remboursement Apple/Google restent applicables.</span>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">

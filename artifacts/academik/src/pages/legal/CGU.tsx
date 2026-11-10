@@ -33,7 +33,7 @@ export default function CGU() {
 
       <main className="max-w-3xl mx-auto px-4 py-16 prose prose-sm max-w-none">
         <h1 className="text-4xl font-bold mb-2">Conditions Générales d'Utilisation</h1>
-        <p className="text-muted-foreground mb-10">Dernière mise à jour : juin 2025</p>
+        <p className="text-muted-foreground mb-10">Dernière mise à jour : 10 novembre 2026</p>
 
         <div className="space-y-10 text-sm leading-relaxed text-foreground">
 
@@ -97,7 +97,7 @@ export default function CGU() {
 
           <section>
             <h2 className="text-xl font-bold mb-3">9. Suppression du compte</h2>
-            <p>L'utilisateur peut supprimer son compte à tout moment depuis son tableau de bord (section Compte → Supprimer mon compte). La suppression entraîne la suppression définitive de toutes les données associées au compte, y compris les crédits non utilisés, sans remboursement possible.</p>
+            <p>L’utilisateur peut supprimer son compte depuis son tableau de bord ou l’application native (Compte → Suppression du compte). Le profil, les recherches sauvegardées et le client RevenueCat sont supprimés et les sessions sont révoquées. Certaines données de facturation imposées par la loi et des empreintes techniques d’achats dissociées du compte peuvent être conservées selon la politique de confidentialité. Les crédits restants sont perdus ; la suppression ne déclenche pas automatiquement un remboursement, sans préjudice des droits légaux et des règles du store concerné.</p>
           </section>
 
           <section>

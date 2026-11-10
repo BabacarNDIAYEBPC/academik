@@ -40,6 +40,8 @@ Les identifiants des produits sont `fr.academik.app.starter`,
   signalement d’un résultat IA dans l’application.
 - Icône officielle Academik, identifiants iOS/Android `fr.academik.app`,
   permissions caméra/micro/stockage inutiles bloquées.
+- Variante iOS 1024 × 1024 RGB sans transparence, dérivée de l’icône officielle
+  sans modifier l’original.
 
 ## RevenueCat
 
@@ -61,6 +63,15 @@ Sans ce droit, la suppression échoue explicitement au lieu de prétendre avoir
 supprimé les données conservées chez le fournisseur.
 Le secret serveur est désormais configuré et son droit de suppression a été
 confirmé par une suppression effective du client RevenueCat de recette.
+L’intégration `Academik credit refunds` est maintenant configurée sur
+`https://academik.fr/api/iap/webhook` et le prévol authentifié en production a réussi.
+Elle écoute `cancellation` et `refund_reversed` ; la recette réelle des deux stores
+reste à effectuer après leur liaison.
+
+Le propriétaire a confirmé ses comptes Apple Developer et Google Play Console
+actifs. Les indicateurs RevenueCat de liaison App Store Connect et du compte de
+service Google Play sont encore désactivés : les comptes actifs ne suffisent pas
+à rendre les achats réels disponibles.
 
 ## Vérifications effectuées
 
@@ -97,13 +108,12 @@ hors de cette implémentation native ; sa compilation et la recette API réussis
 3. Relier App Store Connect et les autorisations/service account Google Play dans
    RevenueCat ; vérifier les permissions et la synchronisation des produits.
    Ne jamais envoyer ces clés dans le chat ou les mettre dans le client.
-4. Approuver `IAP_REFUND_POLICY` (`carry_debt` ou `cap_zero`), republier l’API,
-   puis exécuter sa configuration RevenueCat sécurisée décrite dans
-   `PUBLISHING.md`. Le traitement est implémenté et testé, mais aucune notification
-   de production ne doit être déclarée active avant validation de cette connexion.
-5. Publier l’API et le site sur leur origine HTTPS stable. Les builds de production
-   doivent définir `EXPO_PUBLIC_DOMAIN` sur cette origine, **pas le domaine de développement**.
-   Publier la politique complète et l’URL `/suppression-compte` et contrôler leur accessibilité.
+4. `IAP_REFUND_POLICY=carry_debt` est approuvé et le webhook RevenueCat est configuré
+   après validation de l’API publiée. Reste à relier les notifications des deux
+   stores à RevenueCat, puis à valider des remboursements sandbox réels.
+5. L’origine HTTPS stable `https://academik.fr` et `EXPO_PUBLIC_DOMAIN=academik.fr`
+   sont configurées. Republier la dernière correction des textes légaux et vérifier
+   la politique complète ainsi que `/suppression-compte` avant la soumission.
 6. Compléter App Privacy (Apple), Data Safety et Data deletion (Google), en incluant
    compte/e-mail, recherches, achats, OpenAI, RevenueCat, hébergeurs et conservation.
    Faire valider les textes juridiques complets et leur cohérence avec les sous-traitants.

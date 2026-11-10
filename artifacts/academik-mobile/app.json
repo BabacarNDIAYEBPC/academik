@@ -8,6 +8,7 @@
     "scheme": "academik-mobile",
     "userInterfaceStyle": "light",
     "ios": {
+      "icon": "./assets/images/icon-ios.png",
       "supportsTablet": true,
       "bundleIdentifier": "fr.academik.app",
       "buildNumber": "1",
