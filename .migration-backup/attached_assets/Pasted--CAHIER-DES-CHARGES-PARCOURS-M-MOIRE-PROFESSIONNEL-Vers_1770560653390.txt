@@ -1,0 +1,137 @@
+📕 CAHIER DES CHARGES – PARCOURS MÉMOIRE PROFESSIONNEL
+
+Version complète – ajout structurant sans dénaturer l’académique
+
+🎯 1. Objectif du parcours Mémoire professionnel
+
+Permettre à l’étudiant de :
+
+produire un mémoire professionnel conforme aux exigences académiques
+
+ancrer le travail dans une réalité organisationnelle concrète
+
+faire émerger le sujet et la problématique à partir du terrain
+
+conserver la liberté d’approfondir théoriquement (revue de littérature, cadre conceptuel, etc.)
+
+👉 Le logiciel structure le point de départ, mais ne limite pas la recherche.
+
+🧭 2. Logique générale du parcours
+
+Le mémoire commence par la structure (entreprise / organisation / institution)
+
+Cette présentation sert de socle d’observation
+
+À partir de là, le logiciel aide à :
+
+formuler le sujet
+
+construire la problématique
+
+définir les objectifs et hypothèses
+
+Ensuite, le mémoire suit le schéma académique classique
+
+🟧 SECTION 1 — PRÉSENTATION DE LA STRUCTURE
+
+(NOUVELLE SECTION – OBLIGATOIRE)
+
+🎯 Objectif
+
+Contextualiser le terrain professionnel et préparer l’émergence du sujet et de la problématique.
+
+❓ Questions posées à l’étudiant
+Bloc 1 – Identification de la structure
+
+Quel est le nom de la structure ?
+
+Quel est son statut (entreprise, association, institution, établissement public…) ?
+
+En quelle année a-t-elle été créée ?
+
+Quel est son secteur ou domaine d’activité ?
+
+Quelle est sa taille ?
+
+Où est-elle située ?
+
+Quel est son site web ?
+
+Bloc 2 – Activités et missions
+
+Quelle est l’activité principale de la structure ?
+
+Quelles sont ses missions ?
+
+Quels sont ses produits ou services ?
+
+À quels publics ou clients s’adresse-t-elle ?
+
+Bloc 3 – Organisation interne
+
+Comment la structure est-elle organisée ?
+
+Quels sont les principaux services ou pôles ?
+
+Dans quel service ou unité avez-vous évolué ?
+
+Quel est le rôle de ce service dans la structure globale ?
+
+Bloc 4 – Positionnement de l’étudiant
+
+Quel était votre rôle au sein de cette structure ?
+
+Quelles missions vous ont été confiées ?
+
+Quels outils, méthodes ou dispositifs avez-vous utilisés ?
+
+Quelles problématiques ou difficultés avez-vous observées ?
+
+🧠 Sortie IA attendue
+
+Texte structuré : Présentation de la structure
+
+Style académique professionnel
+
+Texte exploitable directement dans le mémoire
+
+Base logique pour la suite (problématique)
+
+⚙️ Option facultative
+
+Souhaitez-vous enrichir cette présentation (données chiffrées, contexte sectoriel, enjeux) ?
+OUI / NON
+
+🟧 SECTION 2 — ÉMERGENCE DU SUJET ET DE LA PROBLÉMATIQUE
+
+(SECTION CLÉ AJOUTÉE)
+
+🎯 Objectif
+
+Passer du terrain à la réflexion académique.
+
+❓ Questions posées
+
+Quelle problématique professionnelle avez-vous identifiée dans la structure ?
+
+Dans quel service ou contexte précis s’inscrit-elle ?
+
+Pourquoi cette problématique est-elle importante ?
+
+Quels sont les enjeux pour la structure ?
+
+Pourquoi ce sujet mérite-t-il une analyse approfondie ?
+
+🧠 Sortie IA attendue
+
+Proposition de :
+
+sujet de mémoire
+
+question de départ
+
+problématique formulée académiquement
+
+objectifs du mémoire
+
+hypothèses (si exigées)

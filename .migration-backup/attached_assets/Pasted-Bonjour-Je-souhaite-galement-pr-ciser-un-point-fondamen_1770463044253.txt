@@ -1,0 +1,77 @@
+Bonjour,
+
+Je souhaite également préciser un point **fondamental** concernant la section **Collecte**, qui nécessite une correction structurelle et fonctionnelle.
+
+---
+
+### 1. Scinder la section Collecte en deux modules distincts
+
+La section **Collecte** doit être **clairement scindée en deux sections indépendantes** :
+
+* **Questionnaire**
+* **Guide d’entretien**
+
+Chaque section doit :
+
+* Avoir son **propre statut (payé / non payé)**
+* Être **activée ou grisée indépendamment**, selon le paiement
+* Se comporter comme les autres modules payants de la plateforme
+
+---
+
+### 2. Problème actuel dans le module Questionnaire
+
+Actuellement, dans **Questionnaire**, le système :
+
+* Ne fournit pas le **formulaire de questionnaire**
+* Génère à la place des **réponses inventées**
+* Produit un **résumé de questionnaire en tableau**, ce qui n’est pas attendu à ce stade
+
+👉 **Ce comportement est incorrect.**
+
+---
+
+### 3. Comportement attendu – Questionnaire
+
+Le module **Questionnaire** doit uniquement produire :
+
+* ✅ **Le questionnaire lui-même**
+* ✅ **Uniquement les questions**
+* ✅ En fonction des **types de questions sélectionnés** par l’utilisateur (ouverte, fermée, échelle, etc.)
+* ✅ Un **document Word**
+* ✅ **Bien designé, propre, clair et professionnel**
+* ❌ Aucune réponse inventée
+* ❌ Aucun résumé
+* ❌ Aucun tableau d’analyse
+
+👉 À ce stade, on est dans la **collecte**, pas dans l’analyse.
+
+---
+
+### 4. Même logique pour le Guide d’entretien
+
+Le module **Guide d’entretien** doit suivre **exactement la même logique** :
+
+* Générer **uniquement le guide d’entretien**
+* Contenir **uniquement les questions**
+* Fournir un **document Word bien structuré et designé**
+* Ne générer **aucune réponse**, **aucune synthèse**, **aucune interprétation**
+
+---
+
+### 5. Logique globale à respecter
+
+* **Collecte = outils de recueil de données**
+* **Pas d’analyse**
+* **Pas de réponses générées**
+* **Pas de tableaux de synthèse**
+* Les réponses, analyses et résumés doivent intervenir **uniquement dans les modules Analyse / Rédaction**, lorsqu’ils sont payés
+
+Merci de corriger cette partie afin que :
+
+* La structure des modules soit claire
+* Le parcours utilisateur soit cohérent
+* Les livrables correspondent à la logique académique réelle
+
+Cordialement,
+Babacar Ndiaye

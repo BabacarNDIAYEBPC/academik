@@ -1,0 +1,361 @@
+🧩 PAN 2/4 — MODULES 11 À 13
+
+(RÉDACTION ASSISTÉE • BIBLIOGRAPHIE • EXPORTS)
+
+📘 MODULE 11 — RÉDACTION ASSISTÉE (OPTIONNEL MAIS STRATÉGIQUE)
+11.0 Objectif
+
+Accompagner l’utilisateur dans la rédaction académique de son travail sans jamais rédiger à sa place.
+
+👉 Ce module sert à :
+
+améliorer la qualité rédactionnelle,
+
+garantir le niveau académique attendu,
+
+sécuriser la forme (style, clarté, cohérence),
+
+respecter les normes exigées par les établissements.
+
+11.1 Principe fondamental (NON NÉGOCIABLE)
+
+❌ Pas de rédaction intégrale automatique
+
+✅ Assistance à la reformulation, à la structuration et à l’amélioration
+
+✅ L’utilisateur reste auteur du contenu
+
+11.2 Données d’entrée (pré-remplies automatiquement)
+
+Selon la section depuis laquelle l’utilisateur accède au module :
+
+Section concernée (ex. Introduction, Analyse, Discussion, Conclusion)
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Plan validé
+
+Données issues :
+
+de la revue de littérature
+
+de l’analyse des données
+
+des tableaux méthodologiques
+
+⚠️ Tous ces éléments sont injectés automatiquement, sans ressaisie.
+
+11.3 Bloc Variables & Options (replié par défaut)
+Variables utilisées
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Partie du plan concernée
+
+Niveau académique
+
+Options IA
+
+Reformuler
+
+Clarifier
+
+Structurer
+
+Améliorer le style
+
+Vérifier la cohérence avec le plan
+
+11.4 Fonctions de rédaction assistée
+11.4.1 Reformulation académique
+
+À partir d’un texte fourni par l’utilisateur :
+
+reformulation plus académique
+
+amélioration de la syntaxe
+
+correction du registre (neutre, scientifique)
+
+👉 Sans ajout de contenu nouveau.
+
+11.4.2 Clarification & fluidité
+
+simplification des phrases complexes
+
+suppression des lourdeurs
+
+amélioration de la lisibilité
+
+11.4.3 Structuration du texte
+
+proposition de paragraphes logiques
+
+meilleure articulation des idées
+
+cohérence interne avec :
+
+le plan
+
+la problématique
+
+les hypothèses
+
+11.4.4 Contrôle de cohérence méthodologique
+
+vérification que le texte :
+
+répond bien à la problématique
+
+ne contredit pas les hypothèses
+
+respecte la logique méthodologique
+
+11.5 Normes de mise en forme (paramétrables)
+
+Paramètres sélectionnables :
+
+Police : Times New Roman
+
+Taille : 12
+
+Interligne :
+
+1
+
+1,15
+
+1,5
+
+Alignement : justifié
+
+👉 Ces paramètres influencent les exports, pas l’éditeur interne.
+
+11.6 Workflow & sauvegarde
+
+autosave
+
+historique des versions
+
+statut par section :
+
+brouillon
+
+retravaillé
+
+prêt à exporter
+
+envoyé au tuteur (déclaratif)
+
+📘 MODULE 12 — BIBLIOGRAPHIE
+12.0 Objectif
+
+Centraliser, vérifier et exporter une bibliographie conforme, cohérente avec :
+
+les sources sélectionnées,
+
+les citations utilisées,
+
+la norme exigée.
+
+12.1 Sources de la bibliographie (automatique)
+
+La bibliographie est construite à partir :
+
+des articles sélectionnés dans la Revue de littérature
+
+des articles utilisés dans le Cadre conceptuel
+
+des documents importés par l’utilisateur
+
+👉 Aucune saisie manuelle obligatoire.
+
+12.2 Norme bibliographique
+Norme par défaut
+
+APA 7
+
+Bouton “Changer de norme”
+
+Normes disponibles :
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+👉 Le changement de norme doit :
+
+modifier la bibliographie
+
+ET mettre à jour les citations dans le texte
+
+rester cohérent sur l’ensemble du projet
+
+12.3 Vérification de cohérence (fonction clé)
+
+Fonction automatique :
+
+détection des citations présentes dans le texte
+
+vérification de leur présence dans la bibliographie
+
+détection :
+
+sources citées non listées
+
+sources listées non citées
+
+Résultat :
+
+liste d’alertes
+
+suggestions de correction
+
+12.4 Organisation & filtres
+
+Fonctionnalités :
+
+filtrer par :
+
+type de source (article, ouvrage, rapport)
+
+année
+
+auteur
+
+trier alphabétiquement
+
+regrouper par :
+
+cadre conceptuel
+
+revue de littérature
+
+discussion
+
+12.5 Export bibliographie
+
+Formats autorisés :
+
+Word (.docx)
+
+⚠️ Pas de PDF (aligné avec revue et cadre conceptuel).
+
+12.6 Workflow & versions
+
+historique des modifications
+
+changement de norme journalisé
+
+version finale verrouillable
+
+📘 MODULE 13 — EXPORTS
+13.0 Objectif
+
+Permettre à l’utilisateur d’exporter tout ou partie de son travail, à tout moment, dans des formats exploitables.
+
+13.1 Types d’exports disponibles
+
+Formats :
+
+Word (.docx) — obligatoire
+
+PDF (.pdf)
+
+PowerPoint (.pptx)
+
+13.2 Périmètre d’export
+
+L’utilisateur peut exporter :
+
+une section précise
+
+ex. : introduction seule
+
+cadre conceptuel
+
+méthodologie
+
+plusieurs sections combinées
+
+l’intégralité du document
+
+13.3 Règles d’export (OBLIGATOIRES)
+
+respect strict du plan validé
+
+respect des normes typographiques choisies
+
+pagination automatique
+
+table des matières (si export complet)
+
+intégration :
+
+bibliographie finale
+
+annexes (si sélectionnées)
+
+13.4 Exports intermédiaires (travail en cours)
+
+Possibilité d’export :
+
+“version de travail”
+
+“version à envoyer au tuteur”
+
+“version finale”
+
+👉 Chaque export est :
+
+horodaté
+
+archivé
+
+lié à un statut du workflow
+
+13.5 Export PowerPoint (préparation soutenance)
+
+Lien direct avec le module 14 :
+
+reprise automatique du plan
+
+1 slide par section
+
+titres + points clés
+
+pas de texte long
+
+13.6 Sécurité & quotas
+
+les exports consomment :
+
+soit des actions IA
+
+soit un quota spécifique (paramétrable)
+
+blocage si quota dépassé
+
+proposition d’achat de surplus
+
+13.7 Historique
+
+liste des exports réalisés
+
+format
+
+date
+
+version associée

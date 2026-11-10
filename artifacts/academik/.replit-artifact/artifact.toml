@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Academik"
+description = "Site Academik existant : recherche bibliographique, fiches de lecture et synthèses académiques."
+version = "1.0.0"
+id = "artifacts/academik"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21072
+
+[services.development]
+run = "pnpm --filter @workspace/academik run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/academik", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/academik/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21072"
+BASE_PATH = "/"

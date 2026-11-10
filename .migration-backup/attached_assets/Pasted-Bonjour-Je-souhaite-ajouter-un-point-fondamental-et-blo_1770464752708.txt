@@ -1,0 +1,158 @@
+Bonjour,
+
+Je souhaite ajouter un point **fondamental et bloquant** concernant le **système de sauvegarde**, la **persistance des résultats** et l’**organisation des sections**, qui doit être corrigé sur **l’ensemble du logiciel, sans exception**.
+
+---
+
+### 1. Système de sauvegarde globale (obligatoire dans toutes les sections)
+
+👉 **Dans toutes les sections du logiciel, sans aucune exception**, tout résultat généré doit être **automatiquement sauvegardé**.
+
+Concrètement :
+
+* Lorsqu’un résultat est généré dans une section (texte, document, tableau, graphique, etc.)
+* Si l’utilisateur **change de section**, puis **revient**,
+  👉 **le résultat doit toujours être présent**
+
+⚠️ Le résultat ne doit disparaître **que si l’utilisateur décide volontairement** :
+
+* de lancer une **nouvelle recherche**
+* ou de **générer un nouveau document**
+
+---
+
+### 2. Problème actuel constaté
+
+Actuellement :
+
+* Je génère un document
+* Je quitte la section
+* En revenant, **la recherche ou le document a disparu**
+
+👉 Cela se produit notamment dans :
+
+* la **Revue de littérature**
+* la **Simulation**
+* d’autres sections de génération
+
+Ce comportement est **anormal** et doit être corrigé.
+
+---
+
+### 3. Mise en place d’un système d’archivage par section
+
+Il est indispensable de mettre en place un **système d’archivage des recherches et générations**, **dans chaque section**.
+
+Chaque section doit permettre :
+
+* de retrouver les **documents générés**
+* avec :
+
+  * **date**
+  * **heure**
+  * **type de génération**
+* d’ouvrir à nouveau un document déjà généré
+* de conserver un **historique clair**
+
+👉 Exemple :
+
+* Revue de littérature → historique des revues générées
+* Méthodologie → historique des méthodologies
+* Questionnaire → historique des questionnaires
+* Simulation → historique des simulations
+
+---
+
+### 4. Refonte de la section Simulation (scission en deux modules)
+
+La section **Simulation** doit être scindée en **deux modules distincts** :
+
+#### a) Simulation financière
+
+👉 **Nom proposé :** *Simulation financière*
+👉 **Contenu :**
+
+* Tableaux financiers
+* Simulations chiffrées
+* Calculs dynamiques
+
+👉 **Prix proposé : 29 €**
+
+---
+
+#### b) Analyse & visualisation des données
+
+👉 **Nom proposé :** *Analyse et visualisation des données*
+(ou *Tableaux et graphiques dynamiques*)
+
+👉 **Contenu :**
+
+* Tableaux croisés dynamiques
+* Graphiques
+* Exploitation visuelle des données
+
+👉 **Prix proposé : 25 €**
+
+Chaque module doit :
+
+* être **désactivé par défaut**
+* s’activer **uniquement après paiement**
+* avoir son **historique propre**
+
+---
+
+### 5. Refonte de la partie Questionnaire (dépouillement)
+
+Le **Questionnaire** doit également être scindé clairement entre :
+
+#### a) Questionnaire (collecte)
+
+👉 **Nom :** *Questionnaire – Collecte*
+👉 **Fonction :**
+
+* Génération des questions uniquement
+* Document Word
+  👉 **Déjà défini**
+
+---
+
+#### b) Exploitation du questionnaire
+
+👉 **Nom proposé :**
+
+* *Dépouillement du questionnaire*
+  ou
+* *Analyse des réponses au questionnaire*
+
+👉 **Fonction :**
+
+* Exploitation des réponses
+* Analyse
+* Tableaux / graphiques
+
+👉 **Prix proposé : 29 €**
+
+👉 Ce module doit être :
+
+* **désactivé**
+* **inaccessible**
+* activé **uniquement après paiement**
+
+---
+
+### 6. Règle globale à respecter
+
+* Toute génération = **sauvegarde automatique**
+* Changement de section = **aucune perte de données**
+* Historique accessible dans chaque module
+* Modules scindés = **droits + prix indépendants**
+* Tout ce qui n’est pas payé reste **grisé et inaccessible**
+
+Merci de corriger ces points afin d’assurer :
+
+* une vraie continuité de travail
+* une expérience utilisateur professionnelle
+* une logique académique et logicielle cohérente
+
+Cordialement,
+Babacar Ndiaye

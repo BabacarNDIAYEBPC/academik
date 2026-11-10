@@ -1,0 +1,101 @@
+🎓 PROMPT IA – TFE INFIRMIER (STRUCTURE ACADÉMIQUE CONFORME)
+
+Contexte : TFE Infirmier (France / Belgique / Suisse)
+
+Repenser la section Fondements en la scindant en deux sous-sections distinctes et cohérentes :
+
+🔹 SECTION 1 – SITUATION D’APPEL
+
+Cette section doit permettre à l’étudiant de construire une situation d’appel infirmière réelle et académique, à partir de son vécu.
+
+Deux modes doivent être possibles :
+
+Mode 1 – Import direct
+
+L’étudiant peut importer ou coller directement une situation d’appel déjà rédigée
+
+L’IA reformule si nécessaire pour la rendre académiquement correcte, claire et professionnelle
+
+Mode 2 – Construction guidée (formulaire intelligent)
+
+Mettre en place un questionnaire progressif, avec des questions qui apparaissent une par une, afin d’aider l’étudiant à formuler sa situation d’appel.
+
+Exemple de questions (ordre logique obligatoire) :
+
+Quelle est la situation que vous avez vécue et qui vous a marqué(e) ? (stage ou contexte professionnel)
+
+Dans quel service et quel contexte de soins cette situation s’est-elle déroulée ?
+
+Quel était votre rôle en tant qu’étudiant(e) infirmier(ère) à ce moment-là ?
+
+Quels faits précis vous ont interpellé(e) ou questionné(e) ?
+
+Qu’avez-vous ressenti face à cette situation ?
+
+En quoi cette situation vous a-t-elle posé un problème professionnel, éthique, relationnel ou organisationnel ?
+
+Quelles difficultés ou limites avez-vous observées dans la prise en charge ?
+
+Pourquoi cette situation mérite-t-elle, selon vous, une réflexion approfondie ?
+
+À partir des réponses fournies, générer automatiquement une situation d’appel complète, rédigée :
+
+dans un style académique infirmier
+
+clair, structuré, fluide
+
+conforme aux attentes d’un TFE infirmier
+
+Aucune analyse théorique à ce stade.
+
+🔹 SECTION 2 – CONSTRUCTION DU SUJET (À PARTIR DE LA SITUATION D’APPEL)
+
+À partir exclusivement de la situation d’appel validée, générer :
+
+Le sujet de TFE infirmier (clair, ciblé, professionnel)
+
+La question de départ (question centrale infirmière)
+
+Les hypothèses de recherche (adaptées au niveau TFE)
+
+Des questionnements infirmiers secondaires
+
+Tous les éléments générés doivent être :
+
+modifiables par l’étudiant
+
+formulés dans un langage infirmier académique
+
+cohérents avec la situation d’appel
+
+Ne pas générer :
+
+de cadre théorique
+
+de revue de littérature
+
+de méthodologie
+
+Cette section sert uniquement à passer du vécu à la problématique infirmière.
+
+🎯 OBJECTIF GLOBAL
+
+Permettre à l’étudiant infirmier :
+
+de partir de son vécu réel
+
+de structurer correctement sa réflexion
+
+de respecter la méthodologie attendue d’un TFE infirmier
+
+sans confusion entre situation d’appel, analyse et théorie
+
+Le rendu final doit être :
+
+académique
+
+clair
+
+exploitable tel quel dans un TFE
+
+conforme aux attentes des IFSI / écoles de soins infirmiers

@@ -1,0 +1,301 @@
+📘 MODULE — OFFRES, PAIEMENT & ABONNEMENTS
+Objectif
+
+Permettre aux utilisateurs :
+
+de souscrire à une offre,
+
+d’upgrader / downgrader,
+
+de gérer facturation, renouvellement, factures,
+
+d’activer une période d’essai,
+
+et de débloquer des fonctionnalités (ex : nombre d’analyses, mappings, projets, exports).
+
+1. Offres (Plans)
+
+Chaque plan définit au minimum :
+
+nombre de projets actifs
+
+nombre de générations IA / mois (ou crédits)
+
+nombre d’articles analysables / mois
+
+accès aux modules (ex : confrontation, mapping, export Word)
+
+capacité de stockage documents
+
+niveau de support (standard / prioritaire)
+
+Exemple de statuts compte :
+
+Essai (Trial)
+
+Actif (Payé)
+
+Expiré
+
+Annulé
+
+Suspendu
+
+2. Paiement
+
+Moyens de paiement proposés :
+
+Stripe (recommandé)
+
+Revolut (possible selon intégration disponible)
+
+Fonctions :
+
+Souscrire
+
+Upgrade / downgrade
+
+Annuler
+
+Renouveler
+
+Voir l’historique de paiement
+
+Télécharger facture (si disponible via prestataire)
+
+3. Écran “Billing” côté utilisateur
+
+Contenu :
+
+Offre actuelle
+
+Date de souscription
+
+Prochaine date de renouvellement
+
+Statut (essai/payant/annulé)
+
+Historique factures / paiements
+
+Bouton “Changer d’offre”
+
+Bouton “Mettre à jour le moyen de paiement”
+
+📘 RÈGLE — LIMITES D’USAGE IA (QUOTAS) : OUI, À METTRE
+Pourquoi c’est nécessaire
+
+Même si “c’est l’IA qui génère”, ton coût réel dépend :
+
+longueur des réponses (tokens)
+
+nombre d’actions (analyser/confronter/mapping)
+
+documents importés + contexte
+
+👉 Donc oui : il faut un système de quota, sinon tu perds le contrôle des coûts.
+
+Comment le faire simplement (recommandé)
+
+Deux options (tu peux commencer par la 1) :
+
+Option A — Crédits IA (le plus simple)
+
+Chaque action consomme des “crédits” :
+
+Résumé d’un article = X crédits
+
+Analyse d’un article = Y crédits
+
+Confrontation = Z crédits
+
+Mapping = Z+ crédits
+
+Le plan = crédits mensuels + reset.
+
+Option B — Limite de mots / pages (en plus)
+
+Tu peux ajouter :
+
+longueur max par réponse (ex : 300 / 600 / 1200 mots)
+
+nombre de pages exportables par mois
+
+👉 Je recommande : Crédits IA en priorité, et limite de longueur seulement si nécessaire.
+
+Paramétrage utilisateur (facultatif)
+
+Tu peux permettre à l’utilisateur de choisir une préférence :
+
+Sortie courte / standard / détaillée
+
+Mais ce n’est pas obligatoire en V1.
+
+📘 ESPACE SUPER ADMIN (TOI) — CONSOLE D’ADMINISTRATION
+Objectif
+
+Te donner la main sur :
+
+les offres
+
+les paiements
+
+les quotas IA
+
+la clé OpenAI (si tu fournis une clé plateforme)
+
+la gestion des comptes (essai/payant)
+
+l’observabilité (logs, erreurs, consommation)
+
+1. Gestion des utilisateurs
+
+Liste avec filtres :
+
+Nom
+
+Prénom
+
+Email
+
+Date de création
+
+Dernière connexion
+
+Statut (Essai / Payant / Expiré / Annulé / Suspendu)
+
+Offre actuelle
+
+Date de début abonnement
+
+Date de renouvellement
+
+Nombre de projets
+
+Consommation IA (crédits / mois)
+
+Actions admin :
+
+changer l’offre
+
+prolonger essai
+
+suspendre / réactiver
+
+réinitialiser mot de passe (ou forcer reset)
+
+ajouter des crédits manuellement
+
+exporter la liste (CSV)
+
+2. Gestion des offres (Plans)
+
+CRUD plans :
+
+nom du plan
+
+prix
+
+durée (mensuel / annuel)
+
+limites :
+
+projets
+
+crédits IA
+
+analyses / mois
+
+confrontations / mois
+
+mappings / mois
+
+exports Word / mois
+
+stockage
+
+modules activés / désactivés
+
+contenu marketing (étiquette : “le plus populaire”)
+
+3. Gestion paiement (Stripe/Revolut)
+
+Fonctions :
+
+état des paiements (réussi / échec)
+
+historique transaction par utilisateur
+
+factures (si Stripe)
+
+webhooks (réception événements paiement)
+
+4. Paramétrage IA (OpenAI)
+Mode 1 — Utilisateur fournit sa clé
+
+stocker la clé de manière sécurisée (ou ne pas la stocker si possible)
+
+activer/désactiver l’option “clé perso”
+
+Mode 2 — Plateforme fournit la clé (toi)
+
+Dans Super Admin :
+
+clé OpenAI globale (stockée en secret)
+
+modèle IA par défaut
+
+limites par requête (max tokens de sortie)
+
+règles globales (ex : pas de PDF en revue)
+
+prompts système globaux (templates)
+
+logs d’erreurs IA
+
+5. Logs & audit (recommandé)
+
+journal des actions (paiement, upgrade, export, analyse)
+
+erreurs IA (timeout, token limit)
+
+temps de réponse par module
+
+📌 APIs à prévoir : faut-il en mettre d’autres ?
+Indispensables (si tu monétises + IA)
+
+Paiement : Stripe (le plus standard) + Revolut si possible
+
+IA : OpenAI
+
+Email transactionnel : (optionnel mais conseillé) pour confirmations paiement / reset
+
+Pas nécessaire en V1
+
+d’autres APIs compliquées
+
+un système bancaire custom
+
+👉 Donc : Stripe + OpenAI suffisent pour une V1 propre.
+Revolut peut être ajouté si Hostinger/no-code le gère bien, sinon tu risques d’alourdir.
+
+✅ Ma recommandation finale (simple et solide)
+
+Oui : module Paiement + Billing
+
+Oui : Super Admin
+
+Oui : quotas IA (crédits mensuels)
+
+Oui : Stripe en priorité
+
+Optionnel : Revolut (si intégration facile)
+
+Optionnel : réglage “sortie courte/standard/détaillée”
+
+Si tu veux, je peux te proposer :
+
+3 offres (Essai / Pro / Premium) avec quotas cohérents
+
+la structure exacte des tables (Users, Subscriptions, Usage, Plans, Payments)
+
+les règles de blocage quand crédits = 0 (upgrade, acheter pack, attendre reset)

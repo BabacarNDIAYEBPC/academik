@@ -1,0 +1,196 @@
+Bonjour,
+
+Je souhaite également **insister fortement** sur la **qualité des rendus**, des **exports** et sur la **logique de paiement par pack ou par module**, qui doivent être irréprochables.
+
+---
+
+### 9. Qualité des rendus, mise en page et standardisation du design (HTML / Word)
+
+Tous les résultats générés par la plateforme, ainsi que **tous les documents exportés**, doivent être :
+
+* **Très bien rendus visuellement**
+* Avec une **mise en page HTML soignée**
+* Un **design propre, lisible et académique**
+* Des **espacements cohérents**, une hiérarchie claire du texte
+
+⚠️ **Le rendu doit être strictement standardisé dans toutes les sections de la plateforme.**
+Il ne doit pas y avoir de différence de design entre les modules (Questionnaire, Revue, Méthodologie, etc.).
+
+👉 Toutes les pages générées doivent :
+
+* Suivre **une charte graphique unique**
+* Avoir une **structure homogène** (titres, sous-titres, paragraphes, listes)
+* Respecter les **normes académiques** (lisibilité, sobriété, clarté)
+* Être immédiatement **acceptables dans un cadre universitaire** (Mémoire, TFE, VAE)
+
+Il est indispensable que :
+
+* Les **champs de texte puissent être étirés ou raccourcis** facilement
+* Le contenu soit **modifiable, lisible et exploitable**
+* Le texte soit parfois **structuré avec des titres**, sous-titres, et **légèrement mis en valeur**
+* L’utilisation de **quelques couleurs sobres** (surlignage léger, titres, sections) soit possible, sans jamais nuire au cadre académique
+
+👉 Le rendu ne doit pas être brut ou monotone : il doit être **agréable à lire**, **académiquement crédible**, **cohérent sur l’ensemble des sections** et **prêt à être retravaillé** par l’étudiant.
+
+---
+
+### 10. Logique Pack Mémoire / TFE / VAE – Fondations complètes
+
+Le **Pack Mémoire / TFE / VAE – Fondations complètes** à **179 €** doit pouvoir être **sélectionné et payé en une seule fois**, avec l’activation complète de toutes les fonctionnalités incluses.
+
+**Contenu du pack :**
+
+* 1 projet actif
+* Paramétrage complet intelligent
+* Sujet / Problématique / Hypothèses
+* Plan académique structuré
+* Cadre conceptuel (concepts + schémas)
+* Équations de recherche
+* Revue de littérature (recherche, sélection, filtrage)
+* Méthodologie complète
+* Workflow & historique
+* Sauvegarde automatique
+* Export Word par section
+* Quota IA : **20 000 mots**
+
+👉 Lorsque le **pack est payé**, **toutes les sections incluses doivent être activées automatiquement**.
+
+---
+
+### 11. Logique de paiement scindé par module
+
+Il doit également être possible de proposer un **paiement scindé par fonctionnalité**, par exemple :
+
+* Sujet / Problématique / Hypothèses
+* Plan académique
+* Cadre conceptuel
+* Revue de littérature
+* Méthodologie
+
+Dans ce cas :
+
+* Chaque module a **son propre prix**
+* **Seul le module payé s’active**
+* Tous les autres modules restent **strictement grisées et inaccessibles**
+
+👉 Si un utilisateur sélectionne plusieurs modules et que **le total dépasse le prix du pack**, il doit être :
+
+* Soit **redirigé vers le pack**
+* Soit informé clairement que le **pack est plus avantageux**
+
+---
+
+### 12. Règle fondamentale à respecter
+
+* **Paiement par module → activation du module uniquement**
+* **Paiement du pack → activation complète**
+* **Aucune activation partielle incohérente**
+* **Tout ce qui n’est pas payé reste grisé et inaccessible**
+
+Merci de veiller à la cohérence globale :
+
+* UX
+* logique de paiement
+* activation des fonctionnalités
+* **standardisation du design**
+* qualité des rendus et des exports
+
+---
+
+Je vous transmets également une **proposition de tarification par module**, cohérente avec le **Pack Mémoire / TFE / VAE – Fondations complètes (179 €)**, afin de permettre une intégration claire côté produit et paiement.
+
+---
+
+## Proposition de tarification par module (paiement à l’unité)
+
+### 1. Sujet / Problématique / Hypothèses — **29 €**
+
+* Définition du sujet
+* Problématique académique
+* Hypothèses de recherche
+  👉 Activation uniquement de ce module
+
+---
+
+### 2. Plan académique structuré — **25 €**
+
+* Plan logique et académique
+* Adapté au niveau (Licence / Master / TFE / VAE)
+  👉 Activation uniquement du plan
+
+---
+
+### 3. Cadre conceptuel (concepts + schémas) — **35 €**
+
+* Définitions des concepts clés
+* Relations entre concepts
+* Schémas explicatifs
+  👉 Module à forte valeur académique
+
+---
+
+### 4. Revue de littérature — **49 €**
+
+* Recherche bibliographique
+* Sélection et filtrage
+* Structuration thématique
+  👉 Module le plus chronophage, justifiant le prix
+
+---
+
+### 5. Méthodologie complète — **39 €**
+
+* Type de recherche
+* Population / échantillon
+* Outils de collecte
+* Méthodes d’analyse
+  👉 Indispensable pour la validation académique
+
+---
+
+### 6. Questionnaire (Collecte – module indépendant) — **25 €**
+
+* Génération du questionnaire
+* Questions uniquement
+* Document Word bien structuré
+  👉 Pas de réponses générées
+
+---
+
+### 7. Guide d’entretien (Collecte – module indépendant) — **25 €**
+
+* Guide d’entretien qualitatif
+* Questions uniquement
+* Document Word professionnel
+  👉 Pas d’analyse ni interprétation
+
+---
+
+## Total si tout est sélectionné individuellement
+
+👉 **227 €**
+
+➡️ **Supérieur au Pack à 179 €**, ce qui :
+
+* incite naturellement à choisir le Pack
+* rend le Pack clairement plus avantageux
+
+---
+
+## Règles de logique à appliquer
+
+* Paiement **par module** → **seul le module payé s’active**
+* Tous les autres modules restent **grisées et inaccessibles**
+* Paiement du **Pack 179 €** → **activation complète de tous les modules**
+* Si la somme des modules sélectionnés dépasse **179 €**, proposer automatiquement le **Pack**
+
+---
+
+Cette grille permet :
+
+* une lecture claire pour l’utilisateur
+* une logique business saine
+* une cohérence UX / paiement / activation
+
+Cordialement,
+Babacar Ndiaye

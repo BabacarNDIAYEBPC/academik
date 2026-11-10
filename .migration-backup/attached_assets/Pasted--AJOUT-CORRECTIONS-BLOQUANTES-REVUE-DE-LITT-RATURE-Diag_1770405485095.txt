@@ -1,0 +1,195 @@
+📘 AJOUT & CORRECTIONS BLOQUANTES — REVUE DE LITTÉRATURE
+
+(Diagrammes, équations de recherche, historique persistant)
+
+1. Section « Diagrammes & illustrations » — Dysfonctionnement critique
+Problème constaté
+
+Les fonctionnalités suivantes ne fonctionnent pas actuellement :
+
+Schéma de synthèse
+
+Schéma de confrontation
+
+Carte de mapping
+
+Les boutons :
+
+moulinent dans le vide
+
+déclenchent plusieurs chargements simultanés
+
+n’affichent aucun résultat exploitable
+
+Décision fonctionnelle OBLIGATOIRE
+
+Deux options possibles (choix technique à trancher) :
+
+OPTION A — Fonctionnalités réparées
+
+Si la génération visuelle est techniquement fiable :
+
+conserver :
+
+schéma de synthèse
+
+schéma de confrontation
+
+carte de mapping
+
+chaque génération doit :
+
+s’exécuter isolément
+
+afficher le résultat dans un popup dédié
+
+exports autorisés :
+
+image (PNG / JPG)
+
+Word (.docx)
+
+❌ Pas de PDF dans la revue de littérature
+
+OPTION B — Fonctionnalités désactivées
+
+Si la génération visuelle ne peut pas être garantie :
+
+👉 SUPPRIMER intégralement ces boutons de la V1.
+
+⚠️ Il est interdit de laisser des fonctionnalités visibles non fonctionnelles.
+
+2. Équations de recherche — Bouton dédié (OBLIGATOIRE)
+Problème constaté
+
+Absence de bouton clair pour générer les équations
+
+Génération visuelle instable
+
+Exigence fonctionnelle
+
+Ajouter un bouton unique :
+
+🔘 « Générer les équations de recherche »
+Sorties attendues (V1)
+
+Génération en texte uniquement
+
+Contenu :
+
+termes-clés principaux
+
+synonymes
+
+équation(s) complète(s)
+
+Langue :
+
+français
+
+anglais
+
+ou les deux (selon paramétrage)
+
+Export autorisé
+
+Word (.docx) uniquement
+❌ Pas de PDF
+❌ Pas d’image
+
+3. Revue de littérature — Historique & sauvegarde persistante (BLOQUANT)
+Problème critique
+
+Les recherches disparaissent dès que l’utilisateur :
+
+ferme l’application
+
+quitte l’onglet
+
+change de section
+
+Exigence NON NÉGOCIABLE
+
+Toutes les recherches doivent être automatiquement sauvegardées et persistantes.
+
+4. Bouton « Historique des recherches » (AJOUT OBLIGATOIRE)
+
+Ajouter dans la section Revue de littérature un bouton visible :
+
+🔘 « Historique des recherches »
+Fonctionnement du bouton
+
+Au clic :
+
+ouverture d’un panneau latéral ou d’une page dédiée
+
+affichage de la liste des recherches passées
+
+Contenu de chaque entrée d’historique
+
+date et heure
+
+plateformes utilisées
+
+équation(s) de recherche
+
+filtres appliqués
+
+nombre de résultats
+
+articles sélectionnés
+
+Actions disponibles
+
+Pour chaque recherche :
+
+🔄 Revenir à cette recherche (restauration complète)
+
+📄 Dupliquer la recherche
+
+🗑️ Supprimer la recherche
+
+👉 La restauration doit remettre l’utilisateur exactement dans l’état précédent
+(résultats, filtres, sélections).
+
+5. Contenu archivé automatiquement
+
+Chaque recherche conserve :
+
+plateformes sélectionnées
+
+équations de recherche
+
+paramètres de langue
+
+filtres (année, type de source)
+
+résultats affichés
+
+articles sélectionnés
+
+analyses générées
+
+confrontations effectuées
+
+👉 Sans aucune action manuelle.
+
+6. Principe directeur — Revue de littérature
+
+Un bouton = une action visible
+
+Aucune action silencieuse
+
+Aucune perte de données
+
+Historique accessible à tout moment
+
+✅ SYNTHÈSE
+
+Diagrammes : réparer ou supprimer
+
+Équations : bouton texte + Word
+
+Historique : bouton dédié, restauration complète
+
+Sauvegarde automatique obligatoire

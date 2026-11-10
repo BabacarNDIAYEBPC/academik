@@ -1,0 +1,147 @@
+📘 ESPACE SUPER ADMIN (TOI) — CONSOLE D’ADMINISTRATION
+Objectif
+
+Te donner la main sur :
+
+les offres
+
+les paiements
+
+les quotas IA
+
+la clé OpenAI (si tu fournis une clé plateforme)
+
+la gestion des comptes (essai/payant)
+
+l’observabilité (logs, erreurs, consommation)
+
+1. Gestion des utilisateurs
+
+Liste avec filtres :
+
+Nom
+
+Prénom
+
+Email
+
+Date de création
+
+Dernière connexion
+
+Statut (Essai / Payant / Expiré / Annulé / Suspendu)
+
+Offre actuelle
+
+Date de début abonnement
+
+Date de renouvellement
+
+Nombre de projets
+
+Consommation IA (crédits / mois)
+
+Actions admin :
+
+changer l’offre
+
+prolonger essai
+
+suspendre / réactiver
+
+réinitialiser mot de passe (ou forcer reset)
+
+ajouter des crédits manuellement
+
+exporter la liste (CSV)
+
+2. Gestion des offres (Plans)
+
+CRUD plans :
+
+nom du plan
+
+prix
+
+durée (mensuel / annuel)
+
+limites :
+
+projets
+
+crédits IA
+
+analyses / mois
+
+confrontations / mois
+
+mappings / mois
+
+exports Word / mois
+
+stockage
+
+modules activés / désactivés
+
+contenu marketing (étiquette : “le plus populaire”)
+
+3. Gestion paiement (Stripe/Revolut)
+
+Fonctions :
+
+état des paiements (réussi / échec)
+
+historique transaction par utilisateur
+
+factures (si Stripe)
+
+webhooks (réception événements paiement)
+
+4. Paramétrage IA (OpenAI)
+Mode 1 — Utilisateur fournit sa clé
+
+stocker la clé de manière sécurisée (ou ne pas la stocker si possible)
+
+activer/désactiver l’option “clé perso”
+
+Mode 2 — Plateforme fournit la clé (toi)
+
+Dans Super Admin :
+
+clé OpenAI globale (stockée en secret)
+
+modèle IA par défaut
+
+limites par requête (max tokens de sortie)
+
+règles globales (ex : pas de PDF en revue)
+
+prompts système globaux (templates)
+
+logs d’erreurs IA
+
+5. Logs & audit (recommandé)
+
+journal des actions (paiement, upgrade, export, analyse)
+
+erreurs IA (timeout, token limit)
+
+temps de réponse par module
+
+📌 APIs à prévoir : faut-il en mettre d’autres ?
+Indispensables (si tu monétises + IA)
+
+Paiement : Stripe (le plus standard) + Revolut si possible
+
+IA : OpenAI
+
+Email transactionnel : (optionnel mais conseillé) pour confirmations paiement / reset
+
+Pas nécessaire en V1
+
+d’autres APIs compliquées
+
+un système bancaire custom
+
+👉 Donc : Stripe + OpenAI suffisent pour une V1 propre.
+Revolut peut être ajouté si Hostinger/no-code le gère bien, sinon tu risques d’alourdir.

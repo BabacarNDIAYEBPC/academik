@@ -1,0 +1,490 @@
+FONCTIONNALITÉS DE LA PLATEFORME
+Une plateforme méthodologique intelligente pour construire un travail académique solide, étape par étape.
+
+La plateforme accompagne l’utilisateur sans jamais écrire à sa place, en respectant les normes académiques et les attentes des jurys.
+
+Chaque section est indépendante, mais interconnectée, et peut être achetée à la carte.
+
+🧱 LES 5 SECTIONS PRINCIPALES
+1️⃣ Fondement méthodologique
+
+(Sujet – Problématique – Hypothèses)
+
+Génération du sujet uniquement, ou :
+
+sujet + problématique
+
+sujet + problématique + hypothèses
+
+Respect strict des niveaux d’étude
+
+Séparation claire :
+
+sujet
+
+problématique
+
+hypothèses
+
+Régénération possible :
+
+version similaire
+
+version alternative
+
+Modification manuelle à tout moment
+
+Historique des versions
+
+👉 Base indispensable de tout travail académique.
+
+2️⃣ Plan du travail
+
+Génération d’un plan académique structuré
+
+Conforme aux exigences :
+
+Mémoire
+
+TFE
+
+Rapport de stage
+
+Numérotation académique propre (1.1 / 1.1.1…)
+
+Plan visuellement clair, prêt pour Word
+
+Possibilité de :
+
+modifier
+
+régénérer
+
+valider
+
+Export Word
+
+👉 Garantit la cohérence globale du travail.
+
+3️⃣ Cadre conceptuel
+
+Identification de 3 concepts clés
+
+Définitions académiques
+
+Lien concepts ↔ problématique ↔ hypothèses
+
+Génération de structures claires (sans rédaction finale)
+
+Possibilité de schémas conceptuels (si activé)
+
+Export Word
+
+👉 Pose les bases théoriques du raisonnement.
+
+4️⃣ Revue de littérature (outil de recherche avancé)
+
+Recherche sur :
+
+Google Scholar
+
+PubMed
+
+Cairn
+
+HAL
+
+autres bases
+
+Génération des équations de recherche
+
+en français
+
+en anglais
+
+ou les deux
+
+Résultats affichés comme un moteur de recherche
+
+auteur
+
+titre
+
+année
+
+source
+
+lien
+
+Analyse des articles :
+
+un par un
+
+plusieurs
+
+confrontation
+
+Historique des recherches sauvegardé
+
+Export bibliographie :
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+Export Word
+
+👉 L’outil central pour une recherche académique sérieuse.
+
+5️⃣ Méthodologie de recherche
+
+Proposition du type de méthodologie :
+
+qualitative
+
+quantitative
+
+mixte
+
+Cohérence automatique avec :
+
+problématique
+
+hypothèses
+
+Définition :
+
+population cible
+
+outils de collecte
+
+phase méthodologique
+
+limites
+
+Structure prête à être intégrée au mémoire
+
+Export Word
+
+👉 Sécurise la validité scientifique du travail.
+
+💳 PRICING — TARIFICATION MODULAIRE
+Choisissez uniquement ce dont vous avez besoin.
+💡 PRINCIPE DU PRICING
+
+Prix de base = accès à la plateforme
+
+Chaque section est activable individuellement
+
+Le prix s’ajuste automatiquement selon les options choisies
+
+🔓 PRIX DE BASE — Accès plateforme
+
+19 €
+Inclut :
+
+création de projet
+
+paramétrage académique
+
+sauvegarde automatique
+
+accès au tableau de bord
+
+export Word basique
+
+🧩 PRIX PAR SECTION (AU CHOIX)
+Section	Prix
+Fondement (Sujet / Problématique / Hypothèses)	29 €
+Plan du travail	19 €
+Cadre conceptuel	19 €
+Revue de littérature	39 €
+Méthodologie de recherche	29 €
+➕ OPTIONS SUPPLÉMENTAIRES (FACULTATIVES)
+
+Ces options peuvent être cochées dans le formulaire et modifient automatiquement le prix.
+
+Option	Supplément
+Régénération illimitée	+9 €
+Analyse & confrontation d’articles	+15 €
+Équations de recherche multilingues	+9 €
+Historique avancé & versions	+9 €
+Export multi-normes (APA, Vancouver, MLA, Chicago)	+9 €
+📋 FORMULAIRE DE CHOIX (LOGIQUE À IMPLÉMENTER)
+Étape 1 — Accès
+
+☐ Accès plateforme — 19 €
+
+Étape 2 — Sélection des sections
+
+☐ Fondement — 29 €
+☐ Plan — 19 €
+☐ Cadre conceptuel — 19 €
+☐ Revue de littérature — 39 €
+☐ Méthodologie — 29 €
+
+Étape 3 — Options
+
+☐ Régénération illimitée
+☐ Analyse avancée
+☐ Équations multilingues
+☐ Historique avancé
+☐ Exports multi-normes
+
+👉 Total mis à jour en temps réel
+
+🎓 PACKS SUGGÉRÉS (OPTIONNEL)
+Pack Essentiel — 59 €
+
+Fondement
+
+Plan
+
+Pack Recherche — 99 €
+
+Fondement
+
+Plan
+
+Revue de littérature
+
+Méthodologie
+
+Pack Complet — 129 €
+
+Toutes les sections
+
+Options essentielles incluses
+
+✅ POSITIONNEMENT CLAIR
+
+Pas de rédaction clé en main
+
+Pas de triche académique
+
+Un assistant méthodologique intelligent
+
+Un outil sérieux pour étudiants et professionnels
+
+Si tu veux, prochaine étape possible :
+
+🔹 transformer ce pricing en UX (maquette formulaire)
+
+🔹 ajuster les prix selon B2C / B2B
+
+🔹 rédiger la page “Pourquoi nous ?” pour le site
+
+et cette section de pricing devra etre lié avec ce qui sera montrer dans le logiciel et lui d'ajouter un bouton qui permet de mettre la clé stripe ou révolut pour réceptionner les paiement , si tu peux revolut sinon tu fais stripe
+
+Parfait, on va verrouiller proprement cette partie, à la fois fonctionnelle, commerciale et technique, pour qu’elle soit directement exploitable dans le produit.
+
+Voici LA SECTION À AJOUTER TELLE QUELLE dans ton cahier des charges.
+
+💳 PRICING & PAIEMENT — INTÉGRATION DYNAMIQUE AU LOGICIEL
+
+(Stripe / Revolut — affichage conditionnel des fonctionnalités)
+
+1. Principe fondamental (OBLIGATOIRE)
+
+La section Pricing du site web et le fonctionnement interne du logiciel doivent être strictement synchronisés.
+
+👉 Toute option ou section payée :
+
+est immédiatement activée dans le logiciel
+
+conditionne ce qui est visible, cliquable et utilisable
+
+empêche l’accès aux fonctionnalités non payées
+
+👉 Aucune fonctionnalité payante ne doit être accessible sans paiement validé.
+
+2. Affichage conditionnel des fonctionnalités dans le logiciel
+Règle générale
+
+Dans le logiciel :
+
+Les sections non achetées :
+
+apparaissent grisées
+
+affichent un badge « Non activé »
+
+affichent un bouton « Activer cette section »
+
+Les sections achetées :
+
+sont entièrement accessibles
+
+affichent le contenu et les boutons IA correspondants
+
+Exemple concret
+
+Si l’utilisateur achète :
+
+Fondement
+
+Plan
+
+👉 Il peut :
+
+générer sujet / problématique / hypothèses
+
+générer et modifier le plan
+
+👉 Les sections :
+
+Revue de littérature
+
+Méthodologie
+
+Cadre conceptuel
+
+sont visibles mais verrouillées, avec appel à l’upgrade.
+
+3. Lien direct entre Pricing & UI (BLOQUANT)
+
+Chaque section du logiciel doit :
+
+connaître son statut d’activation
+
+afficher dynamiquement :
+
+les boutons actifs
+
+ou le message d’activation
+
+👉 Le pricing pilote l’interface, pas l’inverse.
+
+4. Bouton « Activer / Ajouter une option » (UPSELL)
+
+Dans chaque section verrouillée :
+
+Bouton visible
+
+🔘 « Activer cette fonctionnalité »
+
+Au clic :
+
+ouverture du formulaire de choix
+
+sélection :
+
+de la section
+
+des options associées
+
+affichage du prix mis à jour en temps réel
+
+5. Paiement — Intégration Stripe / Revolut
+Solution recommandée
+
+👉 Revolut Payments (prioritaire)
+👉 Stripe (fallback / alternative)
+
+6. Paramétrage du paiement (OBLIGATOIRE)
+
+Dans les paramètres administrateur / compte, ajouter une section :
+
+« Configuration des paiements »
+
+Champs requis :
+
+Sélecteur du prestataire :
+
+Revolut
+
+Stripe
+
+Selon le choix :
+
+Revolut
+
+Clé API publique Revolut
+
+Clé API secrète Revolut
+
+Stripe
+
+Clé publique Stripe
+
+Clé secrète Stripe
+
+👉 Ces clés doivent être :
+
+modifiables à tout moment
+
+stockées de manière sécurisée
+
+utilisées pour tous les paiements de la plateforme
+
+7. Processus de paiement (FLUX UTILISATEUR)
+
+L’utilisateur sélectionne :
+
+une ou plusieurs sections
+
+des options supplémentaires
+
+Le prix total s’actualise automatiquement
+
+L’utilisateur clique sur « Payer et activer »
+
+Paiement via :
+
+Revolut (priorité)
+
+Stripe (si Revolut non configuré)
+
+Paiement validé :
+
+fonctionnalités activées immédiatement
+
+UI mise à jour sans rechargement
+
+accès instantané aux boutons IA
+
+8. Historique des paiements & factures
+
+Dans le compte utilisateur :
+
+Historique des achats
+
+Sections activées
+
+Options actives
+
+Factures téléchargeables
+
+9. Sécurité & conformité
+
+Paiement traité exclusivement par Stripe ou Revolut
+
+Aucune donnée bancaire stockée sur la plateforme
+
+Journalisation des activations
+
+10. Principe directeur (À METTRE EN AVANT)
+
+Ce que l’utilisateur paie détermine exactement ce qu’il peut utiliser.
+
+Pas de surprise
+
+Pas de fonctionnalités fantômes
+
+Pas de paiement inutile
+
+✅ SYNTHÈSE
+
+Pricing connecté au produit réel
+
+Affichage conditionnel des sections
+
+Bouton d’activation contextuel
+
+Revolut prioritaire, Stripe en alternative
+
+Activation immédiate après paiement

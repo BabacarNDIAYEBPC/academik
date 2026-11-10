@@ -1,0 +1,120 @@
+import nodemailer from "nodemailer";
+
+const FROM_NAME = "Academik";
+const REPLY_TO = "contact@academik.fr";
+
+function getTransporter() {
+  const user = process.env.GMAIL_USER;
+  const pass = process.env.GMAIL_APP_PASSWORD;
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: { user, pass },
+  });
+}
+
+async function send(to: string, subject: string, html: string) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn(`[EMAIL] No email provider configured — would send to ${to}: ${subject}`);
+    return;
+  }
+  const from = process.env.GMAIL_USER!;
+  try {
+    await transporter.sendMail({
+      from: `"${FROM_NAME}" <${from}>`,
+      to,
+      replyTo: REPLY_TO,
+      subject,
+      html,
+    });
+    console.log(`[EMAIL] Sent to ${to}: ${subject}`);
+  } catch (err) {
+    console.error("[EMAIL] Gmail error:", err);
+    throw err;
+  }
+}
+
+function baseTemplate(content: string) {
+  return `
+    <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.07);">
+      <div style="background:#7c3aed;padding:24px 32px;">
+        <span style="color:#fff;font-size:20px;font-weight:700;letter-spacing:-0.5px;">📚 Academik</span>
+      </div>
+      <div style="padding:32px;">
+        ${content}
+        <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+        <p style="color:#9ca3af;font-size:12px;margin:0;">Academik — Recherche bibliographique académique<br>Performance Consulting Groupe SAS</p>
+      </div>
+    </div>
+  `;
+}
+
+export async function sendVerificationCode(to: string, code: string, isReset = false) {
+  const subject = isReset ? "Réinitialisation de votre mot de passe - Academik" : "Votre code de vérification Academik";
+  const title = isReset ? "Réinitialisation du mot de passe" : "Vérifiez votre adresse email";
+  const desc = isReset
+    ? "Utilisez ce code pour réinitialiser votre mot de passe. Il expire dans 15 minutes."
+    : "Entrez ce code pour activer votre compte Academik. Il expire dans 15 minutes.";
+
+  const html = baseTemplate(`
+    <h2 style="color:#1e293b;font-size:20px;margin:0 0 8px;">${title}</h2>
+    <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 24px;">${desc}</p>
+    <div style="background:#f5f3ff;border-radius:8px;padding:20px;text-align:center;margin:0 0 24px;">
+      <span style="font-size:36px;font-weight:700;letter-spacing:8px;color:#7c3aed;">${code}</span>
+    </div>
+    <p style="color:#94a3b8;font-size:13px;margin:0;">Si vous n'avez pas demandé ce code, ignorez cet email.</p>
+  `);
+  await send(to, subject, html);
+}
+
+export async function sendWelcomeEmail(to: string, firstName: string) {
+  const html = baseTemplate(`
+    <h2 style="color:#1e293b;font-size:20px;margin:0 0 8px;">Bienvenue sur Academik, ${firstName} !</h2>
+    <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 20px;">
+      Votre compte est prêt. Vous pouvez maintenant rechercher des articles académiques, générer des bibliographies APA et analyser vos sources.
+    </p>
+    <a href="https://academik.fr" style="display:inline-block;padding:12px 24px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;">Commencer ma recherche →</a>
+  `);
+  await send(to, "Bienvenue sur Academik !", html);
+}
+
+export async function sendContactEmail(opts: {
+  name: string;
+  email: string;
+  subject: string;
+  category: string;
+  message: string;
+}) {
+  const html = baseTemplate(`
+    <h2 style="color:#1e293b;font-size:20px;margin:0 0 8px;">Nouveau message de contact</h2>
+    <table style="width:100%;border-collapse:collapse;margin:0 0 20px;">
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;width:120px;">Nom</td><td style="font-weight:600;font-size:14px;">${opts.name}</td></tr>
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;">Email</td><td style="font-weight:600;font-size:14px;"><a href="mailto:${opts.email}" style="color:#7c3aed;">${opts.email}</a></td></tr>
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;">Catégorie</td><td style="font-weight:600;font-size:14px;">${opts.category}</td></tr>
+      <tr><td style="color:#64748b;font-size:13px;padding:6px 0;">Sujet</td><td style="font-weight:600;font-size:14px;">${opts.subject}</td></tr>
+    </table>
+    <div style="background:#f8fafc;border-left:4px solid #7c3aed;border-radius:4px;padding:16px;margin:0 0 20px;">
+      <p style="color:#1e293b;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap;">${opts.message}</p>
+    </div>
+    <a href="mailto:${opts.email}" style="display:inline-block;padding:10px 20px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px;">Répondre à ${opts.name} →</a>
+  `);
+
+  await send(process.env.GMAIL_USER || "contact@bpc-ai.com", `[Contact Academik] ${opts.subject}`, html);
+
+  const confirmHtml = baseTemplate(`
+    <h2 style="color:#1e293b;font-size:20px;margin:0 0 8px;">Votre message a bien été reçu !</h2>
+    <p style="color:#475569;font-size:15px;line-height:1.6;margin:0 0 16px;">
+      Bonjour ${opts.name},<br/>Merci de nous avoir contacté. Nous avons bien reçu votre message et vous répondrons sous <strong>24 heures ouvrées</strong>.
+    </p>
+    <div style="background:#f5f3ff;border-radius:8px;padding:16px;margin:0 0 20px;">
+      <p style="color:#64748b;font-size:13px;margin:0 0 4px;">Votre message :</p>
+      <p style="color:#1e293b;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap;">${opts.message}</p>
+    </div>
+    <p style="color:#94a3b8;font-size:13px;margin:0;">L'équipe Academik</p>
+  `);
+
+  await send(opts.email, "Nous avons bien reçu votre message — Academik", confirmHtml);
+}
+
+export function startAbandonedCartScheduler() {}

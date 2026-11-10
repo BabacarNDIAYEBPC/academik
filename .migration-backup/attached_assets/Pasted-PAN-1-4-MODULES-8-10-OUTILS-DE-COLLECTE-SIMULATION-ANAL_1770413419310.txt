@@ -1,0 +1,882 @@
+PAN 1/4 — MODULES 8 à 10 (OUTILS DE COLLECTE • SIMULATION • ANALYSE DES DONNÉES)
+(Version très détaillée, prête à copier-coller dans le cahier des charges. J’enchaîne ensuite sur Pan 2/4 : modules 11–13, puis Pan 3/4 : 14–16, puis Pan 4/4 : 17.)
+
+📘 MODULE 8 — OUTILS DE COLLECTE DES DONNÉES
+8.0 Objectif
+Permettre à l’utilisateur de construire des instruments de collecte (questionnaire / guide d’entretien) cohérents avec :
+
+
+le sujet
+
+
+la problématique
+
+
+les hypothèses
+
+
+la méthodologie choisie
+
+
+la population cible
+
+
+Le module doit produire des outils prêts à l’emploi, exportables et versionnés.
+
+8.1 Pré-requis & données d’entrée (pré-remplissage)
+Les champs suivants sont pré-remplis automatiquement (si déjà existants) :
+
+
+Sujet (champ dédié)
+
+
+Problématique (champ dédié)
+
+
+Hypothèses (champ dédié)
+
+
+Type de méthode (qualitative / quantitative / mixte)
+
+
+Population cible (si définie dans méthodologie)
+
+
+Zone / contexte (si renseigné)
+
+
+Consignes spécifiques (champ libre, optionnel)
+
+
+👉 Règle : si un champ est vide (ex. hypothèses non définies), l’utilisateur peut le saisir manuellement sans quitter le module.
+
+8.2 Bloc « Variables & options » (replié par défaut)
+
+
+Variables utilisées (Sujet / Problématique / Hypothèses / Population / Méthode)
+
+
+Options IA :
+
+
+Générer
+
+
+Régénérer (similaire / différente)
+
+
+Affiner avec consignes spécifiques
+
+
+Exporter
+
+
+Changer le format (questionnaire / entretien)
+
+
+
+
+⚠️ Les blocs “Variables” et “Options IA” sont repliés par défaut.
+
+8.3 8.1 Questionnaires
+8.3.1 Objectif questionnaire
+Créer un questionnaire structuré qui :
+
+
+mesure des variables liées aux hypothèses
+
+
+permet d’obtenir des résultats exploitables
+
+
+respecte la logique : Question ↔ Hypothèse ↔ Indicateur
+
+
+
+8.3.2 Formulaire de paramétrage questionnaire (obligatoire)
+L’utilisateur doit pouvoir paramétrer (liste + champs) :
+
+
+Type de questionnaire
+
+
+
+
+Satisfaction
+
+
+Diagnostic / état des lieux
+
+
+Évaluation d’un dispositif
+
+
+Mesure d’attitudes / perceptions
+
+
+Autre (champ texte)
+
+
+
+
+Nombre de questions souhaité
+
+
+
+
+10 / 15 / 20 / 25 / 30
+
+
+
+
+Formats de questions (sélection multiple)
+
+
+
+
+QCM
+
+
+Likert (1 à 5 / 1 à 7)
+
+
+Oui/Non
+
+
+Échelle (0 à 10)
+
+
+Question ouverte
+
+
+Classement / ranking
+
+
+Autre
+
+
+
+
+Durée cible
+
+
+
+
+3 min / 5 min / 8 min / 10+ min
+
+
+
+
+Profil répondant (simple)
+
+
+
+
+Étudiant / salarié / patient / usager / manager / autre
+
+
+
+
+Champ « consignes spécifiques » (texte libre)
+(Ex : éviter les questions sensibles, ton neutre, tutoiement/vouvoiement, etc.)
+
+
+
+8.3.3 Génération IA du questionnaire
+Sorties attendues :
+
+
+un questionnaire complet
+
+
+structuré par sections :
+
+
+Profil répondant
+
+
+Contexte
+
+
+Items par hypothèse
+
+
+Conclusion + remerciement
+
+
+
+
+Chaque question doit contenir :
+
+
+ID question (ex : Q1, Q2…)
+
+
+Type de question
+
+
+Hypothèse liée (H1/H2/H3…)
+
+
+Objectif / indicateur mesuré (court)
+
+
+Proposition de modalités (si QCM/Likert)
+
+
+
+8.3.4 Liens question ↔ hypothèse (obligatoire)
+La plateforme doit afficher une table “Traçabilité” :
+
+
+Hypothèse | Indicateur | Questions associées | Type de données
+
+
+Exemple :
+
+
+H1 | Satisfaction | Q3, Q4, Q5 | Likert
+
+
+H2 | Adoption | Q6, Q7 | QCM
+
+
+
+8.3.5 Révision & contrôle utilisateur
+Actions obligatoires :
+
+
+Modifier manuellement une question
+
+
+Supprimer une question
+
+
+Ajouter une question
+
+
+Régénérer :
+
+
+version similaire (même logique)
+
+
+version différente (autres formulations/angles)
+
+
+
+
+
+8.3.6 Export questionnaire
+Boutons d’export (au minimum) :
+
+
+Word (.docx) — obligatoire
+
+
+Google Forms (via template ou export structuré) — optionnel selon faisabilité no-code
+
+
+Export Word doit contenir :
+
+
+page de garde (option)
+
+
+consigne de passation
+
+
+questionnaire numéroté
+
+
+mention anonymat / consentement (option paramétrable)
+
+
+
+8.4 8.2 Guides d’entretien
+8.4.1 Objectif guide d’entretien
+Produire un guide d’entretien qualitatif :
+
+
+adapté au profil interviewé
+
+
+structuré par thèmes
+
+
+incluant relances
+
+
+exploitable immédiatement
+
+
+
+8.4.2 Formulaire de paramétrage entretien (obligatoire)
+Champs :
+
+
+Type d’entretien
+
+
+
+
+Semi-directif (par défaut)
+
+
+Directif
+
+
+Non directif
+
+
+Autre
+
+
+
+
+Durée cible
+
+
+
+
+15 / 30 / 45 / 60 minutes
+
+
+
+
+Nombre de thèmes
+
+
+
+
+3 / 4 / 5
+
+
+
+
+Nombre de questions par thème
+
+
+
+
+3 / 4 / 5
+
+
+
+
+Ton et style
+
+
+
+
+académique / neutre / professionnel
+
+
+
+
+Champ consignes spécifiques (texte libre)
+
+
+
+8.4.3 Contenu généré (structure obligatoire)
+Sorties attendues :
+A) Introduction de l’entretien
+
+
+présentation de l’objectif
+
+
+consentement / anonymat
+
+
+durée estimée
+
+
+droit d’arrêt
+
+
+B) Thèmes d’entretien
+Thème 1
+
+
+Q1 (ouverte)
+
+
+relance 1
+
+
+relance 2
+
+
+relance 3
+
+
+Thème 2
+
+
+Q… + relances
+
+
+C) Conclusion de l’entretien
+
+
+question de clôture
+
+
+remerciements
+
+
+
+8.4.4 Adaptation au profil interviewé (obligatoire)
+Le guide doit s’adapter selon :
+
+
+fonction (ex : manager, infirmier, patient, RH)
+
+
+type de structure (hôpital, entreprise, association)
+
+
+contexte (optionnel)
+
+
+
+8.5 8.3 Paramètres interviewé (obligatoires)
+Lorsqu’un entretien est créé, l’utilisateur doit renseigner :
+
+
+Initiales de l’interviewé (obligatoire)
+
+
+Fonction / poste (obligatoire)
+
+
+Type de structure (obligatoire)
+
+
+Localisation / région (optionnel)
+
+
+Date entretien (optionnel)
+
+
+Notes (optionnel)
+
+
+👉 Ces paramètres sont enregistrés et liés aux verbatims importés au module 10.
+
+8.6 Versions, workflow & sauvegarde (obligatoire)
+
+
+Autosave à chaque modification
+
+
+Historique : génération, modifications, suppression, export
+
+
+Statuts (workflow) disponibles dans le module :
+
+
+Brouillon
+
+
+Généré
+
+
+Modifié
+
+
+Finalisé
+
+
+Exporté
+
+
+Envoyé au tuteur (déclaratif)
+
+
+
+
+
+
+📘 MODULE 9 — SIMULATION D’ENTRETIEN
+9.0 Objectif
+Permettre à l’utilisateur de s’entraîner avant le terrain :
+
+
+tester ses questions
+
+
+identifier les faiblesses
+
+
+améliorer relances
+
+
+obtenir des réponses simulées réalistes
+
+
+
+9.1 Entrées (pré-remplies)
+
+
+Guide d’entretien validé (ou questionnaire si mixte)
+
+
+Profil interviewé (fonction/type structure)
+
+
+Thèmes/questions
+
+
+
+9.2 Mode de simulation
+Deux modes :
+9.2.1 Mode A — Simulation simple (par question)
+
+
+L’utilisateur clique sur une question
+
+
+L’IA génère une réponse plausible
+
+
+L’utilisateur peut :
+
+
+demander une réponse plus courte / plus longue
+
+
+demander une réponse plus critique / plus neutre
+
+
+demander une contradiction (réponse opposée)
+
+
+
+
+9.2.2 Mode B — Simulation complète (entretien entier)
+
+
+L’IA simule l’entretien du début à la fin
+
+
+L’utilisateur peut interrompre et :
+
+
+reformuler une question
+
+
+changer la relance
+
+
+passer à la question suivante
+
+
+
+
+
+9.3 Amélioration des questions (obligatoire)
+Bouton “Améliorer la question” :
+
+
+clarifier
+
+
+éviter biais
+
+
+rendre plus ouverte
+
+
+rendre plus ciblée
+
+
+Bouton “Proposer relances” :
+
+
+3 relances proposées
+
+
+adaptées au profil interviewé
+
+
+
+9.4 Sorties
+
+
+Version améliorée du guide
+
+
+Liste des questions “à risque” :
+
+
+trop fermées
+
+
+biaisées
+
+
+ambiguës
+
+
+redondantes
+
+
+
+
+
+9.5 Export
+
+
+Export Word du guide final amélioré
+
+
+Historique des versions
+
+
+
+
+📘 MODULE 10 — ANALYSE DES DONNÉES
+10.0 Objectif
+Analyser les données collectées, selon deux flux :
+
+
+données qualitatives (entretiens/verbatims)
+
+
+données quantitatives (questionnaires Excel/CSV)
+
+
+Le module doit produire :
+
+
+analyses structurées
+
+
+synthèses exploitables
+
+
+éléments pour discussion + validation/invalidation des hypothèses
+
+
+
+10.1 Données qualitatives
+10.1.1 Entrées
+
+
+Import de verbatims (copier-coller + upload)
+Formats acceptés :
+
+
+texte
+
+
+Word
+
+
+PDF (si possible)
+
+
+éventuellement audio → transcription (option V2)
+
+
+Chaque verbatim doit être associé à :
+
+
+initiales interviewé
+
+
+fonction
+
+
+type de structure
+
+
+date (optionnel)
+
+
+
+10.1.2 Traitements IA (qualitatif)
+Fonctions obligatoires :
+
+
+segmentation par thèmes
+
+
+codage thématique
+
+
+extraction citations clés
+
+
+détection récurrences
+
+
+synthèse par thème
+
+
+L’utilisateur peut choisir :
+
+
+Analyse article par article (entretien par entretien)
+
+
+Analyse globale de tous les entretiens
+
+
+Analyse par hypothèse (H1/H2/H3)
+
+
+
+10.1.3 Sorties (qualitatif)
+
+
+Tableau des thèmes :
+
+
+Thème | codes | citations | interprétation
+
+
+
+
+Synthèse structurée :
+
+
+résultats par thème
+
+
+résultats par hypothèse
+
+
+
+
+Liste des verbatims les plus “porteurs”
+
+
+Export Word (obligatoire)
+
+10.2 Données quantitatives
+10.2.1 Entrées
+Import :
+
+
+Excel / CSV
+
+
+modèle attendu : colonnes = questions, lignes = répondants
+
+
+Option :
+
+
+mapping automatique des colonnes vers hypothèses (si questionnaire généré par l’outil)
+
+
+
+10.2.2 Traitements (quantitatif)
+
+
+nettoyage (détection valeurs manquantes)
+
+
+tableaux croisés dynamiques :
+
+
+par variable
+
+
+par profil répondant
+
+
+par hypothèse
+
+
+
+
+L’utilisateur choisit :
+
+
+filtres (âge, région, groupe, etc.)
+
+
+variables à croiser
+
+
+
+10.2.3 Sorties (quantitatif)
+
+
+tableaux croisés
+
+
+lecture / interprétation IA :
+
+
+tendances
+
+
+écarts significatifs (sans statistiques lourdes en V1)
+
+
+implications
+
+
+
+
+Export Word (obligatoire)
+Export Excel (optionnel)
+
+10.3 Confrontation résultats ↔ revue (préparation discussion)
+Fonction dédiée :
+
+
+“Confronter mes résultats avec ma revue de littérature”
+Sorties :
+
+
+convergences
+
+
+divergences
+
+
+explications possibles
+
+
+apports du terrain
+
+
+
+10.4 Validation / invalidation hypothèses (obligatoire)
+Le module doit produire une section :
+
+
+H1 : validée / invalidée / nuancée
+
+
+H2 : validée / invalidée / nuancée
+
+
+H3 : validée / invalidée / nuancée
+
+
+
+
+justification (résultats + verbatims + quanti)
+
+
+
+10.5 Sauvegarde, workflow et versions
+
+
+autosave
+
+
+historique des imports
+
+
+versions d’analyse
+
+
+statuts par section (workflow transversal)

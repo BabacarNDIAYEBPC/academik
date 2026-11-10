@@ -1,0 +1,156 @@
+📘 REVUE DE LITTÉRATURE — AFFICHAGE DES RÉSULTATS, ANALYSE & EXPORTS
+
+(Spécification fonctionnelle)
+
+1. Affichage des résultats (OBLIGATOIRE)
+
+Les résultats trouvés doivent être affichés immédiatement sous le formulaire de recherche de la revue de littérature.
+
+👉 Aucun texte rédigé de revue de littérature n’est affiché par défaut.
+
+2. Présentation des résultats (format liste)
+
+Chaque résultat (article / ouvrage) doit être affiché sous forme de liste structurée, contenant obligatoirement :
+
+Nom de l’auteur
+
+Prénom de l’auteur
+
+Titre de l’article / ouvrage
+
+Année de publication
+
+Maison d’édition / revue
+
+Type de document
+
+Plateforme source
+
+Lien cliquable vers l’article
+
+3. Affichage par lots
+
+Les résultats doivent pouvoir être affichés par lots :
+
+10 résultats
+
+20 résultats
+
+30 résultats
+
+50 résultats
+
+Avec boutons :
+
+Suivant
+
+Précédent
+
+4. Filtres & classement des résultats
+
+Les résultats affichés doivent pouvoir être :
+
+filtrés par type d’article / document
+
+filtrés par année de publication
+
+triés selon :
+
+date
+
+type de source
+
+5. Sélection & actions par article
+
+Pour chaque article, proposer :
+
+une case à cocher Sélectionner
+
+un bouton Résumé de l’article
+
+Fonctionnalités disponibles :
+
+générer le résumé d’un article
+
+générer le résumé de plusieurs articles sélectionnés
+
+générer le résumé de tous les articles affichés
+
+6. Confrontation des articles
+
+Fonction dédiée :
+
+sélection de deux ou plusieurs articles
+
+bouton Confronter les articles
+
+Résultat attendu :
+
+analyse comparative des articles sélectionnés
+
+confrontation des approches
+
+mise en évidence des convergences et divergences
+
+7. Exports — Résumés, analyses et confrontations
+Formats d’export disponibles
+
+Word (.docx)
+
+PDF (.pdf)
+
+Contenus exportables
+
+résumé d’un article
+
+résumé de plusieurs articles
+
+analyse d’un article
+
+analyse de plusieurs articles
+
+confrontation des articles sélectionnés
+
+8. Bibliographie & normes
+
+À partir des articles sélectionnés, possibilité d’exporter une bibliographie aux normes :
+
+APA 7
+
+Vancouver
+
+MLA
+
+Chicago
+
+Formats :
+
+Word (.docx)
+
+PDF (.pdf)
+
+9. Export des références sélectionnées
+
+Possibilité d’exporter :
+
+uniquement les références sélectionnées
+
+dans la norme bibliographique choisie
+
+indépendamment des résumés ou analyses
+
+✅ SYNTHÈSE
+
+Résultats affichés sous le formulaire
+
+Présentation type moteur de recherche
+
+Filtres par type et année
+
+Résumés article par article ou en groupe
+
+Confrontation des articles
+
+Exports Word / PDF
+
+Bibliographie multi-normes

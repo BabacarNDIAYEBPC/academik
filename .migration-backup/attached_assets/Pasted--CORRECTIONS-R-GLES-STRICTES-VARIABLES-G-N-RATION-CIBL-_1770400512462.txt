@@ -1,0 +1,166 @@
+📘 CORRECTIONS & RÈGLES STRICTES — VARIABLES, GÉNÉRATION CIBLÉE, EXPORTS & VISUELS
+
+(Spécification obligatoire – applicable à toutes les sections)
+
+1. Règle ABSOLUE — Séparation stricte des variables
+
+Dans toutes les sections disposant d’un bloc Variables utilisées, les champs doivent être strictement séparés :
+
+Champ Sujet → contient uniquement le sujet
+
+Champ Problématique → contient uniquement la problématique
+
+Champ Hypothèses → contient uniquement les hypothèses
+
+👉 Aucune fusion de contenu n’est autorisée.
+👉 Le contenu ne doit jamais être regroupé dans un seul champ.
+
+2. Règle ABSOLUE — Génération ciblée uniquement
+
+Lorsqu’un utilisateur clique sur un bouton de génération,
+👉 l’IA ne doit générer QUE ce qui est explicitement demandé.
+
+Cas obligatoires à respecter
+
+Bouton « Générer le sujet »
+
+➜ génère uniquement le sujet
+
+❌ ne génère pas la problématique
+
+❌ ne génère pas les hypothèses
+
+Bouton « Générer la problématique »
+
+➜ génère uniquement la problématique
+
+Bouton « Générer les hypothèses »
+
+➜ génère uniquement les hypothèses
+
+3. Génération combinée (OPTION CONTRÔLÉE)
+
+La plateforme doit proposer des boutons distincts pour les générations combinées suivantes :
+
+Sujet + problématique
+
+Sujet + problématique + hypothèses
+
+👉 Dans ce cas :
+
+chaque élément généré est automatiquement réparti dans :
+
+le champ Sujet
+
+le champ Problématique
+
+le champ Hypothèses
+
+❌ aucun contenu ne doit rester concentré dans le champ Sujet
+
+4. Répartition automatique après génération groupée
+
+Lorsqu’une génération multiple est effectuée :
+
+le sujet est injecté dans le champ Sujet
+
+la problématique est injectée dans le champ Problématique
+
+les hypothèses sont injectées dans le champ Hypothèses
+
+👉 Cette règle est obligatoire et systématique.
+
+5. Correction fonctionnelle — Export PDF (Revue de littérature)
+Problème identifié
+
+L’export PDF dans la section Revue de littérature ne fonctionne pas correctement.
+
+Exigence
+
+👉 L’export PDF doit fonctionner pour :
+
+bibliographie sélectionnée
+
+résumés d’articles
+
+analyses d’articles
+
+confrontations d’articles
+
+Formats requis :
+
+Word (.docx)
+
+PDF (.pdf)
+
+6. Génération d’illustrations — Revue de littérature (OBLIGATOIRE)
+
+À partir des ouvrages / articles sélectionnés, la plateforme doit permettre :
+
+génération d’illustrations conceptuelles
+
+schémas de synthèse par article
+
+schémas de confrontation entre plusieurs articles
+
+cartes de mapping issues des résultats
+
+👉 Ces visuels doivent être :
+
+affichés à l’écran
+
+exportables (image / PDF)
+
+utilisables dans un mémoire ou une soutenance
+
+7. Génération de graphiques & schémas — Cadre conceptuel
+
+Dans la section Cadre conceptuel, la plateforme doit permettre :
+
+génération de schémas entre concepts
+
+visualisation des relations conceptuelles
+
+graphiques illustrant :
+
+les liens entre concepts
+
+l’articulation concepts ↔ problématique ↔ hypothèses
+
+👉 Ces éléments visuels doivent être :
+
+générés via un bouton dédié
+
+modifiables
+
+exportables (image / PDF / Word)
+
+8. Principe directeur (NON NÉGOCIABLE)
+
+Une action = un résultat ciblé
+
+Un champ = un seul type de contenu
+
+Aucune génération parasite
+
+Aucune fusion implicite
+
+Aucune sortie IA non demandée
+
+👉 L’IA doit obéir à l’intention exacte de l’utilisateur.
+
+✅ SYNTHÈSE CLAIRE
+
+Sujet ≠ Problématique ≠ Hypothèses
+
+Génération strictement ciblée
+
+Générations combinées possibles mais contrôlées
+
+Répartition automatique correcte
+
+Export PDF corrigé
+
+Illustrations obligatoires (revue + cadre conceptuel)
+
+Graphiques et schémas intégrés

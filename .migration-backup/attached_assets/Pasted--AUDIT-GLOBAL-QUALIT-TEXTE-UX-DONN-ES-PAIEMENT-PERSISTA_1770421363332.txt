@@ -1,0 +1,289 @@
+🔍 AUDIT GLOBAL QUALITÉ — TEXTE, UX, DONNÉES, PAIEMENT & PERSISTANCE
+1️⃣ AUDIT LINGUISTIQUE & ENCODAGE FRANÇAIS (PRIORITÉ ABSOLUE)
+❌ Problème constaté
+
+Certains caractères accentués sont affichés sous forme encodée :
+
+m\u00e9moire au lieu de mémoire
+
+hypoth\u00e8se au lieu de hypothèse
+
+g\u00e9n\u00e9rer, \u00e9tat, etc.
+
+👉 Cela décrédibilise immédiatement la plateforme (surtout académique).
+
+✅ Exigences à inscrire dans le cahier des charges
+1.1 Encodage UTF-8 obligatoire
+
+Toute l’application doit être en UTF-8
+
+Frontend + backend + base de données
+
+Aucun encodage JSON brut visible à l’utilisateur
+
+1.2 Audit texte complet (obligatoire avant mise en prod)
+
+À vérifier et corriger :
+
+Menus
+
+Boutons
+
+Labels de champs
+
+Messages système
+
+Titres de sections
+
+Popups
+
+Exports Word / PDF
+
+1.3 Exemples de correction
+
+❌ Importer un fichier m\u00e9moire (\u00e9tat d'avancement)
+✅ Importer un fichier mémoire (état d’avancement)
+
+❌ Hypoth\u00e8ses de recherche
+✅ Hypothèses de recherche
+
+👉 Aucun caractère encodé ne doit apparaître côté utilisateur.
+
+2️⃣ NETTOYAGE DES VARIABLES & FORMULAIRES
+❌ Problème constaté
+
+Présence de #, ###, ou caractères techniques dans les champs
+
+Variables mal affichées dans certaines sections
+
+✅ Règles à appliquer
+2.1 Suppression totale des caractères techniques
+
+Interdiction des #, ###, {}, [] dans :
+
+variables projet
+
+variables section
+
+champs affichés utilisateur
+
+👉 Ces éléments sont strictement internes (dev / IA), jamais visibles.
+
+2.2 Variables propres et lisibles
+
+Chaque variable affichée doit être :
+
+en français
+
+explicite
+
+avec accents corrects
+
+sans jargon technique
+
+Exemples :
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Domaine d’étude
+
+Méthodologie choisie
+
+3️⃣ COHÉRENCE VISUELLE DU MENU (POINTS MARRON)
+❌ Problème constaté
+
+Certains items du menu ont un point marron
+
+D’autres non → incohérence visuelle
+
+✅ Décision UX à appliquer
+
+👉 Tous les items du menu doivent avoir un point marron, de manière uniforme.
+
+Fonction du point marron :
+
+indiquer une section
+
+signaler l’état (optionnel à terme : vide / complété / en cours)
+
+4️⃣ VERROUILLAGE DES SECTIONS NON PAYÉES (OBLIGATOIRE)
+❌ Problème à éviter absolument
+
+Un utilisateur ne doit JAMAIS pouvoir :
+
+ouvrir
+
+générer
+
+accéder
+à une section qu’il n’a pas payée.
+
+✅ Règles de contrôle d’accès
+4.1 Vérification avant accès
+
+Pour chaque section :
+
+vérification côté backend du droit d’accès
+
+pas seulement côté interface
+
+4.2 Comportement attendu
+
+Section non payée :
+
+grisée
+
+non cliquable
+
+ou popup :
+« Cette fonctionnalité n’est pas incluse dans votre offre »
+
+👉 Aucun contournement possible.
+
+5️⃣ PERSISTANCE DES DONNÉES (PROBLÈME MAJEUR)
+❌ Problème constaté
+
+Données générées perdues quand on change de section
+
+Exemple :
+
+simulation d’entretien générée
+
+retour automatique vers Fondement
+
+retour sur Simulation → vide
+
+👉 C’est inacceptable fonctionnellement.
+
+✅ Règles obligatoires
+5.1 Sauvegarde automatique systématique
+
+Toute génération IA
+
+Toute modification utilisateur
+
+Toute simulation
+
+👉 Sauvegarde avant toute redirection.
+
+5.2 Rester dans la section active
+
+Après une action (génération, simulation, analyse) :
+
+ne jamais rediriger automatiquement
+
+rester dans la section courante
+
+5.3 Restauration automatique
+
+Quand l’utilisateur revient dans une section :
+
+afficher la dernière version sauvegardée
+
+jamais une section vide si un travail a déjà été fait
+
+6️⃣ SIMULATION D’ENTRETIEN — LOGIQUE CORRECTE
+❌ Problème actuel
+
+La simulation ne récupère pas les questions
+
+Elle attend une saisie manuelle
+
+Elle se lance en erreur
+
+✅ Fonctionnement attendu (clair et logique)
+6.1 Source des questions (priorité)
+
+La simulation doit récupérer les questions :
+
+du guide d’entretien généré dans la section Collecte
+
+ou d’un guide importé par l’utilisateur
+
+ou d’un guide importé directement dans Simulation
+
+6.2 Champ obligatoire à ajouter
+
+Dans Simulation d’entretien :
+
+Importer un guide d’entretien (Word / PDF)
+
+👉 L’IA :
+
+extrait les questions
+
+lance la simulation
+
+répond à toutes les questions en une seule session
+
+6.3 Aucune re-saisie manuelle forcée
+
+❌ Ne jamais obliger l’utilisateur à retaper les questions
+✅ Toujours récupérer depuis un document existant
+
+7️⃣ SECTION COLLECTE → SIMULATION (LIEN LOGIQUE)
+Règle obligatoire
+
+Si la section Collecte est activée et utilisée :
+
+Simulation doit automatiquement proposer :
+« Utiliser le guide d’entretien existant »
+
+👉 Cohérence + gain de temps + zéro frustration.
+
+8️⃣ PAIEMENT & STRIPE — GUIDAGE SUPERADMIN
+APIs nécessaires (et suffisantes)
+
+Stripe (paiement)
+
+OpenAI (IA)
+
+👉 Pas besoin d’autres APIs pour le MVP.
+
+Superadmin — fonctionnalités à prévoir
+
+Dans le back-office :
+
+gestion des utilisateurs
+
+statut :
+
+essai
+
+payé
+
+quota atteint
+
+gestion des modules achetés
+
+gestion des quotas IA
+
+clé OpenAI
+
+clé Stripe
+
+historique des paiements
+
+date de création de compte
+
+nombre de projets
+
+Stripe — logique simple recommandée
+
+Paiement par module (one-shot)
+
+Webhook Stripe → activation immédiate du module
+
+En cas de non-paiement :
+
+accès bloqué automatiquement
+
+9️⃣ RÈGLE D’OR À INSCRIRE DANS LE CDC
+
+Aucune donnée générée ne doit jamais être perdue.
+Aucune section payante ne doit être accessible sans paiement.
+Aucun texte utilisateur ne doit apparaître encodé.

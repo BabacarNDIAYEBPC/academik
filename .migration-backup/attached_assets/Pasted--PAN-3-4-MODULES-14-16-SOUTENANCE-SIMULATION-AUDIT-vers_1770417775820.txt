@@ -1,0 +1,210 @@
+🔷 PAN 3/4 — MODULES 14 À 16
+
+(SOUTENANCE • SIMULATION • AUDIT — version ultra détaillée, prête à intégrer)
+
+📘 MODULE 14 — POWERPOINT DE SOUTENANCE
+14.0 Objectif
+
+Générer un PowerPoint de soutenance professionnel, clair, structuré, aligné à 100 % avec :
+
+le plan validé,
+
+les résultats réels (analyse quali/quanti),
+
+les hypothèses (validation / invalidation),
+
+les exigences académiques.
+
+👉 Ce module ne crée rien de nouveau : il synthétise ce qui existe déjà.
+
+14.1 Entrées (pré-remplies automatiquement)
+
+Sujet
+
+Problématique
+
+Hypothèses
+
+Plan final validé
+
+Résultats d’analyse (qualitatif / quantitatif)
+
+Synthèse
+
+Conclusion
+
+⚠️ Tous les champs sont pré-remplis ; l’utilisateur peut modifier.
+
+14.2 Structure du PowerPoint (verrouillée)
+
+Nombre de slides ajustable (ex. 10 à 15), structure type :
+
+Page de garde
+
+Contexte & justification du sujet
+
+Problématique & objectifs
+
+Hypothèses
+
+Cadre conceptuel (schéma possible)
+
+Méthodologie
+
+Résultats principaux
+
+Discussion & confrontation avec la littérature
+
+Validation / invalidation des hypothèses
+
+Conclusion & perspectives
+
+14.3 Fonctionnalités
+
+Modifier le contenu de chaque slide
+
+Réorganiser les slides
+
+Ajouter / supprimer une slide
+
+Générer des graphiques depuis :
+
+tableaux croisés
+
+analyses qualitatives
+
+Choisir un thème visuel (sobre académique)
+
+14.4 Exports
+
+PowerPoint (.pptx) — obligatoire
+
+(Optionnel V2) PDF
+
+📘 MODULE 15 — SIMULATION DE SOUTENANCE
+15.0 Objectif
+
+Préparer l’utilisateur à l’oral en simulant :
+
+les questions du jury,
+
+les faiblesses potentielles,
+
+les axes de défense.
+
+15.1 Entrées
+
+PowerPoint de soutenance
+
+Mémoire (ou sections clés)
+
+Type de jury (académique / professionnel / mixte)
+
+15.2 Fonctionnalités principales
+15.2.1 Génération de questions du jury
+
+Questions méthodologiques
+
+Questions théoriques
+
+Questions critiques
+
+Questions sur les limites
+
+15.2.2 Réponses suggérées
+
+Pour chaque question :
+
+proposition de réponse structurée
+
+niveau :
+
+courte
+
+standard
+
+détaillée
+
+15.2.3 Identification des points faibles
+
+sections fragiles
+
+incohérences potentielles
+
+points à clarifier à l’oral
+
+15.3 Mode entraînement
+
+Simulation en continu (Q/R)
+
+Chronométrage optionnel
+
+Historique des questions déjà posées
+
+15.4 Exports
+
+Fiche “Questions probables du jury” (Word)
+
+Fiche “Réponses conseillées” (Word)
+
+📘 MODULE 16 — AUDIT DE MÉMOIRE (POST-RÉDACTION)
+16.0 Objectif
+
+Analyser un mémoire déjà rédigé pour :
+
+identifier forces / faiblesses,
+
+vérifier la cohérence méthodologique,
+
+proposer des axes d’amélioration.
+
+16.1 Entrées
+
+Import du mémoire (Word / PDF)
+
+Option : import du guide méthodologique
+
+Option : import des consignes du tuteur
+
+16.2 Axes d’audit (automatiques)
+16.2.1 Audit structurel
+
+respect du plan
+
+cohérence globale
+
+enchaînement logique
+
+16.2.2 Audit méthodologique
+
+adéquation méthode ↔ problématique
+
+cohérence outils / analyses
+
+validation des hypothèses
+
+16.2.3 Audit théorique & bibliographique
+
+qualité des sources
+
+normes bibliographiques
+
+cohérence citations ↔ bibliographie
+
+16.3 Sorties
+
+Points forts
+
+Points faibles
+
+Recommandations concrètes
+
+Liste des corrections prioritaires
+
+16.4 Actions
+
+Export audit (Word)
+
+Lancer correction IA ciblée (par section)
+
+Marquer corrections comme traitées

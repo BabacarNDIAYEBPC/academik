@@ -1,0 +1,2 @@
+- [Préservation des données](database-preservation.md) — migration sans changement de schéma ; conserver les tables historiques hors du modèle actif.
+- [Conflits sur images PNG](png-merge-markers.md) — des octets compressés peuvent être pris à tort pour des marqueurs Git ; conserver les pixels.
