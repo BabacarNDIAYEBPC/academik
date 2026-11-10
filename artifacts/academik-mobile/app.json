@@ -10,7 +10,7 @@
     "ios": {
       "icon": "./assets/images/icon-ios.png",
       "supportsTablet": true,
-      "bundleIdentifier": "fr.academik.app",
+      "bundleIdentifier": "app.replit.academik",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false

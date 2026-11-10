@@ -38,7 +38,7 @@ Les identifiants des produits sont `fr.academik.app.starter`,
   les obligations de conservation et leurs durées doivent être validées juridiquement.
 - Informations légales, assistance, consentement explicite au traitement IA,
   signalement d’un résultat IA dans l’application.
-- Icône officielle Academik, identifiants iOS/Android `fr.academik.app`,
+- Icône officielle Academik, identifiant iOS `app.replit.academik` et Android `fr.academik.app`,
   permissions caméra/micro/stockage inutiles bloquées.
 - Variante iOS 1024 × 1024 RGB sans transparence, dérivée de l’icône officielle
   sans modifier l’original.

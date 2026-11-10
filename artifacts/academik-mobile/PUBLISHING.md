@@ -6,7 +6,8 @@ L’origine publiée vérifiée est `https://academik.fr`.
 `EXPO_PUBLIC_DOMAIN=academik.fr` est configuré pour les builds de production ;
 le script de développement conserve explicitement son domaine de développement.
 Les écrans et identifiants natifs restent dans `app.json`, sans configuration
-Expo dynamique ni changement du bundle/package `fr.academik.app`.
+Expo dynamique ni changement des identifiants approuvés :
+iOS `app.replit.academik`, Android `fr.academik.app`.
 
 La présence d’un HTTP 200 sur une URL ne prouve pas qu’un nouvel endpoint API est
 publié : le site peut retourner sa page HTML par défaut. Vérifier le type et le
@@ -92,7 +93,9 @@ ne remplace un build signé, les essais sur appareils et la revue Apple/Google.
   `python3 artifacts/academik-mobile/scripts/prepare-ios-icon.py`.
 
 Dans Publishing, commencer le parcours App Store, se connecter à Apple uniquement
-dans son interface sécurisée et conserver `fr.academik.app`. Après l’upload vers
+dans son interface sécurisée et sélectionner la fiche Apple existante
+`app.replit.academik` avec « Use existing ». Ne pas recréer une seconde fiche.
+Après l’upload vers
 TestFlight, utiliser la synchronisation RevenueCat/App Store Connect disponible
 dans le parcours de publication, en conservant des produits **consommables**.
 Configurer également la clé In-App Purchase demandée par RevenueCat et les

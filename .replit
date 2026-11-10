@@ -31,6 +31,9 @@ REVENUECAT_PROJECT_ID = "proj9397a3f3"
 EXPO_PUBLIC_DOMAIN = "academik.fr"
 PUBLIC_APP_URL = "https://academik.fr"
 IAP_REFUND_POLICY = "carry_debt"
+REVENUECAT_APPLE_APP_STORE_APP_ID = "app13bbfed722"
+REVENUECAT_GOOGLE_PLAY_STORE_APP_ID = "appff3c5e069e"
+REVENUECAT_TEST_STORE_APP_ID = "app9e0d1e33d4"
 
 [nix]
 channel = "stable-25_05"

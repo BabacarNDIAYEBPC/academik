@@ -41,6 +41,16 @@ qu’ils fassent partie du périmètre Academik.
 **How to apply:** vérifier le nom du projet avant toute modification des ressources
 de paiement.
 
+Conserver la fiche Apple existante avec l’identifiant iOS `app.replit.academik`.
+Android conserve `fr.academik.app` ; ne pas renommer les identifiants des produits
+d’achat pour simplement les faire ressembler au nouvel identifiant iOS.
+
+**Why:** le propriétaire a explicitement approuvé l’alignement sur son unique fiche
+App Store existante, plutôt que la création d’une deuxième application.
+
+**How to apply:** maintenir la cohérence entre la configuration native, la fiche
+Apple sélectionnée et l’app iOS RevenueCat, sans toucher aux autres produits.
+
 Ne pas supposer que la permission générale « read_write » d’une intégration couvre
 tous les scopes RevenueCat, ni qu’une reconnexion ajoute un scope absent.
 La présence d’un secret et la confirmation manuelle d’un changement de droit ne
