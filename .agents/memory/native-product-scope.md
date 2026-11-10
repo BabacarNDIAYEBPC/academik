@@ -26,6 +26,8 @@ de paiement.
 
 Ne pas supposer que la permission générale « read_write » d’une intégration couvre
 tous les scopes RevenueCat, ni qu’une reconnexion ajoute un scope absent.
+La présence d’un secret et la confirmation manuelle d’un changement de droit ne
+prouvent pas son activation : contrôler la réponse réelle du fournisseur.
 
 **Why:** la connexion permettait de gérer le catalogue et de lire les achats, mais
 la suppression client renvoyait un 403 exigeant

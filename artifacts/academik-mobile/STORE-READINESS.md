@@ -56,6 +56,31 @@ et à cette permission, dans le secret serveur `REVENUECAT_CUSTOMER_DELETE_API_K
 Elle ne doit jamais porter le préfixe `EXPO_PUBLIC_` ni être placée dans le client.
 Sans ce droit, la suppression échoue explicitement au lieu de prétendre avoir
 supprimé les données conservées chez le fournisseur.
+Le secret serveur est désormais configuré et son droit de suppression a été
+confirmé par une suppression effective du client RevenueCat de recette.
+
+## Vérifications effectuées
+
+- Contrôle TypeScript mobile et bibliothèques clientes générées réussi ;
+  compilation du serveur et du site réussie.
+- Bundles JavaScript iOS et Android compilés par Metro. Cela ne constitue pas
+  des binaires signés ni une validation TestFlight/Google Play.
+- Recette navigateur avec compte jetable : connexion, bibliothèque, renommage,
+  ouverture d’une recherche, export Word et recherche réelle avec consentement IA.
+- Achat officiel RevenueCat Test Store : ajout de 10 crédits ; deux
+  synchronisations serveur successives sans crédit supplémentaire.
+- Test API réussi : authentification, sauvegarde/renommage/suppression, export
+  Word valide, rejet de faux achats, déconnexion et révocation des sessions.
+- Suppression vérifiée pour un compte sans achat et un compte ayant acheté dans
+  Test Store : client RevenueCat introuvable après suppression, données locales
+  purgées et empreinte anti-rejeu dissociée du compte. Les comptes et identifiants
+  de recette ont été nettoyés.
+
+Les corrections de synchronisation et de confirmation de suppression ont été
+confirmées côté API et par inspection du code, sans refaire toute la recette
+navigateur. Les parcours sur appareils et builds signés restent à exécuter.
+Le contrôle TypeScript global de l’API contient encore des erreurs préexistantes
+hors de cette implémentation native ; sa compilation et la recette API réussissent.
 
 ## Blocages avant soumission — actions du propriétaire
 
@@ -69,7 +94,7 @@ supprimé les données conservées chez le fournisseur.
 3. Relier App Store Connect et les autorisations/service account Google Play dans
    RevenueCat ; vérifier les permissions et la synchronisation des produits.
    Ne jamais envoyer ces clés dans le chat ou les mettre dans le client.
-4. Configurer des notifications de remboursement/révocation signées et idempotentes,
+4. Configurer des notifications de remboursement/révocation authentifiées et idempotentes,
    ainsi que la politique d’ajustement des crédits déjà consommés.
    Cette automatisation des remboursements n’est pas encore implémentée.
 5. Publier l’API et le site sur leur origine HTTPS stable. Les builds de production
