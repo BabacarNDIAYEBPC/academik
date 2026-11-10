@@ -23,6 +23,9 @@ Les identifiants des produits sont `fr.academik.app.starter`,
 - Aucun checkout Stripe ou lien d’achat externe dans le parcours natif.
 - Achat crédité seulement après confirmation RevenueCat pour le compte connecté.
 - Attribution atomique, verrou transactionnel et protection contre les doublons.
+- Notifications de remboursement/révocation authentifiées et idempotentes,
+  annulation de remboursement, ordre des événements et compte supprimé gérés.
+  La règle sur les crédits déjà utilisés doit être approuvée avant activation.
 - Synchronisation fondée sur l’historique RevenueCat vérifié côté serveur, sans
   confondre les identifiants RevenueCat et ceux des stores.
 - Test Store interdit sur le serveur en production ; sandbox Apple/Google restreint
@@ -94,9 +97,10 @@ hors de cette implémentation native ; sa compilation et la recette API réussis
 3. Relier App Store Connect et les autorisations/service account Google Play dans
    RevenueCat ; vérifier les permissions et la synchronisation des produits.
    Ne jamais envoyer ces clés dans le chat ou les mettre dans le client.
-4. Configurer des notifications de remboursement/révocation authentifiées et idempotentes,
-   ainsi que la politique d’ajustement des crédits déjà consommés.
-   Cette automatisation des remboursements n’est pas encore implémentée.
+4. Approuver `IAP_REFUND_POLICY` (`carry_debt` ou `cap_zero`), republier l’API,
+   puis exécuter sa configuration RevenueCat sécurisée décrite dans
+   `PUBLISHING.md`. Le traitement est implémenté et testé, mais aucune notification
+   de production ne doit être déclarée active avant validation de cette connexion.
 5. Publier l’API et le site sur leur origine HTTPS stable. Les builds de production
    doivent définir `EXPO_PUBLIC_DOMAIN` sur cette origine, **pas le domaine de développement**.
    Publier la politique complète et l’URL `/suppression-compte` et contrôler leur accessibilité.
@@ -127,7 +131,7 @@ hors de cette implémentation native ; sa compilation et la recette API réussis
 - Achat sandbox Apple puis Google : succès, annulation, pending, interruption réseau,
   nouvelle tentative de synchronisation, double envoi et changement de compte.
 - Vérifier qu’un faux identifiant de transaction ne peut attribuer aucun crédit.
-- Vérifier refunds/révocations après implémentation du webhook.
+- Vérifier remboursements/révocations réels en sandbox après connexion du webhook.
 - Suppression du compte et de ses données ; demandes externes et durées légales.
 - Accessibilité VoiceOver/TalkBack, tailles de texte, contrastes et langues déclarées.
 

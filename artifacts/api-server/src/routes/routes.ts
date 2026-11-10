@@ -10,6 +10,7 @@ import { db } from "../db";
 import { eq } from "drizzle-orm";
 import { sendContactEmail } from "../email";
 import { verifyAndCreditPurchase, synchronizePurchases, deleteRevenueCatCustomer } from "../lib/revenuecat";
+import { registerIapWebhook } from "./iapWebhook";
 
 function getUserId(req: any): string {
   return String((req.session as any)?.userId || "");
@@ -43,6 +44,7 @@ async function getOpenAI(): Promise<OpenAI> {
 }
 
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
+  registerIapWebhook(app);
   await setupAuth(app);
   registerAuthRoutes(app);
   registerAdminRoutes(app);

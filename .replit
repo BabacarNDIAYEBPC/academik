@@ -28,6 +28,9 @@ EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY = "goog_TPQvhFRsxKUQRSkaFgldzTdRHHx"
 EXPO_PUBLIC_REVENUECAT_IOS_API_KEY = "appl_PzkPogkuENaJLXBRKiyyOpoaZBA"
 EXPO_PUBLIC_REVENUECAT_TEST_API_KEY = "test_YQituWwgnBvFWjxyfDMhnlMEmYb"
 REVENUECAT_PROJECT_ID = "proj9397a3f3"
+EXPO_PUBLIC_DOMAIN = "academik.fr"
+PUBLIC_APP_URL = "https://academik.fr"
+IAP_REFUND_POLICY = "carry_debt"
 
 [nix]
 channel = "stable-25_05"

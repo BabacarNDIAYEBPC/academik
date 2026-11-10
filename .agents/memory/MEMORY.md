@@ -1,3 +1,5 @@
 - [Préservation des données](database-preservation.md) — migration sans changement de schéma ; conserver les tables historiques hors du modèle actif.
 - [Conflits sur images PNG](png-merge-markers.md) — des octets compressés peuvent être pris à tort pour des marqueurs Git ; conserver les pixels.
 - [Portée native](native-product-scope.md) — parité Apple/Android demandée ; ne pas confondre implémentation et acceptation des stores, ni mélanger les projets RevenueCat.
+- [Remboursements de crédits](native-credit-refunds.md) — retrait intégral avec déficit reporté, sans prélèvement d’argent supplémentaire ; choix du propriétaire.
+- [Codegen et aperçu mobile](codegen-metro.md) — le nettoyage du client généré peut laisser Metro avec des imports introuvables malgré des fichiers recréés et un TypeScript valide.

@@ -11,6 +11,24 @@ tags:
   - name: health
     description: Health operations
 paths:
+  /iap/webhook:
+    post:
+      operationId: receiveRevenueCatWebhook
+      summary: Authenticated RevenueCat purchase refund notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/JsonObject"}
+      responses:
+        "200":
+          description: Applied, duplicate, or deliberately ignored notification
+        "400":
+          description: Invalid notification
+        "401":
+          description: Invalid webhook authentication
+        "503":
+          description: Not configured or processing failed; RevenueCat must retry
   /healthz:
     get:
       operationId: healthCheck

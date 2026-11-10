@@ -1,9 +1,10 @@
 import { ReplitConnectors } from "@replit/connectors-sdk";
-import { createHash } from "node:crypto";
 import { db } from "../db";
 import { userCredits, creditTransactions } from "@workspace/db";
 import { authUsers } from "../replit_integrations/auth/storage";
 import { eq, or, sql } from "drizzle-orm";
+import { purchaseKey } from "./iapLedger";
+import { assertNotRefunded } from "./iapRefunds";
 
 const connectors = new ReplitConnectors();
 const creditsByProduct: Record<string, number> = {
@@ -38,13 +39,19 @@ async function listPurchases(userId: string) {
   if (path) throw new Error("Purchase history requires additional reconciliation");
   return purchases;
 }
-async function getProduct(id: string) {
+export async function getProduct(id: string) {
   const key = `${projectId()}:${id}`;
   const cached = products.get(key);
   if (cached && cached.expires > Date.now()) return cached.value;
   const product = await revenueCatGet(`/v2/projects/${projectId()}/products/${encodeURIComponent(id)}`);
   products.set(key, { value: product, expires: Date.now() + 3600000 });
   return product;
+}
+export async function productResourceId(appId: string, storeIdentifier: unknown) {
+  if (typeof storeIdentifier !== "string" || !creditsByProduct[storeIdentifier]) return null;
+  const list = await revenueCatGet(`/v2/projects/${projectId()}/products?app_id=${encodeURIComponent(appId)}&limit=100`);
+  if (!Array.isArray(list.items)) throw new Error("Invalid product catalog");
+  return list.items.find((p: any) => p.app_id === appId && p.store_identifier === storeIdentifier)?.id || null;
 }
 function eligible(userId: string, purchase: any) {
   if (purchase.status !== "owned" || !["app_store", "play_store", "test_store"].includes(purchase.store)) return false;
@@ -58,13 +65,14 @@ async function creditVerifiedPurchase(userId: string, purchase: any, productId: 
   const credits = creditsByProduct[productId];
   if (!credits || product.store_identifier !== productId || product.type !== "consumable" || purchase.quantity !== 1 || !purchase.store_purchase_identifier) throw new Error("Purchase product mismatch");
   // Stable across RevenueCat customer recreation; no raw store transaction in the ledger.
-  const key = `rc_${createHash("sha256").update(`${purchase.store}:${purchase.store_purchase_identifier}`).digest("hex")}`;
+  const key = purchaseKey(purchase.store, purchase.store_purchase_identifier);
   const legacyKey = `rc_${purchase.id}`;
   return db.transaction(async tx => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"account:" + userId}))`);
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${key}))`);
     const [user] = await tx.select({ id: authUsers.id }).from(authUsers).where(eq(authUsers.id, Number(userId)));
     if (!user) throw new Error("Account no longer exists");
+    if (!await assertNotRefunded(tx, key)) return { success: true, credits: 0, alreadyCredited: true, refunded: true };
     const [existing] = await tx.select().from(creditTransactions).where(or(eq(creditTransactions.stripeSessionId, key), eq(creditTransactions.stripeSessionId, legacyKey)));
     if (existing) {
       if (existing.userId !== userId) throw new Error("Purchase already assigned");

@@ -9,6 +9,14 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Authenticated RevenueCat purchase refund notifications
+ */
+export const ReceiveRevenueCatWebhookBody = zod.record(zod.string(), zod.unknown())
+
+export const ReceiveRevenueCatWebhookResponse = zod.unknown()
+
+
+/**
  * Returns server health status
  * @summary Health check
  */

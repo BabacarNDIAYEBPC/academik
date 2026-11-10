@@ -4,7 +4,7 @@ import {
   type UserCredits, type CreditTransaction, type Bibliography, type ReadingCard, type Synthesis, type Invoice,
   type InsertBibliography, type InsertReadingCard, type InsertSynthesis, type InsertInvoice,
 } from "@workspace/db";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, sql, gte } from "drizzle-orm";
 
 export interface IStorage {
   // Credits
@@ -50,25 +50,34 @@ class DatabaseStorage implements IStorage {
   }
 
   async addCredits(userId: string, amount: number, type: string, description: string, stripeSessionId?: string): Promise<void> {
-    const existing = await db.select().from(userCredits).where(eq(userCredits.userId, userId));
-    if (existing.length === 0) {
-      await db.insert(userCredits).values({ userId, credits: amount });
-    } else {
-      await db.update(userCredits)
-        .set({ credits: existing[0].credits + amount, updatedAt: new Date() })
-        .where(eq(userCredits.userId, userId));
-    }
-    await db.insert(creditTransactions).values({ userId, amount, type, description, stripeSessionId });
+    if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Invalid credit amount");
+    await db.transaction(async tx => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"account:" + userId}))`);
+      if (stripeSessionId) {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"credit:" + stripeSessionId}))`);
+        const [prior] = await tx.select().from(creditTransactions).where(eq(creditTransactions.stripeSessionId, stripeSessionId));
+        if (prior) {
+          if (prior.userId !== userId) throw new Error("Payment already assigned");
+          return;
+        }
+      }
+      await tx.insert(userCredits).values({ userId, credits: amount }).onConflictDoUpdate({
+        target: userCredits.userId, set: { credits: sql`${userCredits.credits} + ${amount}`, updatedAt: new Date() },
+      });
+      await tx.insert(creditTransactions).values({ userId, amount, type, description, stripeSessionId });
+    });
   }
 
   async spendCredits(userId: string, amount: number, description: string): Promise<boolean> {
-    const current = await this.getCredits(userId);
-    if (current < amount) return false;
-    await db.update(userCredits)
-      .set({ credits: current - amount, updatedAt: new Date() })
-      .where(eq(userCredits.userId, userId));
-    await db.insert(creditTransactions).values({ userId, amount: -amount, type: "spend", description });
-    return true;
+    if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Invalid credit amount");
+    return db.transaction(async tx => {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"account:" + userId}))`);
+      const changed = await tx.update(userCredits).set({ credits: sql`${userCredits.credits} - ${amount}`, updatedAt: new Date() })
+        .where(and(eq(userCredits.userId, userId), gte(userCredits.credits, amount))).returning({ id: userCredits.id });
+      if (!changed.length) return false;
+      await tx.insert(creditTransactions).values({ userId, amount: -amount, type: "spend", description });
+      return true;
+    });
   }
 
   async getCreditTransactions(userId: string): Promise<CreditTransaction[]> {

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import { Platform, Linking } from "react-native";
 import Purchases, { type PurchasesPackage } from "react-native-purchases";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -11,6 +12,7 @@ const productCredits:Record<string,number>={"fr.academik.app.starter":10,"fr.aca
 export default function Billing() {
   const {user}=useAuth();const {t}=useLanguage();const c=useColors();const [packages,setPackages]=useState<PurchasesPackage[]>([]);const [busy,setBusy]=useState("");const [message,setMessage]=useState("");
   const credits=useMobileGetCredits({query:{enabled:!!user,retry:false}});const history=useMobileListTransactions({query:{enabled:!!user,retry:false}});const invoices=useMobileListInvoices({query:{enabled:!!user,retry:false}});
+  useFocusEffect(useCallback(()=>{if(user){void credits.refetch();void history.refetch();}},[user?.id,credits.refetch,history.refetch]));
   const pendingKey=`academik-pending-${user?.id}`;
   const load=async()=>{
     if(!user)return;setBusy("load");setMessage("");
@@ -33,7 +35,7 @@ export default function Billing() {
   };
   const purchase=async(pkg:PurchasesPackage)=>{
     setBusy(pkg.identifier);setMessage("");
-    try {const result=await Purchases.purchasePackage(pkg);const confirmation=await verify(result.transaction.transactionIdentifier,result.productIdentifier);setMessage(confirmation.alreadyCredited?"Cet achat est déjà synchronisé.":`${confirmation.credits} ${t("credits_added")}`);}
+    try {const result=await Purchases.purchasePackage(pkg);const confirmation=await verify(result.transaction.transactionIdentifier,result.productIdentifier);setMessage(confirmation.refunded?"Cet achat a été remboursé. Aucun crédit ajouté.":confirmation.alreadyCredited?"Cet achat est déjà synchronisé.":`${confirmation.credits} ${t("credits_added")}`);}
     catch(e:any){setMessage(e.userCancelled?"Achat annulé. Aucun crédit ajouté.":`${errorMessage(e)} Si le store a confirmé le paiement, utilisez « Synchroniser mes achats » sans racheter.`);}
     finally{setBusy("");}
   };
@@ -48,6 +50,7 @@ export default function Billing() {
   };
   return <Screen title={t("buy_credits")} back>{!user?<AuthGate/>:<>
     <Card><Txt style={{color:c.mutedForeground}}>{t("available_credits")}</Txt><Txt style={{fontSize:42,lineHeight:50,fontFamily:"Inter_700Bold",color:c.primary}}>{String(credits.data?.credits??"—")}</Txt><Txt>Achats ponctuels, sans abonnement ni renouvellement automatique.</Txt></Card>
+    {Number(credits.data?.credits)<0?<Notice error message="Un achat a été remboursé après utilisation de ses crédits. Les prochains crédits ajoutés compenseront d’abord ce déficit, sans prélèvement d’argent supplémentaire."/>:null}
     {__DEV__||Platform.OS==="web"?<Notice message="Mode test RevenueCat : les achats simulés de cet aperçu ne constituent pas des paiements Apple ou Google."/>:null}
     <Notice message={message}/>{packages.map(pkg=><Card key={pkg.identifier}><Heading>{productCredits[pkg.product.identifier]} {t("credits")}</Heading><Txt style={{fontSize:28,lineHeight:36,fontFamily:"Inter_700Bold"}}>{pkg.product.priceString}</Txt><Txt style={{color:c.mutedForeground,fontSize:13}}>{pkg.product.description}</Txt><Button title={`${t("buy_credits")} · ${pkg.product.priceString}`} icon="shopping-bag" disabled={!!busy} busy={busy===pkg.identifier} onPress={()=>void purchase(pkg)}/></Card>)}
     <Button title="Actualiser les offres" secondary busy={busy==="load"} disabled={!!busy} onPress={()=>void load()}/>
