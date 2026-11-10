@@ -38,7 +38,7 @@ export function registerAdminRoutes(app: Express) {
   app.get("/api/admin/stats", async (req, res) => {
     if (!checkAdminAuth(req, res)) return;
     try {
-      const [totals] = await db.execute(sql`
+      const { rows: [totals] } = await db.execute(sql`
         SELECT
           COUNT(*) AS total_users,
           COUNT(*) FILTER (WHERE verified = true) AS verified_users,
@@ -48,7 +48,7 @@ export function registerAdminRoutes(app: Express) {
         FROM auth_users
       `);
 
-      const [revenue] = await db.execute(sql`
+      const { rows: [revenue] } = await db.execute(sql`
         SELECT
           COALESCE(SUM(amount), 0) AS total_revenue,
           COALESCE(SUM(credits), 0) AS total_credits_sold,
@@ -56,14 +56,14 @@ export function registerAdminRoutes(app: Express) {
         FROM invoices
       `);
 
-      const [activity] = await db.execute(sql`
+      const { rows: [activity] } = await db.execute(sql`
         SELECT
           COUNT(DISTINCT user_id) AS active_users,
           COUNT(*) AS total_searches
         FROM bibliographies
       `);
 
-      const [creditSpend] = await db.execute(sql`
+      const { rows: [creditSpend] } = await db.execute(sql`
         SELECT
           COALESCE(SUM(amount) FILTER (WHERE amount < 0), 0) * -1 AS credits_spent
         FROM credit_transactions
@@ -102,7 +102,7 @@ export function registerAdminRoutes(app: Express) {
           totalSearches: Number((activity as any).total_searches),
           creditsSpent: Number((creditSpend as any).credits_spent),
         },
-        dailySignups: (dailySignups as any[]).map(r => ({
+        dailySignups: dailySignups.rows.map(r => ({
           date: r.date,
           count: Number(r.count),
         })),
@@ -146,13 +146,13 @@ export function registerAdminRoutes(app: Express) {
         LIMIT ${limit} OFFSET ${offset}
       `);
 
-      const [countRow] = await db.execute(sql`
+      const { rows: [countRow] } = await db.execute(sql`
         SELECT COUNT(*) AS total FROM auth_users
         ${search ? sql`WHERE email ILIKE ${'%' + search + '%'} OR first_name ILIKE ${'%' + search + '%'} OR last_name ILIKE ${'%' + search + '%'}` : sql``}
       `);
 
       res.json({
-        users: (users as any[]).map(u => ({
+        users: users.rows.map(u => ({
           id: u.id,
           email: u.email,
           firstName: u.first_name,

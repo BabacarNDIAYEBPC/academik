@@ -23,15 +23,22 @@ const HORAIRES = [
   { jour: "Dimanche", heures: "Fermé" },
 ];
 
-export default function Contact() {
+export default function Contact({ deletionRequest = false }: { deletionRequest?: boolean }) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [form, setForm] = useState({ name: "", email: "", category: "Support technique", subject: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", category: deletionRequest ? "Droits RGPD" : "Support technique", subject: deletionRequest ? "Demande de suppression de mon compte Academik" : "", message: "" });
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (deletionRequest) {
+      document.title = "Supprimer mon compte Academik";
+      const description = document.querySelector('meta[name="description"]');
+      description?.setAttribute("content", "Demandez la suppression de votre compte Academik et de vos données associées, sans réinstaller l’application.");
+      document.querySelector('link[rel="canonical"]')?.remove();
+      return;
+    }
     document.title = "Contact — Academik";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) { meta = document.createElement("meta"); meta.setAttribute("name", "description"); document.head.appendChild(meta); }
@@ -82,10 +89,11 @@ export default function Contact() {
 
       <main className="max-w-5xl mx-auto px-4 py-12">
         <div className="mb-10">
-          <h1 className="text-4xl font-bold mb-3">Nous contacter</h1>
+          <h1 className="text-4xl font-bold mb-3">{deletionRequest ? "Supprimer mon compte Academik" : "Nous contacter"}</h1>
           <p className="text-muted-foreground text-lg">
-            Une question, un problème technique, ou une demande commerciale ? Nous vous répondons sous 24h ouvrées.
+            {deletionRequest ? "Vous pouvez supprimer votre compte dans l’application : Compte → Suppression du compte. Sans accès à l’application, envoyez votre demande ci-dessous avec l’adresse e-mail du compte. Nous vérifierons que vous en êtes le propriétaire avant toute suppression." : "Une question, un problème technique, ou une demande commerciale ? Nous vous répondons sous 24h ouvrées."}
           </p>
+          {deletionRequest && <p className="mt-4 text-muted-foreground">La suppression concerne le compte et les recherches sauvegardées. Les crédits non utilisés seront perdus. Seules les données dont la conservation est légalement obligatoire peuvent être conservées. Les demandes de remboursement des achats mobiles relèvent d’Apple ou de Google. Ne transmettez jamais votre mot de passe.</p>}
         </div>
 
         <div className="grid lg:grid-cols-5 gap-8">

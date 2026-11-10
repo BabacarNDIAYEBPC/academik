@@ -9,6 +9,7 @@ import { realSearch } from "../search";
 import { db } from "../db";
 import { eq } from "drizzle-orm";
 import { sendContactEmail } from "../email";
+import { verifyAndCreditPurchase, synchronizePurchases, deleteRevenueCatCustomer } from "../lib/revenuecat";
 
 function getUserId(req: any): string {
   return String((req.session as any)?.userId || "");
@@ -484,13 +485,27 @@ Sitemap: https://academik.fr/sitemap.xml`);
     if (!checkAuth(req, res)) return;
     const userId = getUserId(req);
     try {
-      await storage.deleteUserData(userId);
       const { authUsers } = await import("../replit_integrations/auth/storage");
-      await db.delete(authUsers).where(eq(authUsers.id, Number(userId)));
-      req.session.destroy(() => {});
+      const { bibliographies, readingCards, syntheses, creditTransactions, userCredits } = await import("@workspace/db");
+      const { sql, and, like } = await import("drizzle-orm");
+      await deleteRevenueCatCustomer(userId);
+      await db.transaction(async tx => {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"account:" + userId}))`);
+        // Retain only an unlinkable purchase fingerprint for replay prevention.
+        await tx.update(creditTransactions).set({ userId: "__deleted_iap__", amount: 0, type: "iap_fraud_prevention", description: null }).where(and(eq(creditTransactions.userId, userId), like(creditTransactions.stripeSessionId, "rc_%")));
+        await tx.delete(bibliographies).where(eq(bibliographies.userId, userId));
+        await tx.delete(readingCards).where(eq(readingCards.userId, userId));
+        await tx.delete(syntheses).where(eq(syntheses.userId, userId));
+        await tx.delete(creditTransactions).where(eq(creditTransactions.userId, userId));
+        await tx.delete(userCredits).where(eq(userCredits.userId, userId));
+        await tx.delete(authUsers).where(eq(authUsers.id, Number(userId)));
+        await tx.execute(sql`DELETE FROM sessions WHERE sess->>'userId' = ${userId}`);
+      });
+      await new Promise<void>((resolve, reject) => req.session.destroy(err => err ? reject(err) : resolve()));
       res.json({ ok: true });
     } catch (e: any) {
-      res.status(500).json({ error: e.message });
+      req.log.error({ err: e }, "Account deletion failed");
+      res.status(503).json({ message: "La suppression n’a pas pu être terminée. Réessayez ou contactez l’assistance." });
     }
   });
 
@@ -582,59 +597,26 @@ Sitemap: https://academik.fr/sitemap.xml`);
 
   app.post("/api/iap/verify", async (req, res) => {
     if (!checkAuth(req, res)) return;
-    const { transactionId, productId, receiptData } = req.body;
+    const { transactionId, productId } = req.body;
     if (!transactionId || !productId) {
       return res.status(400).json({ message: "Paramètres manquants" });
     }
-
-    const IAP_CREDITS: Record<string, number> = {
-      "fr.academik.app.starter": 10,
-      "fr.academik.app.essentiel": 30,
-      "fr.academik.app.pro": 100,
-    };
-    const credits = IAP_CREDITS[productId];
-    if (!credits) return res.status(400).json({ message: "Produit invalide" });
-
-    const sessionKey = `iap_${transactionId}`;
-    const existing = await storage.getInvoiceBySession(sessionKey);
-    if (existing) return res.json({ success: true, credits: existing.credits });
-
-    if (receiptData) {
-      try {
-        const verifyReceipt = async (url: string) => {
-          const r = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              "receipt-data": receiptData,
-              "password": process.env.APPLE_IAP_SHARED_SECRET || "",
-              "exclude-old-transactions": true,
-            }),
-          });
-          return r.json() as Promise<any>;
-        };
-        let result = await verifyReceipt("https://buy.itunes.apple.com/verifyReceipt");
-        if (result.status === 21007) {
-          result = await verifyReceipt("https://sandbox.itunes.apple.com/verifyReceipt");
-        }
-        if (result.status !== 0) {
-          return res.status(400).json({ message: "Reçu Apple invalide" });
-        }
-        const inApp: any[] = result.receipt?.in_app || result.latest_receipt_info || [];
-        const txn = inApp.find((t: any) => t.transaction_id === transactionId || t.original_transaction_id === transactionId);
-        if (!txn) {
-          return res.status(400).json({ message: "Transaction non trouvée dans le reçu" });
-        }
-      } catch (err) {
-        console.error("Apple IAP receipt verification error:", err);
-        return res.status(500).json({ message: "Erreur de vérification Apple" });
-      }
+    try {
+      return res.json(await verifyAndCreditPurchase(getUserId(req), transactionId, productId));
+    } catch (err) {
+      req.log.warn({ err }, "Purchase verification rejected");
+      return res.status(422).json({ message: "Achat non confirmé par le store. Aucun crédit ajouté. Réessayez la synchronisation des achats." });
     }
+  });
 
-    const userId = getUserId(req);
-    await storage.addCredits(userId, credits, "purchase", `Achat iOS ${productId}`, sessionKey);
-    await storage.createInvoice({ userId, stripeSessionId: sessionKey, amount: 0, credits, status: "paid" });
-    res.json({ success: true, credits });
+  app.post("/api/iap/sync", async (req, res) => {
+    if (!checkAuth(req, res)) return;
+    try {
+      res.json(await synchronizePurchases(getUserId(req)));
+    } catch (err) {
+      req.log.warn({ err }, "Purchase synchronization failed");
+      res.status(503).json({ message: "La synchronisation des achats est temporairement indisponible. Aucun achat supplémentaire n’est nécessaire ; réessayez." });
+    }
   });
 
   app.post("/api/contact", async (req, res) => {
@@ -655,6 +637,19 @@ Sitemap: https://academik.fr/sitemap.xml`);
       console.error("[CONTACT]", err);
       res.status(500).json({ message: "Erreur lors de l'envoi. Veuillez réessayer." });
     }
+  });
+
+  app.post("/api/exports/word", async (req, res) => {
+    if (!checkAuth(req, res)) return;
+    const { title, content } = req.body;
+    if (typeof content !== "string" || content.length > 200000) return res.status(400).json({ message: "Contenu invalide" });
+    const { Document, Packer, Paragraph, HeadingLevel } = await import("docx");
+    const document = new Document({ sections: [{ children: [
+      new Paragraph({ text: String(title || "Academik").slice(0, 200), heading: HeadingLevel.TITLE }),
+      ...content.split("\n").map((text: string) => new Paragraph({ text })),
+    ] }] });
+    const buffer = await Packer.toBuffer(document);
+    res.json({ base64: buffer.toString("base64"), filename: "academik-export.docx" });
   });
 
   // === LITERATURE REVIEW — SEARCH ARTICLES ===

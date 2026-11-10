@@ -91,6 +91,7 @@ function Router() {
     <Switch>
       <Route path="/" component={HomeRoute} />
       <Route path="/connexion" component={Auth} />
+      <Route path="/suppression-compte" component={() => <Contact deletionRequest />} />
       <Route path="/revue" component={() => <ProtectedRoute component={Revue} />} />
       <Route path="/billing" component={() => <ProtectedRoute component={Billing} />} />
       <Route path="/admin" component={Admin} />

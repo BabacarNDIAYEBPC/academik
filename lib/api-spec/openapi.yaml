@@ -24,6 +24,160 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /auth/user:
+    get:
+      operationId: mobileGetUser
+      responses:
+        "200":
+          description: Current account
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/JsonObject"}
+  /auth/login:
+    post:
+      operationId: mobileLogin
+      requestBody: &jsonBody
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/JsonObject"}
+      responses: &objectResponse
+        "200":
+          description: Operation result
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/JsonObject"}
+  /auth/register:
+    post:
+      operationId: mobileRegister
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /auth/verify:
+    post:
+      operationId: mobileVerify
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /auth/forgot-password:
+    post:
+      operationId: mobileForgotPassword
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /auth/reset-password:
+    post:
+      operationId: mobileResetPassword
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /auth/resend-code:
+    post:
+      operationId: mobileResendCode
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /auth/logout:
+    post:
+      operationId: mobileLogout
+      responses: *objectResponse
+  /user/account:
+    delete:
+      operationId: mobileDeleteAccount
+      responses: *objectResponse
+  /credits:
+    get:
+      operationId: mobileGetCredits
+      responses: *objectResponse
+  /credits/transactions:
+    get:
+      operationId: mobileListTransactions
+      responses: &listResponse
+        "200":
+          description: List of records
+          content:
+            application/json:
+              schema: {$ref: "#/components/schemas/JsonList"}
+  /invoices:
+    get:
+      operationId: mobileListInvoices
+      responses: *listResponse
+  /literature/search:
+    post:
+      operationId: mobileSearchArticles
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /literature/analyze:
+    post:
+      operationId: mobileAnalyzeArticles
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /literature/bibliography:
+    post:
+      operationId: mobileGenerateBibliography
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /literature/equations:
+    post:
+      operationId: mobileGenerateEquations
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /bibliographies:
+    get:
+      operationId: mobileListBibliographies
+      responses: *listResponse
+    post:
+      operationId: mobileSaveBibliography
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /bibliographies/{id}:
+    parameters:
+      - {name: id, in: path, required: true, schema: {type: integer}}
+    patch:
+      operationId: mobileUpdateBibliography
+      requestBody: *jsonBody
+      responses: *objectResponse
+    delete:
+      operationId: mobileDeleteBibliography
+      responses: *objectResponse
+  /iap/verify:
+    post:
+      operationId: mobileVerifyPurchase
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /iap/sync:
+    post:
+      operationId: mobileSyncPurchases
+      responses: *objectResponse
+  /contact:
+    post:
+      operationId: mobileSendContact
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /exports/word:
+    post:
+      operationId: mobileExportWord
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /admin/me:
+    get:
+      operationId: mobileAdminMe
+      responses: *objectResponse
+  /admin/login:
+    post:
+      operationId: mobileAdminLogin
+      requestBody: *jsonBody
+      responses: *objectResponse
+  /admin/logout:
+    post:
+      operationId: mobileAdminLogout
+      responses: *objectResponse
+  /admin/stats:
+    get:
+      operationId: mobileAdminStats
+      responses: *objectResponse
+  /admin/users:
+    get:
+      operationId: mobileAdminUsers
+      parameters:
+        - {name: page, in: query, schema: {type: integer}}
+        - {name: search, in: query, schema: {type: string}}
+      responses: *objectResponse
 components:
   schemas:
     HealthStatus:
@@ -33,4 +187,11 @@ components:
           type: string
       required:
         - status
+    JsonObject:
+      type: object
+      additionalProperties: true
+    JsonList:
+      type: array
+      items:
+        $ref: "#/components/schemas/JsonObject"
 

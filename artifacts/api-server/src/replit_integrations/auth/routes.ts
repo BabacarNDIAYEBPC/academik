@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { authStorage } from "./storage";
-import { isAuthenticated } from "./replitAuth";
+import { isAuthenticated, establishSession } from "./replitAuth";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendVerificationCode, sendWelcomeEmail } from "../../email";
@@ -37,7 +37,6 @@ export function registerAuthRoutes(app: Express): void {
 
     const code = generateCode();
     await authStorage.createVerificationCode(email, code, "verify");
-    console.log(`[AUTH] Verification code for ${email}: ${code}`);
     sendVerificationCode(email, code).catch(err => console.error("[AUTH] Email error:", err));
 
     res.json({ success: true, message: "Code de vérification envoyé" });
@@ -57,12 +56,12 @@ export function registerAuthRoutes(app: Express): void {
     const user = await authStorage.getUserByEmail(email);
     if (!user) return res.status(404).json({ message: "Utilisateur introuvable" });
 
-    (req.session as any).userId = user.id;
+    const accessToken = await establishSession(req, user.id);
 
     sendWelcomeEmail(email, user.firstName || email.split("@")[0]).catch(() => {});
 
     const { passwordHash, ...safeUser } = user;
-    res.json({ success: true, user: safeUser });
+    res.json({ success: true, user: safeUser, accessToken });
   });
 
   // LOGIN
@@ -78,9 +77,9 @@ export function registerAuthRoutes(app: Express): void {
 
     if (!user.verified) return res.status(403).json({ message: "Compte non vérifié", needsVerification: true });
 
-    (req.session as any).userId = user.id;
+    const accessToken = await establishSession(req, user.id);
     const { passwordHash, ...safeUser } = user;
-    res.json({ success: true, user: safeUser });
+    res.json({ success: true, user: safeUser, accessToken });
   });
 
   // LOGOUT
@@ -99,7 +98,6 @@ export function registerAuthRoutes(app: Express): void {
 
     const code = generateCode();
     await authStorage.createVerificationCode(email, code, "reset");
-    console.log(`[AUTH] Reset code for ${email}: ${code}`);
     sendVerificationCode(email, code, true).catch(err => console.error("[AUTH] Reset email error:", err));
 
     res.json({ success: true });
@@ -135,7 +133,6 @@ export function registerAuthRoutes(app: Express): void {
 
     const code = generateCode();
     await authStorage.createVerificationCode(email, code, type);
-    console.log(`[AUTH] Resent code for ${email}: ${code}`);
     sendVerificationCode(email, code, type === "reset").catch(() => {});
 
     res.json({ success: true });

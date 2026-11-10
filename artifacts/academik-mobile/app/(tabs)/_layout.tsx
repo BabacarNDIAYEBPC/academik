@@ -1,91 +1,25 @@
-import React from 'react';
-import { Platform, StyleSheet, useColorScheme, View } from 'react-native';
-import { useColors } from '@/hooks/useColors';
-import { Feather } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { isLiquidGlassAvailable } from 'expo-glass-effect';
-import { Tabs } from 'expo-router';
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { SymbolView } from 'expo-symbols';
-
-// IMPORTANT: iOS 26 uses NativeTabs for native tabs with liquid glass support.
-// NativeTabs intentionally does NOT use custom design tokens — liquid glass
-// is a system-level appearance provided by iOS and cannot be overridden.
-// Custom brand colors are applied only on the ClassicTabLayout path (older iOS / Android / web).
-function NativeTabLayout() {
-  return (
-    <NativeTabs>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Icon
-          sf={{ default: 'house', selected: 'house.fill' }}
-        />
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-      </NativeTabs.Trigger>
-    </NativeTabs>
-  );
-}
-
-function ClassicTabLayout() {
-  const colors = useColors();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const isIOS = Platform.OS === 'ios';
-  const isWeb = Platform.OS === 'web';
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.mutedForeground,
-        headerShown: true,
-        tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: isIOS ? 'transparent' : colors.background,
-          borderTopWidth: isWeb ? 1 : 0,
-          borderTopColor: colors.border,
-          elevation: 0,
-          ...(isWeb ? { height: 84 } : {}),
-        },
-        tabBarBackground: () =>
-          isIOS ? (
-            <BlurView
-              intensity={100}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-          ) : isWeb ? (
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: colors.background },
-              ]}
-            />
-          ) : null,
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) =>
-            isIOS ? (
-              <SymbolView name="house" tintColor={color} size={24} />
-            ) : (
-              <Feather
-                name="home"
-                size={22}
-                color={focused ? colors.primary : colors.mutedForeground}
-              />
-            ),
-        }}
-      />
-    </Tabs>
-  );
-}
+import React from "react";
+import { Platform, View, StyleSheet } from "react-native";
+import { Tabs } from "expo-router";
+import { NativeTabs } from "expo-router/native-tabs";
+import { isLiquidGlassAvailable } from "expo-glass-effect";
+import { BlurView } from "expo-blur";
+import { Feather } from "@expo/vector-icons";
+import { useColors } from "@/hooks/useColors";
+import { useLanguage } from "@/lib/providers";
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
-  }
-  return <ClassicTabLayout />;
+  const c=useColors();const {t}=useLanguage();
+  if(Platform.OS==="ios"&&isLiquidGlassAvailable())return <NativeTabs>
+    <NativeTabs.Trigger name="index"><NativeTabs.Trigger.Icon sf="house"/><NativeTabs.Trigger.Label>Academik</NativeTabs.Trigger.Label></NativeTabs.Trigger>
+    <NativeTabs.Trigger name="library"><NativeTabs.Trigger.Icon sf="books.vertical"/><NativeTabs.Trigger.Label>{t("saved_searches")}</NativeTabs.Trigger.Label></NativeTabs.Trigger>
+    <NativeTabs.Trigger name="account"><NativeTabs.Trigger.Icon sf="person"/><NativeTabs.Trigger.Label>{t("account","Compte")}</NativeTabs.Trigger.Label></NativeTabs.Trigger>
+    <NativeTabs.Trigger name="search" role="search"><NativeTabs.Trigger.Icon sf="magnifyingglass"/><NativeTabs.Trigger.Label>{t("new_search")}</NativeTabs.Trigger.Label></NativeTabs.Trigger>
+  </NativeTabs>;
+  return <Tabs screenOptions={{headerShown:false,tabBarActiveTintColor:c.primary,tabBarInactiveTintColor:c.mutedForeground,tabBarHideOnKeyboard:true,tabBarStyle:{position:"absolute",borderTopColor:c.border,backgroundColor:Platform.OS==="ios"?"transparent":c.card,...(Platform.OS==="web"?{height:84}:{})},tabBarBackground:()=>Platform.OS==="ios"?<BlurView intensity={90} tint="light" style={StyleSheet.absoluteFill}/>:<View style={[StyleSheet.absoluteFill,{backgroundColor:c.card}]}/>}}>
+    <Tabs.Screen name="index" options={{title:"Academik",tabBarIcon:({color})=><Feather name="home" color={typeof color==="string"?color:c.mutedForeground} size={22}/>}}/>
+    <Tabs.Screen name="search" options={{title:t("new_search"),tabBarIcon:({color})=><Feather name="search" color={typeof color==="string"?color:c.mutedForeground} size={22}/>}}/>
+    <Tabs.Screen name="library" options={{title:t("saved_searches"),tabBarIcon:({color})=><Feather name="book-open" color={typeof color==="string"?color:c.mutedForeground} size={22}/>}}/>
+    <Tabs.Screen name="account" options={{title:t("account","Compte"),tabBarIcon:({color})=><Feather name="user" color={typeof color==="string"?color:c.mutedForeground} size={22}/>}}/>
+  </Tabs>;
 }
