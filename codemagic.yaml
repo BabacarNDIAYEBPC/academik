@@ -1,0 +1,58 @@
+workflows:
+  academik-ios-ipa:
+    name: Academik iOS signed IPA
+    max_build_duration: 120
+    instance_type: mac_mini_m2
+    working_directory: artifacts/academik-mobile
+
+    integrations:
+      # This must match the App Store Connect API key name saved in Codemagic.
+      app_store_connect: Academik App Store Connect
+
+    environment:
+      node: v22.11.0
+      xcode: latest
+      cocoapods: default
+      groups:
+        # Create this Codemagic variable group and add
+        # EXPO_PUBLIC_REVENUECAT_IOS_API_KEY to it.
+        - academik_mobile
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: app.replit.academik
+      vars:
+        EXPO_PUBLIC_DOMAIN: academik.fr
+        XCODE_SCHEME: Academik
+
+    scripts:
+      - name: Install workspace dependencies
+        script: |
+          corepack enable
+          corepack prepare pnpm@10.26.1 --activate
+          pnpm --dir "$CM_BUILD_DIR" install --frozen-lockfile
+
+      - name: Generate the iOS project from Expo
+        script: pnpm exec expo prebuild --platform ios --no-install
+
+      - name: Install CocoaPods dependencies
+        script: cd ios && pod install
+
+      - name: Set up Apple distribution signing
+        script: xcode-project use-profiles --project "ios/Academik.xcodeproj"
+
+      - name: Set a new iOS build number
+        script: |
+          test -n "$PROJECT_BUILD_NUMBER"
+          cd ios
+          agvtool new-version -all "$((PROJECT_BUILD_NUMBER + 1))"
+
+      - name: Build the signed IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "$CM_BUILD_DIR/artifacts/academik-mobile/ios/Academik.xcworkspace" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM

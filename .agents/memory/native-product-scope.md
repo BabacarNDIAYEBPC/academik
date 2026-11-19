@@ -78,6 +78,17 @@ uniquement pour les nouveaux achats iOS. Maintenir la reconnaissance des anciens
 identifiants et ne pas présenter une configuration de produits comme un achat
 réel testé ni comme une acceptation par Apple.
 
+Pour produire un IPA iOS téléchargeable, le propriétaire a demandé Codemagic
+plutôt qu'un envoi automatique depuis Replit. La configuration doit compiler et
+conserver l'IPA comme artefact, sans soumettre à TestFlight ni à l'App Store.
+
+**Why:** le propriétaire veut récupérer le binaire signé et garder l'envoi à Apple
+comme une étape distincte.
+
+**How to apply:** les secrets Apple et RevenueCat requis doivent être configurés
+dans Codemagic, jamais dans le dépôt. Ne pas activer la publication automatique
+sans demande explicite.
+
 La lecture de l'état d'un produit depuis RevenueCat peut rester temporairement
 à « not_found » juste après sa création chez Apple.
 
