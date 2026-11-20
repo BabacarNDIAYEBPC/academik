@@ -23,6 +23,8 @@ workflows:
       vars:
         EXPO_PUBLIC_DOMAIN: academik.fr
         XCODE_SCHEME: Academik
+        # This workflow deliberately uses the pinned pnpm, not Codemagic's parent Yarn setting.
+        COREPACK_ENABLE_PROJECT_SPEC: "0"
 
     scripts:
       - name: Install workspace dependencies
