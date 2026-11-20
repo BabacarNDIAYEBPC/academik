@@ -5,12 +5,38 @@ The Android package stays `fr.academik.app`. The iOS workflow is unchanged.
 
 ## Required one-time Codemagic settings
 
-### 1. Reuse the original upload keystore
+### 1. Supply the upload keystore as a Secret
 
-In Team settings → Code signing identities → Android keystores, find or import
-the **same upload keystore used for the previous Academik Google Play upload**.
-Use the reference name `academik_android_upload`, or update the workflow's
-`android_signing` reference to its existing name. Enter passwords only in Codemagic.
+The AAB workflow deliberately does **not** use `android_signing` identities:
+Codemagic's keystore upload form failed for the owner. Instead it restores the
+existing JKS from a Base64 Secret. This does not generate or replace a key.
+
+On Windows, open PowerShell in the folder containing the current
+`academik-upload.jks`, then run:
+
+```powershell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path (Get-Location) 'academik-upload.jks'))) | Set-Clipboard
+```
+
+This copies the encoded JKS directly to the clipboard, not to console output.
+In Academik's Codemagic **Environment variables**, add:
+
+- Name: `ACADEMIK_UPLOAD_KEYSTORE_BASE64`
+- Value: paste from the clipboard.
+- Group: `academik_android`
+- **Secret: checked**.
+
+Keep `ACADEMIK_UPLOAD_PASSWORD` in group `academik_key_recovery` unchanged:
+it must be the password used to generate this exact JKS. Both groups are loaded
+by the AAB workflow. For the generated replacement, alias is `academik-upload`
+and key password equals store password. Never paste the Base64 into chat, Git,
+an online converter, or a public variable. Base64 is NOT encryption. Clear the
+clipboard and any clipboard history entry afterwards.
+
+Before dependencies are installed, the workflow checks Base64/JKS format and
+uses Java keytool to verify the password and alias. The JKS is restored outside
+the checkout with owner-only permissions and is not an artifact. Only its
+temporary path and alias are exported via `CM_ENV`; passwords stay in Secrets.
 
 Do not create a different keystore just because the previous app was rejected.
 Compare the upload certificate SHA-256 with the upload certificate shown under
@@ -37,13 +63,10 @@ Google Play's app signing key.
 5. In Google Play's **upload-key reset** dialog, choose the lost-key reason and
    upload only `upload_certificate.pem`. The `.pem` is a public certificate,
    not the private signing key. Never upload the JKS in this dialog.
-6. After Google's approval **and stated activation time**, import the
-   matching `academik-upload.jks` under Codemagic Android keystores:
-   - Reference: `academik_android_upload`
-   - Key alias: `academik-upload`
-   - Keystore password and key password: the SAME `ACADEMIK_UPLOAD_PASSWORD`
-     chosen in step 2; enter it directly in Codemagic.
-7. Resume the normal signed AAB workflow below.
+6. Supply the matching JKS through the Base64 Secret above. You can compile
+   the AAB before Google activates the replacement, but Google will not accept
+   uploads with the new key until approval **and the stated activation time**.
+7. Resume the normal signed AAB workflow below. Do not regenerate the key.
 
 Each run generates a DIFFERENT key and certificate. Run once and keep those
 matching files together. Do not rerun after submitting a certificate to Google.
@@ -62,8 +85,9 @@ The build embeds the public SDK key in the app, as required by the RevenueCat SD
 The Google Play app and its products must also be configured in the same Academik
 RevenueCat project for purchases to work; successful compilation does not verify purchases.
 
-Codemagic provides `CM_KEYSTORE_PATH`, `CM_KEYSTORE_PASSWORD`, `CM_KEY_ALIAS`
-and `CM_KEY_PASSWORD` from the uploaded keystore. Do not put these values in Git.
+The restoration step provides `CM_KEYSTORE_PATH` and `CM_KEY_ALIAS`.
+Release signing reads the generation password directly from
+`ACADEMIK_UPLOAD_PASSWORD`. Do not put signing credentials in Git.
 The production hostname is configured as `academik.fr`.
 
 ## Run and download
@@ -82,6 +106,7 @@ and verifies its JAR signature.
 
 ```sh
 node --test artifacts/academik-mobile/scripts/prepare-android-build.test.cjs
+node --test artifacts/academik-mobile/scripts/restore-android-keystore.test.cjs
 ```
 
 A successful configuration test is not a native build or proof of Google Play acceptance.

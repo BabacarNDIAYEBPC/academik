@@ -69,3 +69,12 @@ test("applies release signing once and does not write credential values", () => 
   assert.match(configured, /apply from: "\.\.\/\.\.\/scripts\/codemagic-android-signing.gradle"/);
   assert.ok(!configured.includes("CM_KEYSTORE_PASSWORD"));
 });
+
+test("accepts the secret password from the key generation group", () => {
+  assert.equal(validateSettings({
+    ...settings,
+    CM_KEYSTORE_PASSWORD: "",
+    CM_KEY_PASSWORD: "",
+    ACADEMIK_UPLOAD_PASSWORD: "synthetic-test-password",
+  }, app, () => true), 42);
+});

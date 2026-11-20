@@ -26,6 +26,16 @@ d’importation de la clé de signature gérée par Google. Attendre l’approba
 l’activation de la nouvelle clé avant d’annoncer qu’une mise à jour peut être envoyée.
 Ne jamais substituer une clé d’un autre produit ni supposer la réinitialisation faite.
 
+Le propriétaire a accepté de conserver sa clé de remplacement actuelle et de
+contourner l’import « Android keystores » de Codemagic par une variable secrète Base64.
+
+**Why:** le formulaire d’import échouait avec une erreur de décodage UTF-8 ;
+la cause exacte n’a pas été établie. Ne pas la présenter comme un mot de passe faux.
+
+**How to apply:** conserver le JKS, son mot de passe de génération et le certificat
+PEM du même build. Base64 n’est pas un chiffrement : ne jamais demander ou afficher
+sa valeur dans le chat et ne pas régénérer la clé pour une erreur de formulaire.
+
 Le propriétaire dispose d’une adhésion Apple Developer active et d’un compte
 Google Play Console actif.
 

@@ -76,15 +76,19 @@ workflows:
         # Set ANDROID_VERSION_CODE and EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY
         # in this Codemagic group. See docs/codemagic-android.md.
         - academik_android
-      android_signing:
-        # Use the original upload key, or its replacement AFTER Google approves
-        # the upload-key reset. Never substitute another app's key.
-        - academik_android_upload
+        # Reuse the password that generated the replacement JKS.
+        - academik_key_recovery
       vars:
         EXPO_PUBLIC_DOMAIN: academik.fr
         CI: "true"
 
     scripts:
+      - name: Restore and check the Android upload key
+        script: |
+          set -eu
+          cd "$CM_BUILD_DIR/artifacts/academik-mobile"
+          node scripts/restore-android-keystore.cjs
+
       - name: Check Android build settings
         script: |
           set -eu

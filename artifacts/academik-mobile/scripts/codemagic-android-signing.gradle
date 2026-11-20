@@ -1,6 +1,10 @@
 // Applied after Expo's generated Android configuration. Do not embed credentials.
 def requiredValue = { String name ->
     def value = System.getenv(name)
+    if ((value == null || value.isEmpty()) &&
+        (name == "CM_KEYSTORE_PASSWORD" || name == "CM_KEY_PASSWORD")) {
+        value = System.getenv("ACADEMIK_UPLOAD_PASSWORD")
+    }
     if (value == null || value.isEmpty()) {
         throw new GradleException("Missing required Codemagic variable: " + name)
     }

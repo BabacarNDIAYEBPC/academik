@@ -26,12 +26,16 @@ function validateSettings(env, app, exists = fs.existsSync) {
       "from the Academik RevenueCat project (goog_...). Do not use an Apple, test, or secret API key.",
     );
   }
-  for (const name of ["CM_KEYSTORE_PATH", "CM_KEYSTORE_PASSWORD", "CM_KEY_ALIAS", "CM_KEY_PASSWORD"]) {
+  for (const name of ["CM_KEYSTORE_PATH", "CM_KEY_ALIAS"]) {
     if (!env[name]) {
       throw new Error(
-        `Missing ${name}. Configure the existing Google Play upload keystore in ` +
-        "Codemagic Android keystores with reference academik_android_upload.",
+        `Missing ${name}. Run the Restore and check the Android upload key step first.`,
       );
+    }
+  }
+  for (const name of ["CM_KEYSTORE_PASSWORD", "CM_KEY_PASSWORD"]) {
+    if (!env[name] && !env.ACADEMIK_UPLOAD_PASSWORD) {
+      throw new Error(`Missing ${name} or ACADEMIK_UPLOAD_PASSWORD in the Codemagic secret groups.`);
     }
   }
   if (!exists(env.CM_KEYSTORE_PATH)) {
