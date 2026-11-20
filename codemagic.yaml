@@ -55,6 +55,14 @@ workflows:
       - /tmp/xcodebuild_logs/*.log
       - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
 
+    publishing:
+      app_store_connect:
+        # Upload the signed IPA using the Apple integration configured above.
+        # Upload only: do not submit for review or release the app.
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: false
+
   academik-android-aab:
     name: Academik Android signed AAB
     max_build_duration: 120
