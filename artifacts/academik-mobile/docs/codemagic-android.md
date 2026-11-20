@@ -23,7 +23,7 @@ In Academik's Codemagic **Environment variables**, add:
 
 - Name: `ACADEMIK_UPLOAD_KEYSTORE_BASE64`
 - Value: paste from the clipboard.
-- Group: `Academik_Android` (case-sensitive; use the existing group).
+- Group: `Acadamik_Android` (case-sensitive; use the existing group, including its spelling).
 - **Secret: checked**.
 
 Keep `ACADEMIK_UPLOAD_PASSWORD` in group `academik_key_recovery` unchanged:
@@ -72,7 +72,7 @@ Each run generates a DIFFERENT key and certificate. Run once and keep those
 matching files together. Do not rerun after submitting a certificate to Google.
 This replaces the **upload key**, not Google's app signing key.
 
-### 2. Use the existing variable group `Academik_Android`
+### 2. Use the existing variable group `Acadamik_Android`
 
 Add:
 
