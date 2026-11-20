@@ -27,6 +27,7 @@ workflows:
     scripts:
       - name: Install workspace dependencies
         script: |
+          npm install --global corepack@0.31.0
           corepack enable
           corepack prepare pnpm@10.26.1 --activate
           pnpm --dir "$CM_BUILD_DIR" install --frozen-lockfile
