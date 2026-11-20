@@ -14,3 +14,14 @@ de sécurité au lieu de la réparer.
 **How to apply:** dans les scripts Codemagic, installer d'abord Corepack 0.31.0
 ou une version ultérieure, puis l'activer et préparer la version pnpm épinglée.
 Ne jamais utiliser `COREPACK_INTEGRITY_KEYS=0` comme correctif.
+
+Codemagic peut aussi exécuter les commandes depuis un dossier parent dont le
+`package.json` impose Yarn. Corepack peut alors refuser pnpm même après sa mise à
+jour.
+
+**Why:** le runner a signalé un `packageManager` Yarn hors du dépôt alors que le
+workflow Academik prépare explicitement pnpm.
+
+**How to apply:** pour un workflow qui épingle volontairement pnpm, définir
+`COREPACK_ENABLE_PROJECT_SPEC=0` afin que Corepack utilise la version préparée,
+sans modifier les manifests du dépôt.
