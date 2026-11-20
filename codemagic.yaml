@@ -75,7 +75,7 @@ workflows:
       groups:
         # Set ANDROID_VERSION_CODE and EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY
         # in this Codemagic group. See docs/codemagic-android.md.
-        - academik_android
+        - Academik_Android
         # Reuse the password that generated the replacement JKS.
         - academik_key_recovery
       vars:

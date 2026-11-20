@@ -13,7 +13,7 @@ function validateSettings(env, app, exists = fs.existsSync) {
   const versionCode = Number(rawCode);
   if (!/^[1-9]\d*$/.test(rawCode) || !Number.isSafeInteger(versionCode) || versionCode > 2100000000) {
     throw new Error(
-      "Set ANDROID_VERSION_CODE in the academik_android Codemagic group to an integer " +
+      "Set ANDROID_VERSION_CODE in the Academik_Android Codemagic group to an integer " +
       "between 1 and 2100000000, higher than every version already uploaded to Google Play.",
     );
   }
