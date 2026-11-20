@@ -5,3 +5,4 @@
 - [Codegen et aperçu mobile](codegen-metro.md) — le nettoyage du client généré peut laisser Metro avec des imports introuvables malgré des fichiers recréés et un TypeScript valide.
 - [pnpm et Expo Launch](expo-launch-pnpm.md) — les versions locale et distante peuvent différer ; vérifier les autorisations de scripts avec la version de compilation.
 - [Saisie des clés Apple](apple-key-input.md) — une saisie de Secret peut aplatir le PEM ; vérifier la mise en forme avant de redemander le fichier.
+- [Codemagic et signatures pnpm](codemagic-corepack.md) — Corepack ancien fourni avec Node peut rejeter les signatures npm de pnpm ; mettre à jour Corepack sans désactiver la vérification.
