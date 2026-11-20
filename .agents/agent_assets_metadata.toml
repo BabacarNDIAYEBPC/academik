@@ -1,0 +1,128 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "_hTgZd9ambROEk9US-4T8"
+uri = "file://generated-artifacts/app-store-media/academik-app-store-header-3840x1646.png"
+type = "image"
+title = "Academik — Bandeau App Store"
+description = "PNG 3840 × 1646 px, prêt pour l’emplacement Header. Illustration originale et texte en français."
+logical_id = "c0d2681f-3a32-4dd3-9245-e926e5d736d6"
+content_hash = "sha256:5a55e16c03f0120fe171ac44f29fb842070eb2ba4bc838bca16e1ddaabbc72b2"
+size = 3716140
+mtime_ms = 1795175145286
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/c0d2681f-3a32-4dd3-9245-e926e5d736d6/d7ad324b-696a-428f-b5db-18206be9c86a"
+storage_version_token = "1795175206441188"
+content_type = "image/png"
+
+[[outputs]]
+id = "HB4UYkLcuViWS-BZ6bbum"
+uri = "file://generated-artifacts/app-store-media/academik-iphone-search.png"
+type = "image"
+title = "Academik — iPhone — Recherche"
+description = "PNG 1206 × 2622 px. Visuel marketing en français; les données affichées sont des exemples."
+logical_id = "9ad22e52-8714-43af-a56c-d99dc3e88c1d"
+content_hash = "sha256:9ead85acad637dbeb9e22c3369056dc07dc86839d1ff944cdf89187aa87dbc31"
+size = 282652
+mtime_ms = 1795175126079
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/9ad22e52-8714-43af-a56c-d99dc3e88c1d/c7867ae2-1d27-440b-b20c-32b7da18630e"
+storage_version_token = "1795175207092732"
+content_type = "image/png"
+
+[[outputs]]
+id = "pNWonrjLoC1eHjfb8MeLR"
+uri = "file://generated-artifacts/app-store-media/academik-iphone-results.png"
+type = "image"
+title = "Academik — iPhone — Résultats"
+description = "PNG 1206 × 2622 px. Visuel marketing en français; les données affichées sont des exemples."
+logical_id = "85bd6e24-add0-44c7-a9c3-a8843b5ac5ec"
+content_hash = "sha256:f710df612b120beeb5d88f86fd917757016a82f45a6d76a90c8a0bea30b05863"
+size = 329724
+mtime_ms = 1795175129047
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/85bd6e24-add0-44c7-a9c3-a8843b5ac5ec/ff63d6fe-717d-4f08-b12e-3acdcb34ea4a"
+storage_version_token = "1795175207756192"
+content_type = "image/png"
+
+[[outputs]]
+id = "x2m8BdNzn4zJyjwjqrs29"
+uri = "file://generated-artifacts/app-store-media/academik-iphone-analysis.png"
+type = "image"
+title = "Academik — iPhone — Analyse"
+description = "PNG 1206 × 2622 px. Visuel marketing en français; la synthèse affichée est un exemple."
+logical_id = "93a553e6-13cf-4948-ad20-9476062ff76f"
+content_hash = "sha256:3e376fc551ad46934848bca51960ad981ecf809652895a9132d60c909c2e1eb6"
+size = 308718
+mtime_ms = 1795175131699
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/93a553e6-13cf-4948-ad20-9476062ff76f/6e8215c1-9ec3-41b0-9fbe-c603bc22b59e"
+storage_version_token = "1795175208446341"
+content_type = "image/png"
+
+[[outputs]]
+id = "2lZlCdUOIWKOfmD3INnik"
+uri = "file://generated-artifacts/app-store-media/academik-iphone-library.png"
+type = "image"
+title = "Academik — iPhone — Bibliothèque"
+description = "PNG 1206 × 2622 px. Visuel marketing en français; les recherches affichées sont des exemples."
+logical_id = "ad7be3b6-ba5b-4304-97dc-9a27a9c0faf8"
+content_hash = "sha256:48d7dd31a5c9da6687fe3344b5f24f0ed168be306d90412f87d803027c3ce84d"
+size = 293225
+mtime_ms = 1795175134307
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/ad7be3b6-ba5b-4304-97dc-9a27a9c0faf8/fba99976-49e5-4615-9469-751fe8af38f5"
+storage_version_token = "1795175209193184"
+content_type = "image/png"
+
+[[outputs]]
+id = "rv0UhNu5zM1shOfcZBmvu"
+uri = "file://generated-artifacts/app-store-media/academik-ipad-search.png"
+type = "image"
+title = "Academik — iPad — Recherche"
+description = "PNG 2048 × 2732 px. Visuel marketing en français; les données affichées sont des exemples."
+logical_id = "171afdc6-6146-4a7c-a2b5-972ded8f2605"
+content_hash = "sha256:1d9fe846a93e7475c1aabc7dc89e1c671e4a2a16a9e6eb861cd81cffa1f54afc"
+size = 286436
+mtime_ms = 1795175128083
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/171afdc6-6146-4a7c-a2b5-972ded8f2605/8275b867-daa5-42f2-9ba3-8261fae0dd25"
+storage_version_token = "1795175209792949"
+content_type = "image/png"
+
+[[outputs]]
+id = "hQSLnh-Mw3q07EUyyaZz7"
+uri = "file://generated-artifacts/app-store-media/academik-ipad-results.png"
+type = "image"
+title = "Academik — iPad — Résultats"
+description = "PNG 2048 × 2732 px. Visuel marketing en français; les données affichées sont des exemples."
+logical_id = "ae0a654f-d316-4890-aa75-cce583000aef"
+content_hash = "sha256:035cb3f4cf770af75bf317fcb69b03af534a5598150607d8392da26b9f9f31f7"
+size = 332891
+mtime_ms = 1795175130643
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/ae0a654f-d316-4890-aa75-cce583000aef/01622899-d32e-4e5a-9ce5-fb6f87aff910"
+storage_version_token = "1795175210503344"
+content_type = "image/png"
+
+[[outputs]]
+id = "hkZL_SsHX67l_gYpJfXTM"
+uri = "file://generated-artifacts/app-store-media/academik-ipad-analysis.png"
+type = "image"
+title = "Academik — iPad — Analyse"
+description = "PNG 2048 × 2732 px. Visuel marketing en français; la synthèse affichée est un exemple."
+logical_id = "244574db-7566-483d-b0bf-01c73860c73c"
+content_hash = "sha256:bb179d07fde378f08b4c4f6d67d1ac9c371c43255073d4fb43c7a68c89669e38"
+size = 315990
+mtime_ms = 1795175133315
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/244574db-7566-483d-b0bf-01c73860c73c/e5b18b50-5e72-4f17-af02-eacc961614f0"
+storage_version_token = "1795175211505487"
+content_type = "image/png"
+
+[[outputs]]
+id = "_Y8SbZYtwHJILYFVyqEov"
+uri = "file://generated-artifacts/app-store-media/academik-ipad-library.png"
+type = "image"
+title = "Academik — iPad — Bibliothèque"
+description = "PNG 2048 × 2732 px. Visuel marketing en français; les recherches affichées sont des exemples."
+logical_id = "3644ca32-023e-4cb3-a5d8-cfbf7222d13a"
+content_hash = "sha256:eeb3b2aa12bba8a2e27a9ed8dc38380eb93ea077541cb1e2b87817bbb63b53d8"
+size = 303411
+mtime_ms = 1795175135763
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:9a5eaf13-3521-4c7e-99ff-cea73b898132/3644ca32-023e-4cb3-a5d8-cfbf7222d13a/61c9211a-2665-4f54-8ee7-b67af13748f0"
+storage_version_token = "1795175212139857"
+content_type = "image/png"
