@@ -1,0 +1,23 @@
+// Applied after Expo's generated Android configuration. Do not embed credentials.
+def requiredValue = { String name ->
+    def value = System.getenv(name)
+    if (value == null || value.isEmpty()) {
+        throw new GradleException("Missing required Codemagic variable: " + name)
+    }
+    return value
+}
+
+def releaseStore = new File(requiredValue("CM_KEYSTORE_PATH"))
+if (!releaseStore.isFile()) {
+    throw new GradleException("Codemagic Android upload keystore is missing.")
+}
+if (android.defaultConfig.applicationId != "fr.academik.app") {
+    throw new GradleException("Refusing to build a different Android application ID.")
+}
+
+def uploadSigning = android.signingConfigs.maybeCreate("codemagicUpload")
+uploadSigning.storeFile = releaseStore
+uploadSigning.storePassword = requiredValue("CM_KEYSTORE_PASSWORD")
+uploadSigning.keyAlias = requiredValue("CM_KEY_ALIAS")
+uploadSigning.keyPassword = requiredValue("CM_KEY_PASSWORD")
+android.buildTypes.getByName("release").signingConfig = uploadSigning
