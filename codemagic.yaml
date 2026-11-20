@@ -77,8 +77,8 @@ workflows:
         # in this Codemagic group. See docs/codemagic-android.md.
         - academik_android
       android_signing:
-        # Import the SAME upload keystore used for the earlier Google Play build.
-        # Never generate a replacement key for an existing Play listing.
+        # Use the original upload key, or its replacement AFTER Google approves
+        # the upload-key reset. Never substitute another app's key.
         - academik_android_upload
       vars:
         EXPO_PUBLIC_DOMAIN: academik.fr
@@ -133,3 +133,24 @@ workflows:
       - build/android/*.aab
       - build/android/signature-verification.txt
       - android/app/build/outputs/mapping/release/mapping.txt
+
+  academik-generate-upload-key:
+    name: Academik - Create Android upload key
+    max_build_duration: 15
+    instance_type: mac_mini_m2
+    environment:
+      java: 17
+      groups:
+        # Add ACADEMIK_UPLOAD_PASSWORD as a Secret in this dedicated group.
+        - academik_key_recovery
+    scripts:
+      - name: Generate upload keystore and public certificate
+        script: |
+          # No dependencies, existing keystore, Apple integration or app build needed.
+          bash "$CM_BUILD_DIR/artifacts/academik-mobile/scripts/generate-upload-key.sh"
+    artifacts:
+      # The JKS contains a private key: restrict access to build artifacts,
+      # download a backup, and never commit it to Git or upload it to Google Play.
+      - generated-artifacts/academik-upload-key/academik-upload.jks
+      - generated-artifacts/academik-upload-key/upload_certificate.pem
+      - generated-artifacts/academik-upload-key/certificate-fingerprints.txt

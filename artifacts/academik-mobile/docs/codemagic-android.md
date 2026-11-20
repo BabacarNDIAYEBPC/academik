@@ -19,6 +19,36 @@ and the upload certificate may differ: compare the **upload** certificate.
 If the original upload key is lost, resolve the upload-key recovery/reset with
 Google Play before expecting an update with another key to be accepted.
 
+### Lost key: generate a replacement without Android Studio
+
+The separate workflow **Academik - Create Android upload key** only generates
+key material. It does not compile the app, submit a reset request, or change
+Google Play's app signing key.
+
+1. In Codemagic Environment variables, create the group `academik_key_recovery`.
+2. Add `ACADEMIK_UPLOAD_PASSWORD`, choose a strong password of at least 12
+   characters, and check **Secret**. Save it in your password manager as well.
+3. On the branch containing this configuration, manually run
+   **Academik - Create Android upload key**. No Android signing identity or
+   RevenueCat variable is needed for this workflow.
+4. Download the three files from Artifacts. The JKS is private: only authorized
+   team members should have access to these build artifacts. Keep a durable,
+   secure backup of the JKS and the password; do not rely on artifact retention.
+5. In Google Play's **upload-key reset** dialog, choose the lost-key reason and
+   upload only `upload_certificate.pem`. The `.pem` is a public certificate,
+   not the private signing key. Never upload the JKS in this dialog.
+6. After Google's approval **and stated activation time**, import the
+   matching `academik-upload.jks` under Codemagic Android keystores:
+   - Reference: `academik_android_upload`
+   - Key alias: `academik-upload`
+   - Keystore password and key password: the SAME `ACADEMIK_UPLOAD_PASSWORD`
+     chosen in step 2; enter it directly in Codemagic.
+7. Resume the normal signed AAB workflow below.
+
+Each run generates a DIFFERENT key and certificate. Run once and keep those
+matching files together. Do not rerun after submitting a certificate to Google.
+This replaces the **upload key**, not Google's app signing key.
+
 ### 2. Create the variable group `academik_android`
 
 Add:

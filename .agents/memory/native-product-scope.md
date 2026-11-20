@@ -15,6 +15,17 @@ comme une acceptation acquise des stores.
 protégées selon leurs droits, et distinguer ce qui est implémenté de ce qui dépend
 des comptes développeur, de leurs déclarations et de la revue des stores.
 
+Le propriétaire a perdu le fichier JKS d’importation Android d’Academik et a choisi
+de préparer une nouvelle clé dans Codemagic, sans installer Android Studio.
+
+**Why:** le propriétaire a signalé la perte ; Google Play affiche la signature
+gérée par Play et une demande de réinitialisation de la clé d’importation.
+
+**How to apply:** conserver la fiche Android existante et distinguer la clé
+d’importation de la clé de signature gérée par Google. Attendre l’approbation et
+l’activation de la nouvelle clé avant d’annoncer qu’une mise à jour peut être envoyée.
+Ne jamais substituer une clé d’un autre produit ni supposer la réinitialisation faite.
+
 Le propriétaire dispose d’une adhésion Apple Developer active et d’un compte
 Google Play Console actif.
 
