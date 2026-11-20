@@ -23,19 +23,14 @@ workflows:
       vars:
         EXPO_PUBLIC_DOMAIN: academik.fr
         XCODE_SCHEME: Academik
-        # This workflow deliberately uses the pinned pnpm, not Codemagic's parent Yarn setting.
-        COREPACK_ENABLE_PROJECT_SPEC: "0"
 
     scripts:
       - name: Install workspace dependencies
         script: |
-          npm install --global corepack@0.31.0
-          corepack enable
-          corepack prepare pnpm@10.26.1 --activate
-          pnpm --dir "$CM_BUILD_DIR" install --frozen-lockfile
+          npm exec --yes --package=pnpm@10.26.1 -- pnpm --dir "$CM_BUILD_DIR" install --frozen-lockfile
 
       - name: Generate the iOS project from Expo
-        script: pnpm exec expo prebuild --platform ios --no-install
+        script: npm exec --yes --package=pnpm@10.26.1 -- pnpm --dir "$CM_BUILD_DIR/artifacts/academik-mobile" exec expo prebuild --platform ios --no-install
 
       - name: Install CocoaPods dependencies
         script: cd ios && pod install
